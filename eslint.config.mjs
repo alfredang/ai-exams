@@ -12,7 +12,6 @@ const config = [
       'next-env.d.ts',
       'tsconfig.tsbuildinfo',
       'prisma/migrations/**',
-      'scripts/generated-seeds/**',
       'src/lib/seed/**'
     ]
   },

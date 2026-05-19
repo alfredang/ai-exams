@@ -30,8 +30,8 @@ services:
       PAYPAL_WEBHOOK_ID: ${PAYPAL_WEBHOOK_ID:-}
       NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-sb}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe!2026}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-ChangeMe!2026}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-angch@tertiaryinfotech.com}
     ports: ["3000:3000"]
 
 volumes:

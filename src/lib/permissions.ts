@@ -5,6 +5,7 @@ import type { Role } from '@prisma/client';
  * `<domain>.<resource>.<action>` or `<domain>.<action>` for simple ones.
  */
 export type Permission =
+  | 'admin.full'
   | 'admin.access'        // can enter /admin-dashboard at all
   | 'exam.read'
   | 'exam.write'
@@ -20,6 +21,7 @@ export type Permission =
   | 'voucher.write'
   | 'user.read'
   | 'user.write'
+  | 'user.export'
   | 'user.impersonate'
   | 'user.anonymize'
   | 'settings.read'
@@ -31,13 +33,14 @@ export type Permission =
   | 'api-token.write';
 
 const FULL: Permission[] = [
+  'admin.full',
   'admin.access',
   'exam.read', 'exam.write', 'exam.publish',
   'order.read', 'order.refund', 'order.delete',
   'invoice.read', 'invoice.write',
   'coupon.read', 'coupon.write',
   'voucher.read', 'voucher.write',
-  'user.read', 'user.write', 'user.impersonate', 'user.anonymize',
+  'user.read', 'user.write', 'user.export', 'user.impersonate', 'user.anonymize',
   'settings.read', 'settings.write',
   'reports.read', 'webhook.read', 'audit.read',
   'api-token.read', 'api-token.write'

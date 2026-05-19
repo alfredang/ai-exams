@@ -8,48 +8,47 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "generate:exam": "tsx scripts/generate-questions.ts"
+    "content:seed": "tsx scripts/content/seed-all-content.ts",
+    "clean:generated": "node scripts/maintenance/clean-generated.mjs",
+    "clean:deps": "node scripts/maintenance/clean-dependencies.mjs",
+    "generate:exam": "tsx scripts/generation/generate-questions.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+  "overrides": {
+    "postcss": "$postcss"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",
     "@auth/prisma-adapter": "^2.7.0",
-    "@hookform/resolvers": "^3.9.0",
     "@paypal/react-paypal-js": "^8.7.0",
     "@prisma/client": "^6.19.3",
-    "@radix-ui/react-accordion": "^1.2.0",
-    "@radix-ui/react-dialog": "^1.1.0",
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-slot": "^1.1.0",
     "argon2": "^0.41.1",
-    "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "handlebars": "^4.7.9",
     "lucide-react": "^0.460.0",
     "next": "^16.2.6",
-    "next-auth": "5.0.0-beta.25",
-    "nodemailer": "^6.9.16",
+    "next-auth": "^5.0.0-beta.31",
+    "nodemailer": "^8.0.7",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "qrcode": "^1.5.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-hook-form": "^7.53.0",
+    "sanitize-html": "^2.17.4",
     "tailwind-merge": "^2.5.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
-    "@types/nodemailer": "^6.4.16",
+    "@types/nodemailer": "^8.0.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/sanitize-html": "^2.16.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.15.0",
     "eslint-config-next": "^16.2.6",
@@ -57,6 +56,7 @@
     "prisma": "^6.19.3",
     "tailwindcss": "^3.4.15",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.6"
   }
 }

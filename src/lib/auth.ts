@@ -11,7 +11,7 @@ import { verifyOtp } from './otp';
 import { authConfig } from './auth.config';
 import { getAllSettings } from './settings';
 
-export const SUPER_ADMIN_EMAIL = 'angch@tertiaryinfotech.com';
+export const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL ?? 'angch@tertiaryinfotech.com').toLowerCase().trim();
 export function isSuperAdmin(email?: string | null): boolean {
   return !!email && email.toLowerCase().trim() === SUPER_ADMIN_EMAIL;
 }

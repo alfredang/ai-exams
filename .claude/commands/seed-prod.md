@@ -18,6 +18,9 @@ If any of these are not true, stop and fix that first — `/seed-prod` only fire
 Run these shell commands in sequence from this repo's working directory:
 
 ```bash
+export SEED_ADMIN_EMAIL="<admin-email>"
+export SEED_ADMIN_PASSWORD="<admin-password>"
+
 # 1. Fetch CSRF token
 curl -sS -c /tmp/seed-cookies.txt https://ai-exams.tertiaryinfo.tech/api/auth/csrf -o /tmp/seed-csrf.json
 CSRF=$(jq -r .csrfToken /tmp/seed-csrf.json)
@@ -28,8 +31,8 @@ curl -sS -c /tmp/seed-cookies.txt -b /tmp/seed-cookies.txt \
   -X POST https://ai-exams.tertiaryinfo.tech/api/auth/callback/password \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "csrfToken=$CSRF" \
-  --data-urlencode "email=angch@tertiaryinfotech.com" \
-  --data-urlencode "password=password123" \
+  --data-urlencode "email=$SEED_ADMIN_EMAIL" \
+  --data-urlencode "password=$SEED_ADMIN_PASSWORD" \
   --data-urlencode "callbackUrl=https://ai-exams.tertiaryinfo.tech/admin-dashboard" \
   -w "login HTTP=%{http_code}\n" -o /dev/null
 
@@ -43,7 +46,7 @@ curl -sS -b /tmp/seed-cookies.txt \
 
 - **HTTP 200** with `{ ok: true, vendor, bundle, exams: [...] }` → success. Report the per-exam `questionCount` / `teaserCount` back to the user.
 - **HTTP 404** → the new route is not deployed yet. The Coolify auto-deploy on push to `main` typically takes ~1–2 minutes; retry once. If it's still 404 after a few minutes, the deploy probably failed — check Coolify rather than retrying blindly.
-- **HTTP 403** → the admin login step failed (login HTTP was probably 302 to `/login?error=...`). Re-verify the credentials provider id is `password` and the email/password match the seeded admin in [prisma/seed.ts](prisma/seed.ts).
+- **HTTP 403** → the admin login step failed (login HTTP was probably 302 to `/login?error=...`). Re-verify the credentials provider id is `password` and the email/password match an existing admin. For seeded admins, the password comes from `SEED_ADMIN_PASSWORD`.
 - **HTTP 500** → check the response body for the Prisma error. Often a schema drift or a missing `generatedBy` tag mismatch.
 
 The session cookie name on production is `__Secure-authjs.session-token` (NextAuth v5 / authjs). Don't hardcode it — the cookie jar `-c /tmp/seed-cookies.txt` handles it.

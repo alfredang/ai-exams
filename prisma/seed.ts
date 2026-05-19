@@ -797,7 +797,7 @@ const EXAMS: ExamSeed[] = [
     ]
   },
   // ───── Anthropic — Claude Certified Architect — Foundations ─────
-  // Single consolidated exam (slug matches scripts/seed-cca-foundations.ts).
+  // Single consolidated exam (slug matches content/question-banks/seed-cca-foundations.json).
   {
     vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations', code: 'CCA-F',
     title: 'Claude Certified Architect — Foundations',
@@ -912,21 +912,36 @@ const EXAMS: ExamSeed[] = [
 ];
 
 async function main() {
-  const admins: { email: string; name: string; password: string }[] = [
-    { email: 'angch@tertiaryinfotech.com', name: 'Alfred Ang', password: 'password123' },
-    { email: 'marcus@tertiaryinfotech.com', name: 'Marcus', password: 'password123' }
+  const admins: { email: string; name: string }[] = [
+    { email: 'angch@tertiaryinfotech.com', name: 'Alfred Ang' },
+    { email: 'marcus@tertiaryinfotech.com', name: 'Marcus' }
   ];
+  const seedAdminPassword =
+    process.env.SEED_ADMIN_PASSWORD ?? (process.env.NODE_ENV === 'production' ? undefined : 'password123');
+
   for (const a of admins) {
-    const passwordHash = await argon2.hash(a.password);
-    await db.user.upsert({
-      where: { email: a.email },
-      update: { name: a.name, role: Role.ADMIN, emailVerified: new Date(), passwordHash },
-      create: {
+    const passwordHash = seedAdminPassword ? await argon2.hash(seedAdminPassword) : undefined;
+    const existing = await db.user.findUnique({ where: { email: a.email } });
+    const userData = { name: a.name, role: Role.ADMIN, emailVerified: new Date() };
+
+    if (existing) {
+      await db.user.update({
+        where: { email: a.email },
+        data: passwordHash ? { ...userData, passwordHash } : userData
+      });
+      continue;
+    }
+
+    if (!passwordHash) {
+      console.warn(`Skipping seeded admin ${a.email}; set SEED_ADMIN_PASSWORD to create password login.`);
+      continue;
+    }
+
+    await db.user.create({
+      data: {
         email: a.email,
-        name: a.name,
         passwordHash,
-        role: Role.ADMIN,
-        emailVerified: new Date()
+        ...userData
       }
     });
   }

@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 
 const PREFIX = 'examnova_';
 
+export const API_TOKEN_FLASH_COOKIE = 'examnova_api_token_flash';
+
 export function hashToken(raw: string): string {
   return crypto.createHash('sha256').update(raw).digest('hex');
 }

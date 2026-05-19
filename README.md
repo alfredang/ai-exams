@@ -2,24 +2,16 @@
 
 # ExamNova
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Auth.js](https://img.shields.io/badge/Auth.js-v5-green)](https://authjs.dev/)
 
-Practice smarter for your next certification. End-to-end e-commerce admin + AI-assisted question authoring on Next.js 15.
+Practice smarter for your next certification. End-to-end e-commerce admin + AI-assisted question authoring on Next.js 16.
 
 </div>
-
----
-
-## Screenshot
-
-![Screenshot](screenshot.png)
-
----
 
 ## What it does
 
@@ -39,6 +31,7 @@ npm install --legacy-peer-deps
 cp .env.example .env                       # set DATABASE_URL host port to 55432
 npx prisma migrate dev --name init
 npm run db:seed                            # admin + sample exams
+npm run content:seed                       # optional: load full question banks
 npm run dev -- -p 3040 -H 127.0.0.1
 ```
 
@@ -79,7 +72,7 @@ Approve/Discard each generated question before it lands in the bank.
 
 ## Architecture
 
-Single Next.js 15 (App Router) app — server actions, edge-safe middleware split, SSE streaming for AI generation.
+Single Next.js 16 (App Router) app — server actions, edge-safe middleware split, SSE streaming for AI generation.
 
 - **Auth** — Auth.js v5 with three providers: password (argon2id), OTP, Google + GitHub OAuth (configurable from admin Settings → Social Login)
 - **DB** — Prisma + Postgres (`models`: User, Exam, Vendor, Question, Bundle, Order, Invoice, Refund, Coupon, Entitlement, VoucherInventory, VoucherDelivery, EmailLog, AdminLog, AdminNotification, ApiToken, …)
@@ -118,6 +111,12 @@ Project-level [.claude/skills/](.claude/skills/) and [.claude/agents/](.claude/a
 prisma/
   schema.prisma                # full data model (25+ models)
   migrations/                  # all reversible Prisma migrations
+content/
+  question-banks/              # JSON question banks loaded by npm run content:seed
+scripts/
+  content/                     # content importers and manifest runner
+  generation/                  # Claude generation CLI
+  maintenance/                 # cleanup, invoice backfill, SEO population
 src/
   app/
     admin-dashboard/           # admin backend — see route list above
@@ -147,16 +146,21 @@ src/
 
 ## Testing
 
-There is no automated test runner. Manual verification flows:
+Automated checks:
+
+- `npm run typecheck`
+- `npm test`
+
+Manual verification flows:
 
 - Local dev server `npm run dev -- -p 3040 -H 127.0.0.1`
 - Playwright MCP for E2E smoke (homepage / catalog / exam detail / sitemap / login)
 - Mailhog at `http://127.0.0.1:8025` for outbound emails
-- Stripe / PayPal sandbox for payment flows
+- PayPal, HitPay, and PayNow sandbox/manual payment flows
 
 ## Deploy
 
-Coolify-ready via [Dockerfile](Dockerfile) (multi-stage, Next standalone). Container runs `prisma migrate deploy` before `node server.js`. Set `NEXTAUTH_URL`, `DATABASE_URL`, and the worker secret as env vars; all other configuration is admin-managed.
+Coolify-ready via [Dockerfile](Dockerfile) (multi-stage, Next standalone). Container runs `prisma migrate deploy` before `node server.js`. Set `NEXTAUTH_URL`, `DATABASE_URL`, `SEED_ADMIN_PASSWORD`, and the worker secret as env vars; all other configuration is admin-managed.
 
 ---
 

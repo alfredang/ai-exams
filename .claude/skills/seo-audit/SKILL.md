@@ -36,7 +36,7 @@ For each route, fetch the rendered HTML at `http://127.0.0.1:3040<path>` and ext
 ## 3. DB-side meta coverage
 
 Use the Prisma client (`tsx scripts/<name>.ts`) to compute:
-- Number of `Exam` rows with `published=true && deletedAt=null && metaTitle IS NULL` — those need SEO populated via the AI Assist button on the exam edit page or the batch script `scripts/seo-populate.ts` (create if missing).
+- Number of `Exam` rows with `published=true && deletedAt=null && metaTitle IS NULL` — those need SEO populated via the AI Assist button on the exam edit page or the batch script `scripts/maintenance/seo-populate.ts` (create if missing).
 - Number of `Page` rows with `published=true && metaTitle IS NULL`.
 
 ## 4. Per-exam structured data

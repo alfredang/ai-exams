@@ -19,6 +19,7 @@ ENV PORT=3000
 RUN apk add --no-cache openssl
 RUN addgroup -S nodejs -g 1001 && adduser -S nextjs -u 1001
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/content ./content
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
@@ -33,9 +34,9 @@ EXPOSE 3000
 #   3) start the Next.js server
 # Step 2 is idempotent — re-running on every boot is a no-op once data exists.
 #
-# scripts/seed-all-content.ts is intentionally NOT in the boot chain. It
-# runs dozens of question-seeding scripts which are slow and brittle in
-# aggregate; if any one fails the whole boot fails and Coolify serves 502.
+# scripts/content/seed-all-content.ts is intentionally NOT in the boot chain.
+# It loads the large question-bank JSON files and can take long enough that a
+# failed content run would turn an otherwise healthy deploy into a 502.
 # Run it manually when you need to refill question content:
-#   docker exec <container> npx tsx scripts/seed-all-content.ts
+#   docker exec <container> npm run content:seed
 CMD ["sh", "-c", "node ./node_modules/prisma/build/index.js migrate deploy && npx tsx prisma/seed.ts && node server.js"]

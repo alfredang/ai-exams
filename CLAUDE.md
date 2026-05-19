@@ -109,6 +109,9 @@ For every new bundle `xyz` (mirror [src/lib/seed/ckad-questions.ts](src/lib/seed
 6. Seed production from this machine:
 
 ```bash
+export SEED_ADMIN_EMAIL="<admin-email>"
+export SEED_ADMIN_PASSWORD="<admin-password>"
+
 # 1. CSRF
 curl -sS -c /tmp/cookies.txt https://ai-exams.tertiaryinfo.tech/api/auth/csrf -o /tmp/csrf.json
 CSRF=$(jq -r .csrfToken /tmp/csrf.json)
@@ -118,8 +121,8 @@ curl -sS -c /tmp/cookies.txt -b /tmp/cookies.txt \
   -X POST https://ai-exams.tertiaryinfo.tech/api/auth/callback/password \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "csrfToken=$CSRF" \
-  --data-urlencode "email=angch@tertiaryinfotech.com" \
-  --data-urlencode "password=password123" \
+  --data-urlencode "email=$SEED_ADMIN_EMAIL" \
+  --data-urlencode "password=$SEED_ADMIN_PASSWORD" \
   --data-urlencode "callbackUrl=https://ai-exams.tertiaryinfo.tech/admin-dashboard"
 
 # 3. Fire the seed (idempotent)
