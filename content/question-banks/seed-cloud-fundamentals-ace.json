@@ -1,0 +1,289 @@
+{
+  "sourceScript": "converted-from:seed-cloud-fundamentals.ts",
+  "examSlug": "google-associate-cloud-engineer",
+  "arrayName": "ACE",
+  "tag": "manual:cloud-fundamentals",
+  "duplicateStrategy": "examHasQuestions",
+  "defaultDifficulty": 3,
+  "defaultType": "SINGLE",
+  "defaultStatus": "PUBLISHED",
+  "teaserCount": 10,
+  "defaultReferences": [
+    {
+      "label": "Google Cloud — Associate Cloud Engineer",
+      "url": "https://cloud.google.com/learn/certification/cloud-engineer"
+    }
+  ],
+  "questions": [
+    {
+      "domain": "Setting up a cloud solution environment",
+      "type": "SINGLE",
+      "stem": "Your organization wants to organize Google Cloud resources for development, staging, and production environments while applying different IAM policies and billing to each. What is the recommended structure?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use a single project with separate VPCs for each environment."
+        },
+        {
+          "id": "B",
+          "text": "Use separate projects for each environment, organized under folders within an organization."
+        },
+        {
+          "id": "C",
+          "text": "Use a single project with resource labels to differentiate environments."
+        },
+        {
+          "id": "D",
+          "text": "Use separate organizations for each environment."
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "Best practice is to isolate environments at the project level so IAM, billing, and quotas are scoped independently. Folders allow grouping projects (e.g., dev/staging/prod) under an organization. A single project means shared IAM and billing — the opposite of what is needed. Separate organizations is overkill and creates cross-org admin overhead."
+    },
+    {
+      "domain": "Setting up a cloud solution environment",
+      "type": "SINGLE",
+      "stem": "You need to install the gcloud CLI on a developer's workstation and authenticate it to run commands against your project. Which command initializes gcloud and signs you in?",
+      "options": [
+        {
+          "id": "A",
+          "text": "`gcloud auth login`"
+        },
+        {
+          "id": "B",
+          "text": "`gcloud init`"
+        },
+        {
+          "id": "C",
+          "text": "`gcloud config set project PROJECT_ID`"
+        },
+        {
+          "id": "D",
+          "text": "`gcloud components install`"
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "`gcloud init` is the interactive setup that authenticates and configures the default project, region, and zone — it is the canonical first-run command. `gcloud auth login` only handles authentication. `gcloud config set project` only sets the active project. `gcloud components install` manages CLI components, not initial setup."
+    },
+    {
+      "domain": "Planning and configuring a cloud solution",
+      "type": "SINGLE",
+      "stem": "A workload has unpredictable traffic spikes and you want to minimize cost while ensuring it scales to handle bursts. Which Compute Engine option best supports this?",
+      "options": [
+        {
+          "id": "A",
+          "text": "A managed instance group (MIG) with autoscaling enabled."
+        },
+        {
+          "id": "B",
+          "text": "A single high-CPU VM provisioned for peak load."
+        },
+        {
+          "id": "C",
+          "text": "A reservation with a 3-year commitment."
+        },
+        {
+          "id": "D",
+          "text": "Sole-tenant nodes."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "MIGs with autoscaling automatically add and remove instances based on metrics like CPU utilization, matching capacity to demand and minimizing idle cost. A peak-sized single VM wastes capacity at low load. A 3-year commitment saves money for steady-state usage but does not help with bursts. Sole-tenant nodes are for compliance or licensing isolation, not autoscaling."
+    },
+    {
+      "domain": "Planning and configuring a cloud solution",
+      "type": "SINGLE",
+      "stem": "You need to estimate the monthly cost of a proposed Google Cloud architecture before deploying it. Which tool should you use?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cloud Billing reports"
+        },
+        {
+          "id": "B",
+          "text": "Google Cloud Pricing Calculator"
+        },
+        {
+          "id": "C",
+          "text": "Cost breakdown in the Cloud Console"
+        },
+        {
+          "id": "D",
+          "text": "Cloud Monitoring metrics"
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "The Pricing Calculator generates cost estimates from configured services before any deployment. Billing reports and Console cost breakdown show actual incurred costs after deployment. Cloud Monitoring tracks performance and availability, not pricing."
+    },
+    {
+      "domain": "Deploying and implementing a cloud solution",
+      "type": "SINGLE",
+      "stem": "You need to deploy a containerized application to Google Cloud and want Google to manage the underlying nodes, scaling, and Kubernetes control plane entirely. Which service is the best fit?",
+      "options": [
+        {
+          "id": "A",
+          "text": "GKE Standard"
+        },
+        {
+          "id": "B",
+          "text": "GKE Autopilot"
+        },
+        {
+          "id": "C",
+          "text": "Cloud Run"
+        },
+        {
+          "id": "D",
+          "text": "Compute Engine with Docker installed"
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "GKE Autopilot is the fully managed Kubernetes mode — Google manages nodes, autoscaling, and the control plane; you pay per pod. GKE Standard requires you to manage node pools. Cloud Run is excellent serverless but is not Kubernetes. Compute Engine plus Docker is full self-management."
+    },
+    {
+      "domain": "Deploying and implementing a cloud solution",
+      "type": "SINGLE",
+      "stem": "Your team uses Cloud Storage to host a static website's assets. You need to make a new bucket's contents publicly readable over HTTPS. What is the most appropriate way to grant read access to all users?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Grant `roles/storage.objectViewer` to the principal `allUsers`."
+        },
+        {
+          "id": "B",
+          "text": "Set the bucket's ACL to \"private\" and share signed URLs."
+        },
+        {
+          "id": "C",
+          "text": "Grant `roles/storage.admin` to `allAuthenticatedUsers`."
+        },
+        {
+          "id": "D",
+          "text": "Disable IAM on the bucket and rely on legacy ACLs only."
+        }
+      ],
+      "correct": [
+        "A"
+      ],
+      "explanation": "`allUsers` represents anonymous users, and `objectViewer` is the least-privilege read role — exactly what public-read requires. Signed URLs work for time-limited access, not public sites. `storage.admin` grants full control, far more than needed. Disabling IAM is not a recommended pattern."
+    },
+    {
+      "domain": "Ensuring successful operation of a cloud solution",
+      "type": "SINGLE",
+      "stem": "A production VM's CPU is sustained at 90%+ for over an hour. You want to be alerted automatically next time this happens. Which Google Cloud feature should you configure?",
+      "options": [
+        {
+          "id": "A",
+          "text": "A Cloud Logging sink"
+        },
+        {
+          "id": "B",
+          "text": "A Cloud Monitoring alerting policy with a threshold condition"
+        },
+        {
+          "id": "C",
+          "text": "A Cloud Run job triggered on a schedule"
+        },
+        {
+          "id": "D",
+          "text": "A Pub/Sub subscription"
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "Cloud Monitoring alerting policies define conditions on metrics (such as CPU > 90% for 1h) and notify configured channels when fired. Logging sinks export logs but do not compare metrics to thresholds. Cloud Run jobs run code, not alerting. Pub/Sub delivers messages but does not evaluate metric thresholds itself."
+    },
+    {
+      "domain": "Ensuring successful operation of a cloud solution",
+      "type": "SINGLE",
+      "stem": "After a production deployment, your application begins throwing 500 errors. You need to find the relevant log entries quickly. Which tool is designed for searching, filtering, and analyzing log data across Google Cloud services?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cloud Trace"
+        },
+        {
+          "id": "B",
+          "text": "Cloud Logging (Logs Explorer)"
+        },
+        {
+          "id": "C",
+          "text": "Cloud Profiler"
+        },
+        {
+          "id": "D",
+          "text": "Error Reporting"
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "Cloud Logging's Logs Explorer is the searchable interface for filtering and analyzing logs across Google Cloud services. Cloud Trace shows latency traces, not log content. Cloud Profiler analyzes CPU and memory profiles. Error Reporting groups exceptions but is downstream of Logging — Logs Explorer gives the broadest view."
+    },
+    {
+      "domain": "Configuring access and security",
+      "type": "SINGLE",
+      "stem": "You want to grant a user the ability to start and stop Compute Engine VMs but not modify their configuration. Which approach follows the principle of least privilege?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Grant the `roles/compute.admin` role at the project level."
+        },
+        {
+          "id": "B",
+          "text": "Grant the `roles/compute.instanceAdmin.v1` role at the project level."
+        },
+        {
+          "id": "C",
+          "text": "Grant the `roles/owner` role at the project level."
+        },
+        {
+          "id": "D",
+          "text": "Grant `roles/compute.viewer` plus a custom role limited to the `compute.instances.start` and `compute.instances.stop` permissions."
+        }
+      ],
+      "correct": [
+        "D"
+      ],
+      "explanation": "Least privilege requires the smallest set of permissions for the task. A custom role with just start/stop (plus viewer for reading instance state) does that. compute.admin and instanceAdmin grant broad lifecycle permissions including modification and deletion. Owner is full project access — the opposite of least privilege."
+    },
+    {
+      "domain": "Configuring access and security",
+      "type": "SINGLE",
+      "stem": "Your application running on a Compute Engine VM needs to read from a Cloud Storage bucket. What is the most secure way to grant the application this access?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Embed a service account JSON key file in the VM image."
+        },
+        {
+          "id": "B",
+          "text": "Attach a service account to the VM instance with the `roles/storage.objectViewer` role on the bucket."
+        },
+        {
+          "id": "C",
+          "text": "Use the VM owner's user credentials by running `gcloud auth login` at startup."
+        },
+        {
+          "id": "D",
+          "text": "Make the bucket publicly readable."
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "Attaching a service account with scoped IAM is the recommended pattern — credentials are managed by Google, never written to disk, and access is least-privilege. JSON keys are theft-vulnerable and a known anti-pattern. User credentials on a VM tie the workload to a person. Public buckets defeat the purpose of access control."
+    }
+  ]
+}

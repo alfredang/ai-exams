@@ -1,0 +1,47 @@
+{
+  "sourceScript": "inline:seed-clf-c02-top",
+  "examSlug": "aws-clf-c02",
+  "arrayName": "QUESTIONS",
+  "tag": "manual:clf-c02-top",
+  "duplicateStrategy": "generatedBy",
+  "defaultDifficulty": 3,
+  "defaultType": "SINGLE",
+  "defaultStatus": "PUBLISHED",
+  "teaserCount": 0,
+  "defaultReferences": [
+    {
+      "label": "IAM tutorial: Delegate access across AWS accounts using IAM roles",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html"
+    }
+  ],
+  "questions": [
+    {
+      "domain": "Security and Compliance",
+      "difficulty": 2,
+      "type": "SINGLE",
+      "stem": "An auditing team operating from a separate AWS account needs read-only access to CloudTrail logs in the production AWS account. What is the MOST secure approach?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Create an IAM user in the production account and share its long-lived access keys with the auditing team."
+        },
+        {
+          "id": "B",
+          "text": "Create an IAM role in the production account with the minimum read-only permissions needed, and configure its trust policy so the auditing account can assume the role via `sts:AssumeRole`."
+        },
+        {
+          "id": "C",
+          "text": "Make the CloudTrail logs S3 bucket public so anyone can read it."
+        },
+        {
+          "id": "D",
+          "text": "Share the production root user credentials with the auditing team for the duration of the audit."
+        }
+      ],
+      "correct": [
+        "B"
+      ],
+      "explanation": "Cross-account access via IAM roles with `sts:AssumeRole` is the documented AWS best practice. Credentials are temporary, automatically rotated, and scoped to the role's permission policy. The trust policy explicitly identifies which external principals can assume the role. Sharing long-lived IAM user keys, making the bucket public, or sharing root credentials all violate AWS security best practices."
+    }
+  ]
+}
