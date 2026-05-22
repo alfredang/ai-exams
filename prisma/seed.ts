@@ -198,6 +198,7 @@ function buildMultiVariantBundles(): BundleSeed[] {
     { slug: 'microsoft-md-102', title: 'Microsoft Endpoint Administrator (MD-102)', description: 'All 3 MD-102 practice exams in one bundle — 195 curated questions covering preparing infrastructure for devices (Microsoft Entra device identity, Intune enrollment, identity & compliance, Windows Hello for Business, Windows LAPS), managing and maintaining devices (Windows Autopilot, configuration profiles, Intune Suite add-ons, remote actions, device query), managing applications (deploy, configure, and protect apps including M365 Apps, app protection policies, and app configuration policies), and protecting devices (endpoint security policies, Microsoft Defender for Endpoint integration, and Windows / iOS / macOS / Android update management). Aligned to the official Microsoft Endpoint Administrator (MD-102) study guide (skills measured as of April 28, 2026).', variants: 3, price: 2000, priceVoucher: 16500 },
     { slug: 'microsoft-ms-102', title: 'Microsoft 365 Administrator Expert (MS-102)', description: 'All 3 MS-102 practice exams in one bundle — covering deploy & manage a Microsoft 365 tenant, implement & manage Microsoft Entra identity & access, manage security & threats with Defender XDR, and Microsoft Purview compliance.', variants: 3, price: 2000, priceVoucher: 16500 },
     { slug: 'microsoft-pl-300', title: 'Microsoft Power BI Data Analyst Associate (PL-300)', description: 'All 3 PL-300 practice exams in one bundle — covering preparing the data, modeling the data, visualizing & analyzing the data, and managing & securing Power BI assets, aligned to the official PL-300 study guide.', variants: 3, price: 2000, priceVoucher: 16500 },
+    { slug: 'microsoft-az-700', title: 'Microsoft Azure Network Engineer Associate (AZ-700)', description: 'All 3 AZ-700 practice exams in one bundle — 195 curated questions covering designing and implementing core networking infrastructure (virtual networks, IP addressing, name resolution, routing, network monitoring), connectivity services (site-to-site and point-to-site VPN, ExpressRoute, Azure Virtual WAN), application delivery services (Azure Load Balancer, Application Gateway, Front Door, Traffic Manager), private access to Azure services (Azure Private Link, private endpoints, service endpoints), and Azure network security services (network security groups, Azure Firewall, Web Application Firewall). Aligned to the official Microsoft Azure Network Engineer Associate (AZ-700) study guide (skills measured as of April 24, 2026).', variants: 3, price: 2000, priceVoucher: 16500 },
     { slug: 'cisco-ccna', title: 'Cisco Certified Network Associate (CCNA)', description: 'All 6 CCNA (200-301) practice exams in one bundle — covering networking fundamentals, IP services, security fundamentals, automation & programmability, and network access.', variants: 6, price: 2000, priceVoucher: 30000 },
     { slug: 'cisco-ccnp-encor', title: 'Cisco CCNP Enterprise Core (ENCOR 350-401)', description: 'All 2 CCNP Enterprise Core (ENCOR 350-401) practice exams in one bundle — covering architecture, virtualization, infrastructure, network assurance, security, and automation.', variants: 2, price: 2000, priceVoucher: 40000 },
     { slug: 'comptia-server-plus', title: 'CompTIA Server+', description: 'All 4 CompTIA Server+ (SK0-005) practice exams in one bundle — covering server hardware install/management, server administration, security & disaster recovery, and troubleshooting.', variants: 4, price: 2000, priceVoucher: 36900 },
@@ -1122,6 +1123,19 @@ const EXAMS: ExamSeed[] = [
       { name: 'Manage a security operations environment', weight: 40 },
       { name: 'Respond to security incidents', weight: 40 },
       { name: 'Perform threat hunting', weight: 20 }
+    ]
+  })),
+  ...(['1', '2', '3'] as const).map((n): ExamSeed => ({
+    vendorSlug: 'microsoft', slug: `microsoft-az-700-p${n}`, code: `AZ-700-P${n}`,
+    title: `Microsoft Azure Network Engineer Associate (AZ-700) — Practice Exam ${n}`,
+    description: `Practice exam ${n} of 3 for Microsoft AZ-700 — a 100-minute, 65-question, blueprint-weighted set covering designing and implementing core networking infrastructure (virtual networks, IP addressing, name resolution, routing, monitoring), connectivity services (site-to-site and point-to-site VPN, ExpressRoute, Azure Virtual WAN), application delivery services (Azure Load Balancer, Application Gateway, Front Door, Traffic Manager), private access to Azure services (Azure Private Link, private endpoints, service endpoints), and Azure network security services (network security groups, Azure Firewall, Web Application Firewall). Aligned to the official Microsoft AZ-700 study guide (skills measured as of April 24, 2026).`,
+    level: 'Associate', durationMinutes: 100, passingScore: 70, questionCount: 65,
+    domains: [
+      { name: 'Design and implement core networking infrastructure', weight: 28 },
+      { name: 'Design, implement, and manage connectivity services', weight: 22 },
+      { name: 'Design and implement application delivery services', weight: 18 },
+      { name: 'Design and implement private access to Azure services', weight: 12 },
+      { name: 'Design and implement Azure network security services', weight: 20 }
     ]
   })),
   ...(['1', '2', '3'] as const).map((n): ExamSeed => ({
