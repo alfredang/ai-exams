@@ -855,7 +855,8 @@ const EXAMS: ExamSeed[] = [
     ]
   },
   // ───── Anthropic — Claude Certified Architect — Foundations ─────
-  // Single consolidated exam (slug matches scripts/seed-cca-foundations.ts).
+  // Single consolidated exam — no multi-variant -p1/-p2 split (this cert
+  // doesn't have enough question content to warrant variants).
   {
     vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations', code: 'CCA-F',
     title: 'Claude Certified Architect — Foundations',
