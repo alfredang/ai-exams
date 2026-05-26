@@ -272,7 +272,12 @@ export function ExamRunner(props: ExamRunnerProps) {
                     sel ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
                   }`}
                 >
-                  <span>{o.text}</span>
+                  <span className="inline-flex items-baseline gap-2">
+                    <span className="shrink-0 select-none text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      {String.fromCharCode(65 + oi)}
+                    </span>
+                    <OptionText text={o.text} />
+                  </span>
                   {isAnswered && correct && (
                     <span className="shrink-0 rounded-full bg-green-600 px-2 py-0.5 text-xs font-semibold text-white">✓ Correct answer</span>
                   )}
@@ -337,4 +342,57 @@ export function ExamRunner(props: ExamRunnerProps) {
       </div>
     </div>
   );
+}
+
+/**
+ * Renders one answer-option's text. For "code-like" answers (ISO dates,
+ * identifiers, syntax-laden output snippets, CLI flags, …) it switches
+ * to a monospace font with subtle styling so the answer reads as code,
+ * not prose. For everything else it falls back to plain text.
+ *
+ * Conservative on what counts as code-like — prose answers like "A
+ * DateTimeException is thrown" (4 spaces, no code symbols) stay as
+ * prose. The detector trips only on short, syntax-heavy, or
+ * date/identifier-shaped strings.
+ */
+function OptionText({ text }: { text: string }) {
+  if (looksLikeCode(text)) {
+    return (
+      <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px] text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+        {text}
+      </code>
+    );
+  }
+  return <span>{text}</span>;
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}(?:[Tt ].+)?$/;
+const VERSION_RE = /^\d+(?:\.\d+){1,3}(?:-[\w.]+)?$/;
+const DOTTED_ID_RE = /^[a-z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+(?:\(\))?$/;
+const SCREAMING_RE = /^[A-Z][A-Z0-9_]{2,}$/;
+const CLI_FLAG_RE = /^--?[a-z][\w-]*(?:=[\S]+)?$/i;
+const CODE_TOKENS_RE = /[;{}<>=]|::|=>|->|&&|\|\||!=|==/;
+
+function looksLikeCode(text: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+
+  // Cheap structural patterns — single-line, machine-shaped tokens.
+  if (ISO_DATE_RE.test(t)) return true;
+  if (VERSION_RE.test(t)) return true;
+  if (DOTTED_ID_RE.test(t)) return true;
+  if (SCREAMING_RE.test(t)) return true;
+  if (CLI_FLAG_RE.test(t)) return true;
+
+  // Anything with code-shaped punctuation AND few spaces (= dense
+  // syntax, not prose with parenthetical remarks).
+  const spaceCount = (t.match(/ /g) || []).length;
+  if (spaceCount <= 1 && CODE_TOKENS_RE.test(t)) return true;
+
+  // Parenthesised expressions like `foo(x, y)` — only when the whole
+  // string is dominated by the call shape, not prose with a single
+  // parenthetical aside.
+  if (/^[\w.$]+\([^)]*\)$/.test(t)) return true;
+
+  return false;
 }
