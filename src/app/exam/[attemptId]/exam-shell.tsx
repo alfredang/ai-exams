@@ -14,6 +14,12 @@ export function ExamShell(props: {
   initialResponses: Record<string, RunnerResponse>;
   isGuest: boolean;
 }) {
+  // No in-attempt teaser gate and no auto-submit: the user clicks the
+  // "Submit exam" button in the header when they're ready. Per user
+  // feedback 2026-05-26, the auto-submit-on-last-answer made guests
+  // feel hijacked, and the in-attempt signup modal was redundant
+  // anyway since PR #70 fires ResultsSignupPrompt on /results for
+  // anonymous teaser submitters.
   return (
     <ExamRunner
       attemptId={props.attemptId}
@@ -24,14 +30,6 @@ export function ExamShell(props: {
       questions={props.questions}
       remainingSec={props.remainingSec}
       initialResponses={props.initialResponses}
-      // Auto-submit every teaser at completion (guests + signed-in alike).
-      // The in-attempt signup modal used to fire here for guests, but it's
-      // redundant since PR #70 added the results-page modal — and worse,
-      // it left customers stuck on Q10 (per user feedback 2026-05-26).
-      // Now finishing the teaser cleanly funnels everyone to /results,
-      // where ResultsSignupPrompt handles the conversion for anonymous
-      // viewers.
-      autoSubmitAtEnd={props.isTeaser}
     />
   );
 }
