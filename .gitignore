@@ -5,6 +5,12 @@ node_modules
 .env.*.local
 .env.prod
 .env.production
+# Ad-hoc local env dumps (contain real secrets — never commit)
+env_*
+*.env
+# Skill-manager install artifacts
+.agents/
+skills-lock.json
 .DS_Store
 dist
 *.log
