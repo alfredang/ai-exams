@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { getCompanyInfo } from '@/lib/settings';
-import { db } from '@/lib/db';
 import { getFooterPages } from '@/lib/pages';
 
 async function safeCompany() {
@@ -8,21 +7,6 @@ async function safeCompany() {
     return await getCompanyInfo();
   } catch {
     return { name: 'Tertiary Infotech Academy Pte Ltd', shortName: 'ExamNova', uen: '', address: '', email: '', tel: '', website: '' };
-  }
-}
-async function safeVendors() {
-  try {
-    // Include any vendor with at least one non-deleted exam. We don't require
-    // the exam itself to be published — a vendor may have only bundles (whose
-    // underlying parent exams sometimes stay unpublished), and we still want
-    // those vendors to be browsable from the footer.
-    return await db.vendor.findMany({
-      where: { exams: { some: { deletedAt: null } } },
-      orderBy: { name: 'asc' },
-      select: { name: true, slug: true }
-    });
-  } catch {
-    return [];
   }
 }
 async function safeFooterPages() {
@@ -34,20 +18,20 @@ async function safeFooterPages() {
 }
 
 /**
- * Full public-site footer with vendor / company / legal columns. Rendered
+ * Full public-site footer with brand / company / legal columns. Rendered
  * on marketing surfaces (homepage, /practice-exams/*, etc.) — admin and
  * app-shell routes hide it via <FooterGate>. The compact "© 2026 …" line
  * lives in <PersistentCopyright> and is shown on every page.
  */
 export async function Footer() {
-  const [company, vendors, footerPages] = await Promise.all([safeCompany(), safeVendors(), safeFooterPages()]);
+  const [company, footerPages] = await Promise.all([safeCompany(), safeFooterPages()]);
   const companyLinks = footerPages.filter((p) => p.footerGroup === 'company');
   const legalLinks = footerPages.filter((p) => p.footerGroup === 'legal');
 
   return (
     <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="container-app grid gap-8 py-10 md:grid-cols-12">
-        <div className="md:col-span-3">
+        <div className="md:col-span-4">
           <div className="mb-3 flex items-center gap-2">
             <img src="/logo-mark.png" alt="Tertiary Exams" className="h-10 w-10 shrink-0 object-contain" />
             <span className="text-base font-semibold text-slate-900 dark:text-white">Tertiary Exams</span>
@@ -59,31 +43,22 @@ export async function Footer() {
           <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
             Bundle multiple full-length practice exams with an optional discounted real-exam voucher — one purchase, full prep to test day.
           </p>
+          <a
+            href="https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-block"
+            aria-label="Download Tertiary AI Exams on the App Store"
+          >
+            <img
+              src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83"
+              alt="Download on the App Store"
+              className="h-10 w-auto"
+            />
+          </a>
         </div>
 
-        <div className="md:col-span-3">
-          <h4 className="text-sm font-semibold">Vendors</h4>
-          {vendors.length === 0 ? (
-            <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
-              <li className="text-slate-400">No vendors published yet.</li>
-            </ul>
-          ) : (
-            <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-slate-600 dark:text-slate-400">
-              {vendors.map((v) => (
-                <li key={v.slug}>
-                  <Link
-                    href={`/practice-exams/${v.slug}`}
-                    className="hover:text-slate-900 hover:underline dark:hover:text-slate-100"
-                  >
-                    {v.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="md:col-span-4">
+        <div className="md:col-span-5">
           <h4 className="text-sm font-semibold">Company</h4>
           <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
             <li className="font-medium text-slate-700 dark:text-slate-300">{company.name}</li>
@@ -114,7 +89,7 @@ export async function Footer() {
           </p>
         </div>
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-3">
           <h4 className="text-sm font-semibold">Useful Links</h4>
           <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
             <li>
