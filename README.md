@@ -8,10 +8,15 @@
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2d3748?style=flat-square&logo=prisma)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org)
 [![Claude](https://img.shields.io/badge/AI-Claude-d97757?style=flat-square&logo=anthropic)](https://www.anthropic.com)
+[![Download on the App Store](https://img.shields.io/badge/Download_on_the-App_Store-0D96F6?style=flat-square&logo=apple)](https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308)
 
 **Practice smarter for your next certification.**
 
-[Live Site](https://exams.tertiaryinfotech.com) · [Catalog](https://exams.tertiaryinfotech.com/practice-exams)
+[Live Site](https://exams.tertiaryinfotech.com) · [Catalog](https://exams.tertiaryinfotech.com/practice-exams) · [iOS App](https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308)
+
+<a href="https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308">
+  <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download Tertiary AI Exams on the App Store" height="48" />
+</a>
 
 </div>
 
