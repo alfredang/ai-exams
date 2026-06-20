@@ -31,8 +31,8 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="container-app grid gap-x-6 gap-y-10 py-12 sm:grid-cols-2 md:grid-cols-12">
-        <div className="sm:col-span-2 md:col-span-3">
+      <div className="container-app flex flex-col gap-10 py-12 md:flex-row md:items-start md:justify-between md:gap-x-12">
+        <div className="md:max-w-sm">
           <div className="mb-3 flex items-center gap-2">
             <img src="/logo-mark.png" alt="Tertiary Exams" className="h-10 w-10 shrink-0 object-contain" />
             <span className="text-base font-semibold text-slate-900 dark:text-white">Tertiary Exams</span>
@@ -46,7 +46,8 @@ export async function Footer() {
           </p>
         </div>
 
-        <div className="md:col-span-3">
+        <div className="flex flex-col gap-10 sm:flex-row sm:gap-x-12 lg:gap-x-16">
+        <div className="sm:w-56">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Company</h4>
           <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
             <li className="font-medium text-slate-700 dark:text-slate-300">{company.name}</li>
@@ -88,7 +89,7 @@ export async function Footer() {
           </ul>
         </div>
 
-        <div className="md:col-span-2">
+        <div className="sm:w-36">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Useful Links</h4>
           <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
             <li>
@@ -121,7 +122,7 @@ export async function Footer() {
           </ul>
         </div>
 
-        <div className="md:col-span-4">
+        <div className="sm:w-64">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Legal</h4>
           <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
             Original practice questions for learning and exam preparation. Not affiliated with AWS, Microsoft, Cisco, CompTIA,
@@ -141,6 +142,7 @@ export async function Footer() {
               className="h-10 w-auto"
             />
           </a>
+        </div>
         </div>
       </div>
     </footer>
