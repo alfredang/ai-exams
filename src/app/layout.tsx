@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { Nav } from '@/components/nav';
 import { Footer, PersistentCopyright } from '@/components/footer';
 import { FooterGate } from '@/components/footer-gate';
+import { WhatsAppWidget } from '@/components/whatsapp-widget';
 import { AuthProvider } from '@/components/session-provider';
 import { getAllSettings } from '@/lib/settings';
 
@@ -16,6 +17,12 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 // prefer it via array order (Next.js emits both <meta> tags).
 const SOCIAL_IMAGE_PRIMARY = '/og-image.png';
 const SOCIAL_IMAGE_FALLBACK = '/hero.webp';
+
+// Absolute base for OG/Twitter image URLs and canonical links. Without this,
+// Next emits relative image paths and some social scrapers fail to resolve
+// them. Mirrors the base resolution used by robots.ts / sitemap.
+const SITE_URL =
+  process.env.NEXTAUTH_URL?.replace(/\/$/, '') || 'https://exams.tertiaryinfotech.com';
 
 export async function generateMetadata(): Promise<Metadata> {
   const fallbackTitle = 'Tertiary Exams — Practice Smarter for Your Next Certification';
@@ -32,6 +39,8 @@ export async function generateMetadata(): Promise<Metadata> {
     const ogTitle = s.SITE_HOME_TITLE || siteName;
     const ogDescription = s.SITE_HOME_DESCRIPTION || fallbackOgDescription;
     return {
+      metadataBase: new URL(SITE_URL),
+      alternates: { canonical: '/' },
       title,
       description: s.SITE_HOME_DESCRIPTION || fallbackDescription,
       keywords: s.SITE_HOME_KEYWORDS || fallbackKeywords,
@@ -54,6 +63,8 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch {
     return {
+      metadataBase: new URL(SITE_URL),
+      alternates: { canonical: '/' },
       title: fallbackTitle,
       description: fallbackDescription,
       keywords: fallbackKeywords,
@@ -99,6 +110,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         <Script id="theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
+        <script
+          type="application/ld+json"
+          // Site-wide Organization + WebSite structured data. Helps Google
+          // render a knowledge panel and the sitelinks search box.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'Tertiary Exams',
+                legalName: 'Tertiary Infotech Academy Pte Ltd',
+                url: SITE_URL,
+                logo: `${SITE_URL}/logo-mark.png`
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'Tertiary Exams',
+                url: SITE_URL,
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: `${SITE_URL}/practice-exams?q={search_term_string}`,
+                  'query-input': 'required name=search_term_string'
+                }
+              }
+            ])
+          }}
+        />
         {plausibleDomain && (
           <Script
             defer
@@ -114,6 +153,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
           </FooterGate>
           <PersistentCopyright />
+          <WhatsAppWidget />
         </AuthProvider>
       </body>
     </html>

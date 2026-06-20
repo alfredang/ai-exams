@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MapPin, Mail, Phone } from 'lucide-react';
 import { getCompanyInfo } from '@/lib/settings';
 import { getFooterPages } from '@/lib/pages';
 
@@ -30,8 +31,8 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="container-app grid gap-8 py-10 md:grid-cols-12">
-        <div className="md:col-span-4">
+      <div className="container-app grid gap-x-8 gap-y-10 py-12 sm:grid-cols-2 md:grid-cols-12">
+        <div className="sm:col-span-2 md:col-span-5">
           <div className="mb-3 flex items-center gap-2">
             <img src="/logo-mark.png" alt="Tertiary Exams" className="h-10 w-10 shrink-0 object-contain" />
             <span className="text-base font-semibold text-slate-900 dark:text-white">Tertiary Exams</span>
@@ -43,54 +44,44 @@ export async function Footer() {
           <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
             Bundle multiple full-length practice exams with an optional discounted real-exam voucher — one purchase, full prep to test day.
           </p>
-          <a
-            href="https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block"
-            aria-label="Download Tertiary AI Exams on the App Store"
-          >
-            <img
-              src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83"
-              alt="Download on the App Store"
-              className="h-10 w-auto"
-            />
-          </a>
-        </div>
-
-        <div className="md:col-span-5">
-          <h4 className="text-sm font-semibold">Company</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
-            <li className="font-medium text-slate-700 dark:text-slate-300">{company.name}</li>
-            {company.address && (
-              <li className="leading-relaxed">Address: {company.address}</li>
-            )}
-            {company.email && (
-              <li>
-                Email:{' '}
-                <a href={`mailto:${company.email}`} className="hover:text-slate-900 hover:underline dark:hover:text-slate-100">
-                  {company.email}
-                </a>
-              </li>
-            )}
-            {company.tel && (
-              <li>
-                Tel:{' '}
-                <a href={`tel:${company.tel.replace(/\s+/g, '')}`} className="hover:text-slate-900 hover:underline dark:hover:text-slate-100">
-                  {company.tel}
-                </a>
-              </li>
-            )}
-          </ul>
-          <h4 className="mt-4 text-sm font-semibold">Legal</h4>
+          <h4 className="mt-6 text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Legal</h4>
           <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
             Original practice questions for learning and exam preparation. Not affiliated with AWS, Microsoft, Cisco, CompTIA,
             Google Cloud, or other certification owners unless explicitly stated. We do not provide real exam dumps.
           </p>
         </div>
 
+        <div className="md:col-span-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Company</h4>
+          <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <li className="font-medium text-slate-700 dark:text-slate-300">{company.name}</li>
+            {company.address && (
+              <li className="flex items-start gap-2 leading-relaxed">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                <span>{company.address}</span>
+              </li>
+            )}
+            {company.email && (
+              <li className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                <a href={`mailto:${company.email}`} className="hover:text-slate-900 hover:underline dark:hover:text-slate-100">
+                  {company.email}
+                </a>
+              </li>
+            )}
+            {company.tel && (
+              <li className="flex items-center gap-2">
+                <Phone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                <a href={`tel:${company.tel.replace(/\s+/g, '')}`} className="hover:text-slate-900 hover:underline dark:hover:text-slate-100">
+                  {company.tel}
+                </a>
+              </li>
+            )}
+          </ul>
+        </div>
+
         <div className="md:col-span-3">
-          <h4 className="text-sm font-semibold">Useful Links</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Useful Links</h4>
           <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
             <li>
               <Link href="/practice-exams" className="hover:text-slate-900 hover:underline dark:hover:text-slate-100">
@@ -120,6 +111,20 @@ export async function Footer() {
               });
             })()}
           </ul>
+          <h4 className="mt-6 text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-white">Get the app</h4>
+          <a
+            href="https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+            aria-label="Download Tertiary AI Exams on the App Store"
+          >
+            <img
+              src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83"
+              alt="Download on the App Store"
+              className="h-10 w-auto"
+            />
+          </a>
         </div>
       </div>
     </footer>
