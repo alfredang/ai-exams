@@ -2590,6 +2590,71 @@ const P3: Q[] = [
   }
 ];
 
+
+// P4 CKAD 2026 Sample - 2 per domain, domain tag + suggested answer
+const P4: Q[] = [
+  { domain: DESIGN, difficulty: 2, type: QType.SINGLE, isTeaser: true,
+    stem: 'An application needs a sidecar container that starts AFTER the main app container. Which pod field controls start ordering?',
+    options: [{ id: 'a', text: 'initContainers with a RestartPolicy: Always' }, { id: 'b', text: 'spec.containers in reverse order' }, { id: 'c', text: 'postStart lifecycle hook on the sidecar' }, { id: 'd', text: 'spec.initContainers; sidecar listed first with restartPolicy: Always (Kubernetes 1.29+)' }],
+    correct: ['d'],
+    explanation: 'Correct option: initContainers with restartPolicy: Always\nKubernetes 1.29 added native sidecar support via initContainers with restartPolicy: Always. The init container runs first and stays running alongside the main container.\n\nIncorrect options:\nReverse container order - containers start concurrently, order is not guaranteed.\npostStart hook - runs in the same container, not for cross-container ordering.\nspec.containers order - no ordering guarantee.',
+    references: [{ label: 'Kubernetes Docs - Init Containers', url: 'https://kubernetes.io/docs/concepts/workloads/pods/init-containers/' }, { label: 'Kubernetes Docs - Pod Design Patterns', url: 'https://kubernetes.io/docs/concepts/workloads/pods/#workload-resources-for-managing-pods' }] },
+  { domain: DESIGN, difficulty: 3, type: QType.MULTI,
+    stem: 'A batch pipeline needs to run 6 tasks in parallel, retrying each failed task up to 3 times. Which TWO Job spec fields configure this?',
+    options: [{ id: 'a', text: 'spec.parallelism: 6' }, { id: 'b', text: 'spec.backoffLimit: 3' }, { id: 'c', text: 'spec.completions: 6' }, { id: 'd', text: 'spec.ttlSecondsAfterFinished: 3' }, { id: 'e', text: 'spec.activeDeadlineSeconds: 6' }],
+    correct: ['a', 'b'],
+    explanation: 'Correct options:\nparallelism: 6 - runs up to 6 pods simultaneously.\nbackoffLimit: 3 - retries each failed pod up to 3 times before marking it failed.\n\nIncorrect options:\ncompletions - total number of successful completions required, not parallel slots.\nttlSecondsAfterFinished - deletes the job after it finishes, not retry logic.\nactiveDeadlineSeconds - overall timeout for the Job.',
+    references: [{ label: 'Kubernetes Docs - Jobs', url: 'https://kubernetes.io/docs/concepts/workloads/controllers/job/' }] },
+  { domain: DEPLOY, difficulty: 2, type: QType.SINGLE,
+    stem: 'You run: kubectl set image deployment/api app=myapp:2.0. The rollout hangs. Which command shows rollout progress?',
+    options: [{ id: 'a', text: 'kubectl describe pod -l app=api' }, { id: 'b', text: 'kubectl rollout status deployment/api' }, { id: 'c', text: 'kubectl get replicasets -o wide' }, { id: 'd', text: 'kubectl top pod -l app=api' }],
+    correct: ['b'],
+    explanation: 'Correct option: kubectl rollout status deployment/api\nThis command streams rollout events and exits 0 when complete or non-zero when stuck, making it the standard check.\n\nIncorrect options:\nkubectl describe pod - shows individual pod events, not overall rollout state.\nkubectl get replicasets - shows replicas counts but not rollout readiness.\nkubectl top pod - shows CPU/memory, not rollout state.',
+    references: [{ label: 'Kubernetes Docs - Deployments', url: 'https://kubernetes.io/docs/concepts/workloads/controllers/deployment/' }] },
+  { domain: DEPLOY, difficulty: 3, type: QType.SINGLE,
+    stem: 'A Helm release upgrade fails and rolls back automatically. Where do you look to find the exact manifests from the previous successful release?',
+    options: [{ id: 'a', text: 'kubectl get configmap -n kube-system -l owner=helm' }, { id: 'b', text: 'helm history <release> and helm get manifest <release> --revision <N>' }, { id: 'c', text: 'kubectl describe helmrelease <release>' }, { id: 'd', text: 'cat ~/.helm/releases/<release>.yaml' }],
+    correct: ['b'],
+    explanation: 'Correct option: helm history and helm get manifest\nHelm stores each revision in a Secret. helm history lists them; helm get manifest --revision N retrieves the exact rendered manifests.\n\nIncorrect options:\nConfigMap with owner=helm - Helm 3 uses Secrets not ConfigMaps.\nkubectl describe helmrelease - only valid when Flux HelmRelease CRD is present.\n~/.helm/releases - no such standard path exists.',
+    references: [{ label: 'Helm Docs - Charts', url: 'https://helm.sh/docs/topics/charts/' }] },
+  { domain: OBSERV, difficulty: 2, type: QType.SINGLE,
+    stem: 'A pod restarts every few minutes. Which probe, when failing, causes Kubernetes to restart the container?',
+    options: [{ id: 'a', text: 'readinessProbe' }, { id: 'b', text: 'startupProbe' }, { id: 'c', text: 'livenessProbe' }, { id: 'd', text: 'healthProbe' }],
+    correct: ['c'],
+    explanation: 'Correct option: livenessProbe\nA failing liveness probe triggers a container restart by the kubelet.\n\nIncorrect options:\nreadinessProbe - failing removes pod from Service endpoints but does NOT restart container.\nstartupProbe - only active during startup; failure restarts container but only once during init.\nhealthProbe - not a real Kubernetes probe type.',
+    references: [{ label: 'Kubernetes Docs - Probes', url: 'https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/' }] },
+  { domain: OBSERV, difficulty: 3, type: QType.MULTI,
+    stem: 'You need container logs to be shipped to a central log aggregator without modifying the application image. Which TWO approaches are standard CKAD patterns?',
+    options: [{ id: 'a', text: 'A logging sidecar container that tails /var/log and forwards' }, { id: 'b', text: 'A node-level DaemonSet log agent reading /var/log/containers' }, { id: 'c', text: 'Mounting the application log file into a shared emptyDir and reading from main container' }, { id: 'd', text: 'Setting LOG_LEVEL=DEBUG environment variable in the container spec' }, { id: 'e', text: 'Changing the container CMD to pipe stdout through a log forwarder' }],
+    correct: ['a', 'b'],
+    explanation: 'Correct options:\nLogging sidecar - co-located container in same pod tailing log files via shared volume; standard multi-container pattern.\nDaemonSet log agent - node-level agent (Fluentd, Fluent Bit) reads all container logs without pod changes.\n\nIncorrect options:\nShared emptyDir read from main container - that is the same container not a separate shipper.\nLOG_LEVEL env var - changes verbosity, not destination.\nPipe stdout - modifies the image CMD which the question disallows.',
+    references: [{ label: 'Kubernetes Docs - Logging', url: 'https://kubernetes.io/docs/concepts/cluster-administration/logging/' }, { label: 'Kubernetes Docs - Pod Design Patterns', url: 'https://kubernetes.io/docs/concepts/workloads/pods/#workload-resources-for-managing-pods' }] },
+  { domain: CONFIG, difficulty: 2, type: QType.SINGLE,
+    stem: 'A Secret named db-creds contains key password. How do you expose it as env var DB_PASSWORD in a pod spec?',
+    options: [{ id: 'a', text: 'env: [{name: DB_PASSWORD, value: $(db-creds.password)}]' }, { id: 'b', text: 'env: [{name: DB_PASSWORD, valueFrom: {secretKeyRef: {name: db-creds, key: password}}}]' }, { id: 'c', text: 'envFrom: [{secretRef: {name: password}}]' }, { id: 'd', text: 'volumes: [{secret: {secretName: db-creds}}] and mount it' }],
+    correct: ['b'],
+    explanation: 'Correct option: secretKeyRef\nInjects a single key from the Secret as an environment variable with the specified name.\n\nIncorrect options:\n$(db-creds.password) - not valid substitution syntax for Secrets.\nenvFrom with secretRef name: password - name must be the Secret name db-creds, not the key name.\nVolume mount - exposes Secret as files, not env vars.',
+    references: [{ label: 'Kubernetes Docs - Secrets', url: 'https://kubernetes.io/docs/concepts/configuration/secret/' }, { label: 'Kubernetes Docs - ConfigMaps', url: 'https://kubernetes.io/docs/concepts/configuration/configmap/' }] },
+  { domain: CONFIG, difficulty: 3, type: QType.MULTI,
+    stem: 'A container must run as UID 1000 and be prevented from escalating privileges. Which TWO securityContext fields achieve this?',
+    options: [{ id: 'a', text: 'runAsUser: 1000' }, { id: 'b', text: 'allowPrivilegeEscalation: false' }, { id: 'c', text: 'privileged: false' }, { id: 'd', text: 'runAsNonRoot: true' }, { id: 'e', text: 'capabilities: {drop: [ALL]}' }],
+    correct: ['a', 'b'],
+    explanation: 'Correct options:\nrunAsUser: 1000 - sets the UID the container process runs as.\nallowPrivilegeEscalation: false - prevents the process gaining more privileges than its parent (blocks setuid binaries).\n\nIncorrect options:\nprivileged: false - default value; does not actively restrict escalation.\nrunAsNonRoot: true - only validates UID != 0, does not set a specific UID.\ncapabilities drop ALL - good hardening but not specifically required for UID or escalation prevention.',
+    references: [{ label: 'Kubernetes Docs - SecurityContext', url: 'https://kubernetes.io/docs/tasks/configure-pod-container/security-context/' }, { label: 'Kubernetes Docs - ServiceAccounts', url: 'https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/' }] },
+  { domain: NET, difficulty: 2, type: QType.SINGLE,
+    stem: 'A Deployment serves HTTP on port 8080. What is the minimum Service spec to expose it cluster-internally as port 80?',
+    options: [{ id: 'a', text: 'type: NodePort, port: 80, targetPort: 8080' }, { id: 'b', text: 'type: ClusterIP, port: 80, targetPort: 8080, selector matching the pods' }, { id: 'c', text: 'type: LoadBalancer, port: 80' }, { id: 'd', text: 'type: ExternalName, externalName: myapp.default.svc' }],
+    correct: ['b'],
+    explanation: 'Correct option: ClusterIP port 80 targetPort 8080\nClusterIP is the default type and provides cluster-internal DNS. port: 80 is what clients call; targetPort: 8080 is what pods listen on.\n\nIncorrect options:\nNodePort - also works but exposes on every node IP which is not minimal for cluster-internal access.\nLoadBalancer - provisions external cloud LB, not needed for internal-only access.\nExternalName - maps to an external DNS name, not to local pods.',
+    references: [{ label: 'Kubernetes Docs - Services', url: 'https://kubernetes.io/docs/concepts/services-networking/service/' }] },
+  { domain: NET, difficulty: 3, type: QType.SINGLE,
+    stem: 'A NetworkPolicy in namespace payments allows ingress only from pods with label role=frontend. A pod labelled role=backend tries to connect. What happens?',
+    options: [{ id: 'a', text: 'Connection allowed because both pods are in the same namespace' }, { id: 'b', text: 'Connection denied because the backend pod does not match the ingress podSelector' }, { id: 'c', text: 'Connection allowed because NetworkPolicy only applies to egress by default' }, { id: 'd', text: 'Connection denied because namespace isolation is always enabled' }],
+    correct: ['b'],
+    explanation: 'Correct option: Connection denied - podSelector mismatch\nThe NetworkPolicy whitelists only pods with role=frontend in ingress. The role=backend pod does not match so its traffic is dropped.\n\nIncorrect options:\nSame namespace - namespace membership does not grant access when a NetworkPolicy is present.\nEgress-only default - NetworkPolicy with policyTypes Ingress (or inferred) restricts inbound traffic.\nNamespace isolation always on - without any NetworkPolicy all traffic is allowed.',
+    references: [{ label: 'Kubernetes Docs - NetworkPolicies', url: 'https://kubernetes.io/docs/concepts/services-networking/network-policies/' }] },
+];
+
 const CKAD_DOMAINS = [
   { name: DESIGN, weight: 20 },
   { name: DEPLOY, weight: 20 },
@@ -2612,6 +2677,13 @@ const CKAD_EXAMS: { slug: string; code: string; titleSuffix: string; description
     titleSuffix: 'Practice Exam 2',
     descriptionSuffix: 'Practice exam 2 of 3 — a second 120-minute, 65-question, blueprint-weighted set.',
     questions: P2
+  },
+  {
+    slug: 'linuxfoundation-ckad-p4',
+    code: 'CKAD-P4',
+    titleSuffix: 'Practice Exam 4 - 2026 Sample (2 per domain)',
+    descriptionSuffix: 'Two questions per domain tagged with the CKAD blueprint. Each has a full suggested answer. CKAD v1.35 / 2026 aligned.',
+    questions: P4
   },
   {
     slug: 'linuxfoundation-ckad-p3',
@@ -2726,7 +2798,8 @@ export async function seedCkad(db: PrismaClient): Promise<SeedResult> {
     { examSlug: 'linuxfoundation-ckad-p1', tier: 'PRACTICE' as const, position: 1 },
     { examSlug: 'linuxfoundation-ckad-p2', tier: 'PRACTICE' as const, position: 2 },
     { examSlug: 'linuxfoundation-ckad-p3', tier: 'PRACTICE' as const, position: 3 },
-    { examSlug: 'linuxfoundation-ckad-p1', tier: 'VOUCHER' as const, position: 4 }
+    { examSlug: 'linuxfoundation-ckad-p4', tier: 'PRACTICE' as const, position: 4 },
+    { examSlug: 'linuxfoundation-ckad-p1', tier: 'VOUCHER' as const, position: 5 }
   ];
   for (const it of items) {
     await db.bundleItem.create({
