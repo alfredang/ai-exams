@@ -14,6 +14,7 @@ export type RunnerQuestion = {
   stem: string;
   type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE';
   options: { id: string; text: string }[];
+  domain?: string;
 };
 
 export type RunnerResponse = { answer: string[]; flagged?: boolean; submitted?: boolean; isCorrect?: boolean; correct?: string[]; explanation?: string };
@@ -232,6 +233,9 @@ export function ExamRunner(props: ExamRunnerProps) {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="card p-6">
+          {q.domain && (
+            <span className="mb-3 inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{q.domain}</span>
+          )}
           <p className="text-base font-medium">{q.stem}</p>
           <div className="mt-4 space-y-2">
             {displayOptions.map((o, oi) => {
@@ -267,6 +271,7 @@ export function ExamRunner(props: ExamRunnerProps) {
           {a.submitted && a.explanation && (
             <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-800/60">
               <div className="mb-2 font-semibold">{a.isCorrect ? '✓ Correct' : '✗ Incorrect'}</div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Suggested Answer</div>
               <ExplanationView
                 text={a.explanation}
                 options={q.options}

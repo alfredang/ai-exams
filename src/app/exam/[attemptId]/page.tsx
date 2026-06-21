@@ -32,7 +32,7 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
 
   const questions = await db.question.findMany({
     where: { id: { in: attempt.questionIds } },
-    select: { id: true, stem: true, type: true, options: true }
+    select: { id: true, stem: true, type: true, options: true, domain: true }
   });
   const ordered = attempt.questionIds.map(id => questions.find(q => q.id === id)!).filter(Boolean);
 
@@ -40,7 +40,8 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
     id: q.id,
     stem: q.stem,
     type: q.type as 'SINGLE' | 'MULTI' | 'TRUE_FALSE',
-    options: (q.options as any[]).map(o => ({ id: o.id, text: o.text }))
+    options: (q.options as any[]).map(o => ({ id: o.id, text: o.text })),
+    domain: q.domain ?? undefined
   }));
 
   return (
