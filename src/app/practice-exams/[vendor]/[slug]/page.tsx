@@ -172,18 +172,6 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
             </div>
           </div>
 
-          {exam.slug.startsWith('linuxfoundation-ckad') && (
-            <a
-              href="https://github.com/tertiarycourses/TGS-2025053212-CKAD/tree/main"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-950/60"
-            >
-              <BookOpen className="h-4 w-4" />
-              CKAD Lab Guide
-            </a>
-          )}
-
           {domains.length > 0 && (
             <div className="mt-8 card p-6">
               <h2 className="font-semibold">Domains covered</h2>
