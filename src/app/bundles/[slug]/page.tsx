@@ -3,8 +3,15 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { formatPrice } from '@/lib/utils';
-import { Package, Check, Ticket } from 'lucide-react';
+import { Package, Check, Ticket, BookOpen } from 'lucide-react';
 import { ClaimFreeBundleButton } from './claim-free-button';
+
+const LABS_URLS: Record<string, { label: string; url: string }> = {
+  'linuxfoundation-ckad': {
+    label: 'CKAD Lab Guide',
+    url: 'https://github.com/tertiarycourses/TGS-2025053212-CKAD/tree/main',
+  },
+};
 
 export default async function BundleDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -22,6 +29,7 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ s
   const session = await auth();
   const userId = (session?.user as any)?.id as string | undefined;
   const isFree = bundle.price === 0;
+  const labs = LABS_URLS[slug];
 
   return (
     <div className="container-app max-w-4xl py-10">
@@ -36,6 +44,18 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ s
       </div>
       <h1 className="mt-2 text-3xl font-bold tracking-tight">{bundle.title}</h1>
       <p className="mt-2 max-w-2xl text-slate-600">{bundle.description}</p>
+
+      {labs && (
+        <a
+          href={labs.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-950/60"
+        >
+          <BookOpen className="h-4 w-4" />
+          {labs.label}
+        </a>
+      )}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
