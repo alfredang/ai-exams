@@ -909,6 +909,254 @@ const P1: Q[] = [
     correct: ['b'],
     explanation: 'False. `kubectl logs` proxies through the apiserver to the kubelet. If the apiserver is down you must read logs on the node via `crictl logs` or `/var/log/pods`.',
     references: [REF_LOGS]
+  },
+
+  // ── 2026 lab-series expansion (18) — original questions inspired by the
+  // topics of the IT Kiddie "Practice Questions CKA EXAM 2026" playlist.
+  // Complements (never duplicates) the base 65 above. ──
+
+  // ── Cluster Architecture, Installation & Configuration (+3) ──
+  {
+    domain: CLUSTER, difficulty: 2, type: QType.SINGLE,
+    stem: 'You have added a chart repository with `helm repo add argo https://argoproj.github.io/argo-helm`. Which command renders exactly chart version 7.7.3 of argo-cd into a manifest file?',
+    options: opts4(
+      'helm template argocd argo/argo-cd --version 7.7.3 -n argocd > /root/manifest.yaml',
+      'helm template argocd argo/argo-cd@7.7.3 -n argocd > /root/manifest.yaml',
+      'helm repo add argo/argo-cd --version 7.7.3 && helm template argocd > /root/manifest.yaml',
+      'helm template argocd argo/argo-cd --app-version 7.7.3 -n argocd > /root/manifest.yaml'
+    ),
+    correct: ['a'],
+    explanation: 'Chart versions are pinned with the `--version` flag on `helm template` (and `helm install`). The `name@version` syntax is not valid Helm CLI syntax, `--app-version` refers to the packaged application version (not the chart version), and `helm repo add` takes a repo name + URL, not a version.',
+    references: [REF_HELM]
+  },
+  {
+    domain: CLUSTER, difficulty: 2, type: QType.SINGLE,
+    stem: 'cert-manager installs a `Certificate` custom resource. You must save the API documentation for its `spec.subject` field to a file. Which command does this?',
+    options: opts4(
+      'kubectl explain certificate.spec.subject > /root/subject.txt',
+      'kubectl describe crd certificate.spec.subject > /root/subject.txt',
+      'kubectl get crd certificates.cert-manager.io -o jsonpath="{.spec.subject}" > /root/subject.txt',
+      'kubectl api-resources certificate --field spec.subject > /root/subject.txt'
+    ),
+    correct: ['a'],
+    explanation: '`kubectl explain <resource>.<field-path>` prints the schema documentation for any registered type — including CRD-backed custom resources — and works at arbitrary depth (e.g. `certificate.spec.subject`). `kubectl describe crd` shows the CRD object itself, not per-field docs, and the jsonpath/api-resources variants do not query field documentation.',
+    references: [REF_CRD, REF_KCTL]
+  },
+  {
+    domain: CLUSTER, difficulty: 2, type: QType.SINGLE,
+    stem: 'After installing the cri-dockerd Debian package on a node, you must make its service start immediately AND persist across reboots with a single command. Which one?',
+    options: opts4(
+      'systemctl enable --now cri-docker.service',
+      'systemctl start cri-docker.service',
+      'systemctl reload-or-restart cri-docker.service',
+      'systemctl mask --now cri-docker.service'
+    ),
+    correct: ['a'],
+    explanation: '`systemctl enable --now` creates the boot-time symlink (persistence) and starts the unit immediately — the two actions the task requires. `start` alone does not survive a reboot, `reload-or-restart` only affects the running instance, and `mask` blocks the unit from ever starting.',
+    references: [REF_CRI]
+  },
+
+  // ── Services & Networking (+5) ──
+  {
+    domain: NET, difficulty: 3, type: QType.SINGLE,
+    stem: 'A task requires installing a CNI plugin that must support NetworkPolicy enforcement, offering a choice between Flannel and Calico manifests. Which is correct?',
+    options: opts4(
+      'Calico — Flannel does not implement the NetworkPolicy API.',
+      'Flannel — it is the lighter overlay and enforces NetworkPolicy natively.',
+      'Either — all CNI plugins are required to enforce NetworkPolicy.',
+      'Neither — NetworkPolicy is enforced by kube-proxy, independent of the CNI.'
+    ),
+    correct: ['a'],
+    explanation: 'NetworkPolicy objects are only enforced if the installed CNI plugin implements them. Calico does; plain Flannel provides pod networking but silently ignores NetworkPolicies. kube-proxy handles Service virtual IPs, not policy enforcement. A quick check is to search the candidate manifest for NetworkPolicy support before applying it.',
+    references: [REF_CNI, REF_NP]
+  },
+  {
+    domain: NET, difficulty: 2, type: QType.SINGLE,
+    stem: 'A NodePort Service must listen on exactly port 30080 on every node. How do you achieve this declaratively?',
+    options: opts4(
+      'Set `spec.ports[].nodePort: 30080` in the Service manifest (it must fall inside the cluster NodePort range).',
+      'Set `spec.ports[].port: 30080` — the Service port is what nodes listen on.',
+      'Set `spec.ports[].targetPort: 30080` — the target port maps to the node.',
+      'You cannot choose it; Kubernetes always assigns NodePorts randomly.'
+    ),
+    correct: ['a'],
+    explanation: 'The `nodePort` field pins the node-level port; if omitted, one is auto-allocated from the NodePort range (30000–32767 by default). `port` is the ClusterIP port and `targetPort` is the container port — neither controls what the node itself listens on.',
+    references: [REF_SVC]
+  },
+  {
+    domain: NET, difficulty: 3, type: QType.SINGLE,
+    stem: 'An Ingress routes host `example.org`, path `/echo`, to a Service. The ingress controller is exposed via a NodePort. From a node, plain `curl http://<node-ip>:<node-port>/echo` returns 404. Which command correctly tests the rule?',
+    options: opts4(
+      'curl -H "Host: example.org" http://<node-ip>:<node-port>/echo',
+      'curl http://<node-ip>:<node-port>/example.org/echo',
+      'curl --resolve example.org:80 http://<node-ip>/echo',
+      'curl -X HOST http://<node-ip>:<node-port>/echo'
+    ),
+    correct: ['a'],
+    explanation: 'Host-based Ingress rules match on the HTTP Host header. When you connect by node IP, the header contains the IP, so no rule matches and the controller returns its default 404 backend. Overriding the header with `-H "Host: example.org"` exercises the rule. (`--resolve` needs the matching port mapping and the literal port in the URL; `-X` sets the HTTP method, not a header.)',
+    references: [REF_ING]
+  },
+  {
+    domain: NET, difficulty: 3, type: QType.SINGLE,
+    stem: 'A Gateway has one HTTPS listener with `hostname: shop.example.com`. You create an HTTPRoute with `parentRefs` pointing at that Gateway but `hostnames: ["api.example.com"]`. What happens?',
+    options: opts4(
+      'The route does not attach — an HTTPRoute only binds to a listener when their hostnames intersect.',
+      'The route attaches and serves api.example.com — HTTPRoute hostnames override the listener.',
+      'The Gateway rejects the apply with a validation error.',
+      'Both hostnames are served — hostname sets are merged across Gateway and route.'
+    ),
+    correct: ['a'],
+    explanation: 'Attachment requires the intersection of the listener hostname and the HTTPRoute hostnames to be non-empty. With disjoint hostnames the route is accepted as an object but reports no matching parent listener, so no traffic is routed — a common silent failure when migrating from Ingress.',
+    references: [REF_GW]
+  },
+  {
+    domain: NET, difficulty: 3, type: QType.SINGLE,
+    stem: 'A NetworkPolicy in namespace `backend` uses `from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: frontend}}}]`. What is the namespaceSelector actually matching on?',
+    options: opts4(
+      'The LABELS of the namespace object — this works because Kubernetes auto-labels every namespace with its name.',
+      'The namespace name directly — namespaceSelector takes names, not labels.',
+      'The labels of the pods inside the namespace.',
+      'The serviceaccount of the calling pod.'
+    ),
+    correct: ['a'],
+    explanation: 'namespaceSelector is a label selector over namespace objects — it never matches names directly. It works here only because the control plane automatically applies the immutable `kubernetes.io/metadata.name: <name>` label to every namespace, giving you a reliable per-name handle.',
+    references: [REF_NP]
+  },
+
+  // ── Workloads & Scheduling (+5) ──
+  {
+    domain: WORK, difficulty: 3, type: QType.MULTI,
+    stem: 'Node `node01` carries taint `env=prod:NoSchedule`. You must guarantee a new Pod runs on node01 specifically. Select ALL configuration the Pod spec needs.',
+    options: opts4(
+      'A toleration matching `env=prod:NoSchedule`.',
+      'A placement constraint targeting node01 — e.g. `nodeName: node01` or a nodeSelector matching a node01 label.',
+      'Nothing besides the toleration — tolerating a taint attracts the Pod to the tainted node.',
+      'A second taint on the Pod itself pointing at node01.'
+    ),
+    correct: ['a', 'b'],
+    explanation: 'Tolerations only remove the barrier — they permit scheduling onto the tainted node but do not attract the Pod to it. To guarantee placement you also need a positive constraint (`nodeName`, `nodeSelector`, or node affinity). Taints exist only on nodes, never on Pods.',
+    references: [REF_TAINT, REF_AFFIN]
+  },
+  {
+    domain: WORK, difficulty: 2, type: QType.SINGLE,
+    stem: 'Which imperative command creates an HPA for Deployment `apache-deployment` in namespace `autoscale` targeting 50% CPU with 1–4 replicas?',
+    options: opts4(
+      'kubectl autoscale deployment apache-deployment --cpu-percent=50 --min=1 --max=4 -n autoscale',
+      'kubectl scale deployment apache-deployment --cpu=50% --replicas=1-4 -n autoscale',
+      'kubectl create hpa apache-deployment --target-cpu=50 --range=1:4 -n autoscale',
+      'kubectl set autoscale deploy/apache-deployment 1 4 50 -n autoscale'
+    ),
+    correct: ['a'],
+    explanation: '`kubectl autoscale` is the imperative HPA generator. `kubectl scale` sets a fixed replica count, and the other two subcommands do not exist. Note that advanced options such as `behavior.scaleDown.stabilizationWindowSeconds` are only expressible in an `autoscaling/v2` manifest, not via the imperative command.',
+    references: [REF_HPA]
+  },
+  {
+    domain: WORK, difficulty: 3, type: QType.SINGLE,
+    stem: 'The highest existing user-defined PriorityClass has value 1000. A task requires a new class `high-priority` with a value exactly one lower. Which command is correct?',
+    options: opts4(
+      'kubectl create priorityclass high-priority --value=999 --description="critical workloads"',
+      'kubectl create priorityclass high-priority --priority=999',
+      'kubectl create pc high-priority 999 --global-default',
+      'kubectl label priorityclass high-priority value=999'
+    ),
+    correct: ['a'],
+    explanation: 'PriorityClasses can be created imperatively with `kubectl create priorityclass --value=<int>`. Check the existing classes first with `kubectl get priorityclass` to derive the required value. `--priority` is not a valid flag, positional values are not accepted, and `--global-default` would also make it the cluster default, which the task did not ask for.',
+    references: [REF_PRIO]
+  },
+  {
+    domain: WORK, difficulty: 3, type: QType.SINGLE,
+    stem: 'You are setting per-container resources of 250 millicores CPU and 500 mebibytes of memory. Which requests block is correct?',
+    options: opts4(
+      'requests: { cpu: "250m", memory: "500Mi" }',
+      'requests: { cpu: "250M", memory: "500mi" }',
+      'requests: { cpu: "0.25m", memory: "500m" }',
+      'requests: { cpu: "250", memory: "0.5" }'
+    ),
+    correct: ['a'],
+    explanation: 'CPU uses a lowercase `m` for millicores (250m = 0.25 core); memory uses binary suffixes with a capital letter (`Mi`, `Gi`). Beware the classic trap: `memory: "500m"` parses as 500 MILLI-bytes (0.5 of a byte), not megabytes — the pod would be OOM-killed instantly. `cpu: "250"` means 250 whole cores.',
+    references: [REF_RES]
+  },
+  {
+    domain: WORK, difficulty: 4, type: QType.SINGLE,
+    stem: 'A log-shipping sidecar must be running BEFORE the main application container starts, keep running for the Pod\'s whole life, and restart independently if it crashes. On Kubernetes v1.29+ the idiomatic spec is:',
+    options: opts4(
+      'Declare it under initContainers with `restartPolicy: Always` (a native sidecar).',
+      'Declare it as a normal container listed first in the containers array — order guarantees startup sequence.',
+      'Declare it as a plain init container — init containers keep running after the main container starts.',
+      'Run it as a separate Pod with pod affinity to the application Pod.'
+    ),
+    correct: ['a'],
+    explanation: 'A native sidecar is an init container with per-container `restartPolicy: Always`: it starts before the app containers, is not waited on for completion, runs for the Pod lifetime, and restarts on failure. Ordering in the containers array carries no startup guarantee, classic init containers must exit before the app starts, and a separate Pod would not share volumes or lifecycle.',
+    references: [REF_DEPLOY]
+  },
+
+  // ── Storage (+2) ──
+  {
+    domain: STORE, difficulty: 2, type: QType.SINGLE,
+    stem: 'A Deployment must mount the PVC `mariadb` at /var/lib/mysql. Which pairing of pod-template fields wires this up correctly?',
+    options: opts4(
+      '`spec.template.spec.volumes[]` with `persistentVolumeClaim.claimName: mariadb`, plus a matching `volumeMounts[]` entry (same volume name, mountPath /var/lib/mysql) on the container.',
+      'A `volumeMounts[]` entry on the container with `claimName: mariadb` — no pod-level volumes entry is needed.',
+      'A `spec.template.spec.volumes[]` entry alone — containers automatically mount every pod volume.',
+      '`spec.template.spec.persistentVolumeClaim: mariadb` at the top of the pod template.'
+    ),
+    correct: ['a'],
+    explanation: 'PVC consumption is always two-part: the pod-level `volumes` entry names the claim (`persistentVolumeClaim.claimName`), and each container that needs it declares a `volumeMounts` entry referencing the same volume name with a mountPath. A frequent lab error is indenting `volumes` under the container instead of the pod spec — the two lists are siblings of `containers`.',
+    references: [REF_PV, REF_VOL]
+  },
+  {
+    domain: STORE, difficulty: 3, type: QType.SINGLE,
+    stem: 'What is the difference between OMITTING `storageClassName` in a PVC and setting `storageClassName: ""` explicitly?',
+    options: opts4(
+      'Omitted → the cluster default StorageClass is applied; empty string → dynamic provisioning is disabled and the PVC can only bind pre-provisioned PVs.',
+      'They are identical — both use the default StorageClass.',
+      'Omitted → the PVC is rejected; empty string → the default class is used.',
+      'Empty string → the newest StorageClass is used regardless of default annotation.'
+    ),
+    correct: ['a'],
+    explanation: 'The default-class admission plugin fills in the annotated default StorageClass only when the field is absent. An explicit empty string is a deliberate opt-out of dynamic provisioning — the claim then binds only statically created PVs. This matters in tasks that say "use the existing retained PV": an empty-string class prevents a provisioner from racing in with a fresh volume.',
+    references: [REF_SC, REF_PV]
+  },
+
+  // ── Troubleshooting (+3) ──
+  {
+    domain: TS, difficulty: 3, type: QType.SINGLE,
+    stem: 'You edit the ConfigMap that holds an nginx Deployment\'s TLS configuration (via `kubectl replace -f`), but curl shows the pods still serving the OLD protocol settings. What is the missing step?',
+    options: opts4(
+      'Restart the pods — e.g. `kubectl rollout restart deployment <name>` — so the workload re-reads the config.',
+      'Delete and recreate the ConfigMap with `kubectl apply` instead of replace.',
+      'Nothing — ConfigMap changes are always applied to running containers within seconds.',
+      'Re-create the Service that fronts the Deployment.'
+    ),
+    correct: ['a'],
+    explanation: 'Updating a ConfigMap does not restart consumers. Env-var references never refresh, and although volume-mounted keys are eventually synced to disk, an application like nginx only reads its config at startup. A rollout restart replaces the pods so they start with the new configuration. Services are irrelevant — they route traffic, not configuration.',
+    references: [REF_DEPLOY, REF_DEBUG]
+  },
+  {
+    domain: TS, difficulty: 4, type: QType.SINGLE,
+    stem: 'On a one-CPU control-plane node, kube-scheduler and kube-controller-manager never come up after a migration. Their manifests in /etc/kubernetes/manifests request several full CPUs each. The correct fix is:',
+    options: opts4(
+      'Lower `resources.requests.cpu` in each static Pod manifest to a value the node can actually allocate; kubelet re-creates the Pods.',
+      'Add more tolerations to the static Pod manifests.',
+      'Run `kubectl scale` on the scheduler and controller-manager.',
+      'Delete /etc/kubernetes/manifests so kubelet stops managing them.'
+    ),
+    correct: ['a'],
+    explanation: 'Static control-plane Pods still go through kubelet admission: a request larger than the node\'s allocatable CPU means the Pod can never be placed. Editing the manifest request down (kubelet watches the directory and re-creates the Pod) restores the component. They are not Deployments, so `kubectl scale` does not apply, and deleting the manifests would remove the control plane entirely.',
+    references: [REF_APISVR, REF_RES]
+  },
+  {
+    domain: TS, difficulty: 3, type: QType.SINGLE,
+    stem: 'After restricting a TLS server to TLSv1.3 only, you run `curl --tls-max 1.2 -k https://<host>` and receive "alert protocol version". What does this result mean?',
+    options: opts4(
+      'Expected success criterion — the server now correctly REJECTS TLS 1.2 handshakes, confirming the change.',
+      'A failure — the change broke the endpoint and must be rolled back.',
+      'An unrelated certificate-validation error; add --insecure to fix it.',
+      'The client is too old to speak TLS at all.'
+    ),
+    correct: ['a'],
+    explanation: 'Verification cuts both ways: a task that restricts protocol versions is proven by a NEGATIVE test (forcing the old version must fail with a protocol-version alert) plus a positive test (`--tlsv1.3` succeeds). Certificate trust is a different error class (`-k` already bypasses it here).',
+    references: [REF_DEBUG]
   }
 ];
 
