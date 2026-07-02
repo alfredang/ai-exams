@@ -45,3 +45,10 @@ practice-exams-pdfs-*/
 
 # transient audit artifacts
 scripts/_*
+/bundles-after.png
+/ckad-runner.png
+/home-after.png
+/home-final.png
+/home-light.png
+/login-icons-row.png
+/login-social.png

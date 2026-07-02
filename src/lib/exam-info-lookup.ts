@@ -239,6 +239,7 @@ export async function lookupExamInfo(input: {
   vendor: string;
   title?: string;
   code: string;
+  infoUrl?: string;
 }): Promise<ExamInfoLookup> {
   const [storedKey, firecrawlKey, tavilyKey] = await Promise.all([
     getSetting('ANTHROPIC_API_KEY'),
@@ -247,6 +248,42 @@ export async function lookupExamInfo(input: {
   ]);
   if (storedKey && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = storedKey;
   if (!firecrawlKey) throw new Error('Firecrawl API key not configured (Settings → Credentials).');
+
+  // Short-circuit: if the caller already has a vendor URL, scrape that
+  // first. Search/agent fallback only runs if this URL yields nothing.
+  const hintedErrors: string[] = [];
+  if (input.infoUrl && /^https?:\/\//i.test(input.infoUrl)) {
+    try {
+      const markdown = await scrapeFirecrawl(firecrawlKey, input.infoUrl);
+      if (markdown && markdown.length >= 200) {
+        const extracted = await extractWithClaude(
+          input.infoUrl,
+          markdown,
+          input.vendor,
+          input.code,
+          input.title || ''
+        );
+        const hasContent =
+          !!extracted.description ||
+          !!extracted.durationMinutes ||
+          !!extracted.questionCount ||
+          (Array.isArray(extracted.domains) && extracted.domains.length > 0);
+        if (hasContent) {
+          const merged: Record<string, any> = { ...extracted, infoUrl: input.infoUrl };
+          if (!merged.slug) merged.slug = slugify(`${input.vendor} ${input.code}`);
+          const parsed = ResultSchema.safeParse(merged);
+          if (parsed.success) return parsed.data;
+          hintedErrors.push(`hinted ${input.infoUrl}: ${parsed.error.issues[0]?.message}`);
+        } else {
+          hintedErrors.push(`hinted ${input.infoUrl}: no substantive fields extracted`);
+        }
+      } else {
+        hintedErrors.push(`hinted ${input.infoUrl}: scrape too short (${markdown?.length ?? 0})`);
+      }
+    } catch (e: any) {
+      hintedErrors.push(`hinted ${input.infoUrl}: ${e?.message ?? e}`);
+    }
+  }
 
   const preferred = preferredDomains(input.vendor);
   const queries = [
@@ -370,5 +407,7 @@ export async function lookupExamInfo(input: {
     errors.push(`agent fallback: ${e?.message ?? e}`);
   }
 
-  throw new Error(`Could not extract usable metadata. Tried: ${errors.join(' | ')}`);
+  throw new Error(
+    `Could not extract usable metadata. Tried: ${[...hintedErrors, ...errors].join(' | ')}`
+  );
 }

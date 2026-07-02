@@ -192,7 +192,18 @@ export async function PersistentCopyright() {
   const company = await safeCompany();
   return (
     <div className="border-t border-slate-200 bg-slate-50 py-2 text-center text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-      © {new Date().getFullYear()} {company.name}. All rights reserved.
+      © {new Date().getFullYear()} {company.name}. All rights reserved.{' '}
+      <span className="powered-by">
+        Powered by{' '}
+        <a
+          href="https://www.tertiaryinfotech.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:no-underline"
+        >
+          Tertiary Infotech Academy Pte Ltd
+        </a>
+      </span>
     </div>
   );
 }

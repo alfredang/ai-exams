@@ -27,6 +27,7 @@ export function CreateExamAiAssist({ vendorMap }: { vendorMap: Record<string, st
       const vendorId = (form.querySelector('[name="vendorId"]') as HTMLSelectElement | null)?.value || '';
       const code = (form.querySelector('[name="code"]') as HTMLInputElement | null)?.value || '';
       const title = (form.querySelector('[name="title"]') as HTMLInputElement | null)?.value || '';
+      const infoUrl = (form.querySelector('[name="infoUrl"]') as HTMLInputElement | null)?.value?.trim() || '';
       const vendor = vendorMap[vendorId];
       if (!vendor || !code) {
         setErr('Pick a vendor and enter the exam code first.');
@@ -35,7 +36,7 @@ export function CreateExamAiAssist({ vendorMap }: { vendorMap: Record<string, st
       const res = await fetch('/api/admin/exams/lookup', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ vendor, code, title })
+        body: JSON.stringify({ vendor, code, title, ...(infoUrl ? { infoUrl } : {}) })
       });
       const d = await res.json();
       if (!d.ok) {
@@ -87,7 +88,7 @@ export function CreateExamAiAssist({ vendorMap }: { vendorMap: Record<string, st
         <div>
           <div className="font-medium">AI Assist — auto-fill from official vendor page</div>
           <div className="text-xs text-slate-500">
-            Pick a vendor + enter the exam code, then click. Tavily/Firecrawl find the canonical vendor page (with a Claude Agent fallback that uses WebSearch); Firecrawl scrapes it; Claude returns title, info URL, description, duration, pass %, question count, and the domain blueprint.
+            Pick a vendor + enter the exam code, then click. If you already know the official page, paste it into <span className="font-medium">Exam Info URL</span> and we'll scrape that directly; otherwise Tavily/Firecrawl find the canonical page (with a Claude Agent fallback that uses WebSearch). Claude returns title, info URL, description, duration, pass %, question count, and the domain blueprint.
           </div>
         </div>
         <button type="button" onClick={fill} disabled={busy} className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700 disabled:opacity-50">

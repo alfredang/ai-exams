@@ -3,10 +3,9 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { formatPrice } from '@/lib/utils';
 import { BundleCheckoutClient } from './bundle-checkout-client';
 import { TestPaymentButton } from '@/components/test-payment-button';
-import { Check, Lock, ShieldCheck, Ticket, Zap, ArrowLeft } from 'lucide-react';
+import { Check, Ticket, Zap, ArrowLeft } from 'lucide-react';
 
 export default async function BundleCheckoutPage({
   params,
@@ -104,47 +103,13 @@ export default async function BundleCheckoutPage({
           </div>
         </div>
 
-        {/* Right: payment + price */}
+        {/* Right: payment + price (totals, promo code, and provider buttons
+            live in the client so promo discounts update the total live) */}
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="card p-6">
-            <h3 className="text-sm font-semibold uppercase text-slate-500 dark:text-slate-300">Order total</h3>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-slate-500 dark:text-slate-400">Subtotal</dt>
-                <dd className="font-medium">{formatPrice(amount)}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-slate-500 dark:text-slate-400">Tax</dt>
-                <dd className="text-slate-500 dark:text-slate-400">$0.00</dd>
-              </div>
-            </dl>
-            <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
-              <span className="text-sm font-semibold">Total (USD)</span>
-              <span className="text-3xl font-bold text-blue-700 dark:text-blue-300">{formatPrice(amount)}</span>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
-              <Lock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Pay securely
-            </div>
-            <Suspense fallback={<div className="rounded-md border border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700">Loading PayPal…</div>}>
-              <BundleCheckoutClient bundleId={bundle.id} tier={tier} />
-            </Suspense>
-            <TestPaymentButton kind="bundle" bundleId={bundle.id} tier={tier} />
-          </div>
-
-          <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-            <div className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              <p>
-                Encrypted payment via PayPal. We never see your card details.{' '}
-                {hasVoucher && <>Voucher codes are emailed within <b>3–5 business days</b>; practice access unlocks immediately.</>}
-                {!hasVoucher && <>Practice access unlocks immediately after payment.</>}
-              </p>
-            </div>
-          </div>
+          <Suspense fallback={<div className="card p-6 text-sm text-slate-500">Loading checkout…</div>}>
+            <BundleCheckoutClient bundleId={bundle.id} tier={tier} amount={amount} hasVoucher={hasVoucher} />
+          </Suspense>
+          <TestPaymentButton kind="bundle" bundleId={bundle.id} tier={tier} />
 
           <p className="text-center text-xs text-slate-500 dark:text-slate-400">
             By purchasing you agree to the original practice content terms and our refund policy.

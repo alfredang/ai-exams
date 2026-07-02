@@ -136,6 +136,7 @@ const SECTIONS: NavSection[] = [
           { href: '/admin-dashboard/settings/site-seo', label: 'Site SEO', icon: BarChart3 },
           { href: '/admin-dashboard/settings/tax-invoice', label: 'Tax & Invoice', icon: Receipt },
           { href: '/admin-dashboard/settings/payment', label: 'Payment', icon: CreditCard },
+          { href: '/admin-dashboard/settings/payment-guide', label: 'Payment Setup Guide', icon: BookOpen },
           { href: '/admin-dashboard/settings/email', label: 'Email', icon: Mail },
           { href: '/admin-dashboard/settings/social-login', label: 'Social Login', icon: LogIn },
           { href: '/admin-dashboard/settings/credentials', label: 'Credentials', icon: Key }

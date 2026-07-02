@@ -62,9 +62,9 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 
 - **Public Catalog:** Browse certification vendors, levels, and exam bundles with search and pagination.
 - **Bundle-based Commerce:** Purchase multi-variant practice exams and optional real-exam vouchers as a single product.
-- **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with an integrated tax (GST) engine.
-- **Exam Runner:** Timed exam mode and practice mode with autosave functionality, question flagging, and detailed post-exam result breakdowns.
-- **Free Teasers:** Guest and authenticated users can take a configurable number of free teaser questions.
+- **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with promo codes, billing addresses, and an integrated tax (GST) engine. An in-admin **Payment Setup Guide** documents provider configuration step by step with live status checks.
+- **Exam Runner:** Timed exam mode and practice mode with a sticky progress header, per-answer autosave, question flagging, keyboard navigation, a pre-submit review screen, and detailed post-exam result breakdowns with explanations and reference links.
+- **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per exam.
 - **AI-Assisted Question Authoring:** Generate blueprint-aligned questions using Claude AI and Firecrawl via manual input, blueprints, PDFs, or web scraping.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
 - **Comprehensive Admin Dashboard:** Manage catalog, orders, users (RBAC), refunds, coupons, API tokens, dynamic settings, and CMS content (FAQ, Banners).
@@ -251,7 +251,7 @@ flowchart TD
    ```
    *(Postgres is exposed on port 55432, MailHog on port 8025)*
 
-2. Open the `.env` file and configure the `DATABASE_URL` to point to the local instance (e.g., `postgresql://postgres:postgres@localhost:55432/postgres`).
+2. Open the `.env` file and configure the `DATABASE_URL` to point to the local instance (e.g., `postgresql://aiexams:aiexams@127.0.0.1:55432/aiexams?schema=public` — note the host port is **55432**, not the default 5432).
 
 3. Note that most application configuration (Stripe keys, PayPal keys, Auth providers, SEO, Company Info, Email credentials) is managed **at runtime via the Admin Dashboard Settings** rather than environment variables.
 
@@ -280,8 +280,7 @@ flowchart TD
 - `npm run dev`: Starts the development server.
 - `npm run build`: Generates the Prisma client and builds the Next.js application for production.
 - `npm run start`: Starts the Next.js production server.
-- `npm run lint`: Runs ESLint.
-- `npm run typecheck`: Runs TypeScript compiler check without emitting files.
+- `npm run typecheck`: Runs TypeScript compiler check without emitting files. (`npm run lint` is currently broken — the installed Next.js version removed `next lint`; rely on typecheck + build.)
 - `npm run db:migrate`: Creates and applies development database migrations.
 - `npm run db:deploy`: Applies pending database migrations (for production).
 - `npm run db:seed`: Seeds the database with default vendors, exams, bundles, and admin users.
@@ -298,7 +297,7 @@ flowchart TD
 ### Admin Flow
 1. Sign in using the seeded admin credentials.
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
-3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins.
+3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
 4. Go to `/admin-dashboard/exams/[id]/author` to generate new exam questions using the AI integration.
 
 ## Database
@@ -366,7 +365,7 @@ The repository includes a multi-stage `Dockerfile` tailored for Next.js standalo
 4. Push to the branch (`git push origin feature/amazing-feature`).
 5. Open a Pull Request.
 
-Please ensure your code passes `npm run typecheck` and `npm run lint` before opening a pull request.
+Please ensure your code passes `npm run typecheck` and `npm run build` before opening a pull request.
 
 ## Developed By
 

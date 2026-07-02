@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getAllSettings, SECRET_KEYS, mask } from '@/lib/settings';
@@ -26,7 +27,12 @@ export default async function PaymentSettingPage() {
     <div>
       <h1 className="text-2xl font-bold">Payment Setting</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Configure each payment provider, their credentials, and fulfillment timing for voucher delivery.
+        Configure each payment provider, their credentials, and fulfillment timing for voucher delivery. Not sure where a
+        value comes from? Follow the step-by-step{' '}
+        <Link href="/admin-dashboard/settings/payment-guide" className="font-medium text-blue-700 underline hover:no-underline dark:text-blue-300">
+          Payment Setup Guide
+        </Link>
+        .
       </p>
       <PaymentForm
         fulfillmentFields={PAYMENT_FULFILLMENT_FIELDS}

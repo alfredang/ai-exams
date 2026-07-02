@@ -27,7 +27,8 @@ async function autoFillFromWeb(formData: FormData) {
     const res = await lookupExamInfo({
       vendor: exam.vendor.name,
       title: exam.title,
-      code: exam.code
+      code: exam.code,
+      infoUrl: exam.infoUrl ?? undefined
     });
     await db.exam.update({
       where: { id },
