@@ -285,6 +285,7 @@ flowchart TD
 - `npm run db:deploy`: Applies pending database migrations (for production).
 - `npm run db:seed`: Seeds the database with default vendors, exams, bundles, and admin users.
 - `npm run db:studio`: Opens Prisma Studio to visually inspect the database.
+- `npm run generate:exam`: CLI question generation (`scripts/generate-questions.ts`) — bulk-author blueprint-aligned questions with Claude outside the admin UI.
 
 ## Usage
 

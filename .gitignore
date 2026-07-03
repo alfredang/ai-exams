@@ -30,6 +30,11 @@ practice-exams-pdfs-*/
 !.claude/agents/**
 !.claude/commands/**
 
+# Personal skills symlinked into ignored .agents/ — broken links on GitHub, keep local-only
+.claude/skills/find-skills
+.claude/skills/frontend-design
+.claude/skills/ui-ux-designer
+
 # Local debug screenshots from playwright-mcp runs
 /ai-assist-before.png
 /edit-ai-assist.png
