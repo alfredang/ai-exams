@@ -894,6 +894,10 @@ const QUESTIONS: Q[] = [
 const CCA_EXAM_DESC =
   'Foundational certification covering Claude Code, the Claude Agent SDK, the Claude API, and the Model Context Protocol (MCP). Scenario-based questions test architectural judgment for production deployments — agentic loops, tool design, prompt engineering, structured output, and context management.';
 
+// Vendor's official exam page (carries the authoritative exam guide PDF).
+const CCA_INFO_URL =
+  'https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification';
+
 type Variant = {
   slug: string;
   code: string;
@@ -905,10 +909,17 @@ type Variant = {
   retiredTags: string[];
 };
 
+// Codes are the vendor's official ones (CCAR-F), taken from the Claude
+// Certified Architect — Foundations Exam Guide v1.0 (July 2026). They were
+// `CCA-F*` until 2026-07 — a pre-launch guess made before Anthropic published
+// the guide. The slugs deliberately keep the old `cca` spelling: the P1 slug is
+// the live, indexed bundle URL and renaming it would break it. See the matching
+// VENDOR_EXAM_CODE_OVERRIDES entry in prisma/seed.ts, which must agree with
+// these codes or the two seeds fight over them on every deploy.
 const VARIANTS: Variant[] = [
   {
     slug: 'anthropic-cca-foundations',
-    code: 'CCA-F',
+    code: 'CCAR-F',
     title: 'Claude Certified Architect — Foundations',
     questions: QUESTIONS,
     tag: 'manual:cca-foundations-seed',
@@ -916,7 +927,7 @@ const VARIANTS: Variant[] = [
   },
   {
     slug: 'anthropic-cca-foundations-p2',
-    code: 'CCA-F-P2',
+    code: 'CCAR-F-P2',
     title: 'Claude Certified Architect — Foundations (Practice Exam 2)',
     questions: CCA_P2 as unknown as Q[],
     tag: 'manual:cca-foundations-p2-seed',
@@ -924,7 +935,7 @@ const VARIANTS: Variant[] = [
   },
   {
     slug: 'anthropic-cca-foundations-p3',
-    code: 'CCA-F-P3',
+    code: 'CCAR-F-P3',
     title: 'Claude Certified Architect — Foundations (Practice Exam 3)',
     questions: CCA_P3 as unknown as Q[],
     tag: 'manual:cca-foundations-p3-seed',
@@ -934,10 +945,14 @@ const VARIANTS: Variant[] = [
 
 const CCA_BUNDLE = {
   slug: 'anthropic-cca-foundations',
-  title: 'Claude Certified Architect — Foundations (CCA-F)',
+  title: 'Claude Certified Architect — Foundations (CCAR-F)',
   description:
-    'Practice bundle for the Claude Certified Architect — Foundations (CCA-F) credential. 180 scenario-based questions across 3 practice exams covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the public Anthropic documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
-  price: 2000 // $20 PRACTICE tier. No voucher tier — Anthropic does not yet run a paid proctored exam for this credential.
+    'Practice bundle for the Claude Certified Architect — Foundations (CCAR-F) credential. 180 scenario-based questions across 3 practice exams covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
+  // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
+  // through Partner Academy (credit card, then schedule with Pearson VUE), and
+  // its partner voucher storefront is still "in progress" as of July 2026 —
+  // there is nothing for us to resell.
+  price: 2000
 };
 
 // ───────────────────── Seed entry point ─────────────────────
@@ -982,6 +997,7 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
       durationMinutes: 120,
       passingScore: 72,
       questionCount: v.questions.length,
+      infoUrl: CCA_INFO_URL,
       domains: CCA_DOMAINS,
       published: false
     };
