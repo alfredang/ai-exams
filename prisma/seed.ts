@@ -15,6 +15,9 @@ type ExamSeed = {
   durationMinutes: number;
   passingScore: number;
   questionCount: number;
+  // Vendor's official exam page. Optional: most of the catalog predates this
+  // field and sets it through the admin UI instead.
+  infoUrl?: string;
   domains: { name: string; weight: number }[];
 };
 
@@ -41,6 +44,26 @@ const VENDORS = [
   { slug: 'elastic', name: 'Elastic', description: 'Elastic certifications — Elasticsearch, Kibana, the Elastic Stack, and the Elastic Certified Engineer credential.' }
 ];
 
+// ───────────────── Anthropic — Claude Certification Program ─────────────────
+// Blueprints below are transcribed verbatim from Anthropic's official exam
+// guides (all v1.0, effective July 2026), linked from each cert page on the
+// Partner Academy. Weights are the vendor's own and each set sums to 100.
+// Domain NAMES are load-bearing: every question's `domain` string must match
+// one of these exactly or it drops out of the per-domain results breakdown.
+// The seed modules in src/lib/seed/ duplicate these — keep the two in sync.
+//
+// Every Claude cert is PRACTICE-only ($20, no voucher tier): Anthropic sells
+// attempts directly via Partner Academy and its partner voucher storefront is
+// still "in progress" as of July 2026, so there is nothing to resell.
+const CLAUDE_CERT_INFO = {
+  ccarF: 'https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification',
+  ccarP: 'https://anthropic-partners.skilljar.com/claude-certified-architect-professional-certification',
+  ccdvF: 'https://anthropic-partners.skilljar.com/claude-certified-developer-foundations-certification',
+  ccaoF: 'https://anthropic-partners.skilljar.com/claude-certified-associate-foundations-certification'
+};
+
+// CCAR-F — 60 items. The only Claude exam that is scenario-structured: the real
+// exam presents 4 scenarios drawn from a published bank of 6.
 const CLAUDE_ARCHITECT_DOMAINS = [
   { name: 'Agentic Architecture & Orchestration', weight: 27 },
   { name: 'Tool Design & MCP Integration', weight: 18 },
@@ -51,6 +74,52 @@ const CLAUDE_ARCHITECT_DOMAINS = [
 
 const CLAUDE_ARCHITECT_DESCRIPTION =
   'Foundational certification covering Claude Code, the Claude Agent SDK, the Claude API, and the Model Context Protocol (MCP). Scenario-based questions test architectural judgment for production deployments — agentic loops, tool design, prompt engineering, structured output, and context management.';
+
+// CCAR-P — 63 items. Architect role: design, build and deliver production-grade
+// Claude solutions across the full lifecycle, from discovery through operation.
+const CLAUDE_ARCHITECT_PRO_DOMAINS = [
+  { name: 'Solution Design & Architecture', weight: 17 },
+  { name: 'Claude Models, Prompting & Context Engineering', weight: 13 },
+  { name: 'Integration', weight: 19 },
+  { name: 'Evaluation, Testing & Optimization', weight: 16 },
+  { name: 'Governance, Safety & Risk Management', weight: 14 },
+  { name: 'Stakeholder Communication & Lifecycle Management', weight: 14 },
+  { name: 'Developer Productivity & Operational Enablement', weight: 7 }
+];
+
+const CLAUDE_ARCHITECT_PRO_DESCRIPTION =
+  'Professional certification for architects who design, build, and deliver production-grade AI solutions on the Claude platform. Covers end-to-end solution design, model selection and context engineering, RAG and integration patterns, evaluation and optimization, governance and risk, stakeholder communication, and developer enablement.';
+
+// CCDV-F — 53 items. Weights are fractional in the vendor guide (they sum to
+// 100.0); kept verbatim rather than rounded so the blueprint stays faithful.
+const CLAUDE_DEVELOPER_DOMAINS = [
+  { name: 'Agents and Workflows', weight: 14.7 },
+  { name: 'Applications and Integration', weight: 33.1 },
+  { name: 'Claude Code', weight: 3.1 },
+  { name: 'Eval, Testing, and Debugging', weight: 2.6 },
+  { name: 'Model Selection and Optimization', weight: 16.8 },
+  { name: 'Prompt and Context Engineering', weight: 11.0 },
+  { name: 'Security and Safety', weight: 8.1 },
+  { name: 'Tools and MCPs', weight: 10.6 }
+];
+
+const CLAUDE_DEVELOPER_DESCRIPTION =
+  'Foundational certification for developers who build, integrate, and ship production applications, agents, and workflows with Claude. Covers the Claude Agent SDK, Claude API mechanics, Claude Code, prompt and context engineering, evals and debugging, model selection and cost, security guardrails, and custom tools and MCP servers.';
+
+// CCAO-F — 60 items. Audience is deliberately non-engineering: professionals
+// using Claude as a productivity tool (ops, marketing, PM, education).
+const CLAUDE_ASSOCIATE_DOMAINS = [
+  { name: 'Prompting and Task Execution', weight: 14 },
+  { name: 'Output Evaluation and Validation', weight: 21 },
+  { name: 'Product and Model Selection', weight: 12 },
+  { name: 'Workflow Integration and Solution Design', weight: 16 },
+  { name: 'Configuration and Knowledge Management', weight: 12 },
+  { name: 'Governance, Risk, and Responsible Use', weight: 15 },
+  { name: 'Troubleshooting and Optimization', weight: 10 }
+];
+
+const CLAUDE_ASSOCIATE_DESCRIPTION =
+  'Foundational certification for professionals who apply Claude to real-world business and productivity tasks. Covers prompting and task execution, evaluating and validating output, choosing the right Claude product and model, integrating Claude into workflows, Projects and knowledge configuration, responsible use, and troubleshooting.';
 
 // Slugs that previously existed but have been removed from the catalog.
 // Cleanup in main() deletes any DB rows still pointing at these (exam,
@@ -107,7 +176,15 @@ const HIDDEN_EXAM_SLUGS = [
   // the bundle, not an exam shell. Mirrors the AWS single-exam-bundle pattern.
   'anthropic-cca-foundations',
   'anthropic-cca-foundations-p2',
-  'anthropic-cca-foundations-p3'
+  'anthropic-cca-foundations-p3',
+  // The other three Claude certs follow the same bundle-slug = P1-exam-slug
+  // pattern. NOTE: this list is honoured on CREATE only (the upsert's `update`
+  // deliberately omits `published` so prod admins stay authoritative), so these
+  // must be present on the deploy that first creates the exams — adding a slug
+  // here later will NOT hide an already-published exam.
+  'anthropic-ccar-professional',
+  'anthropic-ccdv-foundations',
+  'anthropic-ccao-foundations'
 ];
 
 // Vendor allowlist for the public catalog. Any exam whose vendorSlug is NOT
@@ -215,22 +292,60 @@ const BUNDLES: BundleSeed[] = [
       { examSlug: 'microsoft-sc-200-p1', tier: 'VOUCHER', position: 4 }
     ]
   },
+  // ───── Anthropic — the Claude Certification Program (4 bundles) ─────
+  // All four are hand-written rather than going through buildMultiVariantBundles()
+  // for two reasons: that helper unconditionally appends a VOUCHER item, and it
+  // requires variant slugs to be exactly `${bundleSlug}-pN` (our P1 keeps the
+  // bare slug so the bundle slug and P1 exam slug match).
+  //
+  // PRACTICE tier only, all four: Anthropic sells exam attempts directly through
+  // Partner Academy (credit card, then schedule with Pearson VUE) and its partner
+  // voucher storefront is still "in progress" as of July 2026 — we have no
+  // vouchers to fulfil, so offering a VOUCHER tier would be selling vapour.
   {
     // CCA-F is a 3-variant practice bundle (P2/P3 added 2026-06). The bundle
     // slug matches the P1 exam slug; all three variant exams are in
     // HIDDEN_EXAM_SLUGS so the bundle is the customer-facing surface on
-    // /practice-exams/anthropic/anthropic-cca-foundations. PRACTICE tier only —
-    // Anthropic does not run a paid proctored exam for this credential.
+    // /practice-exams/anthropic/anthropic-cca-foundations.
+    // The slug keeps the old "cca" spelling deliberately — it is the live,
+    // indexed URL. Only the exam CODE was corrected to the vendor's CCAR-F.
     slug: 'anthropic-cca-foundations',
-    title: 'Claude Certified Architect — Foundations (CCA-F)',
+    title: 'Claude Certified Architect — Foundations (CCAR-F)',
     description:
-      'Practice bundle for the Claude Certified Architect — Foundations (CCA-F) credential. 180 scenario-based questions across 3 practice exams covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the public Anthropic documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
+      'Practice bundle for the Claude Certified Architect — Foundations (CCAR-F) credential. 180 scenario-based questions across 3 practice exams covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
     price: 2000, // $20 — PRACTICE tier
     items: [
       { examSlug: 'anthropic-cca-foundations', tier: 'PRACTICE', position: 1 },
       { examSlug: 'anthropic-cca-foundations-p2', tier: 'PRACTICE', position: 2 },
       { examSlug: 'anthropic-cca-foundations-p3', tier: 'PRACTICE', position: 3 }
     ]
+  },
+  {
+    // Launches with P1 only (63 questions); P2/P3 follow.
+    slug: 'anthropic-ccar-professional',
+    title: 'Claude Certified Architect — Professional (CCAR-P)',
+    description:
+      'Practice bundle for the Claude Certified Architect — Professional (CCAR-P) credential. 63 questions matching the official exam blueprint — solution design and architecture, model selection and context engineering, integration and RAG, evaluation and optimization, governance and risk, stakeholder communication, and developer enablement. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
+    price: 2000, // $20 — PRACTICE tier
+    items: [{ examSlug: 'anthropic-ccar-professional', tier: 'PRACTICE', position: 1 }]
+  },
+  {
+    // Launches with P1 only (53 questions); P2/P3 follow.
+    slug: 'anthropic-ccdv-foundations',
+    title: 'Claude Certified Developer — Foundations (CCDV-F)',
+    description:
+      'Practice bundle for the Claude Certified Developer — Foundations (CCDV-F) credential. 53 questions matching the official exam blueprint — agents and workflows, applications and integration, Claude Code, evals and debugging, model selection, prompt and context engineering, security, and tools and MCP servers. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
+    price: 2000, // $20 — PRACTICE tier
+    items: [{ examSlug: 'anthropic-ccdv-foundations', tier: 'PRACTICE', position: 1 }]
+  },
+  {
+    // Launches with P1 only (60 questions); P2/P3 follow.
+    slug: 'anthropic-ccao-foundations',
+    title: 'Claude Certified Associate — Foundations (CCAO-F)',
+    description:
+      'Practice bundle for the Claude Certified Associate — Foundations (CCAO-F) credential. 60 questions matching the official exam blueprint — prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
+    price: 2000, // $20 — PRACTICE tier
+    items: [{ examSlug: 'anthropic-ccao-foundations', tier: 'PRACTICE', position: 1 }]
   },
   // ───── Auto-generated multi-variant cert bundles ─────
   // Each entry follows the same shape: practice tier covers all variants,
@@ -909,25 +1024,61 @@ const EXAMS: ExamSeed[] = [
   // Question content is seeded by src/lib/seed/cca-foundations-questions.ts
   // (and its -p2/-p3 sibling modules) via /api/admin/seed-cca-foundations.
   {
-    vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations', code: 'CCA-F',
+    vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations', code: 'CCAR-F',
     title: 'Claude Certified Architect — Foundations',
     description: CLAUDE_ARCHITECT_DESCRIPTION,
     level: 'Foundational', durationMinutes: 120, passingScore: 72, questionCount: 60,
+    infoUrl: CLAUDE_CERT_INFO.ccarF,
     domains: CLAUDE_ARCHITECT_DOMAINS
   },
   {
-    vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations-p2', code: 'CCA-F-P2',
+    vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations-p2', code: 'CCAR-F-P2',
     title: 'Claude Certified Architect — Foundations (Practice Exam 2)',
     description: CLAUDE_ARCHITECT_DESCRIPTION,
     level: 'Foundational', durationMinutes: 120, passingScore: 72, questionCount: 60,
+    infoUrl: CLAUDE_CERT_INFO.ccarF,
     domains: CLAUDE_ARCHITECT_DOMAINS
   },
   {
-    vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations-p3', code: 'CCA-F-P3',
+    vendorSlug: 'anthropic', slug: 'anthropic-cca-foundations-p3', code: 'CCAR-F-P3',
     title: 'Claude Certified Architect — Foundations (Practice Exam 3)',
     description: CLAUDE_ARCHITECT_DESCRIPTION,
     level: 'Foundational', durationMinutes: 120, passingScore: 72, questionCount: 60,
+    infoUrl: CLAUDE_CERT_INFO.ccarF,
     domains: CLAUDE_ARCHITECT_DOMAINS
+  },
+  // ───── Anthropic — Claude Certified Architect — Professional ─────
+  // Blueprint from the CCAR-P Exam Guide v1.0 (July 2026). 63 items, 120 min.
+  // Content seeded by src/lib/seed/ccar-professional-questions.ts.
+  {
+    vendorSlug: 'anthropic', slug: 'anthropic-ccar-professional', code: 'CCAR-P',
+    title: 'Claude Certified Architect — Professional',
+    description: CLAUDE_ARCHITECT_PRO_DESCRIPTION,
+    level: 'Professional', durationMinutes: 120, passingScore: 72, questionCount: 63,
+    infoUrl: CLAUDE_CERT_INFO.ccarP,
+    domains: CLAUDE_ARCHITECT_PRO_DOMAINS
+  },
+  // ───── Anthropic — Claude Certified Developer — Foundations ─────
+  // Blueprint from the CCDV-F Exam Guide v1.0 (July 2026). 53 items, 120 min.
+  // Weights are fractional in the vendor guide and sum to 100.0 — kept verbatim.
+  {
+    vendorSlug: 'anthropic', slug: 'anthropic-ccdv-foundations', code: 'CCDV-F',
+    title: 'Claude Certified Developer — Foundations',
+    description: CLAUDE_DEVELOPER_DESCRIPTION,
+    level: 'Foundational', durationMinutes: 120, passingScore: 72, questionCount: 53,
+    infoUrl: CLAUDE_CERT_INFO.ccdvF,
+    domains: CLAUDE_DEVELOPER_DOMAINS
+  },
+  // ───── Anthropic — Claude Certified Associate — Foundations ─────
+  // Blueprint from the CCAO-F Exam Guide v1.0 (July 2026). 60 items, 120 min.
+  // Audience is non-engineers using Claude as a productivity tool.
+  {
+    vendorSlug: 'anthropic', slug: 'anthropic-ccao-foundations', code: 'CCAO-F',
+    title: 'Claude Certified Associate — Foundations',
+    description: CLAUDE_ASSOCIATE_DESCRIPTION,
+    level: 'Foundational', durationMinutes: 120, passingScore: 72, questionCount: 60,
+    infoUrl: CLAUDE_CERT_INFO.ccaoF,
+    domains: CLAUDE_ASSOCIATE_DOMAINS
   },
 
   {
@@ -1731,6 +1882,9 @@ async function main() {
         level: e.level,
         durationMinutes: e.durationMinutes,
         passingScore: e.passingScore,
+        // Catalog content, so it syncs on update — but only when the seed
+        // actually carries one, so we never blank an admin-set URL.
+        ...(e.infoUrl ? { infoUrl: e.infoUrl } : {}),
         domains: e.domains
       },
       create: {
@@ -1743,6 +1897,7 @@ async function main() {
         durationMinutes: e.durationMinutes,
         passingScore: e.passingScore,
         questionCount: e.questionCount,
+        infoUrl: e.infoUrl ?? null,
         domains: e.domains,
         published: isPublished
       }
@@ -1881,7 +2036,17 @@ async function main() {
     // Tableau Certified Data Analyst — opaque vendor code (can't derive "TDA-C01"
     // from the "tableau-tcda" slug). Without this the auto-create logic would
     // recode the existing TDA-C01-Pn exams to TCDA-Pn on every deploy.
-    'tableau-tcda': 'TDA-C01'
+    'tableau-tcda': 'TDA-C01',
+    // Claude Certified Architect — Foundations. The slug says "cca" (kept: it's
+    // the live indexed bundle URL) but the vendor's official code is "CCAR-F",
+    // so prefix-stripping would yield "CCA-FOUNDATIONS-P2" and fight the codes
+    // set by src/lib/seed/cca-foundations-questions.ts on every deploy.
+    'anthropic-cca-foundations': 'CCAR-F',
+    // The remaining Claude certs: slug tail ("ccar-professional") is not the
+    // vendor code ("CCAR-P"). Needed before P2/P3 variants land.
+    'anthropic-ccar-professional': 'CCAR-P',
+    'anthropic-ccdv-foundations': 'CCDV-F',
+    'anthropic-ccao-foundations': 'CCAO-F'
   };
   function vendorExamCodeFor(baseSlug: string): string {
     if (VENDOR_EXAM_CODE_OVERRIDES[baseSlug]) return VENDOR_EXAM_CODE_OVERRIDES[baseSlug];
