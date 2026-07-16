@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 
 // ISR: vendor-page bundle listings cache for 5 min. New publishes appear
 // shortly after; avoids fetching the entire bundle catalog on every visit.
@@ -51,7 +52,10 @@ export default async function VendorCatalogPage({ params }: { params: Promise<{ 
         {cards.map(card => {
           const b = card.data;
           const first = b.items[0]?.exam;
-          const totalQs = b.items.reduce((s, i) => s + i.exam.questionCount, 0);
+          // PRACTICE items only — the VOUCHER item points back at the same -p1
+          // exam, so counting raw items double-counts it. See bundle-contents.ts.
+          const totalQs = practiceQuestionTotal(b.items);
+          const examCount = practiceExamCount(b.items);
           return (
             <Link key={`b-${b.id}`} href={first ? `/practice-exams/${first.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
               <div className="mb-2 flex items-center gap-2 text-xs">
@@ -61,7 +65,7 @@ export default async function VendorCatalogPage({ params }: { params: Promise<{ 
               <h3 className="font-semibold">{b.title}</h3>
               <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {b.items.length} practice exams</span>
+                <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {practiceExamLabel(examCount)}</span>
                 <span className="font-semibold text-blue-700 dark:text-blue-300">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
               </div>
             </Link>

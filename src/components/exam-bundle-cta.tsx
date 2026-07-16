@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { practiceExamCount, practiceExamLabel } from '@/lib/bundle-contents';
 import { Package, Ticket } from 'lucide-react';
 
 /**
@@ -16,7 +17,10 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
     },
     orderBy: [{ price: 'asc' }, { title: 'asc' }],
     include: {
-      _count: { select: { items: true } }
+      // Not `_count: { items: true }`: that counts the VOUCHER item too, which
+      // points back at the same -p1 exam and is not a practice exam the buyer
+      // gets. Select the items and count the PRACTICE ones. See bundle-contents.ts.
+      items: { select: { tier: true, exam: { select: { id: true, questionCount: true } } } }
     }
   });
 
@@ -41,7 +45,7 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
           </div>
           <div className="font-semibold">{b.title}</div>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
-            Includes {b._count.items} practice exam{b._count.items === 1 ? '' : 's'}.
+            Includes {practiceExamLabel(practiceExamCount(b.items))}.
           </p>
           <div className="mt-3 space-y-2">
             <Link

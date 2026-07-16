@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Check, Timer, BookOpen, Award, BookOpenCheck, Hourglass } from 'lucide-react';
 import { BundleBuyForm } from './bundle-buy-form';
+import { practiceItems, practiceQuestionTotal } from '@/lib/bundle-contents';
 
 type BundleItem = {
   id: string;
@@ -31,13 +32,19 @@ type Bundle = {
 };
 
 export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: string }) {
-  // All items in a bundle share the same underlying cert (e.g. AI-900),
-  // so we derive vendor/code/level/stats from the first item.
-  const first = bundle.items[0]?.exam;
+  // PRACTICE items only. The VOUCHER item points back at the same -p1 exam, so
+  // counting raw items claimed an extra practice exam and double-counted its
+  // questions — while the copy below says "unique questions". See bundle-contents.ts.
+  const practice = practiceItems(bundle.items);
+  const totalQuestions = practiceQuestionTotal(bundle.items);
+  // All items in a bundle share the same underlying cert (e.g. AI-900), so we
+  // derive vendor/code/level/stats from the first one. Prefer the first PRACTICE
+  // item: `items` has no guaranteed order here, so items[0] could be the VOUCHER
+  // row. It points at the same exam today, but relying on that is a trap.
+  const first = (practice[0] ?? bundle.items[0])?.exam;
   if (!first) return null;
   const vendor = first.vendor;
   const domains = (first.domains as any[]) || [];
-  const totalQuestions = bundle.items.reduce((sum, it) => sum + it.exam.questionCount, 0);
   // Display code without per-exam suffix, e.g. "AI-900-P1" -> "AI-900"
   const displayCode = first.code.replace(/-P\d+$/, '');
 
@@ -106,7 +113,7 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
             <h2 className="font-semibold">What you get</h2>
             <ul className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-100">
               {[
-                `Includes ${bundle.items.length} full practice exams (${totalQuestions} unique questions across all sets)`,
+                `Includes ${practice.length} full practice exam${practice.length === 1 ? '' : 's'} (${totalQuestions} unique questions${practice.length === 1 ? '' : ' across all sets'})`,
                 'Practice mode with immediate explanations',
                 'Timed Exam mode that simulates the real test',
                 'Mark questions for review and filter by status',
@@ -121,7 +128,7 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
           <div className="mt-6 card p-6">
             <h2 className="font-semibold">Practice exams included</h2>
             <ul className="mt-3 space-y-2 text-sm">
-              {bundle.items.map((item, i) => (
+              {practice.map((item, i) => (
                 <li key={item.id} className="flex items-center justify-between gap-3 border-b border-slate-200 pb-2 last:border-0 last:pb-0 dark:border-slate-800">
                   <div className="flex items-center gap-3">
                     <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">

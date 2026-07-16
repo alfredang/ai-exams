@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
 
 const PAGE_SIZE = 9;
@@ -76,7 +77,10 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         {pageCards.map(card => {
           const b = card.data;
           const firstItem = b.items[0]?.exam;
-          const totalQuestions = b.items.reduce((sum, it) => sum + it.exam.questionCount, 0);
+          // PRACTICE items only — the VOUCHER item points back at the same -p1
+          // exam, so counting raw items double-counts it. See bundle-contents.ts.
+          const totalQuestions = practiceQuestionTotal(b.items);
+          const examCount = practiceExamCount(b.items);
           return (
             <Link key={`b-${b.id}`} href={firstItem ? `/practice-exams/${firstItem.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
@@ -87,7 +91,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
               <h3 className="font-semibold">{b.title}</h3>
               <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400">{totalQuestions} questions · {b.items.length} practice exams</span>
+                <span className="text-slate-500 dark:text-slate-400">{totalQuestions} questions · {practiceExamLabel(examCount)}</span>
                 <span className="font-semibold text-blue-700 dark:text-blue-300">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
               </div>
             </Link>
