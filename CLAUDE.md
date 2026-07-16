@@ -114,7 +114,11 @@ For every new bundle `xyz` (mirror [src/lib/seed/ckad-questions.ts](src/lib/seed
 1. **Idempotent seed module** `src/lib/seed/xyz-questions.ts` — upserts vendor/exams/bundle; deletes + recreates questions tagged `generatedBy: 'manual:xyz-seed'`.
 2. **CLI shim** `prisma/seeds/xyz.ts` — invokes `seedXyz(db)` for local runs (`npx tsx prisma/seeds/xyz.ts`).
 3. **Admin endpoint** `src/app/api/admin/seed-xyz/route.ts` — admin-gated, writes an `AdminLog` entry (clone [src/app/api/admin/seed-ckad/route.ts](src/app/api/admin/seed-ckad/route.ts)).
-4. **Catalog entries** in [prisma/seed.ts](prisma/seed.ts) (`bundleSpecs` + `EXAM_SEEDS`) so `npm run db:seed` on a fresh DB also registers the rows.
+4. **Catalog entries** in [prisma/seed.ts](prisma/seed.ts) — add the exam to `EXAMS` and the bundle to `BUNDLES` so `npm run db:seed` on a fresh DB also registers the rows. Notes:
+   - `BUNDLES` membership is what keeps a bundle published: `seededSlugs` is derived from it, and any bundle *not* in the list is auto-unpublished on every deploy.
+   - Uniform `${slug}-p1..-pN` variants **that have a voucher tier** can use the `buildMultiVariantBundles()` spec list instead; it always appends a VOUCHER item, so practice-only bundles must be hand-written.
+   - Add an entry to `VENDOR_EXAM_CODE_OVERRIDES` whenever the vendor's exam code isn't the slug-minus-vendor-prefix uppercased — otherwise the variant recode loop rewrites your exam codes on **every** deploy.
+   - `published`, `questionCount`, and `code` are deliberately excluded from the exam upsert's `update` clause (prod admins are authoritative), so `HIDDEN_EXAM_SLUGS` and the initial question count only take effect on **create**. Get them right on the first deploy.
 5. `git push origin main` and wait ~1–2 min for Coolify to redeploy.
 6. Seed production from this machine:
 
