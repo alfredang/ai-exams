@@ -80,7 +80,13 @@ export async function GET(req: NextRequest) {
     const archived = e.deletedAt != null;
     const flags: string[] = [];
 
-    if (domains.length > 0 && weightSum !== 100) flags.push(`domain weights sum to ${weightSum}, not 100`);
+    // Tolerance, not equality: some vendors publish fractional domain weights
+    // (Anthropic's CCDV-F blueprint is 14.7/33.1/3.1/... ), and summing those
+    // in binary floating point lands on 99.99999999999999 — which is a correct
+    // blueprint, not a defect. 0.01 still catches a genuinely wrong sum.
+    if (domains.length > 0 && Math.abs(weightSum - 100) > 0.01) {
+      flags.push(`domain weights sum to ${Number(weightSum.toFixed(2))}, not 100`);
+    }
     if (e.published && !archived && publishedQuestions === 0) flags.push('published but has 0 published questions');
     if (e.published && !archived && publishedQuestions > 0 && publishedQuestions < 50) flags.push(`thin: only ${publishedQuestions} published questions`);
     if (!archived && e.questionCount !== publishedQuestions && publishedQuestions > 0) {
