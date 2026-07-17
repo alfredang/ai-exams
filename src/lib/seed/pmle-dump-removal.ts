@@ -36,15 +36,20 @@
  *  1. Deletes every question carrying the dump signature, catalog-wide — not
  *     just under PMLE. One had already leaked into a Google ACE variant, so
  *     scoping this to PMLE would have left it behind.
- *  2. Drops any PMLE variant left below a usable question count out of the
- *     bundle and unpublishes it. Removal guts P4-P6 (they were mostly dump),
- *     while P1-P3 keep a bank comfortably above their 60-question attempt
- *     length. Unpublishing rather than deleting is deliberate: the exam route
- *     allows `published OR entitled`, so anyone who already bought the bundle
- *     keeps access to what they paid for, while the catalog and sitemap stop
- *     offering it.
+ *  2. Drops any PMLE variant that THIS database's removal left below a usable
+ *     question count out of the bundle, and unpublishes it — and conversely
+ *     re-publishes any variant that is healthy but was left unpublished.
+ *     Both directions are derived from the data in front of it; see the note
+ *     on RETIRE_BELOW_QUESTIONS. Unpublishing rather than deleting is
+ *     deliberate: the exam route allows `published OR entitled`, so anyone who
+ *     already bought the bundle keeps what they paid for while the catalog and
+ *     sitemap stop offering it.
  *  3. Restores each surviving exam's teaser pool, since deleted dumps may have
- *     been flagged as teasers.
+ *     been flagged as teasers, and clamps questionCount to the real bank so the
+ *     bundle page cannot advertise more questions than an attempt will serve.
+ *
+ * The amount of work it does therefore depends entirely on the target database.
+ * On production (no dumps) it is a no-op that simply asserts the healthy state.
  *
  * Idempotent: signature-matched rows are gone after the first run, so a second
  * run reports 0 removed and changes nothing.
@@ -65,22 +70,25 @@ type Opt = { id: string; text: string };
 const DUMP_EXPLANATION_RE = /best satisfies the requirements described in the scenario/i;
 
 /**
- * The variants to retire, named explicitly rather than derived from a count.
+ * Retirement is DATA-DRIVEN, never a hardcoded list.
  *
- * These three were built almost entirely from the dump (50/47/31 of 60 each),
- * so removal leaves them with ~10-29 questions against a 60-question attempt.
- * P1-P3 survive removal with a usable bank and stay in the bundle.
+ * A variant is retired only if removing its dumps actually leaves it too small
+ * to serve. This must be decided from the database it is running against, not
+ * from what a developer saw locally.
  *
- * An earlier version computed this from a "fewer than 60 published questions"
- * threshold and retired ALL SIX — because removal also drops P1-P3 to 49-51
- * published (the rest of their bank sits in DRAFT). Retiring a product is a
- * decision, not something to infer from a magic number, so it is a list.
+ * Learned the hard way on 2026-07-17: an earlier version hardcoded
+ * ['...-p4','...-p5','...-p6'] because those were mostly dump *on a local DB*.
+ * Production turned out to have completely different PMLE content — zero dump
+ * questions, all six variants healthy at 60 — so the hardcoded list retired
+ * three perfectly good exams and cut a live bundle from 360 questions to 180.
+ * The dump deletion, which self-sized by scanning content, did the right thing
+ * and removed nothing. The lesson: anything destructive must derive its scope
+ * from the target database. Local is not a proxy for production content.
+ *
+ * The threshold sits well below the 60-question attempt length so that a
+ * variant merely thinned by removal is kept, while a gutted one is dropped.
  */
-const RETIRE_SLUGS = [
-  'google-professional-ml-engineer-p4',
-  'google-professional-ml-engineer-p5',
-  'google-professional-ml-engineer-p6'
-];
+const RETIRE_BELOW_QUESTIONS = 30;
 
 const PMLE_BUNDLE_SLUG = 'google-professional-ml-engineer';
 const PMLE_SLUG_PREFIX = 'google-professional-ml-engineer-p';
@@ -90,6 +98,7 @@ export type PmleDumpRemovalResult = {
   removed: number;
   removedByExam: Record<string, number>;
   retiredVariants: string[];
+  restoredVariants: string[];
   bundleItemsRemoved: number;
   questionCountAdjusted: Record<string, { from: number; to: number }>;
   perExam: Record<string, { total: number; teasers: number; published: boolean; questionCount: number }>;
@@ -101,6 +110,7 @@ export async function removePmleDumps(db: PrismaClient): Promise<PmleDumpRemoval
     removed: 0,
     removedByExam: {},
     retiredVariants: [],
+    restoredVariants: [],
     bundleItemsRemoved: 0,
     questionCountAdjusted: {},
     perExam: {}
@@ -136,22 +146,33 @@ export async function removePmleDumps(db: PrismaClient): Promise<PmleDumpRemoval
   });
 
   for (const v of variants) {
-    if (!RETIRE_SLUGS.includes(v.slug)) continue;
+    const remaining = await db.question.count({ where: { examId: v.id, status: 'PUBLISHED' } });
 
-    result.retiredVariants.push(v.slug);
-
-    // Drop it from the bundle so new buyers are not sold a gutted variant.
-    // Existing entitlements are untouched — they are rows on Entitlement, not
-    // BundleItem, so prior buyers keep access via `published OR entitled`.
-    if (bundle) {
-      const removed = await db.bundleItem.deleteMany({ where: { bundleId: bundle.id, examId: v.id } });
-      result.bundleItemsRemoved += removed.count;
+    if (remaining < RETIRE_BELOW_QUESTIONS) {
+      // Gutted by removal → drop from the bundle so new buyers are not sold it.
+      // Existing entitlements are untouched: they are rows on Entitlement, not
+      // BundleItem, so prior buyers keep access via `published OR entitled`.
+      result.retiredVariants.push(v.slug);
+      if (bundle) {
+        const removed = await db.bundleItem.deleteMany({ where: { bundleId: bundle.id, examId: v.id } });
+        result.bundleItemsRemoved += removed.count;
+      }
+      // Unpublish so it leaves the catalog and the sitemap. NOT deleted and NOT
+      // soft-deleted: entitled users must keep what they bought.
+      if (v.published) {
+        await db.exam.update({ where: { id: v.id }, data: { published: false } });
+      }
+      continue;
     }
 
-    // Unpublish so it leaves the catalog and the sitemap. NOT deleted, and not
-    // soft-deleted: entitled users must keep what they bought.
-    if (v.published) {
-      await db.exam.update({ where: { id: v.id }, data: { published: false } });
+    // Healthy → make sure it is live. This is the repair path for the
+    // 2026-07-17 incident: a hardcoded retirement list unpublished three
+    // variants on production that were never gutted (prod had no dumps at all).
+    // `published` is create-only in prisma/seed.ts's upsert, so the deploy
+    // cannot undo that — only this module can put them back.
+    if (!v.published) {
+      await db.exam.update({ where: { id: v.id }, data: { published: true } });
+      result.restoredVariants.push(v.slug);
     }
   }
 

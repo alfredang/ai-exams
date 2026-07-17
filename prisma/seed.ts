@@ -247,26 +247,25 @@ const BUNDLES: BundleSeed[] = [
     ]
   },
   {
-    // P4-P6 were REMOVED from this bundle on 2026-07-17. They were built almost
-    // entirely from a third-party exam dump (50/47/31 of 60 questions each), and
-    // `/api/admin/fix-pmle-dumps` deletes those by content signature — which
-    // leaves those three variants with ~10-29 questions, far below the
-    // 60-question attempt length, so they are not sellable.
+    // This list declares PRODUCT INTENT: all six variants belong to the bundle.
+    // Whether a given database can actually serve one is decided by
+    // /api/admin/fix-pmle-dumps against that database, not here — it drops a
+    // variant only if that DB's dump removal genuinely guts it.
     //
-    // This list is authoritative: the bundle upsert in main() does
-    // `bundleItem.deleteMany` and recreates from here on EVERY deploy, so
-    // leaving p4-p6 listed would silently re-add them and undo the removal.
+    // Do not prune this list from local observations. On 2026-07-17 p4-p6 were
+    // removed here because they were mostly dump *locally*; production had
+    // entirely different PMLE content (zero dumps, all six healthy at 60), so
+    // the deploy cut a live bundle from 360 questions to 180 for no reason.
+    // Reverted. See the incident note in src/lib/seed/pmle-dump-removal.ts.
     //
-    // P1-P3 survive and stay in the bundle, but the dumps were load-bearing
-    // there too: removal drops them to ~49-51 published questions, so
-    // fix-pmle-dumps also clamps their questionCount down from 60 to match the
-    // real bank (otherwise the page advertises 180 questions and serves 151).
+    // Note the bundle upsert in main() does `bundleItem.deleteMany` and
+    // recreates from here on EVERY deploy, so this list is what a deploy
+    // restores to.
     //
-    // The whole bank still needs re-authoring: Google reissued this exam guide
-    // effective 2026-06-01, moving the platform from Vertex AI to Gemini
-    // Enterprise Agent Platform and reweighting the blueprint to
-    // 13/16/21/20/18/13 (the EXAMS entry below still has the old
-    // 12/16/18/19/21/14). Deferred — see src/lib/seed/pmle-dump-removal.ts.
+    // Still outstanding: Google reissued this exam guide effective 2026-06-01,
+    // moving the platform from Vertex AI to Gemini Enterprise Agent Platform and
+    // reweighting the blueprint to 13/16/21/20/18/13 (the EXAMS entry below
+    // still carries the old 12/16/18/19/21/14). Re-authoring is a separate job.
     slug: 'google-professional-ml-engineer',
     title: 'Google Professional Machine Learning Engineer',
     description:
@@ -277,7 +276,10 @@ const BUNDLES: BundleSeed[] = [
       { examSlug: 'google-professional-ml-engineer-p1', tier: 'PRACTICE', position: 1 },
       { examSlug: 'google-professional-ml-engineer-p2', tier: 'PRACTICE', position: 2 },
       { examSlug: 'google-professional-ml-engineer-p3', tier: 'PRACTICE', position: 3 },
-      { examSlug: 'google-professional-ml-engineer-p1', tier: 'VOUCHER', position: 4 }
+      { examSlug: 'google-professional-ml-engineer-p4', tier: 'PRACTICE', position: 4 },
+      { examSlug: 'google-professional-ml-engineer-p5', tier: 'PRACTICE', position: 5 },
+      { examSlug: 'google-professional-ml-engineer-p6', tier: 'PRACTICE', position: 6 },
+      { examSlug: 'google-professional-ml-engineer-p1', tier: 'VOUCHER', position: 7 }
     ]
   },
   {

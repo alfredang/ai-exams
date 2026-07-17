@@ -16,6 +16,9 @@ async function main() {
   const r = await removePmleDumps(db);
   console.log(`✓ scanned ${r.scanned} candidate(s), removed ${r.removed} dump question(s)`);
   for (const [slug, n] of Object.entries(r.removedByExam)) console.log(`   - ${slug}: ${n} removed`);
+  if (r.restoredVariants.length) {
+    console.log(`✓ restored ${r.restoredVariants.length} healthy variant(s) to published: ${r.restoredVariants.join(', ')}`);
+  }
   if (r.retiredVariants.length) {
     console.log(`✓ retired ${r.retiredVariants.length} unusable variant(s): ${r.retiredVariants.join(', ')}`);
     console.log(`   ↳ removed ${r.bundleItemsRemoved} bundle item(s); exams unpublished, NOT deleted (existing buyers keep access)`);
