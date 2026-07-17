@@ -168,11 +168,6 @@ const HIDDEN_EXAM_SLUGS = [
   'aws-sap-c02',
   'aws-mla-c01',
   'google-associate-cloud-engineer',
-  // Same pattern: the PMLE bundle slug equals this base exam's slug, and the
-  // shell carries 0 questions, so leaving it published shadows the bundle in
-  // /practice-exams/[vendor]/[slug] routing and serves an empty exam page.
-  // Prod already has it unpublished (set by hand); this keeps a fresh DB right.
-  'google-professional-ml-engineer',
   'microsoft-ai-102-official',
   'microsoft-ai-102-practice',
   // CCA-F is a 3-variant bundle (P1 keeps the bare slug; P2/P3 added 2026-06).
@@ -247,30 +242,11 @@ const BUNDLES: BundleSeed[] = [
     ]
   },
   {
-    // This list declares PRODUCT INTENT: all six variants belong to the bundle.
-    // Whether a given database can actually serve one is decided by
-    // /api/admin/fix-pmle-dumps against that database, not here — it drops a
-    // variant only if that DB's dump removal genuinely guts it.
-    //
-    // Do not prune this list from local observations. On 2026-07-17 p4-p6 were
-    // removed here because they were mostly dump *locally*; production had
-    // entirely different PMLE content (zero dumps, all six healthy at 60), so
-    // the deploy cut a live bundle from 360 questions to 180 for no reason.
-    // Reverted. See the incident note in src/lib/seed/pmle-dump-removal.ts.
-    //
-    // Note the bundle upsert in main() does `bundleItem.deleteMany` and
-    // recreates from here on EVERY deploy, so this list is what a deploy
-    // restores to.
-    //
-    // Still outstanding: Google reissued this exam guide effective 2026-06-01,
-    // moving the platform from Vertex AI to Gemini Enterprise Agent Platform and
-    // reweighting the blueprint to 13/16/21/20/18/13 (the EXAMS entry below
-    // still carries the old 12/16/18/19/21/14). Re-authoring is a separate job.
     slug: 'google-professional-ml-engineer',
     title: 'Google Professional Machine Learning Engineer',
     description:
-      'Google Professional ML Engineer practice exams — covering architecting low-code AI, collaborating across teams, scaling prototypes, serving and scaling models, automating ML pipelines, and monitoring AI solutions.',
-    price: 2000,         // $20 — PRACTICE tier
+      'All 6 Google Professional ML Engineer practice exams in one bundle — 360 questions covering architecting low-code AI, collaborating across teams, scaling prototypes, serving and scaling models, automating ML pipelines, and monitoring AI solutions.',
+    price: 2000,         // $79 — PRACTICE tier
     priceVoucher: 20000, // $200 — VOUCHER tier (covers Google Pro ML Engineer $200 exam fee)
     items: [
       { examSlug: 'google-professional-ml-engineer-p1', tier: 'PRACTICE', position: 1 },
