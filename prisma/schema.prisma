@@ -90,6 +90,7 @@ model User {
   email         String    @unique
   passwordHash  String?
   name          String?
+  image         String?   // avatar URL written by the NextAuth OAuth adapter
   role          Role      @default(USER)
   active        Boolean   @default(true)
   nationality   String?
