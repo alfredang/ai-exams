@@ -90,18 +90,18 @@ export default async function HomePage() {
           <div className="relative hidden items-center justify-center md:flex">
             <Image
               src="/hero.webp"
-              alt="ExamNova exam-prep dashboard preview"
+              alt="Online exam preparation with instructor-led learning"
               width={1200}
-              height={800}
+              height={897}
               priority
               sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 100vw"
               className="block h-auto max-h-[480px] w-full max-w-full object-contain dark:hidden"
             />
             <Image
               src="/hero-dark.webp"
-              alt="ExamNova exam-prep dashboard preview"
+              alt="Online exam preparation with instructor-led learning"
               width={1200}
-              height={800}
+              height={897}
               priority
               sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 100vw"
               className="hidden h-auto max-h-[480px] w-full max-w-full object-contain dark:block [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)] [-webkit-mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)]"
