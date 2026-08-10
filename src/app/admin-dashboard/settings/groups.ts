@@ -5,6 +5,8 @@ export type FieldDef = {
   placeholder?: string;
   /** When true, the field spans the full width of the grid row. */
   fullWidth?: boolean;
+  /** When true, renders as a textarea (needed for multi-line values like PEM keys). */
+  multiline?: boolean;
 };
 
 export type SettingsGroup = {
@@ -82,6 +84,19 @@ export const EMAIL_GMAIL_FIELDS: FieldDef[] = [
   { key: 'GMAIL_OAUTH_CLIENT_ID', label: 'Google OAuth Client ID' },
   { key: 'GMAIL_OAUTH_CLIENT_SECRET', label: 'Google OAuth Client Secret', secret: true },
   { key: 'GMAIL_OAUTH_SENDER_EMAIL', label: 'Sender Gmail address', placeholder: 'noreply@yourdomain.com' }
+];
+
+export const EMAIL_SA_FIELDS: FieldDef[] = [
+  { key: 'GMAIL_SA_SENDER_EMAIL', label: 'Sender (impersonated Workspace user)', placeholder: 'sales@yourdomain.com' },
+  { key: 'GMAIL_SA_CLIENT_EMAIL', label: 'Service account email', placeholder: 'mailer@project.iam.gserviceaccount.com' },
+  {
+    key: 'GMAIL_SA_PRIVATE_KEY',
+    label: 'Private key (PEM, or paste the entire JSON key file)',
+    secret: true,
+    fullWidth: true,
+    multiline: true,
+    placeholder: '-----BEGIN PRIVATE KEY-----\n… or the full JSON downloaded from Google Cloud'
+  }
 ];
 
 export const EMAIL_SMTP_FIELDS: FieldDef[] = [

@@ -1,30 +1,36 @@
 'use client';
 import { useState } from 'react';
-import { Eye, EyeOff, Mail, Plug, Unplug, Send } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Mail, Plug, Unplug, Send } from 'lucide-react';
 import type { FieldDef } from '../groups';
 
 type Initial = Record<string, { configured: boolean; preview: string; current: string }>;
+type Transport = 'GMAIL_OAUTH' | 'GMAIL_SERVICE_ACCOUNT' | 'SMTP';
 
 export default function EmailForm({
   initial,
   gmailFields,
+  saFields,
   smtpFields,
   commonFields,
   initialTransport,
+  initialFallbackEnabled,
   gmailConnected,
   gmailSender,
   flash
 }: {
   initial: Initial;
   gmailFields: FieldDef[];
+  saFields: FieldDef[];
   smtpFields: FieldDef[];
   commonFields: FieldDef[];
-  initialTransport: 'GMAIL_OAUTH' | 'SMTP';
+  initialTransport: Transport;
+  initialFallbackEnabled: boolean;
   gmailConnected: boolean;
   gmailSender: string;
   flash?: { kind: 'success' | 'error'; message: string };
 }) {
-  const [transport, setTransport] = useState<'GMAIL_OAUTH' | 'SMTP'>(initialTransport);
+  const [transport, setTransport] = useState<Transport>(initialTransport);
+  const [fallbackEnabled, setFallbackEnabled] = useState(initialFallbackEnabled);
   const [values, setValues] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
@@ -36,7 +42,11 @@ export default function EmailForm({
   async function save(extra?: Record<string, string>) {
     setSaving(true);
     setMsg('');
-    const payload: Record<string, string> = { EMAIL_TRANSPORT: transport, ...(extra ?? {}) };
+    const payload: Record<string, string> = {
+      EMAIL_TRANSPORT: transport,
+      EMAIL_FALLBACK_ENABLED: fallbackEnabled ? 'true' : 'false',
+      ...(extra ?? {})
+    };
     for (const [k, v] of Object.entries(values)) if (v !== '') payload[k] = v;
     const res = await fetch('/api/admin/settings', {
       method: 'POST',
@@ -103,8 +113,8 @@ export default function EmailForm({
 
       <div className="card p-4">
         <h3 className="text-[13px] font-semibold text-slate-800 dark:text-slate-100">Transport</h3>
-        <p className="mt-1 text-[12px] text-slate-500">Choose how outbound emails are sent.</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <p className="mt-1 text-[12px] text-slate-500">Choose the primary channel for outbound emails.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <label
             className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
               transport === 'GMAIL_OAUTH'
@@ -121,7 +131,24 @@ export default function EmailForm({
             />
             <Mail className="h-4 w-4" />
             <span className="font-medium">Gmail OAuth</span>
-            <span className="text-[11px] text-slate-500">Preferred</span>
+          </label>
+          <label
+            className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
+              transport === 'GMAIL_SERVICE_ACCOUNT'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                : 'border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <input
+              type="radio"
+              name="transport"
+              value="GMAIL_SERVICE_ACCOUNT"
+              checked={transport === 'GMAIL_SERVICE_ACCOUNT'}
+              onChange={() => setTransport('GMAIL_SERVICE_ACCOUNT')}
+            />
+            <KeyRound className="h-4 w-4" />
+            <span className="font-medium">Gmail Service Account</span>
+            <span className="text-[11px] text-slate-500">Survives password changes</span>
           </label>
           <label
             className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
@@ -139,9 +166,16 @@ export default function EmailForm({
             />
             <Send className="h-4 w-4" />
             <span className="font-medium">SMTP</span>
-            <span className="text-[11px] text-slate-500">Fallback / MailHog in dev</span>
+            <span className="text-[11px] text-slate-500">MailHog in dev</span>
           </label>
         </div>
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
+          <input type="checkbox" checked={fallbackEnabled} onChange={(e) => setFallbackEnabled(e.target.checked)} />
+          <span>
+            Automatic fallback — if the primary transport fails, retry through any other fully-configured transport
+            before giving up.
+          </span>
+        </label>
       </div>
 
       {transport === 'GMAIL_OAUTH' && (
@@ -191,6 +225,29 @@ export default function EmailForm({
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {transport === 'GMAIL_SERVICE_ACCOUNT' && (
+        <div className="card p-4">
+          <h3 className="text-[13px] font-semibold text-slate-800 dark:text-slate-100">
+            Google Workspace service account
+          </h3>
+          <p className="mt-1 text-[12px] text-slate-500">
+            Create a service account in Google Cloud Console, enable{' '}
+            <b>Domain-wide Delegation</b>, and in the Workspace Admin console (Security → API controls → Domain-wide
+            delegation) authorize its Client ID for the scope{' '}
+            <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">https://mail.google.com/</code>. Unlike Gmail
+            OAuth, this keeps working when the mailbox password changes.
+          </p>
+          <FieldGrid
+            fields={saFields}
+            initial={initial}
+            values={values}
+            setValues={setValues}
+            revealed={revealed}
+            setRevealed={setRevealed}
+          />
         </div>
       )}
 
@@ -305,16 +362,27 @@ function FieldGrid({
               )}
             </div>
             <div className="relative">
-              <input
-                type={f.secret && touched && !isRevealed ? 'password' : 'text'}
-                autoComplete="off"
-                className={`input-sm ${f.secret ? 'pr-9' : ''} ${
-                  !touched && f.secret && hasStored && !isRevealed ? 'font-mono tracking-wider' : ''
-                }`}
-                placeholder={placeholder}
-                value={displayValue}
-                onChange={(e) => setValues((s) => ({ ...s, [f.key]: e.target.value }))}
-              />
+              {f.multiline ? (
+                <textarea
+                  rows={4}
+                  autoComplete="off"
+                  className={`input-sm h-auto py-1.5 font-mono text-[11px] ${f.secret ? 'pr-9' : ''}`}
+                  placeholder={placeholder || f.placeholder || ''}
+                  value={displayValue}
+                  onChange={(e) => setValues((s) => ({ ...s, [f.key]: e.target.value }))}
+                />
+              ) : (
+                <input
+                  type={f.secret && touched && !isRevealed ? 'password' : 'text'}
+                  autoComplete="off"
+                  className={`input-sm ${f.secret ? 'pr-9' : ''} ${
+                    !touched && f.secret && hasStored && !isRevealed ? 'font-mono tracking-wider' : ''
+                  }`}
+                  placeholder={placeholder}
+                  value={displayValue}
+                  onChange={(e) => setValues((s) => ({ ...s, [f.key]: e.target.value }))}
+                />
+              )}
               {f.secret && hasStored && (
                 <button
                   type="button"

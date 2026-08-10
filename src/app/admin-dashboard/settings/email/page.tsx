@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import EmailForm from './email-form';
 import {
   EMAIL_GMAIL_FIELDS,
+  EMAIL_SA_FIELDS,
   EMAIL_SMTP_FIELDS,
   EMAIL_COMMON_FIELDS,
   type FieldDef
@@ -30,7 +31,7 @@ export default async function EmailSettingsPage({
 
   const sp = await searchParams;
   const values = await getAllSettings();
-  const allFields: FieldDef[] = [...EMAIL_GMAIL_FIELDS, ...EMAIL_SMTP_FIELDS, ...EMAIL_COMMON_FIELDS];
+  const allFields: FieldDef[] = [...EMAIL_GMAIL_FIELDS, ...EMAIL_SA_FIELDS, ...EMAIL_SMTP_FIELDS, ...EMAIL_COMMON_FIELDS];
   const initial: Record<string, { configured: boolean; preview: string; current: string }> = {};
   for (const f of allFields) {
     const stored = (values as any)[f.key] || '';
@@ -42,7 +43,12 @@ export default async function EmailSettingsPage({
     };
   }
 
-  const initialTransport = (values.EMAIL_TRANSPORT || 'SMTP').toUpperCase() === 'GMAIL_OAUTH' ? 'GMAIL_OAUTH' : 'SMTP';
+  const storedTransport = (values.EMAIL_TRANSPORT || 'SMTP').toUpperCase();
+  const initialTransport =
+    storedTransport === 'GMAIL_OAUTH' || storedTransport === 'GMAIL_SERVICE_ACCOUNT'
+      ? (storedTransport as 'GMAIL_OAUTH' | 'GMAIL_SERVICE_ACCOUNT')
+      : 'SMTP';
+  const fallbackEnabled = (values.EMAIL_FALLBACK_ENABLED || 'true').toLowerCase() !== 'false';
   const gmailConnected = !!values.GMAIL_OAUTH_REFRESH_TOKEN;
   const gmailSender = values.GMAIL_OAUTH_SENDER_EMAIL || '';
 
@@ -54,14 +60,16 @@ export default async function EmailSettingsPage({
     <div>
       <PageHeader
         title="Email"
-        subtitle="Outbound email transport. Gmail OAuth is preferred; SMTP is the fallback (e.g. MailHog in dev)."
+        subtitle="Outbound email transport. Pick a primary; any other fully-configured transport is used as an automatic fallback."
       />
       <EmailForm
         initial={initial}
         gmailFields={EMAIL_GMAIL_FIELDS}
+        saFields={EMAIL_SA_FIELDS}
         smtpFields={EMAIL_SMTP_FIELDS}
         commonFields={EMAIL_COMMON_FIELDS}
         initialTransport={initialTransport}
+        initialFallbackEnabled={fallbackEnabled}
         gmailConnected={gmailConnected}
         gmailSender={gmailSender}
         flash={flash}

@@ -1,42 +1,154 @@
+import { createSign } from 'node:crypto';
 import nodemailer, { type Transporter } from 'nodemailer';
 import { getAllSettings } from './settings';
 import { db } from './db';
 
-type CachedTransporter = {
+export type TransportKind = 'GMAIL_OAUTH' | 'GMAIL_SERVICE_ACCOUNT' | 'SMTP';
+
+type BuiltTransport = {
+  kind: TransportKind;
   transporter: Transporter;
   from: string;
   signature: string;
 };
 
-let cached: CachedTransporter | null = null;
+type AllSettings = Awaited<ReturnType<typeof getAllSettings>>;
+
+const cache = new Map<TransportKind, BuiltTransport>();
 
 /**
- * Build (or reuse) the active nodemailer transporter based on the
- * `EMAIL_TRANSPORT` setting. Switches between Gmail OAuth and SMTP
- * without a redeploy — the signature string is the cache key, so
- * any settings change invalidates the cached transport.
+ * Google Workspace service-account credentials. Admins may paste either the
+ * bare PEM private key or the entire downloaded JSON key file into
+ * GMAIL_SA_PRIVATE_KEY — the JSON also carries client_email, which is used
+ * when GMAIL_SA_CLIENT_EMAIL is left blank. Literal "\n" sequences (as they
+ * appear inside the JSON string) are unescaped.
  */
-async function getTransport(): Promise<CachedTransporter> {
-  const s = await getAllSettings();
-  const transport = (s.EMAIL_TRANSPORT || 'SMTP').toUpperCase();
+function serviceAccountCreds(s: AllSettings): { clientEmail: string; privateKey: string; sender: string } {
+  let raw = (s.GMAIL_SA_PRIVATE_KEY || '').trim();
+  let clientEmail = (s.GMAIL_SA_CLIENT_EMAIL || '').trim();
+  if (raw.startsWith('{')) {
+    try {
+      const json = JSON.parse(raw) as { private_key?: string; client_email?: string };
+      raw = json.private_key || '';
+      if (!clientEmail) clientEmail = json.client_email || '';
+    } catch {
+      // fall through — treated as a (malformed) PEM below
+    }
+  }
+  const privateKey = raw.replace(/\\n/g, '\n');
+  return { clientEmail, privateKey, sender: (s.GMAIL_SA_SENDER_EMAIL || '').trim() };
+}
 
-  if (transport === 'GMAIL_OAUTH') {
+export function isTransportConfigured(kind: TransportKind, s: AllSettings): boolean {
+  if (kind === 'GMAIL_OAUTH') {
+    return !!(s.GMAIL_OAUTH_SENDER_EMAIL && s.GMAIL_OAUTH_CLIENT_ID && s.GMAIL_OAUTH_CLIENT_SECRET && s.GMAIL_OAUTH_REFRESH_TOKEN);
+  }
+  if (kind === 'GMAIL_SERVICE_ACCOUNT') {
+    const c = serviceAccountCreds(s);
+    return !!(c.clientEmail && c.privateKey && c.sender);
+  }
+  return !!(s.SMTP_HOST || process.env.SMTP_HOST);
+}
+
+// SMTP XOAUTH2 requires the full mail scope; the narrower gmail.send scope
+// only works for the REST API. The Workspace admin must authorize the
+// service account's client ID for this exact scope under Domain-wide
+// Delegation.
+const SA_SCOPE = 'https://mail.google.com/';
+
+let saTokenCache: { key: string; accessToken: string; expiresAt: number } | null = null;
+
+/** Mint (and cache) a domain-wide-delegation access token for the impersonated sender. */
+async function getServiceAccountAccessToken(clientEmail: string, privateKey: string, sender: string): Promise<string> {
+  const cacheKey = `${clientEmail}:${sender}:${privateKey.slice(-16)}`;
+  const now = Math.floor(Date.now() / 1000);
+  if (saTokenCache && saTokenCache.key === cacheKey && saTokenCache.expiresAt - now > 300) {
+    return saTokenCache.accessToken;
+  }
+  const b64url = (v: string) => Buffer.from(v).toString('base64url');
+  const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const claims = b64url(
+    JSON.stringify({
+      iss: clientEmail,
+      sub: sender, // impersonated Workspace user
+      scope: SA_SCOPE,
+      aud: 'https://oauth2.googleapis.com/token',
+      iat: now,
+      exp: now + 3600
+    })
+  );
+  const signer = createSign('RSA-SHA256');
+  signer.update(`${header}.${claims}`);
+  let signature: string;
+  try {
+    signature = signer.sign(privateKey).toString('base64url');
+  } catch {
+    throw new Error('Service account private key is invalid — paste the PEM key or the full JSON key file.');
+  }
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: `${header}.${claims}.${signature}`
+    })
+  });
+  const json = (await res.json()) as { access_token?: string; expires_in?: number; error?: string; error_description?: string };
+  if (!res.ok || !json.access_token) {
+    const hint =
+      json.error === 'unauthorized_client'
+        ? ' (domain-wide delegation for this client ID + scope https://mail.google.com/ is not authorized in the Workspace Admin console)'
+        : json.error === 'invalid_grant'
+          ? ` (check that ${sender} exists in the Workspace domain)`
+          : '';
+    throw new Error(`Service account token exchange failed: ${json.error_description || json.error || res.status}${hint}`);
+  }
+  saTokenCache = { key: cacheKey, accessToken: json.access_token, expiresAt: now + (json.expires_in ?? 3600) };
+  return json.access_token;
+}
+
+/**
+ * Build (or reuse) a nodemailer transporter for the given kind. The
+ * signature string is the cache key, so any settings change invalidates
+ * the cached transport without a redeploy.
+ */
+async function buildTransport(kind: TransportKind, s: AllSettings): Promise<BuiltTransport> {
+  if (kind === 'GMAIL_OAUTH') {
     const user = s.GMAIL_OAUTH_SENDER_EMAIL || '';
     const clientId = s.GMAIL_OAUTH_CLIENT_ID || '';
     const clientSecret = s.GMAIL_OAUTH_CLIENT_SECRET || '';
     const refreshToken = s.GMAIL_OAUTH_REFRESH_TOKEN || '';
     if (!user || !clientId || !clientSecret || !refreshToken) {
-      throw new Error('Gmail OAuth is selected but configuration is incomplete. Visit Settings → Email.');
+      throw new Error('Gmail OAuth configuration is incomplete. Visit Settings → Email.');
     }
     const signature = `gmail:${user}:${refreshToken.slice(-10)}`;
-    if (cached && cached.signature === signature) return cached;
+    const hit = cache.get(kind);
+    if (hit && hit.signature === signature) return hit;
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { type: 'OAuth2', user, clientId, clientSecret, refreshToken }
     } as any);
-    const from = s.EMAIL_FROM || user;
-    cached = { transporter, from, signature };
-    return cached;
+    const built = { kind, transporter, from: s.EMAIL_FROM || user, signature };
+    cache.set(kind, built);
+    return built;
+  }
+
+  if (kind === 'GMAIL_SERVICE_ACCOUNT') {
+    const { clientEmail, privateKey, sender } = serviceAccountCreds(s);
+    if (!clientEmail || !privateKey || !sender) {
+      throw new Error('Gmail service account configuration is incomplete. Visit Settings → Email.');
+    }
+    const accessToken = await getServiceAccountAccessToken(clientEmail, privateKey, sender);
+    const signature = `gmail-sa:${sender}:${accessToken.slice(-10)}`;
+    const hit = cache.get(kind);
+    if (hit && hit.signature === signature) return hit;
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { type: 'OAuth2', user: sender, accessToken }
+    } as any);
+    const built = { kind, transporter, from: s.EMAIL_FROM || sender, signature };
+    cache.set(kind, built);
+    return built;
   }
 
   // SMTP path. Settings DB takes precedence, env is fallback for backwards
@@ -48,7 +160,8 @@ async function getTransport(): Promise<CachedTransporter> {
   const user = s.SMTP_USER || process.env.SMTP_USER || '';
   const pass = s.SMTP_PASSWORD || process.env.SMTP_PASSWORD || '';
   const signature = `smtp:${host}:${port}:${user}:${pass.slice(-6)}`;
-  if (cached && cached.signature === signature) return cached;
+  const hit = cache.get(kind);
+  if (hit && hit.signature === signature) return hit;
   const transporter = nodemailer.createTransport({
     host,
     port,
@@ -60,8 +173,65 @@ async function getTransport(): Promise<CachedTransporter> {
     process.env.SMTP_FROM ||
     process.env.FROM_EMAIL ||
     'ExamNova <noreply@example.com>';
-  cached = { transporter, from, signature };
-  return cached;
+  const built = { kind, transporter, from, signature };
+  cache.set(kind, built);
+  return built;
+}
+
+function primaryTransportKind(s: AllSettings): TransportKind {
+  const t = (s.EMAIL_TRANSPORT || 'SMTP').toUpperCase();
+  if (t === 'GMAIL_OAUTH') return 'GMAIL_OAUTH';
+  if (t === 'GMAIL_SERVICE_ACCOUNT') return 'GMAIL_SERVICE_ACCOUNT';
+  return 'SMTP';
+}
+
+/**
+ * Ordered list of transports to try: the configured primary first, then —
+ * unless EMAIL_FALLBACK_ENABLED is explicitly "false" — every other
+ * transport that is fully configured, so a Gmail token revocation or an
+ * SMTP password rotation degrades to the next working channel instead of
+ * dropping OTP/purchase emails on the floor.
+ */
+function transportOrder(s: AllSettings): TransportKind[] {
+  const primary = primaryTransportKind(s);
+  if ((s.EMAIL_FALLBACK_ENABLED || 'true').toLowerCase() === 'false') return [primary];
+  const rest: TransportKind[] = (['GMAIL_SERVICE_ACCOUNT', 'GMAIL_OAUTH', 'SMTP'] as TransportKind[]).filter(
+    (k) => k !== primary && isTransportConfigured(k, s)
+  );
+  return [primary, ...rest];
+}
+
+type SendOutcome = {
+  info: Awaited<ReturnType<Transporter['sendMail']>>;
+  transport: TransportKind;
+  fallbackNote?: string;
+};
+
+/** Try each transport in order; resolve on the first success. */
+async function sendWithFallback(message: {
+  to: string;
+  cc?: string | string[];
+  subject: string;
+  html: string;
+  attachments?: any[];
+}): Promise<SendOutcome> {
+  const s = await getAllSettings();
+  const order = transportOrder(s);
+  const failures: string[] = [];
+  for (const kind of order) {
+    try {
+      const t = await buildTransport(kind, s);
+      const info = await t.transporter.sendMail({ from: t.from, ...message });
+      return {
+        info,
+        transport: kind,
+        fallbackNote: failures.length ? `fell back from: ${failures.join('; ')}` : undefined
+      };
+    } catch (err: any) {
+      failures.push(`${kind}: ${String(err?.message ?? err)}`);
+    }
+  }
+  throw new Error(failures.join(' | '));
 }
 
 export async function sendMail(
@@ -72,18 +242,23 @@ export async function sendMail(
   cc?: string | string[],
   meta?: { template?: string; vars?: Record<string, unknown> }
 ) {
-  const t = await getTransport();
-  const transportLabel = t.signature.startsWith('gmail:') ? 'GMAIL_OAUTH' : 'SMTP';
-  let providerId: string | undefined;
-  let error: string | undefined;
   try {
-    const info = await t.transporter.sendMail({ from: t.from, to, cc, subject, html, attachments });
-    providerId = info.messageId;
-    await logEmail({ to, cc, subject, transport: transportLabel, status: 'SENT', providerId, meta });
+    const { info, transport, fallbackNote } = await sendWithFallback({ to, cc, subject, html, attachments });
+    await logEmail({
+      to,
+      cc,
+      subject,
+      transport,
+      status: 'SENT',
+      providerId: info.messageId,
+      error: fallbackNote,
+      meta
+    });
     return info;
   } catch (err: any) {
-    error = String(err?.message ?? err);
-    await logEmail({ to, cc, subject, transport: transportLabel, status: 'FAILED', error, meta });
+    const s = await getAllSettings().catch(() => null);
+    const transport = s ? primaryTransportKind(s) : 'SMTP';
+    await logEmail({ to, cc, subject, transport, status: 'FAILED', error: String(err?.message ?? err), meta });
     throw err;
   }
 }
@@ -202,18 +377,22 @@ export async function sendVoucherDeliveredEmail(
   );
 }
 
+const TRANSPORT_LABELS: Record<TransportKind, string> = {
+  GMAIL_OAUTH: 'Gmail OAuth',
+  GMAIL_SERVICE_ACCOUNT: 'Gmail Service Account',
+  SMTP: 'SMTP'
+};
+
 /** Used by the admin "Send test email" button. */
 export async function sendTestEmail(to: string): Promise<{ ok: boolean; messageId?: string; transport: string; error?: string }> {
   try {
-    const t = await getTransport();
-    const transportLabel = t.signature.startsWith('gmail:') ? 'Gmail OAuth' : 'SMTP';
-    const info = await t.transporter.sendMail({
-      from: t.from,
+    const { info, transport, fallbackNote } = await sendWithFallback({
       to,
-      subject: `ExamNova — test email (${transportLabel})`,
-      html: `<p>This is a test email sent via <b>${transportLabel}</b> from the admin Settings page.</p><p>If you can read this, the transport is configured correctly.</p>`
+      subject: 'ExamNova — test email',
+      html: `<p>This is a test email sent from the admin Settings page.</p><p>If you can read this, the transport is configured correctly.</p>`
     });
-    return { ok: true, messageId: info.messageId, transport: transportLabel };
+    const label = fallbackNote ? `${TRANSPORT_LABELS[transport]} — ${fallbackNote}` : TRANSPORT_LABELS[transport];
+    return { ok: true, messageId: info.messageId, transport: label };
   } catch (err: any) {
     return { ok: false, transport: 'unknown', error: String(err?.message || err) };
   }
