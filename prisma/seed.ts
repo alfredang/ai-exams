@@ -413,6 +413,7 @@ function buildMultiVariantBundles(): BundleSeed[] {
     { slug: 'iassc-lean-six-sigma-green-belt', title: 'IASSC Lean Six Sigma Green Belt', description: 'All 3 IASSC Lean Six Sigma Green Belt practice exams in one bundle — covering the Define, Measure, Analyze, Improve, and Control phases of the DMAIC methodology. Aligned to the IASSC Green Belt body of knowledge.', variants: 3, price: 2000, priceVoucher: 29500 },
     { slug: 'comptia-pentest-plus', title: 'CompTIA PenTest+ (PT0-003)', description: 'All 3 CompTIA PenTest+ practice exams in one bundle — engagement management, reconnaissance & enumeration, vulnerability discovery & analysis, attacks & exploits, and post-exploitation & lateral movement.', variants: 3, price: 2000, priceVoucher: 41200 },
     { slug: 'comptia-securityx', title: 'CompTIA SecurityX (CAS-005)', description: 'All 3 CompTIA SecurityX (CASP+) practice exams in one bundle — governance/risk & compliance, security architecture, security engineering, and security operations.', variants: 3, price: 2000, priceVoucher: 52400 },
+    { slug: 'comptia-cysa-plus', title: 'CompTIA CySA+ (CS0-004)', description: 'All 3 CompTIA CySA+ (CS0-004) practice exams in one bundle — 195 curated questions covering security operations (log analysis, threat hunting, SIEM/EDR tooling, threat intelligence, and the use of AI in the SOC), vulnerability management (scanning methods, CVSS v4.0 and EPSS prioritization, web and cloud assessment tooling, and mitigating controls), incident response and management (attack frameworks, forensics, containment through recovery), and reporting and communication (action plans, inhibitors to remediation, stakeholder communication, and KPIs). Aligned to the CompTIA CySA+ V4 (CS0-004) exam objectives.', variants: 3, price: 2000, priceVoucher: 42500 },
     { slug: 'isc2-cc', title: 'ISC2 Certified in Cybersecurity (CC)', description: 'All 3 ISC2 CC practice exams in one bundle — security principles, business continuity/DR & incident response, access controls concepts, network security, and security operations.', variants: 3, price: 2000, priceVoucher: 5000 },
     { slug: 'microsoft-sc-300', title: 'Microsoft Identity and Access Administrator (SC-300)', description: 'All 3 SC-300 practice exams in one bundle — implementing identities in Microsoft Entra, authentication & access management, access management for applications, and identity governance.', variants: 3, price: 2000, priceVoucher: 16500 },
     { slug: 'microsoft-pl-900', title: 'Microsoft Power Platform Fundamentals (PL-900)', description: 'All 3 PL-900 practice exams in one bundle — Power Platform business value, core components, Power Apps, Power Automate, Power BI, and Power Pages & Copilot Studio.', variants: 3, price: 2000, priceVoucher: 9900 },
@@ -828,18 +829,20 @@ const EXAMS: ExamSeed[] = [
       { name: 'Security Program Management and Oversight', weight: 20 }
     ]
   },
-  {
-    vendorSlug: 'comptia', slug: 'comptia-cysa-cs0-003', code: 'CS0-003',
-    title: 'CompTIA CySA+',
-    description: 'Continuous security monitoring through behavioral analytics, threat hunting, and incident response.',
-    level: 'Professional', durationMinutes: 165, passingScore: 83, questionCount: 85,
-    domains: [
-      { name: 'Security Operations', weight: 33 },
-      { name: 'Vulnerability Management', weight: 30 },
-      { name: 'Incident Response and Management', weight: 20 },
-      { name: 'Reporting and Communication', weight: 17 }
-    ]
-  },
+  // RETIRED 2026-08-18 — `comptia-cysa-cs0-003` was the CySA+ V3 shell:
+  // 0 questions, in no bundle, and archived on prod. CompTIA retires the
+  // V3 English exam on 22 Dec 2026, so the sellable product is the V4
+  // family (`comptia-cysa-plus-p1..p3`, code CS0-004) seeded by
+  // src/lib/seed/cysa-questions.ts and defined further down this file.
+  //
+  // The entry is removed from EXAMS rather than added to
+  // OBSOLETE_EXAM_SLUGS: that list's cleanup pass hard-deletes the exam
+  // AND its entitlements, questions, attempts, and orders unconditionally,
+  // on every deploy. Local counts are all zero but prod is authoritative
+  // and was not readable when this change was made. Dropping it from
+  // EXAMS simply stops the seed touching the row, leaving the archived
+  // prod shell exactly as it is. Move it to OBSOLETE_EXAM_SLUGS only
+  // after confirming prod shows 0 attempts / 0 orders / 0 entitlements.
 
   // ───── Cisco ─────
   {
@@ -1555,6 +1558,18 @@ const EXAMS: ExamSeed[] = [
     ]
   })),
   ...(['1', '2', '3'] as const).map((n): ExamSeed => ({
+    vendorSlug: 'comptia', slug: `comptia-cysa-plus-p${n}`, code: `CS0-004-P${n}`,
+    title: `CompTIA CySA+ (CS0-004) — Practice Exam ${n}`,
+    description: `Practice exam ${n} of 3 for CompTIA CySA+ (CS0-004) — a 165-minute, 65-question, blueprint-weighted set covering security operations, vulnerability management, incident response and management, and reporting and communication.`,
+    level: 'Professional', durationMinutes: 165, passingScore: 83, questionCount: 65,
+    domains: [
+      { name: 'Security Operations', weight: 34 },
+      { name: 'Vulnerability Management', weight: 26 },
+      { name: 'Incident Response and Management', weight: 24 },
+      { name: 'Reporting and Communication', weight: 16 }
+    ]
+  })),
+  ...(['1', '2', '3'] as const).map((n): ExamSeed => ({
     vendorSlug: 'isc2', slug: `isc2-cc-p${n}`, code: `CC-P${n}`,
     title: `ISC2 Certified in Cybersecurity (CC) — Practice Exam ${n}`,
     description: `Practice exam ${n} of 3 for ISC2 Certified in Cybersecurity (CC) — a 120-minute, 65-question, blueprint-weighted set covering security principles, business continuity/DR & incident response, access controls concepts, network security, and security operations.`,
@@ -2031,6 +2046,9 @@ async function main() {
     'comptia-data-plus': 'DA0-001',
     'comptia-network-plus': 'N10-009',
     'comptia-security-plus': 'SY0-701',
+    // Without this, vendorExamCodeFor() derives "CYSA-PLUS" from the slug
+    // and the recode loop rewrites the variant codes on every deploy.
+    'comptia-cysa-plus': 'CS0-004',
     'cisco-ccna': '200-301',
     'cisco-ccnp-encor': '350-401',
     // Tableau Certified Data Analyst — opaque vendor code (can't derive "TDA-C01"

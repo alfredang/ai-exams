@@ -57,3 +57,7 @@ scripts/_*
 /home-light.png
 /login-icons-row.png
 /login-social.png
+
+# Vendor course material / exam-objective source PDFs dropped in for
+# authoring reference. Third-party copyrighted courseware — never commit.
+/Comptia CySA+ exam infomation/

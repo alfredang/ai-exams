@@ -125,7 +125,7 @@ Tertiary Exams covers **12 vendors** and **195+ practice exams** across cloud, s
 | CV0-004 | CompTIA Cloud+ | Associate |
 | SK0-005 | CompTIA Server+ | Associate |
 | XK0-005 | CompTIA Linux+ | Associate |
-| CS0-003 | CompTIA CySA+ | Professional |
+| CS0-004 | CompTIA CySA+ (V4) | Professional |
 
 ### Google Cloud
 
