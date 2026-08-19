@@ -653,13 +653,13 @@ const P1: CysaQ[] = [
     domain: IR, difficulty: 4, type: QType.SINGLE,
     stem: 'Responding to a live compromise, which collection order best reflects the order of volatility in RFC 3227?',
     options: opts4(
-      'CPU registers and cache; memory; network state; disk; archival media',
-      'Disk; memory; network state; CPU registers and cache; archival media',
-      'Memory; disk; archival media; network state; CPU registers and cache',
-      'Archival media; disk; network state; memory; CPU registers and cache'
+      'Registers and cache; routing and ARP tables and memory; disk; archival media',
+      'Disk; routing and ARP tables and memory; registers and cache; archival media',
+      'Memory; disk; archival media; routing and ARP tables; registers and cache',
+      'Archival media; disk; routing and ARP tables; memory; registers and cache'
     ),
     correct: ['a'],
-    explanation: 'RFC 3227 directs responders to collect the most transient evidence first — registers and cache, then RAM, then routing and connection state — before persistent disk and finally offline archival media. Each alternative collects durable sources ahead of volatile ones, losing evidence.',
+    explanation: 'RFC 3227 orders collection from most to least volatile: registers and cache first, then the routing table, ARP cache, process table, kernel statistics and memory, then temporary file systems and disk, and finally physical configuration and archival media. Each alternative collects durable sources ahead of volatile ones, so the transient evidence is lost before it is captured.',
     references: [REF_RFC3227]
   },
   {
