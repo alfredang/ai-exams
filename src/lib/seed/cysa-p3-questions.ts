@@ -341,17 +341,17 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_SOAR, REF_NIST_137]
   },
   {
-    domain: OPS, difficulty: 3, type: QType.SINGLE,
-    stem: 'A rule generates 400 alerts a day, of which fewer than five are genuine. What is the appropriate first response?',
+    domain: OPS, difficulty: 3, type: QType.MULTI,
+    stem: 'An intelligence team is performing threat mapping for the organization. Which activities belong to that exercise? (Choose three.)',
     options: opts4(
-      'Tune the rule with additional context to suppress the benign pattern',
-      'Delete the rule entirely so analysts stop receiving its alerts',
-      'Route the alerts to a mailbox nobody actively monitors',
-      'Leave the rule unchanged, since it does occasionally detect genuine malicious activity'
+      'Relating adversary TTPs reported for the sector to the technologies actually deployed',
+      'Identifying which crown-jewel assets a campaign\'s techniques would put at risk',
+      'Comparing the techniques observed against current detection and control coverage',
+      'Enumerating every CVE published for third-party libraries in the last quarter'
     ),
-    correct: ['a'],
-    explanation: 'Rule and alert tuning refines logic with the context that separates benign from malicious, preserving detection while restoring signal. Deleting the rule loses coverage, silently routing alerts away is deletion with extra steps, and leaving it produces the fatigue that causes real detections to be missed.',
-    references: [REF_NIST_137, REF_NIST_92]
+    correct: ['a', 'b', 'c'],
+    explanation: 'Threat mapping connects external threat information to this specific environment — which reported behavior is relevant given what is deployed, what it would reach, and whether it would be seen. Enumerating recently published CVEs is vulnerability discovery: useful, but it describes software defects rather than mapping adversary activity onto the estate.',
+    references: [REF_MITRE_ATTACK, REF_NIST_150]
   },
   {
     domain: OPS, difficulty: 3, type: QType.TRUE_FALSE,
