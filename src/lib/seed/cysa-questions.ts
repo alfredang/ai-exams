@@ -86,6 +86,7 @@ const REF_SYSMON = { label: 'Microsoft — Sysmon (System Monitor)', url: 'https
 const REF_WIRESHARK = { label: 'Wireshark — Display Filter Reference', url: 'https://www.wireshark.org/docs/dfref/' };
 const REF_NMAP = { label: 'Nmap — Reference Guide', url: 'https://nmap.org/book/man.html' };
 const REF_CIS = { label: 'CIS — Benchmarks and secure configuration guidance', url: 'https://www.cisecurity.org/cis-benchmarks' };
+const REF_PCI_DSS = { label: 'PCI Security Standards Council — PCI DSS', url: 'https://www.pcisecuritystandards.org/standards/pci-dss/' };
 const REF_VOLATILITY = { label: 'Volatility 3 — Documentation', url: 'https://volatility3.readthedocs.io/en/latest/' };
 const REF_PROWLER = { label: 'Prowler — Cloud security assessment documentation', url: 'https://docs.prowler.com/' };
 
@@ -193,16 +194,16 @@ const P1: CysaQ[] = [
   },
   {
     domain: OPS, difficulty: 2, type: QType.SINGLE, isTeaser: true,
-    stem: 'Which item is an indicator of attack (IoA) rather than an indicator of compromise (IoC)?',
+    stem: 'Which example is a behavioral indicator of compromise rather than an atomic one?',
     options: opts4(
-      'A process spawning a shell immediately after opening a document',
-      'The SHA-256 hash of a file recovered from a compromised host',
-      'A domain name known to host a threat actor’s C2 panel',
-      'A registry Run key added by a previously identified sample'
+      'A process spawning a command shell immediately after a document opens',
+      'The SHA-256 file hash recovered from a previously compromised host',
+      'A domain name known to host the threat actor’s command-and-control panel',
+      'An IP address observed in a previously reported campaign'
     ),
     correct: ['a'],
-    explanation: 'IoAs describe adversary behavior as it happens — intent and technique — whereas IoCs are static artifacts left behind. Hashes, C2 domains, and persistence keys are all artifacts you match against; the document-to-shell sequence is the behavior itself.',
-    references: [REF_MITRE_ATTACK]
+    explanation: 'Behavioral indicators describe a sequence of adversary activity, which is why they survive infrastructure changes and are harder to evade. Hashes, domains, and addresses are atomic indicators — single indivisible data points an adversary can rotate cheaply.',
+    references: [REF_NIST_150, REF_MITRE_ATTACK]
   },
   {
     domain: OPS, difficulty: 3, type: QType.SINGLE,
@@ -344,16 +345,16 @@ const P1: CysaQ[] = [
   },
   {
     domain: OPS, difficulty: 4, type: QType.SINGLE,
-    stem: 'Most outbound traffic is TLS-encrypted, so payload inspection is unavailable. Which technique still supports identifying suspicious client software?',
+    stem: 'The SOC cannot inspect outbound HTTPS traffic, but the organization must not decrypt employee banking or healthcare sessions. Which approach satisfies both constraints?',
     options: opts4(
-      'Fingerprinting the TLS client hello parameters, such as JA3',
-      'Reading the HTTP Host header inside the encrypted session',
-      'Extracting the decrypted body from the packet capture directly',
-      'Matching antivirus signatures against the encrypted payload'
+      'TLS inspection at the egress proxy, bypassing sensitive categories by policy',
+      'Decrypting every outbound TLS session and retaining the plaintext for later review',
+      'Disabling TLS 1.3 across the estate so sessions can be read in transit',
+      'Blocking every HTTPS destination that has not been explicitly allow-listed'
     ),
     correct: ['a'],
-    explanation: 'The client hello is sent in the clear, and the ordered cipher suites, extensions, and curves form a hash that fingerprints the TLS stack — often distinguishing malware from a browser. The other three all require plaintext the analyst does not have.',
-    references: [REF_NIST_94]
+    explanation: 'Selective interception gives the SOC visibility where it is needed while category-based bypass keeps regulated and personal traffic private, which is how encryption and data-protection requirements are reconciled. Blanket decryption creates the exposure the policy forbids, downgrading TLS weakens every session, and allow-listing destinations restricts access without providing any inspection.',
+    references: [REF_NIST_53]
   },
   {
     domain: OPS, difficulty: 3, type: QType.TRUE_FALSE,
@@ -497,16 +498,16 @@ const P1: CysaQ[] = [
   },
   {
     domain: VULN, difficulty: 4, type: QType.SINGLE,
-    stem: 'A security engineer feeds malformed and randomly mutated input to a file parser while watching for crashes. What is this technique, and what does a crash indicate?',
+    stem: 'A retailer in scope for PCI DSS asks how its internet-facing cardholder systems must be scanned. Which requirement applies?',
     options: opts4(
-      'Fuzzing; a crash suggests unhandled input reaching a memory-safety defect',
-      'Fingerprinting; a crash suggests the service version has been identified',
-      'Pivoting; a crash suggests lateral access to an adjacent system is possible',
-      'Enumeration; a crash suggests valid account names have been discovered'
+      'Quarterly external scans by an approved scanning vendor, and after significant change',
+      'Annual external scans performed by the organization’s own internal security team',
+      'Monthly internal scans only, with all external scanning delegated to the acquiring bank',
+      'Continuous automated scanning, which removes any periodic scanning requirement'
     ),
     correct: ['a'],
-    explanation: 'Fuzzing drives malformed input at a target to find inputs the parser mishandles; a crash marks a candidate memory-safety bug worth triaging for exploitability. Fingerprinting identifies versions, pivoting moves between hosts, and enumeration discovers valid objects — none involve crash-driven input mutation.',
-    references: [REF_NIST_115, REF_MITRE_CWE]
+    explanation: 'Regulatory obligation is a planning input in its own right: PCI DSS requires external vulnerability scans quarterly through an approved scanning vendor, repeated after significant change, alongside internal scanning. Annual cadence is too infrequent, external scanning cannot be delegated to the acquirer, and continuous scanning supplements the periodic requirement rather than replacing it.',
+    references: [REF_PCI_DSS, REF_NIST_115]
   },
   {
     domain: VULN, difficulty: 3, type: QType.SINGLE,
@@ -549,16 +550,16 @@ const P1: CysaQ[] = [
   },
   {
     domain: VULN, difficulty: 2, type: QType.SINGLE, isTeaser: true,
-    stem: 'An application fetches a URL supplied by the user, and an attacker uses it to reach the cloud instance metadata service. Which weakness is this?',
+    stem: 'Before assessing an unfamiliar network segment, a team needs to establish which hosts exist and what services they expose. Which scan type comes first?',
     options: opts4(
-      'Server-side request forgery',
-      'Cross-site request forgery',
-      'Insecure direct object reference',
-      'Local file inclusion'
+      'A discovery scan that maps live hosts and their open ports',
+      'A credentialed configuration audit against the platform baseline',
+      'A web application scan of the discovered HTTP services',
+      'A breach and attack simulation against the segment'
     ),
     correct: ['a'],
-    explanation: 'SSRF makes the server issue attacker-chosen requests, which is why internal-only endpoints such as metadata services are the classic target. CSRF abuses a victim\'s browser session, IDOR manipulates object identifiers, and LFI causes the application to read local files.',
-    references: [REF_OWASP_TOP10, REF_MITRE_CWE]
+    explanation: 'Discovery and mapping establish what is actually there, and everything downstream depends on that inventory. Baseline auditing, application scanning, and control validation are all worth doing, but each needs to know which hosts and services exist before it can be scoped.',
+    references: [REF_NIST_115, REF_NIST_137]
   },
   {
     domain: VULN, difficulty: 3, type: QType.SINGLE,
@@ -583,16 +584,16 @@ const P1: CysaQ[] = [
   },
   {
     domain: VULN, difficulty: 4, type: QType.SINGLE,
-    stem: 'A fraud-detection model is retrained on data an attacker can influence, and its accuracy on a specific fraud pattern quietly degrades. Which risk has materialized?',
+    stem: 'A team wants to pull a pre-trained model from a public repository into its fraud-detection pipeline. Which practice most directly manages the risk this introduces?',
     options: opts4(
-      'Training-data poisoning that biases the retrained model',
-      'Prompt injection through untrusted user-supplied text',
-      'Model theft through repeated inference queries',
-      'Membership inference revealing individual training records'
+      'Treating the model as a third-party component with verified provenance',
+      'Relying on the repository download count as a signal of trustworthiness',
+      'Deploying it straight to production so live traffic validates its accuracy',
+      'Scanning the model file with the endpoint antivirus agent before first use'
     ),
     correct: ['a'],
-    explanation: 'Manipulating the corpus a model learns from to shift its behavior is data poisoning, and targeted degradation of one class is its signature. Prompt injection manipulates inference-time instructions, model theft reconstructs the model, and membership inference discloses whether a record was in the training set.',
-    references: [REF_OWASP_LLM, REF_NIST_AI_RMF]
+    explanation: 'A downloaded model is supply-chain risk like any other dependency: establish where it came from, record it in the component inventory, and evaluate it before it influences decisions. Popularity is not assurance, production is not a test environment, and antivirus scanning detects malware in the file without saying anything about how the model was trained.',
+    references: [REF_SBOM, REF_NIST_AI_RMF]
   },
 
   // ───────────── Incident Response and Management (16) ─────────────
