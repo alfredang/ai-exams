@@ -246,16 +246,16 @@ const P1: CysaQ[] = [
   },
   {
     domain: OPS, difficulty: 4, type: QType.SINGLE,
-    stem: 'A SOC automates phishing triage: a playbook detonates the attachment, queries reputation services, and auto-closes benign reports. Which metric best demonstrates the value delivered?',
+    stem: 'A SOC manager asks for a dashboard to run the daily stand-up from. Which design choice makes it most useful?',
     options: opts4(
-      'Reduction in mean time to respond for phishing cases',
-      'Total number of phishing reports received per month',
-      'Count of playbooks published in the SOAR platform',
-      'Percentage of staff who completed phishing awareness training'
+      'Show a few metrics tied to decisions the team can act on that day',
+      'Display every metric the SIEM is capable of producing on one screen',
+      'Rank analysts by the number of tickets each of them closed yesterday',
+      'Show cumulative alert totals since the platform was first deployed'
     ),
     correct: ['a'],
-    explanation: 'Automation is justified by how much faster cases reach resolution, which MTTR captures directly. Report volume is driven by attacker activity and user reporting, playbook count measures effort rather than outcome, and training completion is a separate awareness metric.',
-    references: [REF_NIST_61]
+    explanation: 'A dashboard earns its place by prompting action, so it carries the few measures that change what the team does next — ageing cases, unassigned criticals, detections that started firing. Showing everything buries the signal, ranking analysts drives ticket-closing rather than investigation, and cumulative totals since deployment only ever rise and say nothing about today.',
+    references: [REF_NIST_137, REF_OBJ]
   },
   {
     domain: OPS, difficulty: 3, type: QType.SINGLE,

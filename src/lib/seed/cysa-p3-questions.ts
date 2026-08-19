@@ -269,7 +269,7 @@ export const CYSA_P3: CysaQ[] = [
   },
   {
     domain: OPS, difficulty: 3, type: QType.SINGLE,
-    stem: 'A database server that should serve only TCP 1433 internally is observed listening on TCP 4444 and accepting external connections. How should this be interpreted?',
+    stem: 'The EDR agent reports that a database server which should serve only TCP 1433 internally is now listening on TCP 4444 and accepting external connections. How should this be interpreted?',
     options: opts4(
       'Activity on an unexpected port, warranting immediate investigation',
       'Normal ephemeral port usage by the database client library',
@@ -456,7 +456,7 @@ export const CYSA_P3: CysaQ[] = [
   },
   {
     domain: VULN, difficulty: 3, type: QType.SINGLE,
-    stem: 'A multi-cloud estate spans AWS, Azure, and GCP, and leadership wants one consolidated view of misconfiguration across all three. Which tool addresses this?',
+    stem: 'A hybrid estate runs workloads on-premises and across AWS, Azure, and GCP. Leadership wants one consolidated view of misconfiguration in the cloud accounts. Which tool addresses this?',
     options: opts4(
       'ScoutSuite, which audits multiple cloud providers into one report',
       'Nikto, which scans web servers for dangerous default files and outdated software',
