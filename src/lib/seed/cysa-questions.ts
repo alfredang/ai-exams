@@ -650,16 +650,17 @@ const P1: CysaQ[] = [
     references: [REF_MITRE_ATTACK]
   },
   {
-    domain: IR, difficulty: 4, type: QType.SINGLE,
-    stem: 'Responding to a live compromise, which collection order best reflects the order of volatility in RFC 3227?',
-    options: opts4(
-      'Registers and cache; routing and ARP tables and memory; disk; archival media',
-      'Disk; routing and ARP tables and memory; registers and cache; archival media',
-      'Memory; disk; archival media; routing and ARP tables; registers and cache',
-      'Archival media; disk; routing and ARP tables; memory; registers and cache'
-    ),
-    correct: ['a'],
-    explanation: 'RFC 3227 orders collection from most to least volatile: registers and cache first, then the routing table, ARP cache, process table, kernel statistics and memory, then temporary file systems and disk, and finally physical configuration and archival media. Each alternative collects durable sources ahead of volatile ones, so the transient evidence is lost before it is captured.',
+    domain: IR, difficulty: 4, type: QType.ORDERING,
+    stem: 'Responding to a live compromise, arrange these evidence sources into the collection order RFC 3227 prescribes — most volatile first.',
+    options: [
+      { id: 'a', text: 'CPU registers and cache' },
+      { id: 'b', text: 'Routing table, ARP cache, process table, and memory' },
+      { id: 'c', text: 'Temporary file systems' },
+      { id: 'd', text: 'Disk' },
+      { id: 'e', text: 'Physical configuration and archival media' }
+    ],
+    correct: ['a', 'b', 'c', 'd', 'e'],
+    explanation: 'RFC 3227 orders collection from most to least volatile, because each step you take can destroy the evidence in the step above it. Registers and cache survive microseconds, the routing table, ARP cache, process table and memory survive until power is lost, temporary file systems until reboot, and disk and archival media persist. Collecting a durable source first is cheap; collecting it first at the cost of a volatile one is irreversible.',
     references: [REF_RFC3227]
   },
   {

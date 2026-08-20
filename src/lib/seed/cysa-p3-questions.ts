@@ -151,7 +151,7 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_NIST_150]
   },
   {
-    domain: OPS, difficulty: 3, type: QType.SINGLE,
+    domain: OPS, difficulty: 2, type: QType.SINGLE,
     stem: 'A responder must capture traffic on a headless Linux server for later analysis on a workstation. Which approach fits?',
     options: opts4(
       'Run tcpdump with a capture filter, writing packets to a pcap file',
@@ -177,7 +177,7 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_SURICATA, REF_NIST_94]
   },
   {
-    domain: OPS, difficulty: 3, type: QType.SINGLE,
+    domain: OPS, difficulty: 2, type: QType.SINGLE,
     stem: 'Detonating a suspicious executable in an instrumented sandbox produces a report of created files, registry keys, and contacted domains. What kind of analysis is this?',
     options: opts4(
       'Dynamic analysis, observing the sample\'s behavior as it executes',
@@ -190,7 +190,7 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_CUCKOO]
   },
   {
-    domain: OPS, difficulty: 3, type: QType.SINGLE,
+    domain: OPS, difficulty: 2, type: QType.SINGLE,
     stem: 'Before detonating an unknown binary, an analyst extracts readable character sequences from it and finds URLs and a mutex name. Which technique produced this?',
     options: opts4(
       'Running strings against the binary to recover embedded text',
@@ -268,7 +268,7 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_NIST_137]
   },
   {
-    domain: OPS, difficulty: 3, type: QType.SINGLE,
+    domain: OPS, difficulty: 4, type: QType.SINGLE,
     stem: 'The EDR agent reports that a database server which should serve only TCP 1433 internally is now listening on TCP 4444 and accepting external connections. How should this be interpreted?',
     options: opts4(
       'Activity on an unexpected port, warranting immediate investigation',
@@ -294,7 +294,7 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_MITRE_ATTACK, REF_NIST_61]
   },
   {
-    domain: OPS, difficulty: 3, type: QType.SINGLE,
+    domain: OPS, difficulty: 4, type: QType.SINGLE,
     stem: 'A cloud account shows dozens of large compute instances launched in unused regions, and the monthly spend has tripled. What is the most likely explanation?',
     options: opts4(
       'Resource compromise, with the account used for unauthorized compute',
@@ -403,7 +403,7 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_ISO27001, REF_CIS]
   },
   {
-    domain: VULN, difficulty: 3, type: QType.SINGLE,
+    domain: VULN, difficulty: 4, type: QType.SINGLE,
     stem: 'An analyst reviews Nessus output showing a finding rated critical on a host, with a plugin note that the check was performed without credentials. What caveat applies?',
     options: opts4(
       'The result is inferred from banners and needs confirmation on the host',
@@ -772,17 +772,20 @@ export const CYSA_P3: CysaQ[] = [
     references: [REF_NIST_61]
   },
   {
-    domain: IR, difficulty: 3, type: QType.SINGLE,
-    stem: 'Which statement best describes the relationship between an event and an incident?',
-    options: opts4(
-      'Every incident is an event, but most events are not incidents',
-      'Every event is an incident once it has been logged by a system',
-      'Events occur on hosts while incidents occur only on networks',
-      'Incidents are detected automatically while events require human review'
-    ),
-    correct: ['a'],
-    explanation: 'An event is any observable occurrence, and an incident is the subset that adversely affects or threatens security, so the relationship is one of containment. Logging alone does not elevate an event, the distinction is not about location, and both may involve automation or human judgement.',
-    references: [REF_NIST_61]
+    domain: IR, difficulty: 3, type: QType.ORDERING,
+    stem: 'Arrange the phases of the incident response process in the order CySA+ defines them.',
+    options: [
+      { id: 'a', text: 'Preparation' },
+      { id: 'b', text: 'Detection' },
+      { id: 'c', text: 'Analysis' },
+      { id: 'd', text: 'Containment' },
+      { id: 'e', text: 'Eradication' },
+      { id: 'f', text: 'Recovery' },
+      { id: 'g', text: 'Post-incident' }
+    ],
+    correct: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    explanation: 'Preparation comes first and is the only phase performed before anything happens; detection and analysis establish that an incident exists and what its scope is; containment limits the damage; eradication removes the adversary; recovery restores normal service; and post-incident activity feeds lessons learned back into preparation, which is what makes the process a cycle rather than a line. Containment before analysis is the common mistake — it tips off the adversary while footholds are still unknown.',
+    references: [REF_NIST_61, REF_OBJ]
   },
 
   // ───────────── Reporting and Communication (10) ─────────────

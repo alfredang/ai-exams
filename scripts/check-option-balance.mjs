@@ -60,7 +60,14 @@ for (const exam of exams) {
   for (const q of qs) {
     const opts = Array.isArray(q.options) ? q.options : [];
     const correct = Array.isArray(q.correct) ? q.correct : [];
-    if (q.type === 'TRUE_FALSE' || opts.length < 3) continue;
+    // TRUE_FALSE has fixed options. ORDERING is excluded because the length
+    // check is a proxy for the longest-answer tell: it assumes ONE option is
+    // the key and asks whether length gives it away. In an ORDERING item every
+    // option is part of the answer and the task is sequencing, so a long step
+    // ("Routing table, ARP cache, process table, and memory") next to a short
+    // one ("Disk") leaks nothing. Padding them to equal length would damage
+    // readability to satisfy a metric that does not apply.
+    if (q.type === 'TRUE_FALSE' || q.type === 'ORDERING' || opts.length < 3) continue;
     const lens = opts.map((o) => String(o.text ?? '').length);
     const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
     if (Math.max(...lens) > mean * 1.3) {
@@ -138,6 +145,14 @@ for (const exam of exams) {
     if (correct.some((c) => !ids.includes(c))) malformed.push(`correct id not in options: ${q.stem.slice(0, 60)}`);
     if (q.type === 'TRUE_FALSE' && opts.length !== 2) malformed.push(`TRUE_FALSE with ${opts.length} options: ${q.stem.slice(0, 60)}`);
     if (q.type === 'MULTI' && correct.length < 2) malformed.push(`MULTI with <2 correct: ${q.stem.slice(0, 60)}`);
+    // ORDERING: `correct` is the full sequence, so it must list every option
+    // exactly once. A short or duplicated sequence is unscoreable — the
+    // order-sensitive comparison in isAnswerCorrect() would never match.
+    if (q.type === 'ORDERING') {
+      if (correct.length !== opts.length) malformed.push(`ORDERING sequence has ${correct.length} ids for ${opts.length} options: ${q.stem.slice(0, 50)}`);
+      if (new Set(correct).size !== correct.length) malformed.push(`ORDERING sequence repeats an option id: ${q.stem.slice(0, 50)}`);
+      if (opts.length < 3) malformed.push(`ORDERING with only ${opts.length} options: ${q.stem.slice(0, 50)}`);
+    }
   }
   if (malformed.length === 0) pass('no malformed questions');
   else {

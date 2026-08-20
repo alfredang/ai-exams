@@ -39,7 +39,7 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
   const runnerQuestions = ordered.map(q => ({
     id: q.id,
     stem: q.stem,
-    type: q.type as 'SINGLE' | 'MULTI' | 'TRUE_FALSE',
+    type: q.type as 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING',
     options: (q.options as any[]).map(o => ({ id: o.id, text: o.text })),
     domain: q.domain ?? undefined
   }));

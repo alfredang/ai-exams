@@ -12,7 +12,7 @@ import { shuffleSeeded } from '@/lib/shuffle';
 export type RunnerQuestion = {
   id: string;
   stem: string;
-  type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE';
+  type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING';
   options: { id: string; text: string }[];
   domain?: string;
 };
@@ -36,8 +36,13 @@ export type ExamRunnerProps = {
 const TYPE_HINT: Record<RunnerQuestion['type'], string> = {
   SINGLE: 'Select ONE answer',
   MULTI: 'Select ALL that apply',
-  TRUE_FALSE: 'True or False'
+  TRUE_FALSE: 'True or False',
+  ORDERING: 'Put the steps in the correct order'
 };
+
+// Types where one click is not "I'm done": the user confirms with an explicit
+// button before the answer is checked (PRACTICE) — see checkAnswer().
+const NEEDS_CONFIRM = (t: RunnerQuestion['type']) => t === 'MULTI' || t === 'ORDERING';
 
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -115,10 +120,39 @@ export function ExamRunner(props: ExamRunnerProps) {
   // Previous/Next navigation doesn't re-shuffle on each render. TRUE_FALSE
   // is left untouched — convention is True before False, swapping is jarring
   // with no anti-cheat benefit (only two options anyway).
-  const displayOptions = useMemo(() => {
+  const shuffledOptions = useMemo(() => {
     if (q.type === 'TRUE_FALSE') return q.options;
     return shuffleSeeded(q.options, `${props.attemptId}:${q.id}`);
   }, [q.options, q.type, q.id, props.attemptId]);
+
+  // ORDERING renders as a working list the user rearranges, so the displayed
+  // sequence IS the answer. Once they've moved anything we follow the stored
+  // answer; before that we show the shuffled starting arrangement. Any id in
+  // the stored answer that no longer exists (option edited after the attempt
+  // started) is dropped, and any missing option is appended, so a stale
+  // response can never blank the list.
+  const displayOptions = useMemo(() => {
+    if (q.type !== 'ORDERING') return shuffledOptions;
+    const saved = a.answer ?? [];
+    if (!saved.length) return shuffledOptions;
+    const byId = new Map(q.options.map(o => [o.id, o]));
+    const ordered = saved.map(id => byId.get(id)).filter((o): o is { id: string; text: string } => !!o);
+    const seen = new Set(ordered.map(o => o.id));
+    return [...ordered, ...shuffledOptions.filter(o => !seen.has(o.id))];
+  }, [q.type, q.options, shuffledOptions, a.answer]);
+
+  // Move an option up (-1) or down (+1) in the ORDERING list and persist the
+  // resulting sequence as the answer.
+  function move(optId: string, delta: number) {
+    if (a.submitted && props.mode === 'PRACTICE') return;
+    const cur = displayOptions.map(o => o.id);
+    const from = cur.indexOf(optId);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= cur.length) return;
+    const next = [...cur];
+    [next[from], next[to]] = [next[to], next[from]];
+    setAnswer(next);
+  }
 
   const visible = useMemo(() => props.questions.map((_, i) => i).filter(i => {
     const r = answers[props.questions[i].id];
@@ -168,6 +202,9 @@ export function ExamRunner(props: ExamRunnerProps) {
 
   function toggle(optId: string) {
     if (a.submitted && props.mode === 'PRACTICE') return;
+    // ORDERING has no notion of selecting an option — the sequence is the
+    // answer, and it changes only through move().
+    if (q.type === 'ORDERING') return;
     const cur = a.answer || [];
     const next = q.type === 'MULTI'
       ? (cur.includes(optId) ? cur.filter(x => x !== optId) : [...cur, optId])
@@ -175,7 +212,7 @@ export function ExamRunner(props: ExamRunnerProps) {
     setAnswer(next);
     // PRACTICE mode auto-reveals the answer for single-pick types as soon as
     // the user clicks an option — no "Show answer" button needed.
-    if (props.mode === 'PRACTICE' && q.type !== 'MULTI') {
+    if (props.mode === 'PRACTICE' && !NEEDS_CONFIRM(q.type)) {
       revealAnswer(next);
     }
   }
@@ -357,11 +394,64 @@ export function ExamRunner(props: ExamRunnerProps) {
                 <span className="rounded-full bg-blue-50 px-2.5 py-0.5 font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{q.domain}</span>
               )}
             </span>
-            <span className={`rounded-full px-2 py-0.5 font-medium ${q.type === 'MULTI' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+            <span className={`rounded-full px-2 py-0.5 font-medium ${NEEDS_CONFIRM(q.type) ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
               {TYPE_HINT[q.type]}
             </span>
           </div>
           <p className="whitespace-pre-wrap text-base font-medium leading-relaxed">{q.stem}</p>
+          {q.type === 'ORDERING' ? (
+            <div className="mt-5 space-y-2">
+              {displayOptions.map((o, oi) => {
+                // After submission the correct position is known, so mark each
+                // row by whether the user placed it where it belongs.
+                const correctSeq = a.correct ?? [];
+                const placedRight = a.submitted && correctSeq[oi] === o.id;
+                const placedWrong = a.submitted && correctSeq.length > 0 && correctSeq[oi] !== o.id;
+                const locked = a.submitted && props.mode === 'PRACTICE';
+                return (
+                  <div
+                    key={`${oi}-${o.id}`}
+                    className={`flex items-center gap-3 rounded-md border px-4 py-3 text-sm ${
+                      placedRight ? 'border-green-500 bg-green-50 dark:bg-green-950/40' :
+                      placedWrong ? 'border-red-500 bg-red-50 dark:bg-red-950/40' :
+                      'border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:text-slate-300">
+                      {oi + 1}
+                    </span>
+                    <span className="flex-1">{o.text}</span>
+                    {a.submitted && correctSeq.length > 0 && (
+                      <span className="shrink-0 text-xs font-semibold text-slate-500">
+                        correct: {correctSeq.indexOf(o.id) + 1}
+                      </span>
+                    )}
+                    <span className="flex shrink-0 flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => move(o.id, -1)}
+                        disabled={locked || oi === 0}
+                        aria-label={`Move "${o.text}" up`}
+                        className="rounded border border-slate-300 px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-600"
+                      >▲</button>
+                      <button
+                        type="button"
+                        onClick={() => move(o.id, 1)}
+                        disabled={locked || oi === displayOptions.length - 1}
+                        aria-label={`Move "${o.text}" down`}
+                        className="rounded border border-slate-300 px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-600"
+                      >▼</button>
+                    </span>
+                  </div>
+                );
+              })}
+              {!a.answer.length && (
+                <p className="pt-1 text-xs text-slate-500">
+                  Use the arrows to arrange these into the correct sequence, then check your answer.
+                </p>
+              )}
+            </div>
+          ) : (
           <div className="mt-5 space-y-2">
             {displayOptions.map((o, oi) => {
               const sel = a.answer.includes(o.id);
@@ -398,8 +488,9 @@ export function ExamRunner(props: ExamRunnerProps) {
               );
             })}
           </div>
+          )}
           {revealErr && <p className="mt-3 text-xs text-red-600">{revealErr}</p>}
-          {!a.submitted && props.mode === 'PRACTICE' && q.type !== 'MULTI' && !a.answer.length && (
+          {!a.submitted && props.mode === 'PRACTICE' && !NEEDS_CONFIRM(q.type) && !a.answer.length && (
             <p className="mt-4 text-xs text-slate-500">Pick an option to reveal the answer.</p>
           )}
           {a.submitted && a.explanation && (
@@ -447,7 +538,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                 hidden until then, so they can't skip past without checking —
                 and it's disabled until at least one option is selected. Once
                 checkAnswer() flips a.submitted, this falls through to Next. */}
-            {!a.submitted && props.mode === 'PRACTICE' && q.type === 'MULTI' ? (
+            {!a.submitted && props.mode === 'PRACTICE' && NEEDS_CONFIRM(q.type) ? (
               <button
                 onClick={checkAnswer}
                 disabled={!a.answer.length}

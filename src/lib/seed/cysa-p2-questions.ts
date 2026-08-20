@@ -778,16 +778,19 @@ export const CYSA_P2: CysaQ[] = [
     references: [REF_MITRE_NAV, REF_MITRE_ATTACK]
   },
   {
-    domain: IR, difficulty: 2, type: QType.SINGLE,
-    stem: 'An adversary harvests employee names and job titles from a professional networking site before crafting targeted emails. Which Cyber Kill Chain phase is this?',
-    options: opts4(
-      'Reconnaissance',
-      'Delivery',
-      'Exploitation',
-      'Weaponization'
-    ),
-    correct: ['a'],
-    explanation: 'Gathering information about the target before any contact is reconnaissance. Delivery is transmitting the crafted message, exploitation is triggering the vulnerability it carries, and weaponization is pairing that payload with an exploit beforehand.',
+    domain: IR, difficulty: 3, type: QType.ORDERING,
+    stem: 'An adversary researches staff on a networking site, emails a weaponized document, gains execution, installs a backdoor, calls home, and steals data. Arrange the Cyber Kill Chain phases in the order they occur.',
+    options: [
+      { id: 'a', text: 'Reconnaissance' },
+      { id: 'b', text: 'Weaponization' },
+      { id: 'c', text: 'Delivery' },
+      { id: 'd', text: 'Exploitation' },
+      { id: 'e', text: 'Installation' },
+      { id: 'f', text: 'Command and control' },
+      { id: 'g', text: 'Actions on objectives' }
+    ],
+    correct: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    explanation: 'The Cyber Kill Chain runs reconnaissance, weaponization, delivery, exploitation, installation, command and control, then actions on objectives. Its defensive value is that breaking any single link stops the chain, so the earlier a defender can detect and disrupt, the less the adversary achieves. Note that weaponization happens on the attacker\'s own infrastructure and generates no telemetry in the victim environment.',
     references: [REF_KILLCHAIN]
   },
 

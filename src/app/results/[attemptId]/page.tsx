@@ -133,6 +133,37 @@ export default async function ResultsPage({ params }: { params: Promise<{ attemp
                 <span className={`badge ${correct ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200'}`}>{correct ? 'Correct' : 'Incorrect'}</span>
               </div>
               <p className="font-medium">{q.stem}</p>
+              {q.type === 'ORDERING' ? (
+                // Every option id appears in `correct` for ORDERING, so the
+                // set-based renderer below would paint them all green. What
+                // matters here is POSITION: show the sequence the taker
+                // submitted, flagging any step that sits in the wrong slot.
+                (() => {
+                  const byId = new Map(opts.map(o => [o.id, o]));
+                  const submitted = ans.length ? ans : correctIds.map(() => '');
+                  return (
+                    <ol className="mt-2 space-y-1 text-sm">
+                      {submitted.map((id, oi) => {
+                        const o = byId.get(id);
+                        const right = correctIds[oi] === id;
+                        return (
+                          <li key={`${oi}-${id}`} className={`rounded px-3 py-1 ${right ? 'bg-green-50 text-green-800 dark:bg-green-950/40 dark:text-green-200' : 'bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-200'}`}>
+                            <span className="font-semibold">{oi + 1}.</span> {o?.text ?? <em>no answer</em>}
+                            {!right && (
+                              <span className="ml-2 text-xs opacity-80">
+                                should be #{correctIds.indexOf(id) + 1}
+                              </span>
+                            )}
+                          </li>
+                        );
+                      })}
+                      <li className="px-3 pt-2 text-xs text-slate-500">
+                        Correct order: {correctIds.map((id, n) => `${n + 1}. ${byId.get(id)?.text ?? id}`).join('  →  ')}
+                      </li>
+                    </ol>
+                  );
+                })()
+              ) : (
               <ul className="mt-2 space-y-1 text-sm">
                 {displayOptions.map((o, oi: number) => {
                   const sel = ans.includes(o.id);
@@ -144,6 +175,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ attemp
                   );
                 })}
               </ul>
+              )}
               <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-800/60">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Explanation
