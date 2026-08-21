@@ -87,9 +87,9 @@ const P1: Q[] = [
     stem: 'An enterprise must select a structured process to authorize information systems to operate by categorizing systems, selecting and implementing controls, and continuously monitoring them. Which framework defines this seven-step lifecycle?',
     options: opts4(
       'NIST Risk Management Framework (SP 800-37)',
-      'OWASP ASVS',
-      'MITRE ATT&CK',
-      'PCI DSS'
+      'NIST Cybersecurity Framework 2.0 core functions',
+      'ISO/IEC 27001 Annex A control selection',
+      'NIST SP 800-53 control families and baselines'
     ),
     correct: ['a'],
     explanation: 'The NIST RMF (SP 800-37 Rev. 2) defines the Prepare, Categorize, Select, Implement, Assess, Authorize, and Monitor steps used to authorize systems to operate. ASVS verifies app security, ATT&CK is an adversary knowledge base, and PCI DSS is a payment-card standard.',
@@ -140,8 +140,8 @@ const P1: Q[] = [
     options: opts4(
       'The operating effectiveness of controls over a defined period',
       'Only the suitability of control design at a point in time',
-      'Compliance with PCI DSS requirements',
-      'Penetration test results against production systems'
+      'Independent verification of the financial statements of the vendor',
+      'Continuous real-time monitoring of the control environment year round'
     ),
     correct: ['a'],
     explanation: 'A SOC 2 Type I report covers control design at a point in time; a Type II report adds an opinion on operating effectiveness over a review period (commonly 6–12 months), giving stronger assurance for supply-chain risk decisions.',
@@ -178,9 +178,9 @@ const P1: Q[] = [
     stem: 'An organization wants a control catalog and tailoring process that maps to system impact levels (low/moderate/high) for U.S. federal-aligned systems. Which reference should it adopt for control selection?',
     options: opts4(
       'NIST SP 800-53 control families with FIPS 199 categorization',
-      'OWASP Top 10',
-      'MITRE D3FEND',
-      'PCI DSS SAQ-A'
+      'ISO/IEC 27001 Annex A controls with a statement of applicability',
+      'CIS Critical Security Controls with implementation groups',
+      'NIST SP 800-37 authorization steps applied to each system'
     ),
     correct: ['a'],
     explanation: 'NIST SP 800-53 provides the control catalog and baselines that are tailored to low/moderate/high impact levels derived from FIPS 199 categorization. The other options are application-, defense-technique-, or payment-scoped.',
@@ -191,12 +191,12 @@ const P1: Q[] = [
     stem: 'A CISO needs an enterprise-wide governance outcome model with Govern, Identify, Protect, Detect, Respond, and Recover functions to communicate posture to executives. Which framework provides these functions?',
     options: opts4(
       'NIST Cybersecurity Framework 2.0',
-      'OWASP SAMM',
-      'STRIDE',
-      'SLSA'
+      'NIST Risk Management Framework',
+      'ISO/IEC 27001 Annex A',
+      'CIS Critical Security Controls v8'
     ),
     correct: ['a'],
-    explanation: 'NIST CSF 2.0 organizes outcomes into Govern, Identify, Protect, Detect, Respond, and Recover — designed for executive communication. SAMM and SLSA target software assurance/supply chain; STRIDE is a threat-modeling mnemonic.',
+    explanation: 'NIST CSF 2.0 organizes outcomes into Govern, Identify, Protect, Detect, Respond, and Recover — designed for executive communication. The Risk Management Framework is an authorization process rather than an outcome model, ISO/IEC 27001 Annex A is a control set, and the CIS Controls are a prioritized safeguard list.',
     references: [REF_NIST_CSF]
   },
   {
@@ -271,9 +271,9 @@ const P1: Q[] = [
     stem: 'In a Zero Trust deployment, where is the access decision computed before traffic is allowed to a protected resource?',
     options: opts4(
       'At the Policy Decision Point, enforced by the Policy Enforcement Point',
-      'At the edge router using static ACLs only',
-      'On the endpoint by the user with no server check',
-      'At the DNS resolver via record filtering'
+      'At the identity provider during authentication, before authorization is evaluated',
+      'At the enforcement point itself, which evaluates policy and applies the verdict',
+      'At the resource, which validates the token and decides access independently'
     ),
     correct: ['a'],
     explanation: 'In NIST SP 800-207 the Policy Decision Point evaluates identity, device posture, and context to make an access decision; the Policy Enforcement Point grants or denies and brokers the session. Static ACLs and DNS filtering are not the ZT decision plane.',
@@ -297,9 +297,9 @@ const P1: Q[] = [
     stem: 'An architect must let microservices authenticate to each other with short-lived, automatically rotated cryptographic identities instead of static API keys. Which approach best fits?',
     options: opts4(
       'Workload identity with mTLS using a service mesh issuing SPIFFE-style certificates',
-      'A shared static bearer token stored in each container image',
-      'Basic auth with a username/password per service hard-coded in config',
-      'IP allow-listing between service subnets only'
+      'Long-lived client certificates issued per service at deployment and renewed annually',
+      'OAuth client credentials with a shared secret rotated manually each quarter',
+      'Service account tokens mounted into each pod with no expiry configured'
     ),
     correct: ['a'],
     explanation: 'A service mesh issuing short-lived SPIFFE/SPIRE-style workload identities with mutual TLS gives strong, automatically rotated service-to-service authentication. Static tokens, hard-coded credentials, and IP allow-lists are weak and unrotated.',
@@ -310,9 +310,9 @@ const P1: Q[] = [
     stem: 'A design places web servers in a screened subnet reachable from the internet, while databases sit in an internal subnet that cannot be reached directly from the internet. What architectural pattern is this?',
     options: opts4(
       'Demilitarized zone (DMZ) segmentation',
-      'Single flat network',
-      'Full mesh peering',
-      'Split-horizon DNS'
+      'Zero Trust per-request access brokering',
+      'East-west micro-segmentation',
+      'Software-defined perimeter overlay'
     ),
     correct: ['a'],
     explanation: 'Placing internet-facing services in a screened subnet (DMZ) and keeping sensitive data tiers in an internal-only subnet is classic DMZ segmentation that limits exposure of back-end systems. The other terms describe unrelated networking concepts.',
@@ -322,10 +322,10 @@ const P1: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A SOC needs east-west visibility inside a virtualized data center where traffic never leaves the hypervisor. Which design provides this without hair-pinning all traffic to a physical appliance?',
     options: opts4(
-      'Distributed micro-segmentation with virtual firewalling enforced at the hypervisor/NIC',
-      'A single perimeter firewall at the data-center edge',
-      'Disabling all internal logging to reduce noise',
-      'Relying solely on host antivirus signatures'
+      'Micro-segmentation with virtual firewalling enforced at the hypervisor',
+      'A perimeter firewall pair at the edge with every internal VLAN trunked to it',
+      'Port mirroring every virtual switch to a central packet broker appliance',
+      'Host-based intrusion detection agents reporting to a central console'
     ),
     correct: ['a'],
     explanation: 'Distributed micro-segmentation enforces policy and inspection at the hypervisor/virtual NIC, giving east-west visibility and containment without forcing all intra-data-center traffic through a physical appliance. A single edge firewall sees no internal east-west flows.',
@@ -349,9 +349,9 @@ const P1: Q[] = [
     stem: 'A platform team wants developers to consume infrastructure only through reviewed, version-controlled templates that bake in hardened defaults. Which approach enforces secure-by-default architecture at scale?',
     options: opts4(
       'Infrastructure as Code with policy-as-code guardrails in the pipeline',
-      'Manual ticket-based provisioning by a single engineer',
-      'Allowing ad-hoc console changes with quarterly review',
-      'Emailing configuration screenshots for approval'
+      'A hardened golden image rebuilt and published by the platform team monthly',
+      'A peer-reviewed architecture decision record for each new environment',
+      'Post-deployment configuration scanning with findings raised as tickets'
     ),
     correct: ['a'],
     explanation: 'IaC with policy-as-code (e.g., OPA/Conftest, cloud org policies) evaluated in the pipeline enforces hardened, reviewed, and version-controlled defaults consistently. Manual and ad-hoc processes drift and do not scale securely.',
@@ -362,9 +362,9 @@ const P1: Q[] = [
     stem: 'An architect must ensure that if the TLS-terminating load balancer is compromised, traffic between it and back-end services is still confidential and integrity-protected. What should the design require?',
     options: opts4(
       'End-to-end TLS (re-encryption to back ends), not just edge termination',
-      'Plaintext HTTP behind the load balancer for performance',
-      'A single shared symmetric key printed in runbooks',
-      'Disabling certificate validation between tiers'
+      'Mutual TLS terminated only at the load balancer for client authentication',
+      'IPsec tunnels between the load balancer and the internet-facing clients',
+      'Application-layer field encryption applied to password fields only'
     ),
     correct: ['a'],
     explanation: 'Re-encrypting from the load balancer to back ends (end-to-end TLS) protects internal segments even if the edge is compromised. Plaintext internal traffic, shared static keys, and disabled validation all undermine confidentiality and integrity.',
@@ -374,10 +374,10 @@ const P1: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A data-classification-driven design must guarantee that "restricted" data is only stored in systems that enforce encryption at rest and field-level tokenization. Which architectural construct best enforces this end to end?',
     options: opts4(
-      'Data-centric security with classification tags driving policy at storage and application tiers',
-      'A perimeter firewall rule blocking external traffic only',
-      'A spreadsheet inventory of data owners',
-      'A quarterly awareness email to staff'
+      'Classification tags driving policy at the storage and application tiers',
+      'Full-disk encryption on every server that stores the restricted datasets',
+      'A data loss prevention policy scanning outbound email and web uploads',
+      'Database transparent data encryption enabled across all instances'
     ),
     correct: ['a'],
     explanation: 'Data-centric security attaches classification metadata to data and enforces handling policy (encryption at rest, tokenization, access) consistently across storage and application tiers. Perimeter rules and administrative artifacts do not enforce data-level controls.',
@@ -388,9 +388,9 @@ const P1: Q[] = [
     stem: 'An enterprise integrates partner identities. The design must let partners authenticate at their own IdP while the enterprise app trusts a signed assertion. Which protocol/pattern fits a browser-based federation?',
     options: opts4(
       'SAML 2.0 or OIDC federation with the enterprise as relying party / SP',
-      'Sharing a database of partner passwords with each partner',
-      'Allowing anonymous access for partner ranges',
-      'Distributing the enterprise root CA private key to partners'
+      'SCIM provisioning of partner user records into the enterprise directory',
+      'Mutual TLS between the partner network and the enterprise application',
+      'LDAP replication of the partner directory into the enterprise forest'
     ),
     correct: ['a'],
     explanation: 'Federated SSO with SAML 2.0 or OpenID Connect lets each partner authenticate at its own IdP and pass a signed assertion/token the enterprise (SP/relying party) trusts. The other options are insecure anti-patterns.',
@@ -401,12 +401,12 @@ const P1: Q[] = [
     stem: 'A design review asks how to limit lateral movement if one workload is compromised in a Kubernetes cluster. Which architectural control most directly addresses this?',
     options: opts4(
       'Default-deny network policies with explicit allow between required pods',
-      'Granting cluster-admin to all service accounts for simplicity',
-      'Running every pod as root',
-      'Disabling the API server audit log'
+      'Pod security admission set to the baseline profile across every namespace',
+      'Resource quotas and limit ranges applied to each application namespace',
+      'Image signature verification enforced at admission for all workloads'
     ),
     correct: ['a'],
-    explanation: 'Default-deny Kubernetes NetworkPolicies with explicit allows constrain pod-to-pod traffic and limit lateral movement. Broad cluster-admin, running as root, and disabling audit logging all increase, not reduce, blast radius.',
+    explanation: 'Default-deny Kubernetes NetworkPolicies with explicit allows constrain pod-to-pod traffic and limit lateral movement. Pod security admission limits what a container may do rather than where it may connect, resource quotas govern capacity, and image signature verification addresses supply chain — none of them restrict east-west traffic.',
     references: [REF_NIST_207, REF_CIS]
   },
   {
@@ -427,9 +427,9 @@ const P1: Q[] = [
     stem: 'A regulated workload must keep cryptographic key material in hardware that is validated and from which keys cannot be exported in plaintext. Which component should the architecture mandate?',
     options: opts4(
       'A FIPS 140-3 validated Hardware Security Module (HSM)',
-      'A developer laptop keystore',
-      'An environment variable in the deployment manifest',
-      'A shared wiki page with the keys'
+      'A cloud key management service with software-backed keys',
+      'An encrypted secrets manager with automatic rotation enabled',
+      'A password-protected PKCS#12 keystore on each host'
     ),
     correct: ['a'],
     explanation: 'A FIPS 140-3 validated HSM stores and uses keys in tamper-resistant hardware and prevents plaintext export, satisfying regulated key-protection requirements. The other options expose key material and lack validation.',
@@ -452,10 +452,10 @@ const P1: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A hybrid design must ensure on-prem and cloud workloads share one identity source of truth with conditional access based on device and risk. Which architecture best meets this?',
     options: opts4(
-      'A centralized IdP with federation and risk-based conditional access policies',
-      'Separate local accounts on every system with no synchronization',
-      'A single shared service account used by everyone',
-      'Static long-lived API keys checked into Git'
+      'A centralized IdP with federation and risk-based conditional access',
+      'Directory synchronization with password hash sync and no policy engine',
+      'A VPN concentrator enforcing device posture checks at connection time',
+      'Separate cloud and on-premises identity stores kept in manual alignment'
     ),
     correct: ['a'],
     explanation: 'A centralized IdP that federates to on-prem and cloud, applying risk- and device-based conditional access, gives a single identity source of truth with adaptive enforcement. Local-only accounts, shared accounts, and static keys fragment and weaken identity.',
@@ -465,10 +465,10 @@ const P1: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must allow the security team to inspect TLS traffic for malware while preserving certificate trust. Which approach is architecturally sound for managed corporate endpoints?',
     options: opts4(
-      'A forward TLS-inspection proxy with an enterprise CA trusted only on managed endpoints',
-      'Disabling TLS entirely on the corporate network',
-      'Trusting any self-signed certificate globally',
-      'Logging full plaintext of all employee traffic without scope or policy'
+      'A forward TLS-inspection proxy with an enterprise CA on managed endpoints',
+      'Passive TLS metadata analysis using only the certificate and SNI fields',
+      'Installing the inspection CA on every device including unmanaged BYOD',
+      'Requiring all internal services to share a single wildcard certificate and key'
     ),
     correct: ['a'],
     explanation: 'A forward proxy performing TLS inspection using an enterprise CA distributed only to managed endpoints enables malware inspection while maintaining trust on those devices. Disabling TLS or trusting any cert destroys confidentiality/integrity, and untargeted full-plaintext capture is disproportionate.',
@@ -494,25 +494,25 @@ const P1: Q[] = [
     stem: 'An engineer must choose an encryption mode for protecting bulk data at rest that provides both confidentiality and built-in integrity/authentication. Which choice is most appropriate?',
     options: opts4(
       'AES-256 in GCM (an AEAD mode)',
-      'AES in ECB mode',
-      'DES in CBC mode',
-      'RC4 stream cipher'
+      'AES-256 in CBC mode with a random IV',
+      'AES-256 in CTR mode with a nonce',
+      'ChaCha20 without Poly1305'
     ),
     correct: ['a'],
-    explanation: 'AES-256-GCM is an authenticated encryption with associated data (AEAD) mode providing confidentiality and integrity in one construct. ECB leaks patterns, DES has an inadequate 56-bit key, and RC4 is broken and deprecated.',
+    explanation: 'AES-256-GCM is an authenticated encryption with associated data (AEAD) mode providing confidentiality and integrity in one construct. CBC with a random IV and CTR with a nonce both provide confidentiality only, and ChaCha20 without Poly1305 is the raw stream cipher — each needs a separate MAC before tampering can be detected.',
     references: [REF_NIST_57, REF_NIST_FIPS140]
   },
   {
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'A team must store user passwords. Which approach follows current secure engineering guidance?',
     options: opts4(
-      'A memory-hard password hashing function (e.g., Argon2id) with a unique salt per user',
-      'Unsalted SHA-1 of the password',
-      'Reversible AES encryption of the password with a shared key',
-      'Plaintext storage with database file permissions only'
+      'A memory-hard hashing function such as Argon2id with a per-user salt',
+      'PBKDF2-HMAC-SHA1 with one thousand iterations and a unique per-user salt',
+      'Reversible AES-GCM encryption of the password with a managed key',
+      'SHA-256 with a unique per-user salt and a single iteration'
     ),
     correct: ['a'],
-    explanation: 'Passwords should be stored using a slow, memory-hard hash such as Argon2id (or scrypt/bcrypt) with a unique per-user salt. Unsalted SHA-1, reversible encryption, and plaintext are all unacceptable for credential storage.',
+    explanation: 'Passwords should be stored using a slow, memory-hard hash such as Argon2id (or scrypt/bcrypt) with a unique per-user salt. PBKDF2 at a thousand iterations is orders of magnitude below current guidance, reversible encryption means one key compromise exposes every password, and a single-iteration SHA-256 is far too fast to resist offline cracking.',
     references: [REF_NIST_63B, REF_OWASP_ASVS]
   },
   {
@@ -532,10 +532,10 @@ const P1: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer needs to protect data in use while it is processed in an untrusted cloud host. Which technology is designed for this?',
     options: opts4(
-      'Confidential computing using hardware-based trusted execution environments (enclaves)',
-      'Full-disk encryption only',
-      'TLS on the network only',
-      'Database column encryption only'
+      'Confidential computing using hardware trusted execution environments',
+      'Full-disk encryption applied to every volume on the untrusted cloud host',
+      'Transparent database encryption applied to every column',
+      'TLS 1.3 between the client and the processing service'
     ),
     correct: ['a'],
     explanation: 'Confidential computing protects data in use by processing it inside hardware-backed trusted execution environments (enclaves), isolating it from the host OS/hypervisor. Disk, network, and column encryption protect data at rest or in transit, not while in use.',
@@ -545,13 +545,13 @@ const P1: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'A security engineer is preparing for "harvest now, decrypt later" attacks against long-lived confidential data. Which forward-looking control should be planned?',
     options: opts4(
-      'Migrate key establishment to NIST-selected post-quantum / hybrid algorithms with crypto-agility',
-      'Increase the RC4 key length',
-      'Switch all hashing to MD5 for speed',
-      'Disable encryption to simplify key management'
+      'Migrate key establishment to NIST post-quantum or hybrid algorithms',
+      'Increase RSA key sizes to 8192 bits across the entire estate',
+      'Rotate symmetric session keys more frequently on long-lived data flows',
+      'Move long-lived secrets into a hardware security module'
     ),
     correct: ['a'],
-    explanation: 'Harvest-now-decrypt-later motivates adopting NIST post-quantum algorithms (often in hybrid mode) and building crypto-agility so algorithms can be replaced. RC4/MD5 are broken, and disabling encryption removes protection entirely.',
+    explanation: 'Harvest-now-decrypt-later motivates adopting NIST post-quantum algorithms (often in hybrid mode) and building crypto-agility so algorithms can be replaced. Larger RSA keys do not help, because a quantum attack succeeds against RSA at any practical key size; rotating session keys and moving secrets into an HSM protect future and stored material but not ciphertext an adversary has already recorded.',
     references: [REF_NIST_PQC, REF_NIST_57]
   },
   {
@@ -559,12 +559,12 @@ const P1: Q[] = [
     stem: 'An engineer must verify that a downloaded firmware image was produced by the vendor and not modified. Which mechanism provides authenticity and integrity?',
     options: opts4(
       'A digital signature verified with the vendor\'s public key',
-      'A plain CRC32 checksum',
-      'Base64 encoding of the file',
-      'A shared FTP password'
+      'A SHA-256 hash published alongside the firmware download page',
+      'A CRC32 checksum included in the firmware header',
+      'TLS on the download connection to the vendor site'
     ),
     correct: ['a'],
-    explanation: 'A digital signature created with the vendor private key and verified with its public key provides both integrity and authenticity. CRC32 detects accidental errors only, Base64 is encoding (no protection), and a shared password is unrelated.',
+    explanation: 'A digital signature created with the vendor private key and verified with its public key provides both integrity and authenticity. A published SHA-256 hash proves integrity only — an attacker who can alter the download can usually alter the page beside it; CRC32 detects accidental corruption; and TLS protects the connection rather than the artifact.',
     references: [REF_NIST_57, REF_SLSA]
   },
   {
@@ -597,23 +597,23 @@ const P1: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'A CI pipeline must prevent dependency-confusion and tampered build artifacts from reaching production. Which engineering practice best mitigates supply-chain risk?',
     options: opts4(
-      'Pin dependencies, verify signatures/provenance (e.g., SLSA), and use a vetted internal registry',
-      'Always pull the latest version of every dependency at build time',
-      'Disable lockfiles so updates are automatic',
-      'Allow builds to fetch packages from arbitrary public mirrors'
+      'Pin dependencies and verify provenance via a vetted registry',
+      'Mirror the public registry internally without provenance checks',
+      'Rely on lockfiles alone without verifying package signatures',
+      'Scan dependencies for known CVEs after the build completes'
     ),
     correct: ['a'],
-    explanation: 'Pinning versions, verifying signatures/provenance per SLSA, and sourcing from a vetted registry defends against dependency confusion and artifact tampering. Always-latest, disabled lockfiles, and arbitrary mirrors increase supply-chain exposure.',
+    explanation: 'Pinning versions, verifying signatures/provenance per SLSA, and sourcing from a vetted registry defends against dependency confusion and artifact tampering. Mirroring without provenance checks still accepts a malicious upstream package, lockfiles alone pin versions without proving who built them, and scanning for CVEs after the build finds known flaws rather than substituted artifacts.',
     references: [REF_SLSA, REF_NIST_SSDF]
   },
   {
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'An engineer must ensure a stolen backup tape does not disclose data even if the physical media is read directly. Which control is required?',
     options: opts4(
-      'Encryption of backup data with keys stored separately from the media',
-      'Labeling the tape "Confidential"',
-      'Storing the tape in an unlocked drawer near the server',
-      'Relying on the backup software UI password only'
+      'Encryption of the backup data with keys stored separately',
+      'Write-once media with a retention lock applied to every tape volume',
+      'Encryption of the backup catalog database on the backup server',
+      'Physical tamper seals and chain-of-custody logging during transport'
     ),
     correct: ['a'],
     explanation: 'Encrypting backup data and keeping keys separate from the media renders a stolen tape unreadable. Labels, weak physical storage, and an application UI password do not protect raw media read offline.',
@@ -624,9 +624,9 @@ const P1: Q[] = [
     stem: 'A key-management engineer must minimize the impact of a compromised TLS server private key on previously captured traffic. Which property must the negotiated cipher suite provide?',
     options: opts4(
       'Perfect forward secrecy via ephemeral key exchange (ECDHE/DHE)',
-      'Static RSA key transport',
-      'Null encryption with authentication only',
-      'Compression of TLS records'
+      'Static RSA key transport with a 4096-bit server certificate chain',
+      'AES-GCM authenticated encryption for the record layer',
+      'Certificate pinning of the server certificate in the client'
     ),
     correct: ['a'],
     explanation: 'Forward secrecy from ephemeral Diffie-Hellman (ECDHE/DHE) ensures past sessions cannot be decrypted even if the long-term private key is later compromised. Static RSA transport lacks this; null encryption and compression do not address it (and compression enabled CRIME).',
@@ -637,25 +637,25 @@ const P1: Q[] = [
     stem: 'An engineer integrates a Hardware Security Module so the application can request signing without ever reading the private key. Which interface/standard is commonly used for this?',
     options: opts4(
       'PKCS#11 cryptographic token interface',
-      'SMTP',
-      'SNMPv1',
-      'NTP'
+      'KMIP key management interoperability protocol',
+      'JCE Java cryptography extension provider',
+      'OpenSSL command-line signing utility'
     ),
     correct: ['a'],
-    explanation: 'PKCS#11 is the standard cryptographic token API used to perform operations (e.g., signing) inside an HSM without exposing the private key. SMTP, SNMPv1, and NTP are unrelated protocols.',
+    explanation: 'PKCS#11 is the standard cryptographic token API used to perform operations (e.g., signing) inside an HSM without exposing the private key. KMIP manages key lifecycle and distribution rather than invoking cryptographic operations, JCE is a Java provider framework that typically fronts PKCS#11 rather than replacing it, and the OpenSSL CLI is a tool rather than an integration interface.',
     references: [REF_NIST_FIPS140, REF_NIST_57]
   },
   {
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'To defend a web form against automated credential-stuffing, which engineering control directly raises attacker cost without blocking legitimate users outright?',
     options: opts4(
-      'Rate limiting plus risk-based step-up MFA and breached-password checks',
-      'Removing the lockout entirely to avoid support tickets',
-      'Returning detailed messages stating whether the username exists',
-      'Storing passwords in plaintext for faster comparison'
+      'Rate limiting, step-up MFA, and breached-password checks',
+      'Account lockout after three failed attempts against any username',
+      'A CAPTCHA presented on every login attempt for every user account',
+      'IP-based blocking of any address that produces more than one failure'
     ),
     correct: ['a'],
-    explanation: 'Rate limiting, risk-based step-up MFA, and rejecting known-breached passwords raise attacker cost while keeping legitimate access usable. Removing throttling, leaking username validity, and plaintext storage all weaken security.',
+    explanation: 'Rate limiting, risk-based step-up MFA, and rejecting known-breached passwords raise attacker cost while keeping legitimate access usable. Lockout after three failures lets an attacker deny service to real users simply by guessing at them, a CAPTCHA on every login taxes everyone, and blocking an IP after a single failure breaks shared NAT egress for whole offices.',
     references: [REF_NIST_63B, REF_OWASP_ASVS]
   },
   {
@@ -675,10 +675,10 @@ const P1: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must prevent a compromised CI runner from minting cloud credentials it can exfiltrate. Which mechanism best limits this?',
     options: opts4(
-      'Short-lived OIDC-federated workload credentials scoped to the specific pipeline',
-      'A long-lived cloud access key stored as a plaintext pipeline variable',
-      'The cloud root account credentials shared with all jobs',
-      'No credentials — embed the secret in the build script'
+      'Short-lived OIDC-federated credentials scoped to the pipeline',
+      'A long-lived cloud access key stored as a masked pipeline variable',
+      'A dedicated service account key rotated by hand every ninety days',
+      'Credentials injected at runtime from a shared secrets vault token'
     ),
     correct: ['a'],
     explanation: 'OIDC workload identity federation issues short-lived, narrowly scoped credentials per pipeline run, so a compromised runner cannot reuse or widely abuse them. Long-lived keys, root credentials, and embedded secrets are high-impact anti-patterns.',
@@ -702,9 +702,9 @@ const P1: Q[] = [
     stem: 'An engineer must ensure a microservice can verify the integrity and origin of messages on a shared bus without confidentiality being the goal. Which primitive fits best?',
     options: opts4(
       'An HMAC (or signature) over each message with a managed key',
-      'Gzip compression of each message',
-      'Base32 encoding of the payload',
-      'A static request ID header'
+      'TLS on the transport between the message broker and each subscriber',
+      'A monotonically increasing sequence number stamped on every message',
+      'A CRC32 checksum computed over the message body'
     ),
     correct: ['a'],
     explanation: 'An HMAC or digital signature over each message provides integrity and origin authentication for bus messages. Compression and encoding provide no integrity guarantees, and a static header is trivially forged.',
@@ -715,9 +715,9 @@ const P1: Q[] = [
     stem: 'A privacy-by-design requirement says analytics must not be able to re-identify individuals while preserving aggregate statistical utility. Which technique is most appropriate?',
     options: opts4(
       'Differential privacy applied to query results/aggregates',
-      'Reversible encryption of names with a shared key',
-      'Hashing emails with an unsalted fast hash',
-      'Storing raw identifiers and trusting analysts'
+      'Deterministic tokenization of identifiers with a retained mapping table',
+      'k-anonymity generalization with k set to 1 for each released record',
+      'Salted hashing of email addresses before the aggregation runs'
     ),
     correct: ['a'],
     explanation: 'Differential privacy adds calibrated noise so individual records cannot be re-identified while preserving aggregate utility. Reversible encryption and unsalted hashes are reversible/linkable, and trusting analysts is not a technical control.',
@@ -886,9 +886,9 @@ const P1: Q[] = [
     stem: 'A managed detection capability needs continuous endpoint visibility with the ability to record process, file, and network activity and remotely isolate a host. Which tooling category fits?',
     options: opts4(
       'Endpoint Detection and Response (EDR)',
-      'A network time server',
-      'A static asset spreadsheet',
-      'A password vault'
+      'Security information and event management',
+      'Mobile device management enrollment',
+      'Network access control with posture checks'
     ),
     correct: ['a'],
     explanation: 'EDR provides continuous endpoint telemetry (process/file/network), detection, and response actions such as host isolation. The other items do not provide endpoint detection-and-response capabilities.',
