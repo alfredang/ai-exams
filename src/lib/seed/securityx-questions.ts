@@ -982,9 +982,9 @@ const P2: Q[] = [
     stem: 'A healthcare provider in the U.S. must protect electronic protected health information with administrative, physical, and technical safeguards. Which regulation imposes these requirements?',
     options: opts4(
       'HIPAA Security Rule',
-      'PCI DSS',
-      'GDPR',
-      'SOX'
+      'PCI DSS Requirement 3',
+      'GDPR Article 32',
+      'SOC 2 Trust Services'
     ),
     correct: ['a'],
     explanation: 'The HIPAA Security Rule mandates administrative, physical, and technical safeguards for electronic PHI. PCI DSS covers card data, GDPR covers EU personal data, and SOX covers financial reporting controls.',
@@ -995,9 +995,9 @@ const P2: Q[] = [
     stem: 'A board asks for a single metric expressing the maximum loss the firm could face from cyber events at a 95% confidence level over one year. Which quantitative output answers this?',
     options: opts4(
       'Cyber Value-at-Risk (loss exceedance at a confidence level)',
-      'CVSS base score',
-      'Number of open tickets',
-      'Patch compliance percentage'
+      'Annualized loss expectancy derived from a single-loss estimate',
+      'Mean time to detect across the reporting period',
+      'Aggregate CVSS severity of open findings this quarter'
     ),
     correct: ['a'],
     explanation: 'Cyber Value-at-Risk expresses a loss magnitude not expected to be exceeded at a stated confidence over a horizon, derived from loss-distribution modeling (e.g., FAIR/Monte Carlo). CVSS, ticket counts, and patch percentages are not loss-at-confidence measures.',
@@ -1034,9 +1034,9 @@ const P2: Q[] = [
     stem: 'A control is selected primarily to satisfy an external legal mandate even though its risk-reduction value is low. Which driver is motivating this control?',
     options: opts4(
       'Compliance/regulatory requirement',
-      'Risk appetite reduction',
-      'Threat intelligence',
-      'Penetration test finding'
+      'Reduction of residual risk exposure',
+      'Threat intelligence reporting',
+      'Penetration test remediation'
     ),
     correct: ['a'],
     explanation: 'When a control is implemented chiefly to meet a legal or regulatory mandate, its driver is compliance, which can differ from pure risk-based prioritization. The other items are risk- or threat-driven.',
@@ -1060,9 +1060,9 @@ const P2: Q[] = [
     stem: 'A vendor contract states the provider will notify the customer of a confirmed data breach within 24 hours. Which contract element does this commitment belong to?',
     options: opts4(
       'Incident notification / breach reporting clause',
-      'Acceptable use policy',
-      'Software license key',
-      'Marketing co-branding agreement'
+      'Service level agreement uptime commitment',
+      'Right-to-audit clause covering the provider',
+      'Data processing addendum naming the sub-processors'
     ),
     correct: ['a'],
     explanation: 'A defined breach-notification timeframe is part of the incident-notification/breach-reporting contractual clause, often aligned with regulatory deadlines. The other items are unrelated agreement components.',
@@ -1073,9 +1073,9 @@ const P2: Q[] = [
     stem: 'An auditor recommends rotating staff through critical duties and requiring uninterrupted time away from the role. Which control objective do mandatory vacation and job rotation primarily support?',
     options: opts4(
       'Detecting and deterring fraud or concealed malicious activity',
-      'Improving network throughput',
-      'Reducing TLS handshake latency',
-      'Increasing code coverage'
+      'Distributing workload evenly across the operations team',
+      'Reducing overtime cost during peak reporting periods',
+      'Meeting the minimum leave entitlement required by employment law'
     ),
     correct: ['a'],
     explanation: 'Mandatory vacation and job rotation help surface fraud or malicious activity that depends on one person continuously controlling a process, complementing separation of duties. They are administrative fraud-detection/deterrence controls.',
@@ -1099,9 +1099,9 @@ const P2: Q[] = [
     stem: 'A risk owner accepts a residual risk that is below appetite and formally signs off, scheduling a review in 12 months. Which risk response and governance step is demonstrated?',
     options: opts4(
       'Risk acceptance with documented sign-off and review date',
-      'Risk transfer to an insurer',
-      'Risk avoidance by ending the activity',
-      'Risk mitigation by adding controls'
+      'Risk transfer to an insurer under a cyber policy',
+      'Risk avoidance by discontinuing the underlying activity entirely',
+      'Risk mitigation by adding compensating controls'
     ),
     correct: ['a'],
     explanation: 'Formally accepting a below-appetite residual risk with documented owner sign-off and a scheduled review is the risk-acceptance response with proper governance. Transfer, avoidance, and mitigation are different responses.',
@@ -1113,10 +1113,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 2, type: QType.SINGLE, isTeaser: true,
     stem: 'An architect needs remote users to reach private applications without placing the apps on the internet or giving full network access. Which model best fits?',
     options: opts4(
-      'Zero Trust Network Access (identity- and context-aware application brokering)',
-      'A flat site-to-site VPN granting full LAN access',
-      'Port-forwarding the app directly to the internet',
-      'A modem dial-up pool'
+      'Zero Trust Network Access with identity- and context-aware brokering',
+      'A site-to-site VPN granting routed access to the internal LAN',
+      'A reverse proxy published to the internet in front of each application',
+      'A jump host in the DMZ that users RDP into before reaching apps'
     ),
     correct: ['a'],
     explanation: 'ZTNA brokers access to specific applications based on verified identity and device/context without exposing the app publicly or granting broad network access — unlike a full-LAN VPN or direct port-forwarding.',
@@ -1126,10 +1126,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A SaaS architecture must keep tenant data logically isolated in a shared database while preventing one tenant from querying another\'s rows. Which design control is most directly responsible?',
     options: opts4(
-      'Enforced per-tenant authorization (e.g., row-level security keyed to tenant ID)',
-      'A single shared admin query without a tenant filter',
-      'Client-side filtering of results in the browser',
-      'Trusting the application UI to hide other tenants'
+      'Row-level security keyed to tenant ID and enforced in the database',
+      'A tenant identifier column that each application query is expected to filter',
+      'Separate database schemas created per tenant on request',
+      'Client-side filtering of the result set before rendering'
     ),
     correct: ['a'],
     explanation: 'Server-enforced per-tenant authorization such as database row-level security keyed to the tenant context structurally prevents cross-tenant access. Client-side or UI-only filtering can be bypassed and is not an isolation control.',
@@ -1152,10 +1152,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must ensure that even a fully compromised application server cannot read another microservice\'s database because credentials are scoped and short-lived. Which pattern enforces this?',
     options: opts4(
-      'Per-service least-privilege identities with dynamic, scoped database credentials',
-      'One shared database superuser for all services',
-      'Embedding the DBA password in every container',
-      'Allowing any service to connect with no authentication inside the cluster'
+      'Per-service identities with dynamic, scoped database credentials',
+      'A shared application role with read and write on every schema',
+      'Database credentials injected once at container build time',
+      'Network policy restricting which pods may reach the database port'
     ),
     correct: ['a'],
     explanation: 'Per-service least-privilege identities issued dynamic, narrowly scoped, short-lived DB credentials contain a compromise to one service\'s data. A shared superuser, embedded DBA password, or unauthenticated intra-cluster access removes isolation.',
@@ -1166,9 +1166,9 @@ const P2: Q[] = [
     stem: 'An architecture separates the corporate user network from the OT/ICS network with a tightly controlled intermediate zone hosting jump and patch servers. What is this intermediate zone commonly called?',
     options: opts4(
       'An industrial demilitarized zone (IDMZ)',
-      'A guest Wi-Fi VLAN',
-      'A content delivery network',
-      'A public DNS zone'
+      'A unidirectional security gateway (data diode)',
+      'A management VLAN for network devices',
+      'A jump host on the corporate network'
     ),
     correct: ['a'],
     explanation: 'An IDMZ is a controlled buffer zone between IT and OT/ICS networks (Purdue model) that brokers data exchange and hosts jump/patch services so the two networks never connect directly. The other options are unrelated network constructs.',
@@ -1178,10 +1178,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must guarantee that disaster recovery can run independently of the primary region\'s control plane and identity provider. Which architectural principle is being applied?',
     options: opts4(
-      'Eliminating shared dependencies / single points of failure across regions',
-      'Co-locating DR in the same rack as production for speed',
-      'Reusing the production IdP only, with no regional redundancy',
-      'Disabling DR authentication to simplify failover'
+      'Eliminating shared dependencies across regions',
+      'Replicating the primary identity provider synchronously to DR',
+      'Co-locating DR capacity in a second zone of the same region',
+      'Failing over to DR only after the primary control plane recovers'
     ),
     correct: ['a'],
     explanation: 'Resilient DR architecture removes shared dependencies so a primary-region failure (including its control plane/IdP) does not also take down recovery. Co-location, single-IdP reliance, and disabled DR auth reintroduce single points of failure or weaken security.',
@@ -1204,10 +1204,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A multinational must keep certain citizens\' data within national borders while still operating a global platform. Which architectural approach addresses this requirement?',
     options: opts4(
-      'Data residency design using region-pinned storage and processing with policy controls',
-      'Replicating all data to every region for performance',
-      'Storing all data in a single global bucket with public read',
-      'Ignoring location since data is encrypted in transit'
+      'Region-pinned storage and processing enforced by policy',
+      'Replicating every dataset to all regions for read performance',
+      'Encrypting data in transit so location no longer matters',
+      'Storing all records centrally with per-country access controls'
     ),
     correct: ['a'],
     explanation: 'Data-residency/sovereignty requirements are met by pinning storage and processing to approved regions and enforcing policy controls on data movement. Global replication, public buckets, or relying only on transit encryption do not satisfy residency law.',
@@ -1217,10 +1217,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 2, type: QType.SINGLE,
     stem: 'An architecture introduces a hardened, monitored host that administrators must connect through to reach production management interfaces. What is this component?',
     options: opts4(
-      'A bastion / jump host (privileged access workstation gateway)',
-      'A reverse proxy cache',
-      'A load balancer',
-      'A syslog server'
+      'A bastion or jump host for privileged administrative access',
+      'A reverse proxy terminating TLS for the management console',
+      'A network load balancer in front of the management VIPs',
+      'A syslog collector receiving all management-plane audit events'
     ),
     correct: ['a'],
     explanation: 'A bastion/jump host is a hardened, heavily monitored chokepoint through which admin access to sensitive systems is funneled, reducing exposure of management interfaces. A cache, load balancer, and syslog server perform different roles.',
@@ -1243,13 +1243,13 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'An architect must allow third-party SaaS to access only a narrow set of objects in cloud storage, with no standing long-lived keys. Which design is best?',
     options: opts4(
-      'Cross-account role assumption / federation scoped to specific resources with short-lived tokens',
-      'Sharing the cloud account root credentials with the SaaS',
-      'Making the storage bucket public so any tool can read it',
-      'Emailing a long-lived static access key to the vendor'
+      'Cross-account role assumption scoped to the specific objects',
+      'A dedicated IAM user for the vendor with a rotated access key',
+      'A presigned URL per object regenerated by a nightly batch job',
+      'A bucket policy allowing the vendor account full read access'
     ),
     correct: ['a'],
-    explanation: 'Scoped cross-account role assumption/federation grants the SaaS only the needed resources via short-lived tokens with no standing keys. Root credentials, public buckets, and long-lived static keys are severe over-grants.',
+    explanation: 'Scoped cross-account role assumption/federation grants the SaaS only the needed resources via short-lived tokens with no standing keys. A dedicated IAM user still holds a standing key, presigned URLs regenerated nightly leave a long window and scale badly, and a bucket policy granting the vendor account read access exposes far more than the narrow object set.',
     references: [REF_CLOUD_SEC, REF_NIST_207]
   },
   {
@@ -1282,10 +1282,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must let a workload prove its identity to a cloud KMS to decrypt data without any embedded secret. Which mechanism enables this?',
     options: opts4(
-      'Cloud workload/instance identity bound to an IAM role with KMS key policy authorization',
-      'A symmetric key hard-coded in the application binary',
-      'A password typed by an operator on every boot',
-      'An unauthenticated KMS endpoint'
+      'Workload identity bound to an IAM role authorized on the KMS key',
+      'An encrypted key file mounted into the container filesystem at runtime',
+      'A key encryption key stored in the application configuration',
+      'A long-lived service account key distributed with the image'
     ),
     correct: ['a'],
     explanation: 'Binding the workload\'s platform identity to an IAM role authorized in the KMS key policy lets it decrypt with no embedded secret. Hard-coded keys, manual passwords, and unauthenticated KMS endpoints are insecure or impractical.',
@@ -1296,9 +1296,9 @@ const P2: Q[] = [
     stem: 'An architecture must ensure that compromise of a single CA does not invalidate trust for unrelated systems. Which PKI design choice supports this containment?',
     options: opts4(
       'A tiered PKI with an offline root and scoped issuing/intermediate CAs',
-      'One online root CA signing every certificate directly',
-      'Sharing one private key across all CAs',
-      'Disabling certificate revocation entirely'
+      'A single online root CA that issues all end-entity certificates directly',
+      'Cross-certification between every CA in the organization',
+      'One issuing CA per environment sharing the same private key'
     ),
     correct: ['a'],
     explanation: 'A tiered PKI keeps the root offline and uses scoped intermediate CAs, so compromise of one issuing CA can be revoked without destroying overall trust. A single online root, shared keys, and no revocation remove containment.',
@@ -1308,10 +1308,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must allow security to detect data exfiltration even over encrypted channels from managed endpoints, without breaking unrelated personal traffic. Which approach is most proportionate?',
     options: opts4(
-      'DLP with selective TLS inspection on managed endpoints scoped to corporate destinations/data',
-      'Full plaintext capture of all employee personal banking traffic',
-      'Blocking all outbound HTTPS for everyone',
-      'No monitoring at all to respect privacy'
+      'DLP with selective TLS inspection scoped to corporate destinations',
+      'Full TLS interception of every session including personal banking traffic',
+      'Blocking all outbound HTTPS except to an allow-listed set of hosts',
+      'Endpoint agents reporting only file hashes of documents opened'
     ),
     correct: ['a'],
     explanation: 'Scoped DLP with selective TLS inspection on managed endpoints, limited to corporate data/destinations, balances exfiltration detection with proportionality. Capturing personal banking traffic is excessive, blocking all HTTPS is unworkable, and no monitoring leaves exfiltration undetected.',
@@ -1321,10 +1321,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'An architect must minimize the chance that a single misconfigured identity grants broad access across the cloud estate. Which design practice most directly limits this?',
     options: opts4(
-      'Least-privilege roles with permission boundaries and periodic access reviews',
-      'Granting every engineer the administrator role by default',
-      'Using one shared IAM user for the whole team',
-      'Disabling MFA to reduce friction'
+      'Least-privilege roles with permission boundaries and access reviews',
+      'A single break-glass administrator account shared by the platform team',
+      'Broad managed policies attached directly to each engineer identity',
+      'Service control policies applied only at the root of the organization'
     ),
     correct: ['a'],
     explanation: 'Least-privilege roles with permission boundaries plus periodic access recertification cap the blast radius of a misconfigured identity. Default-admin grants, shared users, and disabled MFA all amplify identity risk.',
@@ -1334,10 +1334,10 @@ const P2: Q[] = [
     domain: ARCH, difficulty: 2, type: QType.SINGLE,
     stem: 'A security architect applies STRIDE to a new design and is analyzing the threat of an attacker denying they performed an action. Which STRIDE category is this, and which control mitigates it?',
     options: opts4(
-      'Repudiation — mitigated by strong authentication plus tamper-evident audit logging',
-      'Spoofing — mitigated by data-at-rest encryption',
-      'Tampering — mitigated by rate limiting',
-      'Information disclosure — mitigated by load balancing'
+      'Repudiation — mitigated by strong authentication and audit logging',
+      'Spoofing — mitigated by tamper-evident logging of every action',
+      'Tampering — mitigated by multi-factor authentication at login',
+      'Information disclosure — mitigated by non-repudiation signatures on requests'
     ),
     correct: ['a'],
     explanation: 'In STRIDE, an actor denying an action is Repudiation, mitigated by strong authentication and non-repudiable, tamper-evident logging/signing. The other pairings mismatch the category and its proper control.',
@@ -1349,10 +1349,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE, isTeaser: true,
     stem: 'An engineer must protect an entire laptop disk so that a stolen, powered-off device discloses no data. Which control is appropriate?',
     options: opts4(
-      'Full-disk encryption (e.g., with a TPM-bound key and pre-boot authentication)',
-      'A BIOS supervisor password only',
-      'Hiding files in a non-default folder',
-      'Renaming sensitive files with a .txt extension'
+      'Full-disk encryption with a TPM-bound key and pre-boot authentication',
+      'A BIOS supervisor password preventing changes to boot order',
+      'File-level encryption applied to the documents folder only',
+      'Remote wipe triggered the next time the device contacts the MDM server'
     ),
     correct: ['a'],
     explanation: 'Full-disk encryption with a TPM-protected key and pre-boot authentication renders a stolen, powered-off device unreadable. A BIOS password, hidden folders, and renamed files do not encrypt data and are trivially bypassed.',
@@ -1362,13 +1362,13 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must derive a strong symmetric key from a user-supplied passphrase for client-side encryption. Which function is appropriate?',
     options: opts4(
-      'A password-based KDF such as PBKDF2/Argon2 with a high iteration/cost and unique salt',
-      'A single pass of MD5 over the passphrase',
-      'Truncating the passphrase to 8 bytes as the key',
-      'Using the passphrase directly as an AES key with no processing'
+      'A password-based KDF such as Argon2 with a high cost and unique salt',
+      'A single pass of SHA-256 over the passphrase combined with a fixed salt',
+      'HKDF expansion of the passphrase with a random info parameter',
+      'Using the passphrase directly as an AES key after padding'
     ),
     correct: ['a'],
-    explanation: 'A purpose-built password-based KDF (PBKDF2, Argon2, scrypt) with a high cost factor and unique salt resists brute force when deriving keys from passphrases. MD5, truncation, or raw passphrase-as-key produce weak, low-entropy keys.',
+    explanation: 'A purpose-built password-based KDF (PBKDF2, Argon2, scrypt) with a high cost factor and unique salt resists brute force when deriving keys from passphrases. A single SHA-256 pass is far too fast to resist offline guessing, HKDF expands existing key material rather than hardening a low-entropy passphrase, and using the passphrase directly inherits all of its weakness.',
     references: [REF_NIST_63B, REF_NIST_57]
   },
   {
@@ -1388,13 +1388,13 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must let services retrieve database passwords that change automatically and are never stored in code or images. Which capability provides this?',
     options: opts4(
-      'A secrets manager issuing dynamic, automatically rotated database credentials',
-      'A .env file committed to the repository',
-      'A wiki page listing all production passwords',
-      'Hard-coding the password in the Dockerfile'
+      'A secrets manager issuing dynamic, rotated database credentials',
+      'An encrypted environment file injected by the deployment pipeline',
+      'A configuration service returning a static password over TLS',
+      'Credentials stored in the container orchestrator as a sealed secret'
     ),
     correct: ['a'],
-    explanation: 'A secrets manager that brokers dynamic, auto-rotated database credentials keeps secrets out of code/images and limits exposure windows. Committed .env files, wiki pages, and Dockerfile-embedded secrets leak credentials persistently.',
+    explanation: 'A secrets manager that brokers dynamic, auto-rotated database credentials keeps secrets out of code/images and limits exposure windows. An encrypted environment file still ships a static credential, a configuration service returning a fixed password over TLS protects transit but never rotates, and a sealed orchestrator secret is durable rather than dynamic.',
     references: [REF_NIST_57, REF_CLOUD_SEC]
   },
   {
@@ -1402,12 +1402,12 @@ const P2: Q[] = [
     stem: 'An engineer needs to verify that a software release artifact was built from the expected source by the expected pipeline. Which mechanism provides verifiable build provenance?',
     options: opts4(
       'Signed in-toto/SLSA provenance attestation verified before deployment',
-      'A README note saying the build is trusted',
-      'The artifact filename containing the word "secure"',
-      'An unsigned changelog'
+      'A SHA-256 digest of the artifact recorded in the published release notes',
+      'A signed tag on the source commit the build was cut from',
+      'Reproducible build output compared against a local rebuild'
     ),
     correct: ['a'],
-    explanation: 'Signed SLSA/in-toto provenance attestations cryptographically bind an artifact to its source and build process and can be verified before deploy. README notes, filenames, and unsigned changelogs offer no verifiable assurance.',
+    explanation: 'Signed SLSA/in-toto provenance attestations cryptographically bind an artifact to its source and build process and can be verified before deploy. A published digest proves the bytes are unchanged but not which pipeline produced them, a signed source tag attests to the commit rather than the build, and a reproducible rebuild shows determinism without binding the artifact to an authorized builder.',
     references: [REF_SLSA, REF_NIST_SSDF]
   },
   {
@@ -1415,9 +1415,9 @@ const P2: Q[] = [
     stem: 'An engineer must prevent reflected cross-site scripting in a web application. Which control most directly mitigates it?',
     options: opts4(
       'Context-aware output encoding plus a strict Content Security Policy',
-      'Encrypting the database at rest',
-      'Adding more CPU to the web server',
-      'Disabling HTTP caching'
+      'Server-side input validation rejecting all HTML metacharacters',
+      'HttpOnly and Secure flags set on the session cookie',
+      'A web application firewall rule blocking script tags in query strings'
     ),
     correct: ['a'],
     explanation: 'Context-aware output encoding neutralizes injected markup/script, and a strict CSP reduces the impact of any residual injection — the primary XSS defenses. Disk encryption, CPU, and cache settings do not address XSS.',
@@ -1427,10 +1427,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must enable TLS mutual authentication so both client and server present certificates. Which configuration achieves this?',
     options: opts4(
-      'mTLS: server requires and validates client certificates against a trusted CA',
-      'Server-only TLS with anonymous clients',
-      'Plain TCP with an application password',
-      'TLS with certificate validation disabled on both ends'
+      'mTLS with the server validating client certificates against a trusted CA',
+      'Server-only TLS with the client authenticating by a bearer token instead',
+      'TLS with certificate pinning configured on the client only',
+      'TLS with client certificate requests optional and unverified'
     ),
     correct: ['a'],
     explanation: 'Mutual TLS requires the server to request and validate a client certificate chained to a trusted CA, authenticating both parties. Server-only TLS, plain TCP, and disabled validation do not provide mutual authentication.',
@@ -1453,10 +1453,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must ensure session tokens cannot be reused if stolen from logs or intercepted. Which design choice best mitigates token theft impact?',
     options: opts4(
-      'Short-lived tokens with refresh, binding (e.g., DPoP/mTLS), and server-side revocation',
-      'Long-lived bearer tokens with no expiry stored in localStorage',
-      'Putting the token in the URL so it appears in access logs',
-      'Reusing one static API token for all users'
+      'Short-lived bound tokens with refresh and server-side revocation',
+      'Long-lived bearer tokens stored in browser local storage without expiry',
+      'Tokens passed as query parameters so they appear in access logs',
+      'One static API token shared across every user of the service'
     ),
     correct: ['a'],
     explanation: 'Short-lived, sender-constrained (DPoP/mTLS-bound) tokens with refresh and server-side revocation sharply limit the value of a stolen token. Long-lived bearer tokens, tokens-in-URLs, and shared static tokens maximize theft impact.',
@@ -1466,10 +1466,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'An engineer needs strong phishing-resistant multifactor authentication for administrators. Which authenticator type best meets that goal?',
     options: opts4(
-      'A FIDO2/WebAuthn hardware security key (origin-bound public-key auth)',
-      'SMS one-time codes',
-      'Knowledge-based security questions',
-      'A reusable static PIN emailed to the user'
+      'A FIDO2/WebAuthn hardware security key bound to the origin',
+      'A time-based one-time password app on the administrator phone',
+      'Push notification approval sent to a registered mobile device',
+      'SMS one-time codes delivered to a verified phone number'
     ),
     correct: ['a'],
     explanation: 'FIDO2/WebAuthn hardware keys use origin-bound public-key cryptography and are phishing-resistant. SMS OTP is susceptible to SIM-swap/phishing relay, security questions are weak, and emailed static PINs are not strong MFA.',
@@ -1479,10 +1479,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must protect data being processed by a third-party analytics function so the provider never sees plaintext. Which advanced technique enables computation on encrypted data?',
     options: opts4(
-      'Homomorphic encryption (or secure multiparty computation) for privacy-preserving computation',
-      'Base64 encoding the data before sending',
-      'TLS to the provider only',
-      'Disk encryption on the provider side'
+      'Homomorphic encryption or secure multiparty computation',
+      'Tokenizing the fields before sending them to the provider',
+      'A confidential computing enclave run by the provider',
+      'TLS to the provider with data encrypted at rest afterwards'
     ),
     correct: ['a'],
     explanation: 'Homomorphic encryption and secure multiparty computation allow computation over encrypted data so the processor never accesses plaintext. Encoding, transit-only TLS, and provider-side disk encryption all expose plaintext during processing.',
@@ -1492,10 +1492,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must prevent path traversal and SSRF when a service fetches user-supplied URLs/filenames. Which control set is appropriate?',
     options: opts4(
-      'Strict allow-list validation, canonicalization, and blocking internal/metadata addresses',
-      'A blacklist of the string "../" only',
-      'Trusting the client to send safe values',
-      'Logging the request and proceeding regardless'
+      'Allow-list validation, canonicalization, and internal-address blocking',
+      'A deny-list rejecting the literal traversal string and common variants',
+      'URL parsing followed by a single DNS lookup before the request is made',
+      'Rate limiting the endpoint that accepts the user-supplied URL'
     ),
     correct: ['a'],
     explanation: 'Allow-list validation, canonicalizing inputs, and explicitly blocking internal/link-local/metadata endpoints mitigate path traversal and SSRF. A single substring blacklist is bypassable, and trusting the client is not a control.',
@@ -1505,10 +1505,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'An engineer must securely destroy data on decommissioned SSDs so it cannot be recovered. Which method is most reliable for self-encrypting drives?',
     options: opts4(
-      'Cryptographic erase (destroying the drive\'s encryption key), or physical destruction',
-      'A single-pass overwrite of the logical block addresses',
-      'Deleting the partition table only',
-      'Moving files to the recycle bin and emptying it'
+      'Cryptographic erase that destroys the drive encryption key',
+      'A single-pass overwrite of every logical block address',
+      'ATA secure erase issued without verifying completion',
+      'Deleting the partition table and reformatting the drive'
     ),
     correct: ['a'],
     explanation: 'For self-encrypting drives, cryptographic erase (purging the media encryption key) renders all data unrecoverable instantly; physical destruction is the alternative. Overwrites are unreliable on SSD wear-leveling, and deleting partitions/recycling does not sanitize data.',
@@ -1531,10 +1531,10 @@ const P2: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must ensure firmware on IoT devices only boots if it is signed by the manufacturer. Which mechanism enforces this at power-on?',
     options: opts4(
-      'Secure/verified boot with a hardware root of trust validating the signature chain',
-      'A boot-time splash screen warning users not to tamper',
-      'Storing firmware on read-only media labeled "do not modify"',
-      'A network firewall rule'
+      'Verified boot with a hardware root of trust checking the signature',
+      'Firmware stored on read-only media that cannot be rewritten',
+      'A checksum verified by the bootloader before handing off control',
+      'Signature verification performed by the update service after boot completes'
     ),
     correct: ['a'],
     explanation: 'Secure/verified boot anchored in a hardware root of trust cryptographically validates each stage\'s signature before execution, preventing unauthorized firmware from booting. Splash warnings, labels, and firewall rules do not enforce boot-time integrity.',
@@ -1798,10 +1798,10 @@ const P3: Q[] = [
     domain: GRC, difficulty: 2, type: QType.SINGLE, isTeaser: true,
     stem: 'An organization adopts a control framework to align security investments with business objectives and to communicate maturity to the board. Which document type guides that strategic alignment?',
     options: opts4(
-      'A security strategy/governance program aligned to a recognized framework',
-      'A single firewall rule export',
-      'A switch port configuration',
-      'A DNS zone file'
+      'A governance programme aligned to a recognized control framework',
+      'An annual penetration test report presented to the board committee',
+      'A vulnerability scanning schedule agreed with IT operations',
+      'A security awareness curriculum delivered to all staff'
     ),
     correct: ['a'],
     explanation: 'A security strategy/governance program mapped to a recognized framework aligns investments to business goals and communicates maturity to leadership. Device configs and zone files are operational artifacts, not strategic governance.',
@@ -1812,12 +1812,12 @@ const P3: Q[] = [
     stem: 'A risk model produces a loss exceedance curve from a Monte Carlo simulation of frequency and magnitude distributions. Which quantitative risk methodology is being applied?',
     options: opts4(
       'FAIR (Factor Analysis of Information Risk)',
-      'A simple qualitative heat map',
-      'CVSS scoring',
-      'A RACI matrix'
+      'A qualitative risk heat map with high/medium/low bands',
+      'CVSS environmental scoring of each finding',
+      'An ISO 27005 qualitative risk register'
     ),
     correct: ['a'],
-    explanation: 'FAIR decomposes risk into loss event frequency and loss magnitude and uses simulation to produce loss-exceedance curves for quantitative analysis. A heat map is qualitative, CVSS scores vulnerabilities, and RACI assigns responsibilities.',
+    explanation: 'FAIR decomposes risk into loss event frequency and loss magnitude and uses simulation to produce loss-exceedance curves for quantitative analysis. A heat map with high/medium/low bands is qualitative and cannot produce an exceedance curve, CVSS environmental scoring rates individual vulnerabilities rather than aggregate loss, and an ISO 27005 register records risks without simulating them.',
     references: [REF_FAIR, REF_NIST_RMF]
   },
   {
@@ -1889,10 +1889,10 @@ const P3: Q[] = [
     domain: GRC, difficulty: 3, type: QType.SINGLE,
     stem: 'A regulator requires breach notification to affected individuals "without undue delay" and within a statutory window. Which compliance obligation must the incident-response plan integrate?',
     options: opts4(
-      'Mandatory breach-notification timelines and regulatory reporting',
-      'A marketing communications calendar',
-      'A software EULA acceptance flow',
-      'A capacity-planning forecast'
+      'Mandatory breach-notification timelines and reporting',
+      'Contractual service credits for missed availability targets',
+      'Records-retention schedules for personal data categories',
+      'Data subject access request handling procedures'
     ),
     correct: ['a'],
     explanation: 'IR plans must incorporate statutory breach-notification timelines and regulator/individual reporting obligations (e.g., GDPR 72-hour notification). The other options are unrelated to breach reporting compliance.',
@@ -1903,9 +1903,9 @@ const P3: Q[] = [
     stem: 'An enterprise wants to express security control objectives as outcomes and benchmark maturity over time across business units. Which framework is best suited?',
     options: opts4(
       'NIST Cybersecurity Framework with implementation tiers/profiles',
-      'A single antivirus product manual',
-      'A network cable labeling scheme',
-      'The HTTP specification'
+      'CIS Controls with implementation groups one through three',
+      'ISO/IEC 27001 certification audited against the Annex A control set',
+      'NIST SP 800-53 baselines tailored to system impact level'
     ),
     correct: ['a'],
     explanation: 'The NIST CSF expresses outcomes and supports maturity benchmarking via tiers and target/current profiles across the organization. A product manual, cabling scheme, and HTTP spec are not maturity frameworks.',
@@ -1915,23 +1915,23 @@ const P3: Q[] = [
     domain: GRC, difficulty: 3, type: QType.SINGLE,
     stem: 'A company outsources payroll processing. The contract must ensure the processor implements appropriate security and processes data only on documented instructions. Which instrument captures these obligations under GDPR?',
     options: opts4(
-      'A data processing agreement (controller–processor contract)',
-      'A marketing co-branding addendum',
-      'A hardware warranty card',
-      'A press release'
+      'A data processing agreement between controller and processor',
+      'A master services agreement with a limitation of liability',
+      'A statement of work defining the payroll processing deliverables',
+      'A mutual non-disclosure agreement covering shared data'
     ),
     correct: ['a'],
-    explanation: 'A GDPR data processing agreement binds the processor to act only on documented instructions and to implement appropriate security measures. Warranty cards, press releases, and co-branding addenda do not establish these legal obligations.',
+    explanation: 'A GDPR data processing agreement binds the processor to act only on documented instructions and to implement appropriate security measures. A master services agreement governs the commercial relationship, a statement of work defines deliverables, and a mutual NDA restricts disclosure — none of them impose the processing obligations the regulation requires.',
     references: [REF_GDPR, REF_OBJ]
   },
   {
     domain: GRC, difficulty: 3, type: QType.SINGLE,
     stem: 'A risk committee must decide whether to fund a $300,000 control. The control reduces ALE from $1,000,000 to $250,000. What is the control\'s net annual value, and is it justified?',
     options: opts4(
-      'Net value $450,000; justified because ALE reduction ($750,000) exceeds cost',
-      'Net value −$50,000; not justified',
-      'Net value $250,000; not justified',
-      'Net value $1,000,000; justified'
+      'Net value $450,000 — the $750,000 ALE reduction exceeds the cost',
+      'Net value −$50,000 — the control costs more than it saves annually',
+      'Net value $250,000 — the residual ALE is the benefit',
+      'Net value $700,000 — the cost is excluded from the calculation'
     ),
     correct: ['a'],
     explanation: 'ALE reduction = $1,000,000 − $250,000 = $750,000. Net value = $750,000 − $300,000 control cost = $450,000, so the control is cost-justified. The other figures miscompute the benefit or cost.',
@@ -1942,22 +1942,22 @@ const P3: Q[] = [
     stem: 'A new system is categorized using FIPS 199 as moderate impact for confidentiality, integrity, and availability. What does this categorization primarily drive in the RMF?',
     options: opts4(
       'Selection of the appropriate control baseline and tailoring',
-      'The marketing launch date',
-      'The office seating plan',
-      'The choice of programming language'
+      'The frequency of continuous monitoring assessments performed',
+      'The authorization boundary drawn around the system components',
+      'The contingency plan testing method the system must use annually'
     ),
     correct: ['a'],
-    explanation: 'FIPS 199 impact categorization drives selection of the NIST SP 800-53 control baseline (low/moderate/high) and subsequent tailoring in the RMF. It does not determine launch dates, seating, or languages.',
+    explanation: 'FIPS 199 impact categorization drives selection of the NIST SP 800-53 control baseline (low/moderate/high) and subsequent tailoring in the RMF. Monitoring frequency, the authorization boundary, and contingency testing are all decided during the RMF steps that follow categorization rather than by the impact level itself.',
     references: [REF_NIST_RMF, REF_NIST_53]
   },
   {
     domain: GRC, difficulty: 3, type: QType.SINGLE,
     stem: 'Leadership wants assurance that critical third parties can recover within agreed times after a disruption. Which contractual/governance control most directly provides this?',
     options: opts4(
-      'Contractually required, tested vendor BC/DR with defined RTO/RPO and evidence',
-      'A logo usage guideline',
-      'An NDA only',
-      'A volume purchase discount clause'
+      'Contractually required vendor BC/DR with defined RTO and RPO',
+      'A right-to-audit clause exercised once every three years',
+      'A service credit regime applied when uptime targets are missed',
+      'A cyber insurance policy naming the vendor as an insured'
     ),
     correct: ['a'],
     explanation: 'Requiring and validating vendor business continuity/disaster recovery with defined, tested RTO/RPO and evidence gives assurance of resilience. An NDA, logo guideline, or discount clause do not address recovery capability.',
@@ -1969,10 +1969,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 2, type: QType.SINGLE, isTeaser: true,
     stem: 'An architect must ensure that a stolen valid session on the corporate VPN does not automatically grant access to every internal application. Which architectural shift addresses this?',
     options: opts4(
-      'Per-application authorization under Zero Trust rather than network-level all-or-nothing access',
-      'Widening the VPN subnet for convenience',
-      'Removing authentication on internal apps',
-      'Trusting any device once on the VPN'
+      'Per-application authorization rather than network-level access',
+      'A shorter VPN session timeout enforced for all users',
+      'Certificate-based device authentication performed at VPN connect time',
+      'Segmenting the VPN pool into per-department subnets'
     ),
     correct: ['a'],
     explanation: 'Zero Trust enforces per-application authorization based on identity/context, so a compromised network session does not yield blanket internal access. Wider subnets, removed auth, and implicit device trust worsen the problem.',
@@ -1982,10 +1982,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A serverless architecture must limit what a compromised function can do to other resources. Which design control most directly enforces least privilege per function?',
     options: opts4(
-      'A narrowly scoped execution role granting only the resources that function needs',
-      'A single shared role with full administrative permissions for all functions',
-      'No IAM role, relying on network ACLs only',
-      'Embedding cloud root keys in the function environment'
+      'A narrowly scoped execution role granting only what the function needs',
+      'One shared execution role reused by every function in the entire account',
+      'Network ACLs restricting which subnets the function may reach',
+      'Environment variables holding the credentials the function uses'
     ),
     correct: ['a'],
     explanation: 'Assigning each function a narrowly scoped execution role contains the blast radius if that function is compromised. A shared admin role, ACL-only reliance, or embedded root keys grant excessive, dangerous access.',
@@ -2008,10 +2008,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A data lake must let analysts query data while ensuring direct identifiers are never exposed but joins on a stable pseudonym remain possible. Which architectural technique fits?',
     options: opts4(
-      'Tokenization/pseudonymization with the mapping vault access-controlled and segregated',
-      'Storing raw PII and trusting query logging',
-      'Publishing the dataset publicly with a disclaimer',
-      'Base64-encoding the identifiers'
+      'Tokenization with the mapping vault access-controlled and segregated',
+      'Deterministic hashing of the identifiers with a fixed salt',
+      'Column-level encryption with the key held by the analytics platform team',
+      'Generalizing the identifiers into broad demographic buckets'
     ),
     correct: ['a'],
     explanation: 'Tokenization/pseudonymization replaces direct identifiers with stable tokens while the re-identification vault is segregated and tightly controlled, enabling joins without exposing PII. Raw PII, public publishing, and encoding do not protect identities.',
@@ -2021,10 +2021,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 2, type: QType.SINGLE,
     stem: 'An architecture must keep management traffic for switches and hypervisors completely separate from user data traffic. Which design pattern accomplishes this?',
     options: opts4(
-      'An out-of-band management network/plane separated from production data paths',
-      'Running management over the same VLAN as guest Wi-Fi',
-      'Exposing management interfaces directly to the internet',
-      'Using the production load balancer for SSH'
+      'An out-of-band management network separated from data paths',
+      'A dedicated management VLAN carried over the same uplinks',
+      'Management access restricted to a jump host on the user network',
+      'SSH access to devices permitted only from the operations subnet'
     ),
     correct: ['a'],
     explanation: 'An out-of-band management network isolates administrative access from user/data traffic, reducing exposure of sensitive control interfaces. Sharing guest VLANs, internet-exposed management, or routing SSH through prod LBs increase risk.',
@@ -2034,10 +2034,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must ensure that if the primary cloud region is lost, the application can fail over with minimal data loss and meet a 1-hour RTO. Which architecture best meets this?',
     options: opts4(
-      'Multi-region active/passive with asynchronous data replication and automated failover/runbooks',
-      'A single-region deployment with weekly tape backups offsite',
-      'Manual rebuild from documentation after an outage',
-      'No DR plan because the cloud "never goes down"'
+      'Multi-region active/passive with automated failover',
+      'Single-region deployment with hourly snapshots copied offsite',
+      'Multi-zone deployment within the primary region only',
+      'Backup restore from object storage performed manually'
     ),
     correct: ['a'],
     explanation: 'Multi-region active/passive with continuous async replication and automated, tested failover meets aggressive RTO/RPO targets. Single-region weekly backups, manual rebuilds, or assuming the cloud never fails cannot meet a 1-hour RTO.',
@@ -2060,10 +2060,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must prevent a compromised internet-facing service from directly reaching the internal database tier. Which architecture control most directly enforces this restriction?',
     options: opts4(
-      'Network segmentation with security groups/firewalls allowing only the app tier to reach the DB tier',
-      'Placing the database in the same public subnet as the web server',
-      'Assigning the database a public IP for convenience',
-      'Allowing all internal hosts unrestricted access to the database'
+      'Segmentation allowing only the app tier to reach the database tier',
+      'Placing the database in the same subnet as the web servers',
+      'Allowing all internal hosts unrestricted access to the database',
+      'A web application firewall in front of the internet-facing service'
     ),
     correct: ['a'],
     explanation: 'Tiered segmentation that permits only the application tier to reach the database tier blocks a compromised front-end from directly attacking the DB. Public subnets/IPs and unrestricted internal access remove that containment.',
@@ -2074,9 +2074,9 @@ const P3: Q[] = [
     stem: 'An architect introduces a component that brokers and records all privileged sessions to critical systems, enforcing checkout of credentials and session recording. What is this called?',
     options: opts4(
       'A Privileged Access Management (PAM) solution',
-      'A content delivery network',
-      'A DHCP server',
-      'A load balancer'
+      'A network access control appliance with posture checks',
+      'An identity governance and administration platform',
+      'A single sign-on identity provider'
     ),
     correct: ['a'],
     explanation: 'A PAM solution brokers privileged access, vaults and rotates credentials, and records privileged sessions, reducing standing privilege and improving accountability. A CDN, DHCP server, and load balancer serve different functions.',
@@ -2099,10 +2099,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must minimize the chance that one developer\'s compromised laptop leads to production code execution. Which architectural control most directly limits this?',
     options: opts4(
-      'Protected branches with mandatory review and signed commits, plus separation from deploy credentials',
-      'Allowing direct pushes to the production branch by anyone',
-      'Sharing one Git account across the whole team',
-      'Storing deploy keys on every developer laptop'
+      'Protected branches with mandatory review and signed commits',
+      'Requiring two-factor authentication on every developer account',
+      'Full-disk encryption enforced on all developer laptops',
+      'Deploy keys distributed to each developer workstation'
     ),
     correct: ['a'],
     explanation: 'Protected branches requiring review and signed commits, with deploy credentials kept off developer endpoints, prevent a single compromised laptop from pushing code to production. Direct pushes, shared accounts, and laptop-stored deploy keys remove that safeguard.',
@@ -2113,9 +2113,9 @@ const P3: Q[] = [
     stem: 'An architecture adds an inline component that decrypts, inspects, and re-encrypts traffic to enforce DLP and malware policy for outbound web access. What is this component?',
     options: opts4(
       'A secure web gateway (forward proxy with inspection)',
-      'A recursive-only DNS resolver',
-      'A NAT gateway with no inspection',
-      'A simple Layer 2 switch'
+      'A reverse proxy publishing internal applications outward',
+      'A NAT gateway performing address translation only',
+      'A DNS filtering resolver blocking known-bad domains'
     ),
     correct: ['a'],
     explanation: 'A secure web gateway acts as an inspecting forward proxy enforcing DLP, URL filtering, and malware policy on outbound web traffic. A plain resolver, NAT gateway, or L2 switch perform no content inspection.',
@@ -2138,10 +2138,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must ensure cryptographic keys for a regulated workload remain under the customer\'s control even though the workload runs in a public cloud. Which model best satisfies this?',
     options: opts4(
-      'Customer-managed keys in a customer-controlled HSM/KMS with external key store / hold-your-own-key',
-      'Provider-owned keys with no customer visibility',
-      'A symmetric key shared with the provider over email',
-      'No encryption, relying on provider physical security'
+      'Customer-managed keys in a customer-controlled external key store',
+      'Provider-managed keys with the audit log exported to the customer SIEM',
+      'Customer-managed keys stored in the provider KMS with rotation',
+      'Envelope encryption using a provider-generated data key'
     ),
     correct: ['a'],
     explanation: 'Customer-managed keys in a customer-controlled HSM/KMS (including external/hold-your-own-key models) keep key control with the customer while running in the provider\'s cloud. Provider-owned keys, emailed keys, or no encryption fail the control requirement.',
@@ -2151,10 +2151,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 2, type: QType.SINGLE,
     stem: 'An architect must ensure that authorization decisions are externalized from application code so policies can be centrally managed and audited. Which pattern accomplishes this?',
     options: opts4(
-      'Policy-as-code with an external authorization service (e.g., a policy decision point)',
-      'Hard-coded if/else role checks scattered across every service',
-      'Trusting a client-side cookie value',
-      'Comments in the code describing intended access'
+      'An external authorization service evaluating policy as code',
+      'Role checks implemented consistently in a shared library',
+      'Authorization enforced at the API gateway by route prefix',
+      'Claims embedded in the access token and trusted by each service'
     ),
     correct: ['a'],
     explanation: 'Externalizing authorization to a policy-as-code decision service centralizes, versions, and audits access policy consistently. Scattered hard-coded checks, trusting client cookies, and code comments do not provide centralized enforceable authorization.',
@@ -2164,10 +2164,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A design must reduce the blast radius of a leaked long-lived cloud access key used by an automation account. Which architectural change is most effective?',
     options: opts4(
-      'Replace static keys with short-lived federated credentials and scope permissions tightly',
-      'Make the key longer but keep it permanent',
-      'Email the key to a backup mailbox for redundancy',
-      'Grant the automation account administrator to avoid permission errors'
+      'Replace static keys with short-lived federated credentials',
+      'Rotate the access key automatically every thirty days',
+      'Store the access key in a secrets manager with audit logging',
+      'Restrict the key with an IP allow-list for the automation host'
     ),
     correct: ['a'],
     explanation: 'Replacing static long-lived keys with short-lived federated credentials and tight scoping minimizes the value and lifetime of any leak. Longer permanent keys, emailing copies, and admin grants increase exposure.',
@@ -2177,10 +2177,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'A security architect applies STRIDE and is mitigating "Elevation of privilege" in a multi-tenant API. Which control most directly addresses that STRIDE category?',
     options: opts4(
-      'Robust, server-side authorization checks enforcing least privilege per request and tenant',
-      'Adding more bandwidth to the API',
-      'Enabling gzip compression',
-      'Renaming admin endpoints'
+      'Server-side authorization enforcing least privilege per tenant',
+      'Rate limiting each tenant to a fixed quota of requests per minute',
+      'Encrypting every API response body in transit',
+      'Renaming administrative endpoints to non-obvious URL paths'
     ),
     correct: ['a'],
     explanation: 'Elevation of privilege is mitigated by strong server-side authorization enforcing least privilege per request/tenant (preventing IDOR/broken access control). Bandwidth, compression, and endpoint renaming do not address privilege escalation.',
@@ -2190,10 +2190,10 @@ const P3: Q[] = [
     domain: ARCH, difficulty: 3, type: QType.SINGLE,
     stem: 'An architect must design logging so that a compromise of any single production system cannot let the attacker erase the evidence of their activity. Which architectural control most directly achieves this?',
     options: opts4(
-      'Stream logs in near real time to an isolated, append-only logging account/SIEM the production systems cannot modify',
-      'Keep all logs only on each local host with default permissions',
-      'Allow production admins full delete rights on the central log store',
-      'Rotate and purge logs aggressively on the source hosts'
+      'Stream logs to an isolated append-only logging account',
+      'Keep logs on each host with permissions restricted to root',
+      'A central log store where production admins retain delete rights',
+      'Aggressive rotation and purge of logs on the source hosts'
     ),
     correct: ['a'],
     explanation: 'Forwarding logs to an isolated, append-only logging account/SIEM that production systems cannot alter ensures attacker actions on a host cannot delete the centralized evidence. Local-only logs, broad delete rights, and aggressive purging let an attacker destroy their trail.',
@@ -2205,23 +2205,23 @@ const P3: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE, isTeaser: true,
     stem: 'An engineer must protect data in transit between two services with confidentiality, integrity, and server authentication using a modern protocol. Which choice is correct?',
     options: opts4(
-      'TLS 1.3 with a valid certificate and a forward-secret cipher suite',
-      'Telnet with a shared password',
-      'Plain HTTP with an obscure port',
-      'FTP over the public internet'
+      'TLS 1.3 with a valid certificate and forward-secret cipher',
+      'IPsec transport mode using pre-shared keys on both endpoints',
+      'SSH port forwarding between the two service hosts',
+      'Mutual TLS with certificate validation disabled'
     ),
     correct: ['a'],
-    explanation: 'TLS 1.3 with a valid certificate and forward-secret suites provides confidentiality, integrity, and server authentication for data in transit. Telnet, plain HTTP, and FTP transmit data and credentials without protection.',
+    explanation: 'TLS 1.3 with a valid certificate and forward-secret suites provides confidentiality, integrity, and server authentication for data in transit. IPsec with pre-shared keys authenticates the endpoints but not a named server identity, SSH port forwarding secures a tunnel rather than the service itself, and mutual TLS with validation disabled defeats the authentication it appears to provide.',
     references: [REF_TLS, REF_NIST_57]
   },
   {
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must generate cryptographic keys and nonces that an attacker cannot predict. Which source must be used?',
     options: opts4(
-      'A cryptographically secure pseudo-random number generator (CSPRNG)',
-      'The current Unix timestamp',
+      'A cryptographically secure pseudo-random number generator',
       'A linear congruential generator seeded with the process ID',
-      'An incrementing counter starting at 1'
+      'The system clock combined with the process identifier',
+      'A hash of the previous key used as the next seed'
     ),
     correct: ['a'],
     explanation: 'Keys and nonces must come from a CSPRNG with sufficient entropy. Timestamps, simple LCGs, and counters are predictable and lead to key recovery or nonce-reuse vulnerabilities.',
@@ -2244,10 +2244,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must ensure an AES-GCM implementation never reuses a nonce with the same key. Why is this critical?',
     options: opts4(
-      'Nonce reuse under the same key breaks confidentiality and allows authentication-key recovery in GCM',
-      'It only slightly slows performance with no security effect',
-      'GCM tolerates unlimited nonce reuse safely',
-      'Nonces are decorative and unused by GCM'
+      'It breaks confidentiality and allows authentication-key recovery',
+      'It only reduces throughput on the encryption path, with no security effect',
+      'GCM tolerates nonce reuse provided the key is long enough',
+      'Nonce reuse affects only the first block of each message'
     ),
     correct: ['a'],
     explanation: 'In AES-GCM, reusing a nonce with the same key leaks XOR of plaintexts and enables forging by recovering the GHASH authentication key — a catastrophic failure. Nonce uniqueness per key is a strict requirement.',
@@ -2258,9 +2258,9 @@ const P3: Q[] = [
     stem: 'An engineer must establish a shared symmetric key over an untrusted network without ever transmitting the key. Which mechanism is appropriate?',
     options: opts4(
       'Authenticated (Elliptic-Curve) Diffie-Hellman key agreement',
-      'Sending the key in cleartext email',
-      'Posting the key in a public chat channel',
-      'Hardcoding one key in all clients shipped to users'
+      'RSA key transport using the server public key certificate chain',
+      'A pre-shared key distributed out of band beforehand',
+      'Key derivation from a password both parties already know'
     ),
     correct: ['a'],
     explanation: 'Authenticated (EC)DH lets both parties derive a shared secret without transmitting it, with authentication preventing man-in-the-middle. Emailing, posting, or hardcoding keys exposes them and removes confidentiality.',
@@ -2270,10 +2270,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'An engineer must mitigate cross-site request forgery on state-changing requests. Which control is most appropriate?',
     options: opts4(
-      'Anti-CSRF tokens (or SameSite cookies) validated server-side on state-changing requests',
-      'Encrypting the response body',
-      'Adding a CAPTCHA to every read-only page',
-      'Hiding the submit button with CSS'
+      'Anti-CSRF tokens validated server-side on state changes',
+      'SameSite=None cookies combined with the Secure attribute',
+      'A Content Security Policy restricting script sources',
+      'Requiring re-authentication before every read-only operation'
     ),
     correct: ['a'],
     explanation: 'Synchronizer anti-CSRF tokens (and/or SameSite cookies) validated server-side prevent forged cross-site state-changing requests. Response encryption, CAPTCHAs on read pages, and CSS hiding do not stop CSRF.',
@@ -2283,13 +2283,13 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must protect signing keys so that no single administrator can use them and a quorum is required. Which control achieves this?',
     options: opts4(
-      'Split knowledge / dual control with M-of-N key sharing in an HSM',
-      'One administrator holding the full key on a USB drive',
-      'Storing the key in a shared spreadsheet',
-      'Printing the key and taping it to the server rack'
+      'Split knowledge and dual control with M-of-N sharing in an HSM',
+      'A single administrator holding the full key on a hardware token',
+      'Key escrow with a third party holding a full copy',
+      'Role-based access controlling who may invoke the signing API'
     ),
     correct: ['a'],
-    explanation: 'Split knowledge/dual control with M-of-N quorum (often enforced by an HSM) ensures no single person can use critical keys. Single-holder USBs, shared spreadsheets, and posted keys violate dual control and expose the key.',
+    explanation: 'Split knowledge/dual control with M-of-N quorum (often enforced by an HSM) ensures no single person can use critical keys. A single administrator holding the whole key on a token defeats split knowledge entirely, third-party escrow places a full copy outside the quorum, and role-based access controls who may invoke signing without dividing the key itself.',
     references: [REF_NIST_FIPS140, REF_NIST_57]
   },
   {
@@ -2309,10 +2309,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must ensure that even if the database is exfiltrated, attackers cannot feasibly recover user passwords offline. Which storage approach best resists offline cracking?',
     options: opts4(
-      'A slow, salted, memory-hard hash (Argon2id) with tuned parameters and optional pepper',
-      'SHA-256 of the password with no salt',
-      'AES-ECB of the password with a shared key',
-      'Storing only the first 4 characters hashed'
+      'A slow, salted, memory-hard hash with tuned parameters',
+      'SHA-256 of the password with a unique per-user salt applied',
+      'AES-GCM encryption of the password with a managed key',
+      'A single SHA-512 pass with a 32-byte random salt'
     ),
     correct: ['a'],
     explanation: 'A salted, memory-hard Argon2id hash with tuned cost (and optionally a server-side pepper) makes offline brute force economically infeasible. Unsalted fast hashes, reversible encryption, and truncation drastically weaken protection.',
@@ -2322,10 +2322,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'An engineer must verify file integrity after transfer to detect any modification. Which is the appropriate primitive?',
     options: opts4(
-      'A cryptographic hash (e.g., SHA-256) compared against a trusted reference value',
-      'File size in bytes only',
-      'The file\'s last-modified timestamp',
-      'A CRC8 checksum'
+      'A cryptographic hash compared against a trusted reference value',
+      'A CRC32 checksum recomputed after the transfer completes',
+      'File size and last-modified timestamp compared against the source',
+      'The transfer protocol acknowledgement for each block sent'
     ),
     correct: ['a'],
     explanation: 'Comparing a SHA-256 hash to a trusted reference reliably detects any modification. File size and timestamps are trivially manipulated, and short CRCs are collision-prone and not collision-resistant against tampering.',
@@ -2335,10 +2335,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer is enabling mutual authentication for IoT fleet devices that cannot store long-lived secrets safely. Which approach is most robust?',
     options: opts4(
-      'Per-device certificates with private keys in a secure element / TPM and short validity',
-      'A single shared device password baked into firmware',
-      'No authentication, relying on a private APN',
-      'A static API key printed in the user manual'
+      'Per-device certificates with keys in a secure element',
+      'A shared device password provisioned during manufacturing',
+      'Device serial numbers validated against an allow-list',
+      'A private APN with no device-level authentication'
     ),
     correct: ['a'],
     explanation: 'Per-device certificates with keys protected in a secure element/TPM and short validity provide strong, revocable mutual authentication for fleets. Shared firmware passwords, no auth, or printed static keys are easily extracted and abused.',
@@ -2348,10 +2348,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must prevent a vulnerable third-party library from being silently pulled into the build. Which control is most effective?',
     options: opts4(
-      'Pin exact versions with a lockfile and gate builds on SCA vulnerability policy',
-      'Always use version "latest" so fixes arrive automatically',
-      'Disable dependency scanning to speed up CI',
-      'Allow any registry mirror, including untrusted ones'
+      'Pin exact versions with a lockfile and gate builds on SCA policy',
+      'Track the latest minor version so security fixes arrive automatically',
+      'Run dependency scanning nightly and file tickets for findings',
+      'Mirror the upstream registry and allow any package it carries'
     ),
     correct: ['a'],
     explanation: 'Pinned versions with a lockfile plus a software-composition-analysis gate prevent unreviewed or vulnerable dependencies from entering the build. Floating "latest", disabled scanning, and untrusted mirrors increase supply-chain risk.',
@@ -2361,10 +2361,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 2, type: QType.SINGLE,
     stem: 'An engineer needs to securely wipe a single file\'s sensitive contents on a system using a journaling filesystem and SSD. Which approach is most reliable?',
     options: opts4(
-      'Encrypt data at rest and destroy the key (crypto-shredding) for that data set',
-      'Overwrite the file once with zeros and assume it is gone',
-      'Delete the file and empty the trash',
-      'Rename the file and change its extension'
+      'Encrypt the data at rest and destroy the key for that data set',
+      'Overwrite the file in place with a single pass of zero bytes',
+      'Issue a filesystem TRIM command for all of the affected blocks',
+      'Delete the file and run a full defragmentation pass'
     ),
     correct: ['a'],
     explanation: 'On SSD/journaling filesystems, single-file overwrites are unreliable due to wear-leveling and copy-on-write; encrypting and destroying the key (crypto-shredding) reliably renders the data unrecoverable. Deleting/renaming does not sanitize data.',
@@ -2387,10 +2387,10 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must ensure that JWT access tokens accepted by an API cannot be forged or have their algorithm downgraded to "none". Which validation is required?',
     options: opts4(
-      'Verify the signature with the expected algorithm and a pinned key; reject "alg: none" and unexpected algorithms',
-      'Trust any token whose payload looks valid',
-      'Accept the algorithm specified in the token header without restriction',
-      'Skip signature verification for performance'
+      'Verify the signature with a pinned key and reject unexpected algorithms',
+      'Accept whichever algorithm the token header specifies without restriction',
+      'Validate the issuer and audience claims but not the signature',
+      'Check token expiry and reject anything older than one hour'
     ),
     correct: ['a'],
     explanation: 'JWTs must be verified with an explicitly expected algorithm and pinned key, rejecting "alg: none" and algorithm substitution. Trusting payloads, honoring attacker-chosen algorithms, or skipping verification enables token forgery.',
@@ -2400,7 +2400,7 @@ const P3: Q[] = [
     domain: ENG, difficulty: 3, type: QType.SINGLE,
     stem: 'An engineer must ensure secrets are not exposed in container orchestration. Which practice is correct?',
     options: opts4(
-      'Inject secrets at runtime from a secrets manager, with encryption at rest and least-privilege access',
+      'Inject secrets at runtime from a secrets manager',
       'Bake secrets into the image and push to a shared registry',
       'Pass secrets as plaintext command-line arguments visible in process lists',
       'Store secrets in a public ConfigMap'
