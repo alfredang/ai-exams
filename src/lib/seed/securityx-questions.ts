@@ -1,3 +1,8 @@
+// Build marker: force-rebuild 2026-08-24 — Coolify never picked up ef58ad8.
+// Verified not deployed by an 8h content-marker watcher over 21-22 Aug and
+// again on the 24th; the webhook did not fire for that push. This one-line
+// change creates a fresh commit to re-trigger it and to invalidate the
+// Docker COPY layer, so the rewritten distractors actually reach the image.
 /**
  * CompTIA SecurityX (CASP+, CAS-005) bundle seed — vendor, three
  * practice-exam variants, bundle, and 195 blueprint-aligned questions.
