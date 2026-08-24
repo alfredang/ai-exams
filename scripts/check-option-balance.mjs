@@ -78,9 +78,14 @@ for (const exam of exams) {
     const others = opts.filter((o) => !correct.includes(o.id)).map((o) => String(o.text ?? '').length);
     if (key && others.length && String(key.text ?? '').length > Math.max(...others)) strictLongest++;
   }
+  // The bar is TWO-SIDED. A rate far BELOW chance is also an exploitable tell,
+  // just inverted: if the key is almost never the longest option, "eliminate the
+  // longest" raises a guess from 25% to ~33%. Rewriting PenTest+ drove three
+  // variants to 0-1.7% and produced exactly that, so the floor is enforced too.
   const tell = pct(strictLongest, singles.length);
-  if (tell <= 30) pass(`longest-answer tell ${tell}% of ${singles.length} SINGLE (chance 25%, bar <=30%)`);
-  else fail(`longest-answer tell ${tell}% of ${singles.length} SINGLE - exceeds the 30% bar`);
+  if (tell > 30) fail(`longest-answer tell ${tell}% of ${singles.length} SINGLE - exceeds the 30% bar (key is the longest option too often)`);
+  else if (tell < 15) fail(`longest-answer tell ${tell}% of ${singles.length} SINGLE - below the 15% floor; "eliminate the longest option" now beats guessing`);
+  else pass(`longest-answer tell ${tell}% of ${singles.length} SINGLE (chance 25%, band 15-30%)`);
 
   if (wideSpread.length === 0) pass('no option exceeds 1.3x the mean option length');
   else {

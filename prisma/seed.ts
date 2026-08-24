@@ -2049,6 +2049,11 @@ async function main() {
     // Without this, vendorExamCodeFor() derives "CYSA-PLUS" from the slug
     // and the recode loop rewrites the variant codes on every deploy.
     'comptia-cysa-plus': 'CS0-004',
+    // Same trap: the slug tail is "pentest-plus" but the vendor code is
+    // PT0-003, which src/lib/seed/pentest-questions.ts sets. Without this the
+    // recode loop rewrote them to PENTEST-PLUS-Pn on every deploy, so the two
+    // seeds fought over the codes and prod drifted from the seed module.
+    'comptia-pentest-plus': 'PT0-003',
     'cisco-ccna': '200-301',
     'cisco-ccnp-encor': '350-401',
     // Tableau Certified Data Analyst — opaque vendor code (can't derive "TDA-C01"
