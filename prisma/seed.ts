@@ -137,6 +137,14 @@ const CLAUDE_ASSOCIATE_DESCRIPTION =
 // re-added below now that the official AWS catalogue still offers it.
 const OBSOLETE_EXAM_SLUGS: string[] = [];
 
+// Retired placeholder shells that may be deleted only when they have never
+// been used. Unlike OBSOLETE_EXAM_SLUGS, this cleanup never cascades into
+// customer or authored data: any related row makes the seed leave the exam
+// untouched and emit a warning for manual review.
+const EMPTY_RETIRED_EXAM_SLUGS = [
+  'comptia-cysa-cs0-003'
+];
+
 // Bundles whose certs were retired by their vendor. Mirrored on the bundle
 // side: removed from BUNDLES + the buildMultiVariantBundles spec list, plus
 // listed here so the seed actively deletes any stray rows on each deploy.
@@ -835,14 +843,9 @@ const EXAMS: ExamSeed[] = [
   // family (`comptia-cysa-plus-p1..p3`, code CS0-004) seeded by
   // src/lib/seed/cysa-questions.ts and defined further down this file.
   //
-  // The entry is removed from EXAMS rather than added to
-  // OBSOLETE_EXAM_SLUGS: that list's cleanup pass hard-deletes the exam
-  // AND its entitlements, questions, attempts, and orders unconditionally,
-  // on every deploy. Local counts are all zero but prod is authoritative
-  // and was not readable when this change was made. Dropping it from
-  // EXAMS simply stops the seed touching the row, leaving the archived
-  // prod shell exactly as it is. Move it to OBSOLETE_EXAM_SLUGS only
-  // after confirming prod shows 0 attempts / 0 orders / 0 entitlements.
+  // The entry is removed from EXAMS so it cannot be recreated. The guarded
+  // EMPTY_RETIRED_EXAM_SLUGS cleanup deletes it only when every related-row
+  // count is zero; otherwise the seed leaves it untouched for manual review.
 
   // ───── Cisco ─────
   {
@@ -1933,6 +1936,48 @@ async function main() {
     await db.order.deleteMany({ where: { examId: { in: obsoleteIds } } });
     await db.exam.deleteMany({ where: { slug: { in: OBSOLETE_EXAM_SLUGS } } });
     console.log(`✓ Removed ${obsoleteExams.length} obsolete placeholder exam shell(s).`);
+  }
+
+  // Remove retired shells only when they are completely unused. This is
+  // intentionally non-cascading: a dependency means the row may contain
+  // customer or authored data and must not be deleted automatically.
+  for (const slug of EMPTY_RETIRED_EXAM_SLUGS) {
+    const retiredExam = await db.exam.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        code: true,
+        _count: {
+          select: {
+            questions: true,
+            attempts: true,
+            entitlements: true,
+            orders: true,
+            bundleItems: true,
+            sources: true,
+            versions: true,
+            reviews: true,
+            testimonials: true,
+            voucherInventory: true
+          }
+        }
+      }
+    });
+
+    if (!retiredExam) continue;
+
+    const dependencyCount = Object.values(retiredExam._count)
+      .reduce((total, count) => total + count, 0);
+    if (dependencyCount > 0) {
+      console.warn(
+        `Skipped retired exam ${slug} (${retiredExam.code}): ` +
+        `${dependencyCount} related row(s) require manual review.`
+      );
+      continue;
+    }
+
+    await db.exam.delete({ where: { id: retiredExam.id } });
+    console.log(`Removed unused retired exam shell ${slug}.`);
   }
 
   // Curated dogfood set — grants the team enough exams to exercise every
