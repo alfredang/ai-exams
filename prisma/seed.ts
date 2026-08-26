@@ -1847,19 +1847,38 @@ const EXAMS: ExamSeed[] = [
 ];
 
 async function main() {
-  const admins: { email: string; name: string; password: string }[] = [
-    { email: 'angch@tertiaryinfotech.com', name: 'Alfred Ang', password: 'password123' },
-    { email: 'marcus@tertiaryinfotech.com', name: 'Marcus', password: 'password123' }
+  const admins: { email: string; name: string; passwordEnv: string }[] = [
+    { email: 'angch@tertiaryinfotech.com', name: 'Alfred Ang', passwordEnv: 'ADMIN_PASSWORD' },
+    { email: 'marcus@tertiaryinfotech.com', name: 'Marcus', passwordEnv: 'MARCUS_ADMIN_PASSWORD' }
   ];
   for (const a of admins) {
-    const passwordHash = await argon2.hash(a.password);
-    await db.user.upsert({
+    const existing = await db.user.findUnique({
       where: { email: a.email },
-      update: { name: a.name, role: Role.ADMIN, emailVerified: new Date(), passwordHash },
-      create: {
+      select: { id: true }
+    });
+
+    if (existing) {
+      // Never reset an existing administrator's password during a seed.
+      await db.user.update({
+        where: { id: existing.id },
+        data: { name: a.name, role: Role.ADMIN, emailVerified: new Date() }
+      });
+      continue;
+    }
+
+    const password = process.env[a.passwordEnv]?.trim();
+    if (!password) {
+      console.warn(
+        `Skipped creating ${a.email}: ${a.passwordEnv} is not configured.`
+      );
+      continue;
+    }
+
+    await db.user.create({
+      data: {
         email: a.email,
         name: a.name,
-        passwordHash,
+        passwordHash: await argon2.hash(password),
         role: Role.ADMIN,
         emailVerified: new Date()
       }

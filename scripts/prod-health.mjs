@@ -13,7 +13,8 @@ import fs from 'fs';
 
 const BASE = process.env.PROD_BASE || 'https://exams.tertiaryinfotech.com';
 const EMAIL = process.env.PROD_ADMIN_EMAIL || 'angch@tertiaryinfotech.com';
-const PASSWORD = process.env.PROD_ADMIN_PASSWORD || 'password123';
+const PASSWORD = process.env.PROD_ADMIN_PASSWORD;
+if (!PASSWORD) throw new Error('PROD_ADMIN_PASSWORD is required');
 
 const VENDORS = [
   'docker', 'elastic', 'gitlab', 'hashicorp', 'redhat', 'linuxfoundation',

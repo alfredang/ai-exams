@@ -10,14 +10,25 @@ const db = new PrismaClient();
 async function main() {
   const email = 'jaredtan.handy@gmail.com';
   const name = 'Jared Tan';
-  const password = process.env.JARED_PASSWORD || 'password123';
-
-  const passwordHash = await argon2.hash(password);
-  const user = await db.user.upsert({
-    where: { email },
-    update: { name, role: Role.ADMIN, emailVerified: new Date(), passwordHash },
-    create: { email, name, passwordHash, role: Role.ADMIN, emailVerified: new Date() }
-  });
+  const existing = await db.user.findUnique({ where: { email } });
+  const user = existing
+    ? await db.user.update({
+        where: { id: existing.id },
+        data: { name, role: Role.ADMIN, emailVerified: new Date() }
+      })
+    : await (async () => {
+        const password = process.env.JARED_PASSWORD?.trim();
+        if (!password) throw new Error('JARED_PASSWORD is required to create Jared');
+        return db.user.create({
+          data: {
+            email,
+            name,
+            passwordHash: await argon2.hash(password),
+            role: Role.ADMIN,
+            emailVerified: new Date()
+          }
+        });
+      })();
   console.log(`Upserted ${user.email} (id=${user.id}, role=${user.role})`);
 }
 

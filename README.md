@@ -332,7 +332,8 @@ The repository includes a multi-stage `Dockerfile` tailored for Next.js standalo
 ## Security
 
 > [!WARNING]
-> Ensure you update default admin passwords provided in the seed script (`password123`) before deploying to production.
+> Existing administrator passwords are never changed by database seeds. Set the
+> required password environment variables only when bootstrapping a new account.
 
 - Ensure `NEXTAUTH_SECRET` and `WORKER_SHARED_SECRET` are randomly generated and securely stored.
 - Most sensitive keys (Stripe, HitPay, OAuth Client Secrets) are stored encrypted in the `Setting` database table and decrypted at runtime.

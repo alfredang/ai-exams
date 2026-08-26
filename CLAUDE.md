@@ -138,7 +138,7 @@ curl -sS -c /tmp/cookies.txt -b /tmp/cookies.txt \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "csrfToken=$CSRF" \
   --data-urlencode "email=angch@tertiaryinfotech.com" \
-  --data-urlencode "password=password123" \
+  --data-urlencode "password=$PROD_ADMIN_PASSWORD" \
   --data-urlencode "callbackUrl=https://exams.tertiaryinfotech.com/admin-dashboard"
 
 # 3. Fire the seed (idempotent)

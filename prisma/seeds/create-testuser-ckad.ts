@@ -18,16 +18,28 @@ const CKAD_EXAM_SLUGS = [
 
 const TEST_EMAIL    = process.env.TEST_EMAIL    || 'testuser@tertiaryinfotech.com';
 const TEST_NAME     = process.env.TEST_NAME     || 'Test User';
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'Test@1234';
 
 async function main() {
-  // 1. Create (or update) the test user
-  const passwordHash = await argon2.hash(TEST_PASSWORD);
-  const user = await db.user.upsert({
-    where:  { email: TEST_EMAIL },
-    update: { name: TEST_NAME, emailVerified: new Date(), passwordHash },
-    create: { email: TEST_EMAIL, name: TEST_NAME, passwordHash, role: Role.USER, emailVerified: new Date() },
-  });
+  // 1. Create the test user if needed; never reset an existing password.
+  const existing = await db.user.findUnique({ where: { email: TEST_EMAIL } });
+  const user = existing
+    ? await db.user.update({
+        where: { id: existing.id },
+        data: { name: TEST_NAME, emailVerified: new Date() }
+      })
+    : await (async () => {
+        const password = process.env.TEST_PASSWORD;
+        if (!password) throw new Error('TEST_PASSWORD is required to create the test user');
+        return db.user.create({
+          data: {
+            email: TEST_EMAIL,
+            name: TEST_NAME,
+            passwordHash: await argon2.hash(password),
+            role: Role.USER,
+            emailVerified: new Date()
+          }
+        });
+      })();
   console.log(`✓ User: ${user.email} (id=${user.id})`);
 
   // 2. Resolve exam IDs from slugs
@@ -57,9 +69,7 @@ async function main() {
     console.warn(`  ⚠ Exams not found in DB (seed them first): ${missing.join(', ')}`);
   }
 
-  console.log(`\nDone. Login at /login with:`);
-  console.log(`  Email:    ${TEST_EMAIL}`);
-  console.log(`  Password: ${TEST_PASSWORD}`);
+  console.log(`\nDone. Login at /login with ${TEST_EMAIL}.`);
 }
 
 main()

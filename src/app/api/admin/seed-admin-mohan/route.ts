@@ -12,8 +12,8 @@ export const runtime = 'nodejs';
  * repeatedly. Mirrors prisma/seeds/create-mohan.ts for production, where
  * there is no shell access to run the script directly.
  *
- * Password login works (default `password123`, override via MOHAN_PASSWORD)
- * and Google sign-in links to this record by email
+ * Existing password credentials are preserved. MOHAN_PASSWORD is required
+ * only when the account does not exist. Google sign-in links by email
  * (allowDangerousEmailAccountLinking), preserving the ADMIN role either way.
  */
 export async function POST() {
@@ -25,14 +25,31 @@ export async function POST() {
 
   const email = 'mohanpothula@gmail.com';
   const name = 'Mohan';
-  const password = process.env.MOHAN_PASSWORD || 'password123';
-  const passwordHash = await argon2.hash(password);
-
-  const user = await db.user.upsert({
-    where: { email },
-    update: { name, role: Role.ADMIN, emailVerified: new Date(), passwordHash },
-    create: { email, name, passwordHash, role: Role.ADMIN, emailVerified: new Date() }
-  });
+  const existing = await db.user.findUnique({ where: { email } });
+  let user;
+  if (existing) {
+    user = await db.user.update({
+      where: { id: existing.id },
+      data: { name, role: Role.ADMIN, emailVerified: new Date() }
+    });
+  } else {
+    const password = process.env.MOHAN_PASSWORD?.trim();
+    if (!password) {
+      return NextResponse.json(
+        { error: 'MOHAN_PASSWORD is required to create this account' },
+        { status: 503 }
+      );
+    }
+    user = await db.user.create({
+      data: {
+        email,
+        name,
+        passwordHash: await argon2.hash(password),
+        role: Role.ADMIN,
+        emailVerified: new Date()
+      }
+    });
+  }
 
   await db.adminLog.create({
     data: {

@@ -10,16 +10,13 @@ export const runtime = 'nodejs';
  * One-shot admin endpoint: create (or upsert) a fixed set of learner accounts
  * and grant them PRACTICE access to every exam in the CKAD bundle.
  *
- * Idempotent — safe to re-run. Existing users keep their role but get their
- * password reset to the shared default and are marked email-verified so they
- * can sign in immediately without the OTP round-trip.
+ * Idempotent — safe to re-run. Existing users keep their password and role.
+ * CKAD_LEARNER_PASSWORD is used only when a named user does not exist yet.
  *
  * Only PRACTICE entitlements are granted (no real-exam VOUCHER).
  */
 
 const BUNDLE_SLUG = 'linuxfoundation-ckad';
-const DEFAULT_PASSWORD = 'password12345';
-
 const PEOPLE = [
   { name: 'Jorge Lee', email: 'jorgelee@me.com' },
   { name: 'LWJ', email: 'lwj5@hotmail.com' }
@@ -44,17 +41,35 @@ export async function POST() {
   // multiple tiers in the bundle (CKAD P1 is listed as both PRACTICE and VOUCHER).
   const examIds = [...new Set(bundle.items.map((i) => i.examId))];
 
-  const passwordHash = await argon2.hash(DEFAULT_PASSWORD);
+  const existingUsers = await db.user.findMany({
+    where: { email: { in: PEOPLE.map((person) => person.email) } },
+    select: { email: true }
+  });
+  const existingEmails = new Set(existingUsers.map((user) => user.email));
+  const missingPeople = PEOPLE.filter((person) => !existingEmails.has(person.email));
+  const newUserPassword = process.env.CKAD_LEARNER_PASSWORD?.trim();
+  if (missingPeople.length > 0 && !newUserPassword) {
+    return NextResponse.json(
+      {
+        error: 'CKAD_LEARNER_PASSWORD is required to create missing users',
+        missingEmails: missingPeople.map((person) => person.email)
+      },
+      { status: 503 }
+    );
+  }
+  const passwordHash = missingPeople.length > 0
+    ? await argon2.hash(newUserPassword!)
+    : null;
   const results = [];
 
   for (const person of PEOPLE) {
     const user = await db.user.upsert({
       where: { email: person.email },
-      update: { name: person.name, passwordHash, emailVerified: new Date() },
+      update: { name: person.name, emailVerified: new Date() },
       create: {
         email: person.email,
         name: person.name,
-        passwordHash,
+        passwordHash: passwordHash!,
         role: Role.USER,
         emailVerified: new Date()
       }

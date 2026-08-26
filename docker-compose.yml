@@ -18,7 +18,7 @@ services:
     depends_on: [postgres, mailhog]
     environment:
       DATABASE_URL: postgresql://aiexams:aiexams@postgres:5432/aiexams?schema=public
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-change-me}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env}
       NEXTAUTH_URL: http://localhost:3000
       APP_URL: http://localhost:3000
       SMTP_HOST: mailhog
@@ -31,7 +31,9 @@ services:
       NEXT_PUBLIC_PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-sb}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-ChangeMe!2026}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      MARCUS_ADMIN_PASSWORD: ${MARCUS_ADMIN_PASSWORD:-}
+      CKAD_LEARNER_PASSWORD: ${CKAD_LEARNER_PASSWORD:-}
     ports: ["3000:3000"]
 
 volumes:

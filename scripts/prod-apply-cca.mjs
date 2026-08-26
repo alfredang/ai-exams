@@ -2,7 +2,8 @@
  * wires the 3-item bundle). Idempotent. Run: node scripts/prod-apply-cca.mjs */
 const BASE = process.env.PROD_BASE || 'https://exams.tertiaryinfotech.com';
 const EMAIL = process.env.PROD_ADMIN_EMAIL || 'angch@tertiaryinfotech.com';
-const PASSWORD = process.env.PROD_ADMIN_PASSWORD || 'password123';
+const PASSWORD = process.env.PROD_ADMIN_PASSWORD;
+if (!PASSWORD) throw new Error('PROD_ADMIN_PASSWORD is required');
 const jar = new Map();
 const sc = (r) => { for (const s of r.headers.getSetCookie?.() ?? []) { const [kv] = s.split(';'); const i = kv.indexOf('='); if (i > 0) jar.set(kv.slice(0, i).trim(), kv.slice(i + 1).trim()); } };
 const ch = () => [...jar].map(([k, v]) => `${k}=${v}`).join('; ');

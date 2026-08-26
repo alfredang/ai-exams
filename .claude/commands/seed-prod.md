@@ -29,7 +29,7 @@ curl -sS -c /tmp/seed-cookies.txt -b /tmp/seed-cookies.txt \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "csrfToken=$CSRF" \
   --data-urlencode "email=angch@tertiaryinfotech.com" \
-  --data-urlencode "password=password123" \
+  --data-urlencode "password=$PROD_ADMIN_PASSWORD" \
   --data-urlencode "callbackUrl=https://exams.tertiaryinfotech.com/admin-dashboard" \
   -w "login HTTP=%{http_code}\n" -o /dev/null
 
