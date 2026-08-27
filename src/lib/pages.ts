@@ -16,17 +16,17 @@ const HEADING = (s: string) => `<h2 style="margin:24px 0 8px;font-size:1.25rem;f
 export const DEFAULT_PAGES: PageDefault[] = [
   {
     slug: 'about-us',
-    title: 'About ExamNova',
-    excerpt: 'Practice smarter for your next certification — our mission, how we work, and who is behind ExamNova.',
+    title: 'About Tertiary Exams',
+    excerpt: 'Practice smarter for your next certification — our mission, how we work, and who is behind Tertiary Exams.',
     showInFooter: true,
     footerGroup: 'legal',
     position: 5,
     bodyHtml: [
       PARA('<strong>Practice smarter for your next certification.</strong>'),
-      PARA('ExamNova exists to help working professionals pass their next IT certification with confidence — without resorting to brain dumps, leaked questions, or shortcuts that fall apart on test day. We believe the right way to prepare is to practice on questions that <em>look like</em> the real exam in shape, difficulty, and topic mix, while teaching you something every time you click an answer.'),
+      PARA('Tertiary Exams exists to help working professionals pass their next IT certification with confidence — without resorting to brain dumps, leaked questions, or shortcuts that fall apart on test day. We believe the right way to prepare is to practice on questions that <em>look like</em> the real exam in shape, difficulty, and topic mix, while teaching you something every time you click an answer.'),
       HEADING('Our mission'),
-      PARA('Make high-quality certification practice accessible, affordable, and honest. Every question on ExamNova is an original, blueprint-aligned practice item written by domain experts and paired with a clear explanation and a citation so you learn the <em>why</em>, not just the answer.'),
-      PARA('We will never publish dumps of real exam questions. Instead, we publish the next best thing: original questions that mirror the official blueprint, weighted by domain, so a high score on ExamNova is a meaningful signal that you are ready.'),
+      PARA('Make high-quality certification practice accessible, affordable, and honest. Every question on Tertiary Exams is an original, blueprint-aligned practice item written by domain experts and paired with a clear explanation and a citation so you learn the <em>why</em>, not just the answer.'),
+      PARA('We will never publish dumps of real exam questions. Instead, we publish the next best thing: original questions that mirror the official blueprint, weighted by domain, so a high score on Tertiary Exams is a meaningful signal that you are ready.'),
       HEADING('What we do'),
       PARA('We build full-length practice exams for the certifications our learners care about most — AWS, Microsoft Azure, Google Cloud, CompTIA, Cisco, PMI, ISC2, GitHub, Anthropic, IASSC, AXELOS, Oracle, Tableau, and more. Each certification ships as a <strong>bundle</strong>: multiple full-length practice exams grouped together so you get genuine retest variety, not the same 60 questions in a different order.'),
       PARA('Bundles can be purchased on their own, or with an optional discounted real-exam voucher — so one purchase covers your full prep journey from first attempt to test day.'),
@@ -36,7 +36,7 @@ export const DEFAULT_PAGES: PageDefault[] = [
       PARA('<strong>Practice mode and Exam mode.</strong> Practice mode reveals correctness immediately so you build intuition. Exam mode is a timed simulation that matches real-test duration and gives you a per-domain breakdown when you submit — so you know exactly where to focus next.'),
       PARA('<strong>Try before you buy.</strong> Every exam ships with a free teaser. No credit card required.'),
       HEADING('Who we are'),
-      PARA('ExamNova is the certification-practice arm of <strong>Tertiary Infotech Academy Pte Ltd</strong>, a Singapore-registered training provider (UEN 201200696W). Our parent company has trained thousands of working professionals across Southeast Asia in classroom and online courses on cloud, data, AI, cybersecurity, and project management. ExamNova brings that same rigour to self-paced exam preparation.'),
+      PARA('Tertiary Exams is the certification-practice arm of <strong>Tertiary Infotech Academy Pte Ltd</strong>, a Singapore-registered training provider (UEN 201200696W). Our parent company has trained thousands of working professionals across Southeast Asia in classroom and online courses on cloud, data, AI, cybersecurity, and project management. Tertiary Exams brings that same rigour to self-paced exam preparation.'),
       HEADING('Get in touch'),
       PARA('Email: <a href="mailto:sales@tertiarycourses.com.sg" style="color:#2563eb;text-decoration:underline">sales@tertiarycourses.com.sg</a><br>Tel: +65 6100 0613<br>Address: 12 Woodland Square #07-85/86/87 Woods Square Tower 1, Singapore 737715')
     ].join('')

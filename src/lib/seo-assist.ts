@@ -9,7 +9,7 @@ const Schema = z.object({
 });
 export type SeoMeta = z.infer<typeof Schema>;
 
-const SYSTEM = `You write SEO meta for an exam-prep platform called ExamNova.
+const SYSTEM = `You write SEO meta for an exam-prep platform called Tertiary Exams.
 - title: 50-70 chars, includes the exam code if relevant
 - description: 120-180 chars, friendly + factual, mentions practice + free teaser
 - keywords: comma-separated, 5-10 terms, no quotes

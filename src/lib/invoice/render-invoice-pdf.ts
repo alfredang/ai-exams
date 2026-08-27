@@ -30,7 +30,7 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
   const isVoid = invoice.status === 'VOID';
   const title = isCredit ? 'Credit Note' : 'Tax Invoice';
 
-  drawHeaderBar(page, fonts, `ExamNova — ${title}`);
+  drawHeaderBar(page, fonts, `Tertiary Exams — ${title}`);
   if (isVoid) drawWatermark(page, fonts, 'VOID', { color: COLORS.redSoft });
 
   // Right-aligned invoice meta box

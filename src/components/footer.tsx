@@ -25,7 +25,7 @@ async function safeCompany() {
   try {
     return await getCompanyInfo();
   } catch {
-    return { name: 'Tertiary Infotech Academy Pte Ltd', shortName: 'ExamNova', uen: '', address: '', email: '', tel: '', website: '' };
+    return { name: 'Tertiary Infotech Academy Pte Ltd', shortName: 'Tertiary Exams', uen: '', address: '', email: '', tel: '', website: '' };
   }
 }
 

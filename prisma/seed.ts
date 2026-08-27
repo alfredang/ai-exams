@@ -2321,11 +2321,11 @@ async function main() {
     {
       slug: 'terms',
       title: 'Terms of Service',
-      excerpt: 'How ExamNova works, what we promise, what we ask of you.',
+      excerpt: 'How Tertiary Exams works, what we promise, what we ask of you.',
       bodyHtml: [
         '<p><em>This page is a placeholder while the full Terms of Service are drafted. The summary below covers the practical commitments today.</em></p>',
         '<h2>Use of the service</h2>',
-        '<p>ExamNova provides original practice questions for IT certification preparation. Questions are not from the vendor exams themselves and we are not affiliated with the cert issuers (AWS, Microsoft, Cisco, etc.).</p>',
+        '<p>Tertiary Exams provides original practice questions for IT certification preparation. Questions are not from the vendor exams themselves and we are not affiliated with the cert issuers (AWS, Microsoft, Cisco, etc.).</p>',
         '<h2>Purchases &amp; refunds</h2>',
         '<p>All purchases are covered by our <a href="/p/refund-policy">Refund Policy</a> — within 7 days you can request a full refund through your purchase email.</p>',
         '<h2>Privacy</h2>',
@@ -2340,7 +2340,7 @@ async function main() {
     {
       slug: 'contact',
       title: 'Contact Us',
-      excerpt: 'Reach the ExamNova team for support, billing, or feedback.',
+      excerpt: 'Reach the Tertiary Exams team for support, billing, or feedback.',
       bodyHtml: [
         '<p>Email <a href="mailto:angch@tertiaryinfotech.com">angch@tertiaryinfotech.com</a> for:</p>',
         '<ul>',

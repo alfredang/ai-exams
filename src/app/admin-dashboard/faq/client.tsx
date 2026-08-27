@@ -27,7 +27,7 @@ export default function FaqAdminClient({ initial }: { initial: FaqRow[] }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           mode: 'generate',
-          topic: bulkTopic.trim() || 'ExamNova practice exams, teasers, vouchers, refunds',
+          topic: bulkTopic.trim() || 'Tertiary Exams practice exams, teasers, vouchers, refunds',
           count: bulkCount,
           existing: rows.map((r) => ({ question: r.question, answer: r.answer }))
         })
@@ -80,7 +80,7 @@ export default function FaqAdminClient({ initial }: { initial: FaqRow[] }) {
         <div className="flex-1 min-w-[260px]">
           <div className="text-sm font-medium">AI Assist — bulk generate FAQs</div>
           <div className="text-[11px] text-slate-500">
-            Claude drafts FAQ pairs about ExamNova. Adds them as published rows; review and edit per row below.
+            Claude drafts FAQ pairs about Tertiary Exams. Adds them as published rows; review and edit per row below.
           </div>
         </div>
         <button

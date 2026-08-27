@@ -172,7 +172,7 @@ async function buildTransport(kind: TransportKind, s: AllSettings): Promise<Buil
     s.EMAIL_FROM ||
     process.env.SMTP_FROM ||
     process.env.FROM_EMAIL ||
-    'ExamNova <noreply@example.com>';
+    'Tertiary Exams <noreply@example.com>';
   const built = { kind, transporter, from, signature };
   cache.set(kind, built);
   return built;
@@ -388,7 +388,7 @@ export async function sendTestEmail(to: string): Promise<{ ok: boolean; messageI
   try {
     const { info, transport, fallbackNote } = await sendWithFallback({
       to,
-      subject: 'ExamNova — test email',
+      subject: 'Tertiary Exams — test email',
       html: `<p>This is a test email sent from the admin Settings page.</p><p>If you can read this, the transport is configured correctly.</p>`
     });
     const label = fallbackNote ? `${TRANSPORT_LABELS[transport]} — ${fallbackNote}` : TRANSPORT_LABELS[transport];

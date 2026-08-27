@@ -54,7 +54,7 @@ export default async function HomePage() {
   const FAQS: { q: string; a: string }[] = faqRows.length
     ? faqRows.map((f) => ({ q: sub(f.question), a: sub(f.answer) }))
     : [
-        { q: 'Are these real exam questions?', a: 'No — and that\'s intentional. ExamNova provides original, hand-authored practice questions modelled on each certification\'s public exam blueprint. We do not sell or distribute real exam content ("dumps"), which would violate vendor terms and undermine the value of your certification.' },
+        { q: 'Are these real exam questions?', a: 'No — and that\'s intentional. Tertiary Exams provides original, hand-authored practice questions modelled on each certification\'s public exam blueprint. We do not sell or distribute real exam content ("dumps"), which would violate vendor terms and undermine the value of your certification.' },
         { q: 'How does the free teaser work?', a: `Every exam includes a free ${TEASER_N}-question teaser so you can sample the question quality and format before you buy. After signing in, you can retake the teaser as often as you like — there's no per-attempt limit.` },
         { q: 'What is the difference between Practice Mode and Exam Mode?', a: 'Practice Mode reveals the correct answer and full explanation after each question — ideal for studying and reinforcing concepts. Exam Mode is a timed simulation: no answer feedback until you submit, auto-save every 15 seconds, and auto-submit when time runs out — mirroring the real testing experience.' },
         { q: 'How do exam vouchers work?', a: 'Purchasing the Exam Voucher tier includes a real, vendor-issued voucher code (delivered by email within 3–5 business days) PLUS lifetime practice access to the same certification at no additional cost. Use the code to register for your official exam at the vendor\'s testing partner.' }
@@ -222,7 +222,7 @@ export default async function HomePage() {
             </div>
             <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">Frequently asked questions</h2>
             <p className="mt-3 text-slate-600 dark:text-slate-400">
-              Quick answers to common questions about how ExamNova works.
+              Quick answers to common questions about how Tertiary Exams works.
             </p>
           </div>
 

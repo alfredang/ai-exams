@@ -108,7 +108,7 @@ export const EMAIL_SMTP_FIELDS: FieldDef[] = [
 ];
 
 export const EMAIL_COMMON_FIELDS: FieldDef[] = [
-  { key: 'EMAIL_FROM', label: 'From address', placeholder: 'ExamNova <noreply@example.com>', fullWidth: true }
+  { key: 'EMAIL_FROM', label: 'From address', placeholder: 'Tertiary Exams <noreply@example.com>', fullWidth: true }
 ];
 
 // Social Login providers — toggled per provider on the dedicated
@@ -160,7 +160,7 @@ export const GROUPS: SettingsGroup[] = [
     description: 'Logo, colour and support email shown in the email templates and customer touchpoints.',
     compact: true,
     fields: [
-      { key: 'BRAND_NAME', label: 'Brand name (emails)', placeholder: 'ExamNova' },
+      { key: 'BRAND_NAME', label: 'Brand name (emails)', placeholder: 'Tertiary Exams' },
       { key: 'BRAND_LOGO_URL', label: 'Brand logo URL' },
       { key: 'BRAND_PRIMARY_COLOR', label: 'Brand primary color', placeholder: '#2563eb' },
       { key: 'BRAND_SUPPORT_EMAIL', label: 'Brand support email' }
@@ -172,7 +172,7 @@ export const GROUPS: SettingsGroup[] = [
     description: 'Public homepage meta tags. Used by Google + social previews. Use the AI Assist button on individual exam pages for per-exam SEO.',
     compact: true,
     fields: [
-      { key: 'SITE_HOME_TITLE', label: 'Home title (50–70 chars)', placeholder: 'ExamNova — Practice Smarter for Your Next Certification' },
+      { key: 'SITE_HOME_TITLE', label: 'Home title (50–70 chars)', placeholder: 'Tertiary Exams — Practice Smarter for Your Next Certification' },
       { key: 'SITE_HOME_DESCRIPTION', label: 'Home description (120–180 chars)', placeholder: 'Original practice questions for AWS, Microsoft, Cisco…', fullWidth: true },
       { key: 'SITE_HOME_KEYWORDS', label: 'Home keywords (comma-separated)', placeholder: 'AWS practice exam, Microsoft AZ-900 practice, Cisco CCNA quiz' }
     ]

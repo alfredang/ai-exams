@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     if (!isDue(sub.schedule, sub.lastSentAt)) continue;
     try {
       const html = await buildReportEmail(sub.reportKey);
-      await sendMail(sub.admin.email, `ExamNova report — ${sub.reportKey}`, html, undefined, undefined, {
+      await sendMail(sub.admin.email, `Tertiary Exams report — ${sub.reportKey}`, html, undefined, undefined, {
         template: `report.${sub.reportKey}`
       });
       await db.reportSubscription.update({ where: { id: sub.id }, data: { lastSentAt: new Date() } });

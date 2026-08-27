@@ -19,7 +19,7 @@ export async function renderVoucherPdf(opts: {
 
   // Header bar
   page.drawRectangle({ x: 0, y: 800, width: 595.28, height: 41.89, color: blue });
-  page.drawText('ExamNova — Exam Voucher', { x: 36, y: 815, size: 16, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawText('Tertiary Exams — Exam Voucher', { x: 36, y: 815, size: 16, font: fontBold, color: rgb(1, 1, 1) });
 
   let y = 760;
   page.drawText(opts.examTitle, { x: 36, y, size: 22, font: fontBold, color: slate });
@@ -48,7 +48,7 @@ export async function renderVoucherPdf(opts: {
   for (const line of lines) { page.drawText(line, { x: 36, y, size: 11, font, color: muted }); y -= 16; }
 
   y -= 16;
-  page.drawText('This voucher is original practice-platform content for learning purposes. ExamNova is not affiliated', { x: 36, y, size: 9, font, color: muted }); y -= 12;
+  page.drawText('This voucher is original practice-platform content for learning purposes. Tertiary Exams is not affiliated', { x: 36, y, size: 9, font, color: muted }); y -= 12;
   page.drawText(`with ${opts.vendor}. Voucher value redeemable per ${opts.vendor}'s official terms.`, { x: 36, y, size: 9, font, color: muted });
 
   const bytes = await doc.save();

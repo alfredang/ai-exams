@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
     select: { title: true, code: true, description: true, metaTitle: true, metaDescription: true, metaKeywords: true, ogImage: true, vendor: { select: { name: true } } }
   });
   if (!exam) return {};
-  const title = exam.metaTitle || `${exam.vendor.name} ${exam.code} — ${exam.title} | ExamNova`;
+  const title = exam.metaTitle || `${exam.vendor.name} ${exam.code} — ${exam.title} | Tertiary Exams`;
   const description = exam.metaDescription || (exam.description ? exam.description.slice(0, 170) : `Practice questions and exam voucher for ${exam.code}.`);
   return {
     title,

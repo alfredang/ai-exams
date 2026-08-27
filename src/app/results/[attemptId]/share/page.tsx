@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ attemptId
   const { attemptId } = await params;
   const r = await loadAttempt(attemptId);
   if (!r) return {};
-  const title = `${r.score}% on ${r.attempt.exam.vendor.name} ${r.attempt.exam.code} | ExamNova`;
+  const title = `${r.score}% on ${r.attempt.exam.vendor.name} ${r.attempt.exam.code} | Tertiary Exams`;
   const description = r.passed
     ? `Scored ${r.score}% (${r.correctCount}/${r.total}) on ${r.attempt.exam.title} practice exam — passed!`
     : `Practicing for ${r.attempt.exam.title} — ${r.score}% (${r.correctCount}/${r.total}).`;
@@ -51,12 +51,12 @@ export default async function ShareResultPage({ params }: { params: Promise<{ at
           <span className="text-sm font-semibold uppercase tracking-wide">{passed ? 'Pass' : 'In progress'}</span>
         </div>
         <p className="mt-4 text-slate-600 dark:text-slate-200">{correctCount} correct out of {total} · pass mark {attempt.exam.passingScore}%</p>
-        <p className="mt-2 text-xs text-slate-500">Practiced on ExamNova — original questions, never real exam dumps.</p>
+        <p className="mt-2 text-xs text-slate-500">Practiced on Tertiary Exams — original questions, never real exam dumps.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Link href={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`} className="btn-primary-grad">
             Try this exam
           </Link>
-          <Link href="/" className="btn-outline">Explore ExamNova</Link>
+          <Link href="/" className="btn-outline">Explore Tertiary Exams</Link>
         </div>
       </div>
     </div>

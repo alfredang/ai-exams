@@ -194,7 +194,7 @@ Tertiary Exams covers **12 vendors** and **195+ practice exams** across cloud, s
 
 ## Architecture
 
-ExamNova uses a monolithic architecture built entirely on the Next.js App Router. It leverages Server Actions for form submissions and Next.js Route Handlers for webhooks, external integrations, and cron workers. Data is persisted in PostgreSQL using Prisma.
+Tertiary Exams uses a monolithic architecture built entirely on the Next.js App Router. It leverages Server Actions for form submissions and Next.js Route Handlers for webhooks, external integrations, and cron workers. Data is persisted in PostgreSQL using Prisma.
 
 ```mermaid
 flowchart TD

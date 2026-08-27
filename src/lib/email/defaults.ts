@@ -18,7 +18,7 @@ const layoutClose = `  <hr style="margin:28px 0;border:none;border-top:1px solid
 const wrap = (inner: string) => `${layoutOpen}\n${inner}\n${layoutClose}`;
 
 const sampleBrand = {
-  name: 'ExamNova',
+  name: 'Tertiary Exams',
   logoUrl: '',
   primaryColor: '#2563eb',
   supportEmail: 'support@example.com'

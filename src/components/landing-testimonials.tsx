@@ -20,7 +20,7 @@ export async function LandingTestimonials() {
           </div>
           <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">Loved by candidates worldwide</h2>
           <p className="mt-3 text-slate-600 dark:text-slate-300">
-            Real feedback from people who passed their certifications with ExamNova.
+            Real feedback from people who passed their certifications with Tertiary Exams.
           </p>
         </div>
 

@@ -21,7 +21,7 @@ export async function getBrand(): Promise<Brand> {
     getCompanyInfo()
   ]);
   return {
-    name: name || company.shortName || 'ExamNova',
+    name: name || company.shortName || 'Tertiary Exams',
     logoUrl: logoUrl || '',
     primaryColor: primaryColor || '#2563eb',
     supportEmail: supportEmail || company.email

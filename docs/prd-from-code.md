@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Product name | ExamNova |
+| Product name | Tertiary Exams |
 | Repository/project name | `ai-exams` |
 | PRD version | 0.1, generated from code |
 | Generated from | Local repository at `c:\Users\Jared\Downloads\github\ai-exams` |
@@ -19,7 +19,7 @@ This PRD is evidence-grounded in the codebase. Recommendations and inferred inte
 
 ### Confirmed from code
 
-ExamNova is a full-stack certification practice-exam platform that lets visitors browse exam bundles, try teaser attempts, sign up or sign in, purchase bundle-based practice access or voucher tiers, take timed or practice-mode exams, view results, and manage owned exams, orders, invoices, and vouchers.
+Tertiary Exams is a full-stack certification practice-exam platform that lets visitors browse exam bundles, try teaser attempts, sign up or sign in, purchase bundle-based practice access or voucher tiers, take timed or practice-mode exams, view results, and manage owned exams, orders, invoices, and vouchers.
 
 The system includes a large admin backend for catalog management, AI-assisted question generation, orders, invoices, refunds, voucher delivery, coupons, users, pages, FAQ, banners, reviews, testimonials, settings, logs, reports, and API tokens.
 
@@ -1025,7 +1025,7 @@ Related requirements: FR-SET-001.
 
 ## 33. PRD Summary for Stakeholders
 
-ExamNova is a working full-stack platform for selling certification practice-exam bundles, letting learners try free teasers, purchase practice or voucher tiers, take practice/timed exams, review results, and manage their learning assets. It also contains a broad admin backend for catalog, content, AI question generation, payments, vouchers, invoices, reports, users, settings, and operational logs.
+Tertiary Exams is a working full-stack platform for selling certification practice-exam bundles, letting learners try free teasers, purchase practice or voucher tiers, take practice/timed exams, review results, and manage their learning assets. It also contains a broad admin backend for catalog, content, AI question generation, payments, vouchers, invoices, reports, users, settings, and operational logs.
 
 The strongest implemented areas are the data model, bundle checkout, fulfillment, attempt runner, admin dashboard breadth, and AI-assisted question creation. The largest risks are security hygiene around committed credential material, incomplete/inconsistent staff RBAC, lack of automated tests, production scalability gaps in rate limiting/uploads, and missing operational runbooks for monitoring, backups, and worker scheduling.
 

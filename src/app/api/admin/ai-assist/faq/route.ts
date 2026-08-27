@@ -23,8 +23,8 @@ const Body = z.discriminatedUnion('mode', [
   })
 ]);
 
-const GENERATE_SYSTEM = `You write FAQ entries for an exam-prep SaaS called ExamNova.
-ExamNova sells original practice questions for IT certifications (AWS, Microsoft, Cisco,
+const GENERATE_SYSTEM = `You write FAQ entries for an exam-prep SaaS called Tertiary Exams.
+Tertiary Exams sells original practice questions for IT certifications (AWS, Microsoft, Cisco,
 CompTIA, Google Cloud, etc.), free teasers per exam, Practice Mode + timed Exam Mode,
 and discounted real-exam vouchers.
 

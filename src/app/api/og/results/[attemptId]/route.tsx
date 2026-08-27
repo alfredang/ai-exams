@@ -33,7 +33,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ attemptId: str
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 28, fontWeight: 700, letterSpacing: -0.5 }}>
           <div style={{ width: 44, height: 44, borderRadius: 10, background: 'white', color: '#1e3a8a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>E</div>
-          ExamNova
+          Tertiary Exams
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -51,7 +51,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ attemptId: str
         </div>
 
         <div style={{ display: 'flex', fontSize: 22, opacity: 0.85 }}>
-          Practice exams powered by AI on ExamNova
+          Practice exams powered by AI on Tertiary Exams
         </div>
       </div>
     ),
