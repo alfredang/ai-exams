@@ -239,7 +239,7 @@ export default async function HomePage() {
           </div>
 
           <p className="mx-auto mt-10 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
-            Still have questions? <a href="mailto:support@examnova.com" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Email our support team</a> — we typically reply within one business day.
+            Still have questions? <a href="mailto:sales@tertiarycourses.com.sg" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Email our support team</a> — we typically reply within one business day.
           </p>
         </div>
       </section>

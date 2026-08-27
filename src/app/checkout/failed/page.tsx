@@ -26,7 +26,7 @@ export default function FailedPage() {
           <Link href="/practice-exams" className="btn-primary-grad inline-flex items-center justify-center gap-1">
             <RotateCcw className="h-4 w-4" /> Try again
           </Link>
-          <Link href="mailto:support@examnova.com" className="btn-outline inline-flex items-center justify-center gap-1">
+          <Link href="mailto:sales@tertiarycourses.com.sg" className="btn-outline inline-flex items-center justify-center gap-1">
             Contact support <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
