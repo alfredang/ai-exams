@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { practiceExamCount, practiceItems, practiceQuestionTotal } from '@/lib/bundle-contents';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -31,8 +32,9 @@ export async function GET(req: Request) {
   return NextResponse.json({
     vendors,
     bundles: bundles.map((bundle) => {
-      const first = bundle.items[0]?.exam;
-      const totalQuestions = bundle.items.reduce((sum, item) => sum + item.exam.questionCount, 0);
+      const practice = practiceItems(bundle.items);
+      const first = practice[0]?.exam ?? bundle.items[0]?.exam;
+      const totalQuestions = practiceQuestionTotal(bundle.items);
       return {
         id: bundle.id,
         slug: bundle.slug,
@@ -42,8 +44,8 @@ export async function GET(req: Request) {
         code: first?.code.replace(/-P\d+$/, '') ?? '',
         level: first?.level ?? '',
         totalQuestions,
-        practiceExamCount: bundle.items.length,
-        exams: bundle.items.map((item, index) => ({
+        practiceExamCount: practiceExamCount(bundle.items),
+        exams: practice.map((item, index) => ({
           id: item.exam.id,
           slug: item.exam.slug,
           code: item.exam.code,

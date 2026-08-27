@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/utils';
 import { DotPattern } from '@/components/dot-pattern';
 import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown, HelpCircle } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
+import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 
 // ISR: refetch vendor + popular-bundle counts at most once every 5 minutes.
 // Avoids per-visit DB hits while keeping seed/publish changes visible quickly.
@@ -35,8 +36,7 @@ export default async function HomePage() {
   const recentBundles = await db.bundle.findMany({
     where: { published: true },
     include: {
-      items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true } } } },
-      _count: { select: { items: true } }
+      items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true } } } }
     },
     take: 6,
     orderBy: { createdAt: 'desc' }
@@ -136,7 +136,8 @@ export default async function HomePage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {recentBundles.map((b) => {
               const first = b.items[0]?.exam;
-              const totalQs = b.items.reduce((s, i) => s + i.exam.questionCount, 0);
+              const totalQs = practiceQuestionTotal(b.items);
+              const examCount = practiceExamCount(b.items);
               // Strip the per-variant suffix from the code chip — the cards
               // represent the whole bundle, not the first variant, so showing
               // e.g. "SOA-C03-P1" misleads users into thinking they're
@@ -160,7 +161,7 @@ export default async function HomePage() {
                   <h3 className="font-semibold">{b.title}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{b.description}</p>
                   <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {b._count.items} practice exams</span>
+                    <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {practiceExamLabel(examCount)}</span>
                     <span className="font-semibold text-blue-700 dark:text-blue-400">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
                   </div>
                 </Link>
