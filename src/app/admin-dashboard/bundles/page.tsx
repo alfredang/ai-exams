@@ -322,8 +322,8 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
       header: 'Price',
       align: 'right',
       cell: (b) => (
-        <span className="whitespace-nowrap font-semibold" title={b.priceVoucher != null ? `voucher ${formatPrice(b.priceVoucher, 'USD')}` : undefined}>
-          {formatPrice(b.price, 'USD')}
+        <span className="whitespace-nowrap font-semibold" title={b.priceVoucher != null ? `voucher ${formatPrice(b.priceVoucher, 'SGD')}` : undefined}>
+          {formatPrice(b.price, 'SGD')}
         </span>
       )
     },

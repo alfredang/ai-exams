@@ -204,8 +204,8 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ i
         <section className="card p-4">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pricing recap</h2>
           <div className="mt-2 space-y-1 text-[13px]">
-            <Row k="Practice price" v={formatPrice(bundle.price, 'USD')} />
-            <Row k="Voucher price" v={bundle.priceVoucher != null ? formatPrice(bundle.priceVoucher, 'USD') : '—'} />
+            <Row k="Practice price" v={formatPrice(bundle.price, 'SGD')} />
+            <Row k="Voucher price" v={bundle.priceVoucher != null ? formatPrice(bundle.priceVoucher, 'SGD') : '—'} />
             <Row k="Items" v={String(bundle.items.length)} />
             <Row k="Orders" v={String(bundle._count.orders)} />
           </div>

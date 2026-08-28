@@ -10,6 +10,13 @@ function register() {
     const n = typeof cents === 'number' ? cents : Number(cents);
     if (!isFinite(n)) return '';
     const cur = typeof currency === 'string' && currency ? currency : 'USD';
+    if (cur.toUpperCase() === 'SGD') {
+      const amount = new Intl.NumberFormat('en-SG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(n / 100);
+      return `SGD $${amount}`;
+    }
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(n / 100);
   });
 

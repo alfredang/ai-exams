@@ -129,6 +129,13 @@ export function moneyLine(
   currency: string
 ): string {
   const dollars = cents / 100;
+  if (currency.toUpperCase() === 'SGD') {
+    const amount = new Intl.NumberFormat('en-SG', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(dollars);
+    return `SGD $${amount}`;
+  }
   const isMinor =
     currency === 'JPY' || currency === 'KRW' || currency === 'VND' || currency === 'IDR';
   return new Intl.NumberFormat('en-US', {
