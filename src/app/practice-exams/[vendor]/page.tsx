@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { Search } from 'lucide-react';
 
 // ISR: vendor-page bundle listings cache for 5 min. New publishes appear
 // shortly after; avoids fetching the entire bundle catalog on every visit.
@@ -18,8 +19,15 @@ export async function generateStaticParams() {
   return vendors.map(v => ({ vendor: v.slug }));
 }
 
-export default async function VendorCatalogPage({ params }: { params: Promise<{ vendor: string }> }) {
+export default async function VendorCatalogPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ vendor: string }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
   const { vendor: slug } = await params;
+  const query = ((await searchParams).q || '').trim();
   // Vendor lookup + filtered bundle query in parallel; the bundle filter is
   // pushed to the DB via items.some so we no longer load the full catalog
   // and filter in JS.
@@ -35,8 +43,24 @@ export default async function VendorCatalogPage({ params }: { params: Promise<{ 
   ]);
   if (!vendor) notFound();
 
+  const normalizedQuery = query.toLocaleLowerCase();
+  const visibleBundles = normalizedQuery
+    ? bundles.filter((bundle) => {
+        const searchable = [
+          bundle.title,
+          bundle.description,
+          ...bundle.items.flatMap((item) => [
+            item.exam.code,
+            item.exam.title,
+            item.exam.level,
+            item.exam.description
+          ])
+        ].filter(Boolean).join(' ').toLocaleLowerCase();
+        return searchable.includes(normalizedQuery);
+      })
+    : bundles;
   type Card = { kind: 'bundle'; data: (typeof bundles)[number] };
-  const cards: Card[] = bundles.map(b => ({ kind: 'bundle' as const, data: b }));
+  const cards: Card[] = visibleBundles.map(b => ({ kind: 'bundle' as const, data: b }));
 
   return (
     <div className="container-app py-10">
@@ -47,6 +71,26 @@ export default async function VendorCatalogPage({ params }: { params: Promise<{ 
       </div>
       <h1 className="text-3xl font-bold tracking-tight">{vendor.name}</h1>
       <p className="mt-1 text-slate-600 dark:text-slate-300">{vendor.description}</p>
+
+      <form action={`/practice-exams/${slug}`} method="get" className="mt-6 flex max-w-2xl items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-card dark:border-slate-700 dark:bg-slate-900">
+        <Search className="ml-3 h-5 w-5 text-slate-400" aria-hidden="true" />
+        <input
+          name="q"
+          type="search"
+          defaultValue={query}
+          aria-label={`Search ${vendor.name} certification exams`}
+          placeholder={`Search ${vendor.name} exams by code or title`}
+          className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500"
+        />
+        <button type="submit" className="btn-primary-grad rounded-full">Search</button>
+      </form>
+
+      {query && (
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+          <span>{cards.length} result{cards.length === 1 ? '' : 's'} for “{query}”</span>
+          <Link href={`/practice-exams/${slug}`} className="font-medium text-blue-600 hover:underline dark:text-blue-300">Clear search</Link>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {cards.map(card => {
@@ -71,7 +115,11 @@ export default async function VendorCatalogPage({ params }: { params: Promise<{ 
             </Link>
           );
         })}
-        {cards.length === 0 && <p className="text-slate-500">No bundles yet for this vendor.</p>}
+        {cards.length === 0 && (
+          <p className="text-slate-500">
+            {query ? `No ${vendor.name} exams match “${query}”.` : 'No bundles yet for this vendor.'}
+          </p>
+        )}
       </div>
     </div>
   );
