@@ -73,19 +73,22 @@ function Contact({
 }) {
   const external = href?.startsWith('http');
   return (
-    <li className="flex items-start gap-2 leading-relaxed">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+    <li className="leading-relaxed">
       {href ? (
         <a
           href={href}
           target={external ? '_blank' : undefined}
           rel={external ? 'noopener noreferrer' : undefined}
-          className={linkClass}
+          className={`inline-flex items-start gap-2 rounded-sm underline decoration-slate-400/60 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${linkClass}`}
         >
-          {children}
+          <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+          <span>{children}</span>
         </a>
       ) : (
-        <span>{children}</span>
+        <span className="flex items-start gap-2">
+          <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+          <span>{children}</span>
+        </span>
       )}
     </li>
   );
