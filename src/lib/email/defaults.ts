@@ -52,7 +52,7 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       voucherPending: true,
       invoiceNumber: 'INV-2026-00042',
       user: { name: 'Alex', email: 'alex@example.com' },
-      order: { id: 'ord_abc123', amount: 9900, currency: 'USD' }
+      order: { id: 'ord_abc123', amount: 9900, currency: 'SGD' }
     }
   },
   VOUCHER_DELIVERY: {

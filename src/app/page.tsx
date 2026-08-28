@@ -77,7 +77,13 @@ export default async function HomePage() {
             </p>
             <form action="/practice-exams" className="mt-8 flex max-w-lg items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-card dark:border-slate-700 dark:bg-slate-900">
               <Search className="ml-3 h-5 w-5 text-slate-400" />
-              <input name="q" placeholder="Search exams (e.g. SAA-C03, AZ-900)" className="flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500" />
+              <input
+                name="q"
+                type="search"
+                aria-label="Search certification practice exams"
+                placeholder="Search exams (e.g. SAA-C03, AZ-900)"
+                className="flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500"
+              />
               <button className="btn-primary-grad rounded-full">Search</button>
             </form>
             <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
@@ -95,16 +101,7 @@ export default async function HomePage() {
               height={897}
               priority
               sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 100vw"
-              className="block h-auto max-h-[480px] w-full max-w-full object-contain dark:hidden"
-            />
-            <Image
-              src="/hero-dark.webp"
-              alt="Online exam preparation with instructor-led learning"
-              width={1200}
-              height={897}
-              priority
-              sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 100vw"
-              className="hidden h-auto max-h-[480px] w-full max-w-full object-contain dark:block [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)] [-webkit-mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)]"
+              className="h-auto max-h-[480px] w-full max-w-full object-contain dark:brightness-90 dark:[mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)] dark:[-webkit-mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)]"
             />
           </div>
         </div>

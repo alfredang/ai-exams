@@ -1,12 +1,9 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { formatPrice } from '@/lib/utils';
 
 type Option = { tier: 'PRACTICE' | 'VOUCHER'; label: string; price: number };
-
-function formatUSD(cents: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
-}
 
 export function BundleBuyForm({
   bundleId,
@@ -60,7 +57,7 @@ export function BundleBuyForm({
               />
               <span className="font-semibold text-slate-900 dark:text-slate-100">{o.label}</span>
             </div>
-            <span className="shrink-0 font-bold text-blue-700 dark:text-blue-300">{formatUSD(o.price)}</span>
+            <span className="shrink-0 font-bold text-blue-700 dark:text-blue-300">{formatPrice(o.price)}</span>
           </label>
         ))}
       </div>

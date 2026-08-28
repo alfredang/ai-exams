@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       bundleId: body.bundleId,
       tier: tier as Tier,
       amount,
-      currency: 'USD',
+      currency: 'SGD',
       status: 'PENDING',
       paypalOrderId: testId
     }

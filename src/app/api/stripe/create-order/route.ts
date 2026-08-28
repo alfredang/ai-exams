@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   }
 
   let amount: number;
-  const currency = 'USD'; // Fixed to USD for Stripe in this implementation
+  const currency = 'SGD';
   let purpose: string;
   let orderTier: 'PRACTICE' | 'VOUCHER' | null = null;
   let vendorIdForCoupon: string | null = null;

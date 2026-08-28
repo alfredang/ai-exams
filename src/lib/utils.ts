@@ -4,9 +4,20 @@ import type { Tier } from '@prisma/client';
 
 export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
-export function formatPrice(cents: number, currency = 'USD') {
+export function formatPrice(cents: number, currency = 'SGD') {
   if (cents === 0) return 'Free';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
+  if (currency.toUpperCase() === 'SGD') {
+    const amount = new Intl.NumberFormat('en-SG', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(cents / 100);
+    return `S$${amount}`;
+  }
+  return new Intl.NumberFormat('en-SG', {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'symbol'
+  }).format(cents / 100);
 }
 
 // Per the simplified tier model: VOUCHER now includes practice access

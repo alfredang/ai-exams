@@ -10,6 +10,12 @@ const APP_STORE_BADGE =
 const WHATSAPP_URL = 'https://wa.me/6588666375';
 const WHATSAPP_LABEL = '+65 8866 6375';
 
+function displayPhone(value: string): string {
+  const compact = value.replace(/\s+/g, '');
+  const singapore = compact.match(/^\+65(\d{4})(\d{4})$/);
+  return singapore ? `+65 ${singapore[1]} ${singapore[2]}` : value;
+}
+
 // Useful Links resolve their titles from CMS footer pages, falling back to
 // these labels (and preserving this order) when a page row is missing.
 const USEFUL_LINK_FALLBACKS: Record<string, string> = {
@@ -151,7 +157,7 @@ export async function Footer() {
             )}
             {company.tel && (
               <Contact icon={Phone} href={`tel:${company.tel.replace(/\s+/g, '')}`}>
-                {company.tel}
+                {displayPhone(company.tel)}
               </Contact>
             )}
             <Contact icon={WhatsAppIcon} href={WHATSAPP_URL}>

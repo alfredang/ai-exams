@@ -62,7 +62,7 @@ export async function POST(req: Request) {
   }
   const amount = Math.max(0, subtotal - discount);
 
-  const paypal = await createOrder(amount, 'USD', `bundle:${bundleId}${orderTier ? `:${orderTier}` : ''}`);
+  const paypal = await createOrder(amount, 'SGD', `bundle:${bundleId}${orderTier ? `:${orderTier}` : ''}`);
   const number = await nextNumber('ORDER', 'ORD');
   const order = await db.$transaction(async (tx) => {
     const created = await tx.order.create({
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         bundleId,
         tier: orderTier,
         amount,
-        currency: 'USD',
+        currency: 'SGD',
         status: 'PENDING',
         provider: 'PAYPAL',
         paypalOrderId: paypal.id,

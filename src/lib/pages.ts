@@ -94,7 +94,7 @@ export const DEFAULT_PAGES: PageDefault[] = [
       HEADING('What we don\'t do'),
       PARA('We do not sell your data. We do not run third-party advertising trackers on your account pages.'),
       HEADING('Your rights'),
-      PARA('You may request deletion of your account and associated data at any time by emailing support.')
+      PARA('You may request deletion of your account and associated data at any time by emailing <a href="mailto:sales@tertiarycourses.com.sg" style="color:#2563eb;text-decoration:underline">sales@tertiarycourses.com.sg</a>.')
     ].join('')
   },
   {
@@ -107,11 +107,11 @@ export const DEFAULT_PAGES: PageDefault[] = [
     bodyHtml: [
       PARA('We want you to be confident in your purchase.'),
       HEADING('Practice exams'),
-      PARA('Full refund within 7 days of purchase if you have answered fewer than {{TEASER_N}} questions across all attempts. Email support with your order id.'),
+      PARA('Full refund within 7 days of purchase if you have answered fewer than {{TEASER_N}} questions across all attempts. Email <a href="mailto:sales@tertiarycourses.com.sg" style="color:#2563eb;text-decoration:underline">sales@tertiarycourses.com.sg</a> with your order id.'),
       HEADING('Voucher bundles'),
       PARA('Once a voucher code has been issued and delivered to you, the voucher portion is non-refundable (we have already paid the certification vendor). The practice-exam portion remains refundable under the 7-day / {{TEASER_N}}-question rule.'),
       HEADING('How to request'),
-      PARA('Reply to your order confirmation email or contact support directly. Approved refunds are returned to the original payment method within 5-10 business days.')
+      PARA('Reply to your order confirmation email or contact <a href="mailto:sales@tertiarycourses.com.sg" style="color:#2563eb;text-decoration:underline">sales@tertiarycourses.com.sg</a> directly. Approved refunds are returned to the original payment method within 5-10 business days.')
     ].join('')
   }
 ];

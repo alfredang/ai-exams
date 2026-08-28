@@ -193,7 +193,7 @@ export const COMPANY_DEFAULTS: CompanyInfo = {
   uen: '201200696W',
   address: '12 Woodland Square #07-85/86/87 Woods Square Tower 1, Singapore 737715',
   email: 'sales@tertiarycourses.com.sg',
-  tel: '+6561000613',
+  tel: '+65 6100 0613',
   website: 'https://www.tertiarycourses.com.sg/'
 };
 
