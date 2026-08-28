@@ -43,7 +43,7 @@ function distributeByWeight(total: number, domains: { name: string; weight: numb
     raw: (total * d.weight) / totalWeight
   }));
   const floored = raw.map(r => ({ name: r.name, count: Math.floor(r.raw), frac: r.raw - Math.floor(r.raw) }));
-  let remainder = total - floored.reduce((s, r) => s + r.count, 0);
+  const remainder = total - floored.reduce((s, r) => s + r.count, 0);
   floored.sort((a, b) => b.frac - a.frac);
   for (let i = 0; i < remainder; i++) floored[i].count += 1;
   return floored.map(f => ({ name: f.name, count: f.count })).filter(f => f.count > 0);

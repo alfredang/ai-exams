@@ -247,7 +247,7 @@ export default async function HomePage() {
           </div>
 
           <p className="mx-auto mt-10 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
-            Still have questions? <a href="/p/support" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Contact our support team</a> — we typically reply within one business day.
+            Still have questions? <Link href="/p/support" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Contact our support team</Link> — we typically reply within one business day.
           </p>
         </div>
       </section>

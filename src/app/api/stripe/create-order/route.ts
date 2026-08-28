@@ -39,7 +39,6 @@ export async function POST(req: Request) {
 
   let amount: number;
   const currency = 'SGD';
-  let purpose: string;
   let orderTier: 'PRACTICE' | 'VOUCHER' | null = null;
   let vendorIdForCoupon: string | null = null;
 
@@ -55,7 +54,7 @@ export async function POST(req: Request) {
     amount = bundle.price;
     orderTier = 'PRACTICE';
   }
-  purpose = bundle.title;
+  const purpose = bundle.title;
   vendorIdForCoupon = bundle.items[0]?.exam.vendorId ?? null;
 
   // Server-side coupon evaluation
