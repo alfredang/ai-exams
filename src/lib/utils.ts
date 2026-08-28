@@ -11,7 +11,7 @@ export function formatPrice(cents: number, currency = 'SGD') {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(cents / 100);
-    return `SGD ${amount}`;
+    return `SGD $${amount}`;
   }
   return new Intl.NumberFormat('en-SG', {
     style: 'currency',
