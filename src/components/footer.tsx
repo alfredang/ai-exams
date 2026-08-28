@@ -21,6 +21,7 @@ function displayPhone(value: string): string {
 const USEFUL_LINK_FALLBACKS: Record<string, string> = {
   'how-it-works': 'How it works',
   'about-us': 'About Us',
+  'support': 'Support',
   'privacy-policy': 'Privacy',
   'refund-policy': 'Refund Policy'
 };

@@ -2342,7 +2342,7 @@ async function main() {
       title: 'Contact Us',
       excerpt: 'Reach the Tertiary Exams team for support, billing, or feedback.',
       bodyHtml: [
-        '<p>Email <a href="mailto:angch@tertiaryinfotech.com">angch@tertiaryinfotech.com</a> for:</p>',
+        '<p>Email <a href="mailto:sales@tertiarycourses.com.sg">sales@tertiarycourses.com.sg</a> for:</p>',
         '<ul>',
         '<li><strong>Support</strong> — exam access issues, attempt errors, question content concerns.</li>',
         '<li><strong>Billing</strong> — receipts, refunds, voucher redemption questions (see <a href="/p/refund-policy">Refund Policy</a>).</li>',
@@ -2353,6 +2353,27 @@ async function main() {
       showInFooter: true,
       footerGroup: 'company',
       position: 30
+    },
+    {
+      slug: 'support',
+      title: 'Contact & Support',
+      excerpt: 'Get help with exam access, billing, vouchers, refunds, or question content.',
+      bodyHtml: [
+        '<p>Our support team helps with practice-exam access, billing, voucher delivery, refunds, and question-content concerns.</p>',
+        '<h2>Contact support</h2>',
+        '<p>Email <a href="mailto:sales@tertiarycourses.com.sg">sales@tertiarycourses.com.sg</a>. We typically reply within one business day.</p>',
+        '<h2>Include these details</h2>',
+        '<p>Please include your account email, order number (if applicable), exam code, and a short description of the issue. Do not email passwords, payment-card details, or voucher codes.</p>',
+        '<h2>Voucher delivery</h2>',
+        '<p>Practice access unlocks immediately after payment. Official exam voucher codes are normally delivered by email within 3-5 business days.</p>',
+        '<h2>Refunds</h2>',
+        '<p>See our <a href="/p/refund-policy">Refund Policy</a> for eligibility and processing times. The voucher portion becomes non-refundable once its code has been issued.</p>',
+        '<h2>Company</h2>',
+        '<p>Tertiary Infotech Academy Pte Ltd<br>12 Woodland Square #07-85/86/87 Woods Square Tower 1, Singapore 737715<br>Tel: +65 6100 0613</p>'
+      ].join('\n'),
+      showInFooter: true,
+      footerGroup: 'company',
+      position: 25
     }
   ];
   for (const p of stubPages) {
@@ -2378,7 +2399,7 @@ async function main() {
       }
     });
   }
-  console.log(`✓ Ensured ${stubPages.length} stub CMS pages exist (terms, contact)`);
+  console.log(`✓ Ensured ${stubPages.length} stub CMS pages exist (terms, contact, support)`);
 
   console.log(`Seed complete. Vendors: ${VENDORS.length}, Exams: ${EXAMS.length}, Bundles: ${BUNDLES.length}. Admins: ${admins.map(a => a.email).join(', ')}`);
 }

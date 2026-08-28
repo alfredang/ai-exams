@@ -64,6 +64,11 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
               </Link>
             )}
           </div>
+          {b.priceVoucher != null && (
+            <p className="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-300">
+              Practice access is immediate; voucher codes arrive by email within 3–5 business days. The voucher portion is non-refundable after issue. <Link href="/p/refund-policy" className="text-blue-600 underline dark:text-blue-300">Refund details</Link>
+            </p>
+          )}
           <Link
             href={`/bundles/${b.slug}`}
             className="mt-2 inline-block text-[11px] text-blue-600 hover:underline dark:text-blue-300"

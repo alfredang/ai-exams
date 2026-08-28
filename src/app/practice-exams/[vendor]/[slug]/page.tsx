@@ -8,6 +8,7 @@ import { ExamReviews } from '@/components/exam-reviews';
 import { getExamRatingSummary } from '@/lib/reviews';
 import { ShareExam } from '@/components/share-exam';
 import { ExamBundleCTA } from '@/components/exam-bundle-cta';
+import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { slug } = await params;
@@ -99,25 +100,80 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   // Run the three independent fetches concurrently — saves ~200–500ms vs
   // the previous sequential await chain.
   const { getTeaserSize } = await import('@/lib/settings');
-  const [teaserCount, teaserN, ratingSummary] = await Promise.all([
+  const [teaserCount, teaserN, ratingSummary, purchaseBundles, structuredReviews] = await Promise.all([
     db.question.count({ where: { examId: exam.id, isTeaser: true, status: 'PUBLISHED' } }),
     getTeaserSize(),
-    getExamRatingSummary(exam.id)
+    getExamRatingSummary(exam.id),
+    db.bundle.findMany({
+      where: { published: true, items: { some: { examId: exam.id } } },
+      orderBy: { price: 'asc' },
+      select: { id: true, slug: true, price: true, priceVoucher: true }
+    }),
+    db.review.findMany({
+      where: { examId: exam.id, status: 'APPROVED', deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        rating: true,
+        title: true,
+        body: true,
+        createdAt: true,
+        user: { select: { name: true } }
+      }
+    })
   ]);
   const domains = (exam.domains as any[]) || [];
+  const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${exam.vendor.slug}/${exam.slug}`;
   const jsonLd: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: exam.title,
     description: exam.description,
-    brand: { '@type': 'Brand', name: exam.vendor.name }
+    sku: exam.code,
+    category: 'Certification practice exam',
+    url: productUrl,
+    brand: { '@type': 'Brand', name: 'Tertiary Exams' },
+    manufacturer: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' }
   };
+  const offers = purchaseBundles.flatMap((bundle) => {
+    const checkoutUrl = `${PUBLIC_SITE_URL}/checkout/bundle/${bundle.id}`;
+    const values: any[] = [{
+      '@type': 'Offer',
+      name: 'Practice Exam',
+      url: `${checkoutUrl}?tier=PRACTICE`,
+      priceCurrency: 'SGD',
+      price: (bundle.price / 100).toFixed(2),
+      availability: 'https://schema.org/InStock'
+    }];
+    if (bundle.priceVoucher != null) {
+      values.push({
+        '@type': 'Offer',
+        name: 'Exam Voucher with practice exams',
+        url: `${checkoutUrl}?tier=VOUCHER`,
+        priceCurrency: 'SGD',
+        price: (bundle.priceVoucher / 100).toFixed(2),
+        availability: 'https://schema.org/InStock'
+      });
+    }
+    return values;
+  });
+  if (offers.length > 0) jsonLd.offers = offers;
   if (ratingSummary.count > 0) {
     jsonLd.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: ratingSummary.average,
       reviewCount: ratingSummary.count
     };
+  }
+  if (structuredReviews.length > 0) {
+    jsonLd.review = structuredReviews.map((review) => ({
+      '@type': 'Review',
+      name: review.title || `Review of ${exam.title}`,
+      reviewBody: review.body || undefined,
+      datePublished: review.createdAt.toISOString().slice(0, 10),
+      author: { '@type': 'Person', name: review.user.name || 'Anonymous learner' },
+      reviewRating: { '@type': 'Rating', ratingValue: review.rating, bestRating: 5, worstRating: 1 }
+    }));
   }
 
   // Entitlement check for showing "You have access — Start your attempt"
@@ -131,7 +187,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
 
   return (
     <div className="container-app py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       {teaserUnavailable && (
         <div className="mb-6 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
           The free teaser isn't available for this exam yet — it needs at least one teaser question.

@@ -81,6 +81,27 @@ export const DEFAULT_PAGES: PageDefault[] = [
     ].join('')
   },
   {
+    slug: 'support',
+    title: 'Contact & Support',
+    excerpt: 'Get help with exam access, billing, vouchers, refunds, or question content.',
+    showInFooter: true,
+    footerGroup: 'company',
+    position: 25,
+    bodyHtml: [
+      PARA('Our support team helps with practice-exam access, billing, voucher delivery, refunds, and question-content concerns.'),
+      HEADING('Contact support'),
+      PARA('Email <a href="mailto:sales@tertiarycourses.com.sg" style="color:#2563eb;text-decoration:underline">sales@tertiarycourses.com.sg</a>. We typically reply within one business day.'),
+      HEADING('Include these details'),
+      PARA('Please include your account email, order number (if applicable), exam code, and a short description of the issue. Do not email passwords, payment-card details, or voucher codes.'),
+      HEADING('Voucher delivery'),
+      PARA('Practice access unlocks immediately after payment. Official exam voucher codes are normally delivered by email within 3-5 business days.'),
+      HEADING('Refunds'),
+      PARA('See our <a href="/p/refund-policy" style="color:#2563eb;text-decoration:underline">Refund Policy</a> for eligibility and processing times. The voucher portion becomes non-refundable once its code has been issued.'),
+      HEADING('Company'),
+      PARA('Tertiary Infotech Academy Pte Ltd<br>12 Woodland Square #07-85/86/87 Woods Square Tower 1, Singapore 737715<br>Tel: +65 6100 0613')
+    ].join('')
+  },
+  {
     slug: 'privacy-policy',
     title: 'Privacy Policy',
     excerpt: 'How we collect and handle your data.',

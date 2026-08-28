@@ -20,6 +20,7 @@ export function Nav() {
             <Link href="/vendors" className="btn-ghost">Vendors</Link>
             <Link href="/p/about-us" className="btn-ghost">About Us</Link>
             <Link href="/#faq" className="btn-ghost">FAQ</Link>
+            <Link href="/p/support" className="btn-ghost">Support</Link>
           </nav>
         )}
         <div className="flex items-center gap-2">

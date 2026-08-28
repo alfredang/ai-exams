@@ -6,6 +6,7 @@ import { DotPattern } from '@/components/dot-pattern';
 import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown, HelpCircle } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { serializeJsonLd } from '@/lib/structured-data';
 
 // ISR: refetch vendor + popular-bundle counts at most once every 5 minutes.
 // Avoids per-visit DB hits while keeping seed/publish changes visible quickly.
@@ -59,9 +60,19 @@ export default async function HomePage() {
         { q: 'What is the difference between Practice Mode and Exam Mode?', a: 'Practice Mode reveals the correct answer and full explanation after each question — ideal for studying and reinforcing concepts. Exam Mode is a timed simulation: no answer feedback until you submit, auto-save every 15 seconds, and auto-submit when time runs out — mirroring the real testing experience.' },
         { q: 'How do exam vouchers work?', a: 'Purchasing the Exam Voucher tier includes a real, vendor-issued voucher code (delivered by email within 3–5 business days) PLUS lifetime practice access to the same certification at no additional cost. Use the code to register for your official exam at the vendor\'s testing partner.' }
       ];
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: { '@type': 'Answer', text: faq.a }
+    }))
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-slate-200 dark:border-slate-800">
         <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/2 text-blue-200/40 md:block dark:text-blue-400/15 md:dark:hidden">

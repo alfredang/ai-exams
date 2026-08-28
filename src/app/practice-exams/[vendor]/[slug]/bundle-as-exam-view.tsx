@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Check, Timer, BookOpen, Award, BookOpenCheck, Hourglass } from 'lucide-react';
 import { BundleBuyForm } from './bundle-buy-form';
 import { practiceItems, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 
 type BundleItem = {
   id: string;
@@ -57,9 +58,30 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
   if (bundle.priceVoucher != null) {
     tierOptions.push({ tier: 'VOUCHER', label: 'Exam Voucher (practice exams included)', price: bundle.priceVoucher });
   }
+  const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${vendor.slug}/${bundle.slug}`;
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: bundle.title,
+    description: bundle.description,
+    sku: displayCode,
+    category: 'Certification practice exam bundle',
+    url: productUrl,
+    brand: { '@type': 'Brand', name: 'Tertiary Exams' },
+    manufacturer: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' },
+    offers: tierOptions.map((option) => ({
+      '@type': 'Offer',
+      name: option.label,
+      url: `${PUBLIC_SITE_URL}/checkout/bundle/${bundle.id}?tier=${option.tier}`,
+      priceCurrency: 'SGD',
+      price: (option.price / 100).toFixed(2),
+      availability: 'https://schema.org/InStock'
+    }))
+  };
 
   return (
     <div className="container-app py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }} />
       <div className="mb-2 text-sm">
         <Link href="/practice-exams" className="text-blue-600 hover:underline">All exams</Link>
         <span className="text-slate-400"> / </span>
