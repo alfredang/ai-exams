@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
+import { LifeBuoy } from 'lucide-react';
 
 export function Nav() {
   const pathname = usePathname() || '/';
@@ -24,6 +25,16 @@ export function Nav() {
           </nav>
         )}
         <div className="flex items-center gap-2">
+          {!inBackend && (
+            <Link
+              href="/p/support"
+              className="btn-ghost inline-flex h-10 w-10 items-center justify-center p-0 md:hidden"
+              aria-label="Contact support"
+              title="Support"
+            >
+              <LifeBuoy className="h-5 w-5" />
+            </Link>
+          )}
           <UserMenu />
           <div className="ml-2 border-l border-slate-200 pl-3 dark:border-slate-800">
             <ThemeToggle />

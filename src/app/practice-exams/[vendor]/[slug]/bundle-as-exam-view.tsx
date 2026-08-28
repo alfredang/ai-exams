@@ -188,12 +188,14 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
               sample before buying, and the teaser route already creates the
               attempt under their userId (not as a guest), so it shows in
               their history correctly tagged isTeaser=true. */}
-          <Link href={`/practice-exams/${vendor.slug}/${first.slug}/teaser`} className="card-hover block p-5">
-            <div className="mb-1 text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">Free</div>
-            <div className="font-semibold">Try our free practice teaser</div>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">No credit card required.</p>
-            <div className="btn-outline mt-3 w-full">Start free practice exam</div>
-          </Link>
+          <form action={`/practice-exams/${vendor.slug}/${first.slug}/teaser`} method="post" className="card-hover block p-5">
+            <button type="submit" className="w-full text-left">
+              <span className="mb-1 block text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">Free</span>
+              <span className="block font-semibold">Try our free practice teaser</span>
+              <span className="mt-1 block text-sm text-slate-600 dark:text-slate-100">No credit card required.</span>
+              <span className="btn-outline mt-3 w-full">Start free practice exam</span>
+            </button>
+          </form>
 
           <BundleBuyForm
             bundleId={bundle.id}

@@ -6,10 +6,15 @@ import { publicUrl } from '@/lib/url';
 
 // Route handler (replaces the prior page.tsx). Next.js 16 disallows writing
 // cookies in Server Components, so the guest-token cookie must be set here.
-// User flow: link to /practice-exams/{vendor}/{slug}/teaser → GET this handler
-// → creates a teaser Attempt and redirects to /exam/{attemptId}.
+// Starting an attempt is deliberately POST-only: GET links are crawled by
+// search engines and health checkers and must never create database records.
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ vendor: string; slug: string }> }) {
+  const { vendor, slug } = await params;
+  return NextResponse.redirect(publicUrl(req, `/practice-exams/${vendor}/${slug}`));
+}
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { vendor: vendorSlug, slug } = await params;
 
   const exam = await db.exam.findUnique({ where: { slug }, include: { vendor: true } });
@@ -65,7 +70,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ vend
   });
   if (allPublished.length === 0) {
     // No published content at all — bounce back to the exam detail page with a notice flag.
-    return NextResponse.redirect(publicUrl(req, `/practice-exams/${vendorSlug}/${slug}?teaser=unavailable`));
+    return NextResponse.redirect(publicUrl(req, `/practice-exams/${vendorSlug}/${slug}?teaser=unavailable`), 303);
   }
 
   // Pinned teaser size (10). See getTeaserSize() doc.
@@ -88,5 +93,5 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ vend
       responses: {}
     }
   });
-  return NextResponse.redirect(publicUrl(req, `/exam/${attempt.id}`));
+  return NextResponse.redirect(publicUrl(req, `/exam/${attempt.id}`), 303);
 }

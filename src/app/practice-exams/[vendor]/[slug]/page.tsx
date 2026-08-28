@@ -290,12 +290,14 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
             </div>
           )}
           {!entitled && teaserCount > 0 && (
-            <Link href={`/practice-exams/${exam.vendor.slug}/${exam.slug}/teaser`} className="card-hover block p-5">
-              <div className="mb-1 text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">Free</div>
-              <div className="font-semibold">Try {teaserN} questions for free</div>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">No credit card required.</p>
-              <div className="btn-outline mt-3 w-full">Start free practice exam</div>
-            </Link>
+            <form action={`/practice-exams/${exam.vendor.slug}/${exam.slug}/teaser`} method="post" className="card-hover block p-5">
+              <button type="submit" className="w-full text-left">
+                <span className="mb-1 block text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">Free</span>
+                <span className="block font-semibold">Try {teaserN} questions for free</span>
+                <span className="mt-1 block text-sm text-slate-600 dark:text-slate-100">No credit card required.</span>
+                <span className="btn-outline mt-3 w-full">Start free practice exam</span>
+              </button>
+            </form>
           )}
           {!entitled && <ExamBundleCTA examId={exam.id} />}
         </aside>
