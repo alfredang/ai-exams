@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
+import { matchesCatalogSearch } from '@/lib/catalog-search';
 
 const PAGE_SIZE = 9;
 
@@ -29,13 +30,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   void where;
 
   const allBundlesRaw = await db.bundle.findMany({
-    where: q ? {
-      published: true,
-      OR: [
-        { title: { contains: q, mode: 'insensitive' as const } },
-        { description: { contains: q, mode: 'insensitive' as const } }
-      ]
-    } : { published: true },
+    where: { published: true },
     include: { items: { include: { exam: { include: { vendor: true } } } } },
     orderBy: { createdAt: 'desc' }
   });
@@ -44,6 +39,18 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     const first = b.items[0]?.exam;
     if (sp.vendor && first?.vendor.slug !== sp.vendor) return false;
     if (sp.level && first?.level !== sp.level) return false;
+    if (q && !matchesCatalogSearch(q, [
+      b.title,
+      b.description,
+      ...b.items.flatMap((item) => [
+        item.exam.vendor.name,
+        item.exam.vendor.slug,
+        item.exam.code,
+        item.exam.title,
+        item.exam.level,
+        item.exam.description
+      ])
+    ])) return false;
     return true;
   });
 

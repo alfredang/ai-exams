@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { Search } from 'lucide-react';
+import { matchesCatalogSearch } from '@/lib/catalog-search';
 
 // ISR: vendor-page bundle listings cache for 5 min. New publishes appear
 // shortly after; avoids fetching the entire bundle catalog on every visit.
@@ -43,21 +44,21 @@ export default async function VendorCatalogPage({
   ]);
   if (!vendor) notFound();
 
-  const normalizedQuery = query.toLocaleLowerCase();
-  const visibleBundles = normalizedQuery
-    ? bundles.filter((bundle) => {
-        const searchable = [
+  const visibleBundles = query
+    ? bundles.filter((bundle) =>
+        matchesCatalogSearch(query, [
+          vendor.name,
           bundle.title,
           bundle.description,
           ...bundle.items.flatMap((item) => [
+            item.exam.vendor.name,
             item.exam.code,
             item.exam.title,
             item.exam.level,
             item.exam.description
           ])
-        ].filter(Boolean).join(' ').toLocaleLowerCase();
-        return searchable.includes(normalizedQuery);
-      })
+        ])
+      )
     : bundles;
   type Card = { kind: 'bundle'; data: (typeof bundles)[number] };
   const cards: Card[] = visibleBundles.map(b => ({ kind: 'bundle' as const, data: b }));
