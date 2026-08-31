@@ -32,6 +32,8 @@ export function UserChrome({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const v = localStorage.getItem('userSidebarCollapsed');
+      // Hydrate the persisted UI preference after the server render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCollapsed(v === '1');
     } catch {}
     setMounted(true);

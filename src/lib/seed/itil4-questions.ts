@@ -41,7 +41,6 @@ const SVS = 'Service Value System and Value Chain';
 const PRAC = 'ITIL Practices';
 
 const REF_ITIL = { label: 'AXELOS — ITIL 4 overview', url: 'https://www.axelos.com/certifications/itil-service-management/itil-4-foundation' };
-const REF_FND = { label: 'PeopleCert — ITIL 4 Foundation', url: 'https://www.peoplecert.org/browse-certifications/it-governance-and-service-management/ITIL-1/itil-4-foundation-2986' };
 const REF_GLOSSARY = { label: 'AXELOS — ITIL glossary', url: 'https://www.axelos.com/resource-hub/glossary/itil-4-glossary' };
 const REF_VALUE = { label: 'AXELOS — Service value and co-creation', url: 'https://www.axelos.com/resource-hub/blog/the-itil-4-service-value-system' };
 const REF_PRINCIPLES = { label: 'AXELOS — The ITIL guiding principles', url: 'https://www.axelos.com/resource-hub/blog/the-7-guiding-principles-of-itil-4' };
@@ -55,7 +54,6 @@ const REF_CHANGE = { label: 'AXELOS — Change enablement practice', url: 'https
 const REF_SLM = { label: 'AXELOS — Service level management practice', url: 'https://www.axelos.com/resource-hub/blog/service-level-management-in-itil-4' };
 const REF_SD = { label: 'AXELOS — Service desk practice', url: 'https://www.axelos.com/resource-hub/blog/the-service-desk-in-itil-4' };
 const REF_CI = { label: 'AXELOS — Continual improvement practice', url: 'https://www.axelos.com/resource-hub/blog/continual-improvement-in-itil-4' };
-const REF_AXELOS = { label: 'AXELOS — ITIL resource hub', url: 'https://www.axelos.com/resource-hub' };
 
 // Helper to build 4-option SINGLE questions with id 'a','b','c','d'.
 const opts4 = (a: string, b: string, c: string, d: string): Opt[] => [

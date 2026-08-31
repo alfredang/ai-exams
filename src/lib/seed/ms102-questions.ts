@@ -39,7 +39,6 @@ const DEFENDER = 'Manage security and threats by using Microsoft Defender XDR';
 const PURVIEW = 'Manage compliance by using Microsoft Purview';
 
 // ── Tenant references ──
-const REF_M365_ADMIN = { label: 'Microsoft Learn — Overview of the Microsoft 365 admin center', url: 'https://learn.microsoft.com/en-us/microsoft-365/admin/admin-overview/admin-center-overview' };
 const REF_M365_ROLES = { label: 'Microsoft Learn — About admin roles in the Microsoft 365 admin center', url: 'https://learn.microsoft.com/en-us/microsoft-365/admin/add-users/about-admin-roles' };
 const REF_M365_LICENSE = { label: 'Microsoft Learn — Assign licenses to users', url: 'https://learn.microsoft.com/en-us/microsoft-365/admin/manage/assign-licenses-to-users' };
 const REF_M365_GROUP_LIC = { label: 'Microsoft Learn — Group-based licensing in Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/entra/identity/users/licensing-groups-assign' };
@@ -77,7 +76,6 @@ const REF_PHS = { label: 'Microsoft Learn — Implement password hash synchroniz
 const REF_PTA = { label: 'Microsoft Learn — Microsoft Entra pass-through authentication', url: 'https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/how-to-connect-pta' };
 const REF_SSO = { label: 'Microsoft Learn — Microsoft Entra seamless single sign-on', url: 'https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/how-to-connect-sso' };
 const REF_FEDERATION = { label: 'Microsoft Learn — Federation with AD FS and Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/whatis-fed' };
-const REF_MFA = { label: 'Microsoft Learn — How it works: Microsoft Entra multifactor authentication', url: 'https://learn.microsoft.com/en-us/entra/identity/authentication/concept-mfa-howitworks' };
 const REF_AUTH_METHODS = { label: 'Microsoft Learn — Authentication methods in Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods' };
 const REF_SSPR = { label: 'Microsoft Learn — How it works: Microsoft Entra self-service password reset', url: 'https://learn.microsoft.com/en-us/entra/identity/authentication/concept-sspr-howitworks' };
 const REF_CA = { label: 'Microsoft Learn — Conditional Access overview', url: 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview' };
@@ -124,15 +122,12 @@ const REF_MDO_DMARC = { label: 'Microsoft Learn — Use DMARC to validate email'
 const REF_MDO_SPF = { label: 'Microsoft Learn — Set up SPF to help prevent spoofing', url: 'https://learn.microsoft.com/en-us/defender-office-365/email-authentication-spf-configure' };
 
 // ── Purview references ──
-const REF_PURVIEW = { label: 'Microsoft Learn — Microsoft Purview overview', url: 'https://learn.microsoft.com/en-us/purview/purview' };
-const REF_PURVIEW_PORTAL = { label: 'Microsoft Learn — The Microsoft Purview portal', url: 'https://learn.microsoft.com/en-us/purview/purview-portal' };
 const REF_DLP = { label: 'Microsoft Learn — Data Loss Prevention overview', url: 'https://learn.microsoft.com/en-us/purview/dlp-learn-about-dlp' };
 const REF_DLP_POLICY = { label: 'Microsoft Learn — Create and deploy a data loss prevention policy', url: 'https://learn.microsoft.com/en-us/purview/dlp-create-deploy-policy' };
 const REF_DLP_ENDPOINT = { label: 'Microsoft Learn — Get started with Endpoint data loss prevention', url: 'https://learn.microsoft.com/en-us/purview/endpoint-dlp-getting-started' };
 const REF_SIT = { label: 'Microsoft Learn — Sensitive information types in Microsoft Purview', url: 'https://learn.microsoft.com/en-us/purview/sensitive-information-type-learn-about' };
 const REF_LABELS = { label: 'Microsoft Learn — Learn about sensitivity labels', url: 'https://learn.microsoft.com/en-us/purview/sensitivity-labels' };
 const REF_LABEL_POLICY = { label: 'Microsoft Learn — Publish sensitivity labels by creating a label policy', url: 'https://learn.microsoft.com/en-us/purview/create-sensitivity-labels' };
-const REF_AUTO_LABEL = { label: 'Microsoft Learn — Apply a sensitivity label to content automatically', url: 'https://learn.microsoft.com/en-us/purview/apply-sensitivity-label-automatically' };
 const REF_RETENTION = { label: 'Microsoft Learn — Learn about retention policies and retention labels', url: 'https://learn.microsoft.com/en-us/purview/retention' };
 const REF_RETENTION_POLICY = { label: 'Microsoft Learn — Create and configure retention policies', url: 'https://learn.microsoft.com/en-us/purview/create-retention-policies' };
 const REF_RETENTION_LABEL = { label: 'Microsoft Learn — Create retention labels and apply them in apps', url: 'https://learn.microsoft.com/en-us/purview/file-plan-manager' };
@@ -143,14 +138,8 @@ const REF_AUDIT_PREMIUM = { label: 'Microsoft Learn — Microsoft Purview Audit 
 const REF_EDISCOVERY = { label: 'Microsoft Learn — Microsoft Purview eDiscovery solutions', url: 'https://learn.microsoft.com/en-us/purview/ediscovery' };
 const REF_EDISCOVERY_STD = { label: 'Microsoft Learn — Get started with eDiscovery (Standard)', url: 'https://learn.microsoft.com/en-us/purview/ediscovery-standard-get-started' };
 const REF_EDISCOVERY_PREM = { label: 'Microsoft Learn — Overview of eDiscovery (Premium)', url: 'https://learn.microsoft.com/en-us/purview/ediscovery-overview' };
-const REF_CONTENT_SEARCH = { label: 'Microsoft Learn — Content search in Microsoft Purview', url: 'https://learn.microsoft.com/en-us/purview/ediscovery-search-for-content' };
 const REF_COMM_COMPLIANCE = { label: 'Microsoft Learn — Learn about communication compliance', url: 'https://learn.microsoft.com/en-us/purview/communication-compliance' };
-const REF_INFO_BARRIERS = { label: 'Microsoft Learn — Learn about information barriers', url: 'https://learn.microsoft.com/en-us/purview/information-barriers' };
 const REF_DATA_CLASS = { label: 'Microsoft Learn — Data classification in the Microsoft Purview portal', url: 'https://learn.microsoft.com/en-us/purview/data-classification-overview' };
-const REF_CONTENT_EXPLORER = { label: 'Microsoft Learn — Get started with content explorer', url: 'https://learn.microsoft.com/en-us/purview/data-classification-content-explorer' };
-const REF_ACTIVITY_EXPLORER = { label: 'Microsoft Learn — Get started with activity explorer', url: 'https://learn.microsoft.com/en-us/purview/data-classification-activity-explorer' };
-const REF_TRAINABLE = { label: 'Microsoft Learn — Learn about trainable classifiers', url: 'https://learn.microsoft.com/en-us/purview/trainable-classifiers-learn-about' };
-const REF_STUDY_GUIDE = { label: 'Microsoft Learn — Study guide for Exam MS-102: Microsoft 365 Administrator', url: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ms-102' };
 
 // Helper to build 4-option SINGLE questions with id 'a','b','c','d'.
 const opts4 = (a: string, b: string, c: string, d: string): Opt[] => [

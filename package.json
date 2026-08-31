@@ -15,9 +15,6 @@
     "db:studio": "prisma studio",
     "generate:exam": "tsx scripts/generate-questions.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",
     "@auth/prisma-adapter": "^2.7.0",

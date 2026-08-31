@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Mail, Phone } from 'lucide-react';
 import { getCompanyInfo } from '@/lib/settings';
 import { getFooterPages } from '@/lib/pages';
@@ -118,7 +119,7 @@ export async function Footer() {
         {/* Brand */}
         <div className="sm:col-span-2 md:col-span-4">
           <div className="mb-3 flex items-center gap-2">
-            <img src="/logo-mark.png" alt="Tertiary Exams" className="h-10 w-10 shrink-0 object-contain" />
+            <Image src="/logo-mark.png" alt="Tertiary Exams" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" />
             <span className="text-base font-semibold text-slate-900 dark:text-white">Tertiary Exams</span>
           </div>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -186,7 +187,7 @@ export async function Footer() {
             className="mt-2 inline-block rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
             aria-label="Download Tertiary AI Exams on the App Store"
           >
-            <img src={APP_STORE_BADGE} alt="Download on the App Store" className="h-10 w-auto" />
+            <Image src={APP_STORE_BADGE} alt="Download on the App Store" width={120} height={40} unoptimized className="h-10 w-auto" />
           </a>
         </div>
       </div>

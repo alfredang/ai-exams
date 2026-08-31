@@ -1,4 +1,4 @@
-import { PrismaClient, QStatus, QType, Role, Tier } from '@prisma/client';
+import { PrismaClient, QStatus, Role, Tier } from '@prisma/client';
 import argon2 from 'argon2';
 
 const db = new PrismaClient();

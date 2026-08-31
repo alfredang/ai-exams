@@ -19,7 +19,6 @@ import {
   Palette,
   CreditCard,
   Key,
-  Activity,
   LogIn,
   BarChart3,
   Bell,
@@ -167,6 +166,8 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const v = localStorage.getItem('adminSidebarCollapsed');
+      // Hydrate the persisted UI preference after the server render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCollapsed(v === '1');
       const g = localStorage.getItem('adminSidebarGroups');
       if (g) setOpenGroups(JSON.parse(g));

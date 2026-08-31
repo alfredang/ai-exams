@@ -63,7 +63,6 @@ const REF_ANSIBLE = { label: 'Cisco DevNet — Ansible network automation', url:
 const REF_DOCKER = { label: 'Cisco DevNet — Docker fundamentals', url: 'https://developer.cisco.com/learning/labs/docker-101/' };
 const REF_CICD = { label: 'Cisco DevNet — CI/CD pipelines', url: 'https://developer.cisco.com/learning/tracks/devops/' };
 const REF_SECURITY = { label: 'Cisco DevNet — Application security fundamentals', url: 'https://developer.cisco.com/learning/tracks/security/' };
-const REF_DEVASC_TRACK = { label: 'Cisco DevNet — DEVASC certification preparation', url: 'https://developer.cisco.com/certification/devnet-associate/' };
 const REF_OSI = { label: 'Cisco — Networking basics (OSI / TCP-IP)', url: 'https://www.cisco.com/c/en/us/solutions/small-business/resource-center/networking/networking-basics.html' };
 const REF_HTTP = { label: 'MDN — HTTP request methods', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods' };
 const REF_JSON = { label: 'Cisco DevNet — Working with JSON / XML / YAML', url: 'https://developer.cisco.com/learning/labs/data-formats-yaml/' };

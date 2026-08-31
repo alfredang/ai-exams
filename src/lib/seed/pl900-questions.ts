@@ -44,7 +44,6 @@ const FLOW = 'Demonstrate the Capabilities of Power Automate';
 const BI = 'Demonstrate the Capabilities of Power BI';
 const PAGES = 'Demonstrate the Capabilities of Power Pages and Copilot Studio';
 
-const REF_STUDY = { label: 'Microsoft Learn — Exam PL-900 study guide', url: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/pl-900' };
 const REF_PP_OVERVIEW = { label: 'Microsoft Learn — What is Microsoft Power Platform?', url: 'https://learn.microsoft.com/en-us/power-platform/' };
 const REF_PP_BUSVAL = { label: 'Microsoft Learn — Describe the business value of Power Platform', url: 'https://learn.microsoft.com/en-us/training/paths/power-plat-business-value/' };
 const REF_PP_CORE = { label: 'Microsoft Learn — Identify the core components of Power Platform', url: 'https://learn.microsoft.com/en-us/training/paths/power-plat-core-components/' };

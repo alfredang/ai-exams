@@ -21,6 +21,8 @@ export function CmdK({ open, onClose }: { open: boolean; onClose: () => void }) 
 
   useEffect(() => {
     if (!open) return;
+    // Opening the palette starts a fresh, intentionally empty search session.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQ('');
     setHits([]);
     setFocus(0);
@@ -32,6 +34,8 @@ export function CmdK({ open, onClose }: { open: boolean; onClose: () => void }) 
     if (!open) return;
     const trimmed = q.trim();
     if (!trimmed) {
+      // Keep stale results out of an empty query.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHits([]);
       return;
     }

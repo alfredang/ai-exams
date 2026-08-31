@@ -54,7 +54,6 @@ const REF_AA_GLOSSARY = { label: 'Agile Alliance — Agile glossary', url: 'http
 const REF_KANBAN = { label: 'Agile Alliance — Kanban', url: 'https://www.agilealliance.org/glossary/kanban/' };
 const REF_LEAN = { label: 'Agile Alliance — Lean software development', url: 'https://www.agilealliance.org/glossary/lean/' };
 const REF_XP = { label: 'Agile Alliance — Extreme Programming (XP)', url: 'https://www.agilealliance.org/glossary/xp/' };
-const REF_TDD = { label: 'Agile Alliance — Test-Driven Development (TDD)', url: 'https://www.agilealliance.org/glossary/tdd/' };
 const REF_CI = { label: 'Agile Alliance — Continuous Integration', url: 'https://www.agilealliance.org/glossary/continuous-integration/' };
 const REF_RETRO = { label: 'Agile Alliance — Retrospective', url: 'https://www.agilealliance.org/glossary/heartbeat-retrospective/' };
 const REF_VELOCITY = { label: 'Agile Alliance — Velocity', url: 'https://www.agilealliance.org/glossary/velocity/' };
@@ -65,7 +64,6 @@ const REF_DOD = { label: 'Agile Alliance — Definition of Done', url: 'https://
 const REF_PERSONA = { label: 'Agile Alliance — Personas', url: 'https://www.agilealliance.org/glossary/personas/' };
 const REF_WIP = { label: 'Agile Alliance — WIP limit', url: 'https://www.agilealliance.org/glossary/wip-limit/' };
 const REF_RCA = { label: 'Agile Alliance — Five whys / root cause analysis', url: 'https://www.agilealliance.org/glossary/root-cause-analysis/' };
-const REF_PMI_STANDARDS = { label: 'PMI — Standards and publications', url: 'https://www.pmi.org/standards' };
 const REF_PMI_ETHICS = { label: 'PMI — Code of Ethics and Professional Conduct', url: 'https://www.pmi.org/about/ethics/code' };
 
 // Helper to build 4-option SINGLE questions with id 'a','b','c','d'.

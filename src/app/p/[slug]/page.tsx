@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { getSetting } from '@/lib/settings';
 import { DEFAULT_PAGES } from '@/lib/pages';
 
 // ISR: CMS pages (about, terms, privacy, refunds, etc.) change rarely.

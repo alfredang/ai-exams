@@ -42,7 +42,6 @@ const NS = 'Network Security';
 const SO = 'Security Operations';
 
 const REF_OUTLINE = { label: 'ISC2 — Certified in Cybersecurity (CC) Exam Outline', url: 'https://www.isc2.org/certifications/cc/cc-certification-exam-outline' };
-const REF_CC = { label: 'ISC2 — Certified in Cybersecurity (CC)', url: 'https://www.isc2.org/certifications/cc' };
 const REF_CIA = { label: 'NIST — Glossary: confidentiality, integrity, availability', url: 'https://csrc.nist.gov/glossary' };
 const REF_RMF = { label: 'NIST SP 800-37 — Risk Management Framework', url: 'https://csrc.nist.gov/pubs/sp/800/37/r2/final' };
 const REF_RISK = { label: 'NIST SP 800-30 — Guide for Conducting Risk Assessments', url: 'https://csrc.nist.gov/pubs/sp/800/30/r1/final' };

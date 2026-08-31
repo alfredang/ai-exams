@@ -38,7 +38,6 @@ const TOOLS = 'Tools and Documentation';
 const GOV = 'Basics of IT and Governance';
 
 const REF_OBJECTIVES = { label: 'CompTIA Project+ (PK0-005) Exam Objectives', url: 'https://www.comptia.org/certifications/project' };
-const REF_CERT = { label: 'CompTIA Project+ Certification Overview', url: 'https://www.comptia.org/certifications/project' };
 const REF_PMI = { label: 'PMI — What is Project Management', url: 'https://www.pmi.org/about/what-is-project-management' };
 const REF_PMBOK = { label: 'PMI — A Guide to the Project Management Body of Knowledge (PMBOK Guide)', url: 'https://www.pmi.org/pmbok-guide-standards/foundational/pmbok' };
 const REF_AGILE = { label: 'PMI — Agile Practice Guide', url: 'https://www.pmi.org/pmbok-guide-standards/practice-guides/agile' };

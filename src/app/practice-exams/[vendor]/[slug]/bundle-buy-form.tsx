@@ -8,8 +8,6 @@ type Option = { tier: 'PRACTICE' | 'VOUCHER'; label: string; price: number };
 
 export function BundleBuyForm({
   bundleId,
-  bundleSlug,
-  vendorSlug,
   options,
   isSignedIn
 }: {

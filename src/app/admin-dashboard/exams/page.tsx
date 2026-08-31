@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
-import { Eye, Pencil, Trash2, BookOpenCheck, Archive, ArchiveRestore, Copy } from 'lucide-react';
+import { Pencil, Trash2, BookOpenCheck, Archive, ArchiveRestore, Copy } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { FilterBar, FilterField } from '@/components/admin/filter-bar';
 import { DataTable, type Column } from '@/components/admin/data-table';

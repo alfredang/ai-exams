@@ -41,7 +41,6 @@ const SRE = 'Applying Site Reliability Engineering Practices';
 const OBS = 'Implementing Observability';
 const PERF = 'Optimizing Service Performance';
 
-const REF_EXAMGUIDE = { label: 'Google Cloud — Professional Cloud DevOps Engineer exam guide', url: 'https://cloud.google.com/learn/certification/cloud-devops-engineer' };
 const REF_RESMGR = { label: 'Google Cloud — Resource hierarchy', url: 'https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy' };
 const REF_ORGPOLICY = { label: 'Google Cloud — Organization Policy Service', url: 'https://cloud.google.com/resource-manager/docs/organization-policy/overview' };
 const REF_IAM = { label: 'Google Cloud — IAM overview', url: 'https://cloud.google.com/iam/docs/overview' };
@@ -104,7 +103,6 @@ const REF_MIG = { label: 'Google Cloud — Managed instance groups', url: 'https
 const REF_LB = { label: 'Google Cloud — Cloud Load Balancing overview', url: 'https://cloud.google.com/load-balancing/docs/load-balancing-overview' };
 const REF_CDN = { label: 'Google Cloud — Cloud CDN overview', url: 'https://cloud.google.com/cdn/docs/overview' };
 const REF_PERF = { label: 'Google Cloud — Architecture Framework: Performance optimization', url: 'https://cloud.google.com/architecture/framework/performance-optimization' };
-const REF_COST = { label: 'Google Cloud — Architecture Framework: Cost optimization', url: 'https://cloud.google.com/architecture/framework/cost-optimization' };
 const REF_AUTOSCALER = { label: 'Google Cloud — Autoscaling groups of instances', url: 'https://cloud.google.com/compute/docs/autoscaler' };
 const REF_GKE_OPTIMIZE = { label: 'Google Cloud — Best practices for running cost-optimized GKE', url: 'https://cloud.google.com/kubernetes-engine/docs/best-practices/cost-optimized-kubernetes-applications' };
 const REF_CLOUDSQL = { label: 'Google Cloud — Cloud SQL documentation', url: 'https://cloud.google.com/sql/docs' };

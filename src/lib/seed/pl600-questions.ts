@@ -36,7 +36,6 @@ const ENVISION = 'Perform Solution Envisioning and Requirement Analysis';
 const ARCHITECT = 'Architect a Solution';
 const IMPLEMENT = 'Implement the Solution';
 
-const REF_SG = { label: 'Microsoft Learn — PL-600 study guide', url: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/pl-600' };
 const REF_SA = { label: 'Microsoft Learn — Solution Architect role', url: 'https://learn.microsoft.com/en-us/power-platform/guidance/solution-architect/role-of-solution-architect' };
 const REF_ENVISION = { label: 'Microsoft Learn — Solution envisioning', url: 'https://learn.microsoft.com/en-us/power-platform/guidance/solution-architect/conduct-solution-envisioning' };
 const REF_REQ = { label: 'Microsoft Learn — Requirement analysis', url: 'https://learn.microsoft.com/en-us/power-platform/guidance/solution-architect/conduct-detailed-requirements-analysis' };
@@ -47,7 +46,6 @@ const REF_ALM_ENV = { label: 'Microsoft Learn — Environment strategy for ALM',
 const REF_SOLUTION = { label: 'Microsoft Learn — Solution concepts', url: 'https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm' };
 const REF_SOL_LAYER = { label: 'Microsoft Learn — Solution layers', url: 'https://learn.microsoft.com/en-us/power-platform/alm/solution-layers-alm' };
 const REF_PIPELINES = { label: 'Microsoft Learn — Pipelines in Power Platform', url: 'https://learn.microsoft.com/en-us/power-platform/alm/pipelines' };
-const REF_DATAVERSE = { label: 'Microsoft Learn — What is Microsoft Dataverse?', url: 'https://learn.microsoft.com/en-us/power-apps/maker/data-platform/data-platform-intro' };
 const REF_DV_TABLE = { label: 'Microsoft Learn — Tables in Dataverse', url: 'https://learn.microsoft.com/en-us/power-apps/maker/data-platform/entity-overview' };
 const REF_DV_REL = { label: 'Microsoft Learn — Table relationships', url: 'https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-edit-entity-relationships' };
 const REF_DV_KEY = { label: 'Microsoft Learn — Alternate keys', url: 'https://learn.microsoft.com/en-us/power-apps/developer/data-platform/define-alternate-keys-entity' };

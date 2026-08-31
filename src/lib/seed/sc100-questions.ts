@@ -39,7 +39,6 @@ const OPS = 'Design Security Operations, Identity, and Compliance Capabilities';
 const INFRA = 'Design Security Solutions for Infrastructure';
 const APPDATA = 'Design Security Solutions for Applications and Data';
 
-const REF_STUDY = { label: 'Microsoft Learn — SC-100 study guide', url: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-100' };
 const REF_MCRA = { label: 'Microsoft Learn — Microsoft Cybersecurity Reference Architectures (MCRA)', url: 'https://learn.microsoft.com/en-us/security/adoption/mcra' };
 const REF_ZT = { label: 'Microsoft Learn — Zero Trust overview', url: 'https://learn.microsoft.com/en-us/security/zero-trust/zero-trust-overview' };
 const REF_ZT_RAMP = { label: 'Microsoft Learn — Zero Trust rapid modernization plan', url: 'https://learn.microsoft.com/en-us/security/zero-trust/zero-trust-ramp-overview' };
@@ -49,7 +48,6 @@ const REF_BENCHMARK = { label: 'Microsoft Learn — Microsoft cloud security ben
 const REF_DEFENDER_CLOUD = { label: 'Microsoft Learn — Microsoft Defender for Cloud', url: 'https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-cloud-introduction' };
 const REF_SENTINEL = { label: 'Microsoft Learn — Microsoft Sentinel overview', url: 'https://learn.microsoft.com/en-us/azure/sentinel/overview' };
 const REF_XDR = { label: 'Microsoft Learn — Microsoft Defender XDR', url: 'https://learn.microsoft.com/en-us/defender-xdr/microsoft-365-defender' };
-const REF_ENTRA_ID = { label: 'Microsoft Learn — Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/entra/fundamentals/whatis' };
 const REF_CA = { label: 'Microsoft Learn — Conditional Access overview', url: 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview' };
 const REF_PIM = { label: 'Microsoft Learn — Privileged Identity Management (PIM)', url: 'https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure' };
 const REF_IDGOV = { label: 'Microsoft Learn — Microsoft Entra ID Governance', url: 'https://learn.microsoft.com/en-us/entra/id-governance/identity-governance-overview' };

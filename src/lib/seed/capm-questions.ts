@@ -39,7 +39,6 @@ const REF_CAPM = { label: 'PMI — Certified Associate in Project Management (CA
 const REF_PMBOK = { label: 'PMI — A Guide to the Project Management Body of Knowledge (PMBOK Guide)', url: 'https://www.pmi.org/standards/pmbok' };
 const REF_STANDARDS = { label: 'PMI — Standards and publications', url: 'https://www.pmi.org/standards' };
 const REF_AGILE = { label: 'PMI — Agile Practice Guide', url: 'https://www.pmi.org/standards/agile-practice-guide' };
-const REF_DISCIPLINED = { label: 'PMI — Disciplined Agile', url: 'https://www.pmi.org/disciplined-agile' };
 const REF_BA = { label: 'PMI — The PMI Guide to Business Analysis', url: 'https://www.pmi.org/standards/business-analysis' };
 const REF_BACERT = { label: 'PMI — Professional in Business Analysis (PMI-PBA)', url: 'https://www.pmi.org/certifications/business-analysis-pba' };
 const REF_ETHICS = { label: 'PMI — Code of Ethics and Professional Conduct', url: 'https://www.pmi.org/about/ethics/code' };

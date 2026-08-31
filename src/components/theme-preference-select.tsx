@@ -15,6 +15,8 @@ export function ThemePreferenceSelect() {
   useEffect(() => {
     try {
       const t = localStorage.getItem('theme');
+      // Hydrate the persisted browser-only preference after SSR.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPref(t === 'dark' ? 'dark' : t === 'light' ? 'light' : 'system');
     } catch {}
   }, []);

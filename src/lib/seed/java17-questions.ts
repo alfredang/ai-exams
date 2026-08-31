@@ -52,7 +52,6 @@ const CONC = 'Concurrency';
 const JDBC = 'Database Applications with JDBC';
 const L10N = 'Localization';
 
-const REF_JLS = { label: 'The Java Language Specification, Java SE 17 Edition', url: 'https://docs.oracle.com/javase/specs/jls/se17/html/index.html' };
 const REF_JLS_NUM = { label: 'JLS 17 — Numeric Promotions and Conversions', url: 'https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html' };
 const REF_JLS_EXPR = { label: 'JLS 17 — Expressions', url: 'https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html' };
 const REF_JLS_STMT = { label: 'JLS 17 — Blocks and Statements', url: 'https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html' };

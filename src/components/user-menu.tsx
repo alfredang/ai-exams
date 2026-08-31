@@ -22,6 +22,8 @@ export function UserMenu() {
   useEffect(() => {
     if (!isAdmin) return;
     const stored = (typeof window !== 'undefined' && localStorage.getItem('viewAs')) as ViewAs | null;
+    // Hydrate the administrator's persisted view mode after SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored === 'user' || stored === 'admin') setViewAs(stored);
   }, [isAdmin]);
 

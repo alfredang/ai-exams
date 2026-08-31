@@ -75,7 +75,6 @@ const REF_FSS = { label: 'Oracle Docs — File Storage Overview', url: 'https://
 const REF_ARCHIVE = { label: 'Oracle Docs — Archive Storage', url: 'https://docs.oracle.com/en-us/iaas/Content/Archive/Concepts/archivestorageoverview.htm' };
 const REF_BACKUP = { label: 'Oracle Docs — Backing Up a Volume', url: 'https://docs.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumebackups.htm' };
 const REF_TIERS = { label: 'Oracle Docs — Object Storage Tiers', url: 'https://docs.oracle.com/en-us/iaas/Content/Object/Concepts/understandingstoragetiers.htm' };
-const REF_SECURITY = { label: 'Oracle Docs — Security Overview', url: 'https://docs.oracle.com/en-us/iaas/Content/Security/Concepts/security_overview.htm' };
 const REF_VAULT = { label: 'Oracle Docs — Vault / Key Management', url: 'https://docs.oracle.com/en-us/iaas/Content/KeyManagement/Concepts/keyoverview.htm' };
 const REF_CLOUDGUARD = { label: 'Oracle Docs — Cloud Guard Overview', url: 'https://docs.oracle.com/en-us/iaas/cloud-guard/using/index.htm' };
 const REF_MONITORING = { label: 'Oracle Docs — Monitoring Overview', url: 'https://docs.oracle.com/en-us/iaas/Content/Monitoring/Concepts/monitoringoverview.htm' };

@@ -71,7 +71,6 @@ const REF_GDPR = { label: 'GDPR — General Data Protection Regulation', url: 'h
 const REF_FAIR = { label: 'FAIR Institute — Factor Analysis of Information Risk', url: 'https://www.fairinstitute.org/what-is-fair' };
 const REF_CLOUD_SEC = { label: 'Cloud Security Alliance — Security Guidance', url: 'https://cloudsecurityalliance.org/research/guidance/' };
 const REF_AWS_WAF = { label: 'AWS Well-Architected Framework — Security Pillar', url: 'https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html' };
-const REF_SAMM = { label: 'OWASP SAMM — Software Assurance Maturity Model', url: 'https://owaspsamm.org/' };
 const REF_STRIDE = { label: 'Microsoft — Threat modeling (STRIDE)', url: 'https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats' };
 const REF_SLSA = { label: 'SLSA — Supply-chain Levels for Software Artifacts', url: 'https://slsa.dev/' };
 const REF_TLS = { label: 'IETF RFC 8446 — TLS 1.3', url: 'https://www.rfc-editor.org/rfc/rfc8446' };

@@ -49,7 +49,6 @@ const REF_AGENT_CONFIG = { label: 'Consul Docs — Agent configuration', url: 'h
 const REF_DATACENTER = { label: 'Consul Docs — Multiple datacenters', url: 'https://developer.hashicorp.com/consul/docs/architecture/datacenter' };
 const REF_FEDERATION = { label: 'Consul Docs — WAN federation', url: 'https://developer.hashicorp.com/consul/docs/east-west/wan-federation' };
 const REF_AUTOPILOT = { label: 'Consul Docs — Autopilot', url: 'https://developer.hashicorp.com/consul/docs/manage/scale/autopilot' };
-const REF_INSTALL = { label: 'Consul Docs — Install Consul', url: 'https://developer.hashicorp.com/consul/install' };
 const REF_DEPLOY = { label: 'Consul Docs — Deployment guide', url: 'https://developer.hashicorp.com/consul/tutorials/production-deploy/deployment-guide' };
 const REF_JOIN = { label: 'Consul Docs — Cluster join', url: 'https://developer.hashicorp.com/consul/docs/deploy/server/cluster/bootstrap' };
 const REF_BOOTSTRAP = { label: 'Consul Docs — Bootstrap a datacenter', url: 'https://developer.hashicorp.com/consul/docs/deploy/server/cluster/bootstrap' };

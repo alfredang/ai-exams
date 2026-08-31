@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
@@ -48,9 +49,11 @@ export function Nav() {
 function Logo() {
   return (
     <>
-      <img
+      <Image
         src="/logo-mark.png"
         alt="Tertiary Exams"
+        width={48}
+        height={48}
         className="h-12 w-12 shrink-0 object-contain"
       />
       <span className="text-lg font-semibold text-slate-900 dark:text-white sm:text-xl">

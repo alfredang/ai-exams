@@ -12,6 +12,8 @@ export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
+    // Hydrate from the class set by the pre-React theme bootstrap script.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDark(document.documentElement.classList.contains('dark'));
     setMounted(true);
   }, []);

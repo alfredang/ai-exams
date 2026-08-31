@@ -114,7 +114,7 @@ async function main() {
   );
 
   let cur = '';
-  const dup = [], noq = [], partial = [], other = [];
+  const dup = [], noq = [], partial = [];
   for (const x of rows) {
     if (x.vendor !== cur) { console.log(`\n### ${x.vendor}  (${x.vendorName})`); cur = x.vendor; }
     let flag = '';

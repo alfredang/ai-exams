@@ -7,11 +7,10 @@ export function SeoSavedFlash() {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(() => params.get('seo') === 'saved');
 
   useEffect(() => {
     if (params.get('seo') !== 'saved') return;
-    setShow(true);
     const hide = setTimeout(() => setShow(false), 2500);
     const clean = setTimeout(() => {
       const next = new URLSearchParams(params.toString());

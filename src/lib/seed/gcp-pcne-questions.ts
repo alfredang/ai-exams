@@ -56,10 +56,8 @@ const REF_ALIAS = { label: 'Google Cloud — Alias IP ranges', url: 'https://clo
 const REF_MULTI_NIC = { label: 'Google Cloud — Multiple network interfaces', url: 'https://cloud.google.com/vpc/docs/multiple-interfaces-concepts' };
 const REF_IPV6 = { label: 'Google Cloud — IPv6 subnet ranges', url: 'https://cloud.google.com/vpc/docs/ipv6' };
 const REF_MTU = { label: 'Google Cloud — Maximum transmission unit', url: 'https://cloud.google.com/vpc/docs/mtu' };
-const REF_LB = { label: 'Google Cloud — Cloud Load Balancing overview', url: 'https://cloud.google.com/load-balancing/docs/load-balancing-overview' };
 const REF_LB_CHOOSE = { label: 'Google Cloud — Choose a load balancer', url: 'https://cloud.google.com/load-balancing/docs/choosing-load-balancer' };
 const REF_HTTPS_LB = { label: 'Google Cloud — External Application Load Balancer overview', url: 'https://cloud.google.com/load-balancing/docs/https' };
-const REF_TCP_LB = { label: 'Google Cloud — External proxy Network Load Balancer overview', url: 'https://cloud.google.com/load-balancing/docs/tcp' };
 const REF_NLB = { label: 'Google Cloud — External passthrough Network Load Balancer overview', url: 'https://cloud.google.com/load-balancing/docs/network' };
 const REF_ILB = { label: 'Google Cloud — Internal passthrough Network Load Balancer overview', url: 'https://cloud.google.com/load-balancing/docs/internal' };
 const REF_BACKEND = { label: 'Google Cloud — Backend services overview', url: 'https://cloud.google.com/load-balancing/docs/backend-service' };
@@ -88,7 +86,6 @@ const REF_QUOTAS = { label: 'Google Cloud — VPC resource quotas and limits', u
 const REF_PACKET_MIRROR = { label: 'Google Cloud — Packet Mirroring overview', url: 'https://cloud.google.com/vpc/docs/packet-mirroring' };
 const REF_PERIMETER = { label: 'Google Cloud — VPC Service Controls overview', url: 'https://cloud.google.com/vpc-service-controls/docs/overview' };
 const REF_LB_LOGS = { label: 'Google Cloud — Load balancer logging and monitoring', url: 'https://cloud.google.com/load-balancing/docs/https/https-logging-monitoring' };
-const REF_PERF = { label: 'Google Cloud — Network performance and bandwidth', url: 'https://cloud.google.com/vpc/docs/quota#per_instance' };
 const REF_IAM = { label: 'Google Cloud — IAM roles for networking', url: 'https://cloud.google.com/iam/docs/understanding-roles#networking-roles' };
 
 // Helper to build 4-option SINGLE questions with id 'a','b','c','d'.

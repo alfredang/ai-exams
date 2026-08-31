@@ -1,7 +1,7 @@
 'use client';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { BillingAddressCard } from '@/components/checkout/billing-address-card';
 import { PaymentMethodsPicker, usePaymentMethods, type MethodId } from '@/components/checkout/payment-methods';
@@ -37,12 +37,10 @@ export function BundleCheckoutClient({
   const data = usePaymentMethods();
   const methods = data?.methods ?? null;
 
-  useEffect(() => {
-    if (!methods) return;
-    const enabled = methods.filter((m) => m.enabled);
-    if (enabled.length && !enabled.find((m) => m.id === method)) setMethod(enabled[0].id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [methods]);
+  const enabledMethods = methods?.filter((candidate) => candidate.enabled) ?? [];
+  const selectedMethod = enabledMethods.some((candidate) => candidate.id === method)
+    ? method
+    : enabledMethods[0]?.id ?? method;
 
   const total = promo ? promo.totalCents : amount;
   const couponCode = promo?.code ?? null;
@@ -117,7 +115,7 @@ export function BundleCheckoutClient({
             <Loader2 className="h-4 w-4 animate-spin" /> Loading payment options…
           </div>
         )}
-        {methods && <PaymentMethodsPicker methods={methods} selected={method} onSelect={setMethod} />}
+        {methods && <PaymentMethodsPicker methods={methods} selected={selectedMethod} onSelect={setMethod} />}
 
         {!addressId && (
           <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
@@ -126,7 +124,7 @@ export function BundleCheckoutClient({
         )}
 
         <div className={addressId ? '' : 'pointer-events-none opacity-50'}>
-          {method === 'PAYPAL' && data && (
+          {selectedMethod === 'PAYPAL' && data && (
             paypalReady ? (
               <PayPalScriptProvider options={{ clientId: data.paypalClientId!, currency: 'SGD', intent: 'capture' }}>
                 <PayPalButtons
@@ -164,17 +162,17 @@ export function BundleCheckoutClient({
               </p>
             )
           )}
-          {method === 'HITPAY' && (
+          {selectedMethod === 'HITPAY' && (
             <button type="button" disabled={!addressId || busy === 'HITPAY'} onClick={() => createRedirectOrder('HITPAY')} className="btn-primary-grad w-full">
               {busy === 'HITPAY' ? 'Redirecting to HitPay…' : `Pay ${formatPrice(total)} with HitPay`}
             </button>
           )}
-          {method === 'PAYNOW' && (
+          {selectedMethod === 'PAYNOW' && (
             <button type="button" disabled={!addressId || busy === 'PAYNOW'} onClick={() => createRedirectOrder('PAYNOW')} className="btn-primary-grad w-full">
               {busy === 'PAYNOW' ? 'Generating QR…' : 'Pay with PayNow'}
             </button>
           )}
-          {method === 'STRIPE' && (
+          {selectedMethod === 'STRIPE' && (
             <button type="button" disabled={!addressId || busy === 'STRIPE'} onClick={() => createRedirectOrder('STRIPE')} className="btn-primary-grad w-full">
               {busy === 'STRIPE' ? 'Redirecting to Stripe…' : `Pay ${formatPrice(total)} with card`}
             </button>
@@ -187,7 +185,7 @@ export function BundleCheckoutClient({
         <div className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <p>
-            {TRUST_COPY[method]}{' '}
+            {TRUST_COPY[selectedMethod]}{' '}
             {hasVoucher
               ? <>Voucher codes are emailed within <b>3–5 business days</b>; practice access unlocks immediately.</>
               : <>Practice access unlocks immediately after payment.</>}

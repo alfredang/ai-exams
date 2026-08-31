@@ -43,7 +43,6 @@ const APP = 'Cloud Application Security';
 const OPS = 'Cloud Security Operations';
 const LEGAL = 'Legal, Risk and Compliance';
 
-const REF_CCSP = { label: 'ISC2 — CCSP certification', url: 'https://www.isc2.org/certifications/ccsp' };
 const REF_CCSP_OUTLINE = { label: 'ISC2 — CCSP exam outline', url: 'https://www.isc2.org/certifications/ccsp/ccsp-certification-exam-outline' };
 const REF_NIST_800145 = { label: 'NIST SP 800-145 — The NIST Definition of Cloud Computing', url: 'https://csrc.nist.gov/pubs/sp/800/145/final' };
 const REF_NIST_500292 = { label: 'NIST SP 500-292 — Cloud Computing Reference Architecture', url: 'https://www.nist.gov/publications/nist-cloud-computing-reference-architecture' };

@@ -45,7 +45,6 @@ const PLATFORM = 'Platform Security';
 const COMPLIANCE = 'Compliance and Security Frameworks';
 
 const REF_SECURITY = { label: 'Kubernetes Docs — Cloud Native Security & Kubernetes (4Cs)', url: 'https://kubernetes.io/docs/concepts/security/cloud-native-security/' };
-const REF_OVERVIEW = { label: 'Kubernetes Docs — Security Overview', url: 'https://kubernetes.io/docs/concepts/security/' };
 const REF_4C = { label: 'Kubernetes Docs — The 4C’s of Cloud Native Security', url: 'https://kubernetes.io/docs/concepts/security/cloud-native-security/#the-4c-s-of-cloud-native-security' };
 const REF_SUPPLY = { label: 'Kubernetes Docs — Software Supply Chain Security', url: 'https://kubernetes.io/docs/concepts/security/supply-chain-security/' };
 const REF_CHECKLIST = { label: 'Kubernetes Docs — Security Checklist', url: 'https://kubernetes.io/docs/concepts/security/security-checklist/' };
@@ -60,7 +59,6 @@ const REF_PROXY = { label: 'Kubernetes Docs — kube-proxy Reference', url: 'htt
 const REF_PORTS = { label: 'Kubernetes Docs — Ports and Protocols', url: 'https://kubernetes.io/docs/reference/networking/ports-and-protocols/' };
 const REF_AUTHN = { label: 'Kubernetes Docs — Authenticating', url: 'https://kubernetes.io/docs/reference/access-authn-authz/authentication/' };
 const REF_RBAC = { label: 'Kubernetes Docs — RBAC Authorization', url: 'https://kubernetes.io/docs/reference/access-authn-authz/rbac/' };
-const REF_AUTHZ = { label: 'Kubernetes Docs — Authorization Overview', url: 'https://kubernetes.io/docs/reference/access-authn-authz/authorization/' };
 const REF_ADMISSION = { label: 'Kubernetes Docs — Admission Controllers Reference', url: 'https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/' };
 const REF_SA = { label: 'Kubernetes Docs — Configure Service Accounts for Pods', url: 'https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/' };
 const REF_SECRET = { label: 'Kubernetes Docs — Secrets', url: 'https://kubernetes.io/docs/concepts/configuration/secret/' };

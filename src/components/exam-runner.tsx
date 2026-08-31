@@ -66,6 +66,7 @@ export function ExamRunner(props: ExamRunnerProps) {
     const t = setInterval(() => setRemaining(r => Math.max(0, r - 1)), 1000);
     return () => clearInterval(t);
   }, [props.mode, props.remainingSec]);
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/immutability */
   useEffect(() => {
     if (props.mode === 'EXAM' && props.remainingSec > 0 && remaining === 0 && !submitted) {
       setTimeUp(true);
@@ -73,6 +74,7 @@ export function ExamRunner(props: ExamRunnerProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remaining]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/immutability */
 
   async function flushAutosave(current: Record<string, RunnerResponse>) {
     const payload = Object.fromEntries(

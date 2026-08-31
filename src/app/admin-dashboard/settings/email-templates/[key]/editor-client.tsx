@@ -39,7 +39,11 @@ export default function EditorClient({ templateKey, initial, defaults, sampleVar
     setPreview(data);
   }
 
-  useEffect(() => { void refreshPreview(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  // Initial preview intentionally mirrors the server-provided template once.
+  // Later edits refresh only when the administrator clicks Preview.
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => { void refreshPreview(); }, []);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   async function save() {
     setSaving(true); setMsg('');

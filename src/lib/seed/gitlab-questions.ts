@@ -72,7 +72,6 @@ const REF_CI_PARENT_CHILD = { label: 'GitLab Docs — Parent-child pipelines', u
 const REF_RUNNERS = { label: 'GitLab Docs — GitLab Runner', url: 'https://docs.gitlab.com/runner/' };
 const REF_EXECUTORS = { label: 'GitLab Docs — Runner executors', url: 'https://docs.gitlab.com/runner/executors/' };
 const REF_REGISTRY = { label: 'GitLab Docs — Container Registry', url: 'https://docs.gitlab.com/ee/user/packages/container_registry/' };
-const REF_RELEASES = { label: 'GitLab Docs — Releases', url: 'https://docs.gitlab.com/ee/user/project/releases/' };
 const REF_PAGES = { label: 'GitLab Docs — GitLab Pages', url: 'https://docs.gitlab.com/ee/user/project/pages/' };
 const REF_PERMISSIONS = { label: 'GitLab Docs — Roles and permissions', url: 'https://docs.gitlab.com/ee/user/permissions.html' };
 const REF_SAST = { label: 'GitLab Docs — SAST', url: 'https://docs.gitlab.com/ee/user/application_security/sast/' };

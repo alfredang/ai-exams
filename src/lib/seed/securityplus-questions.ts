@@ -40,7 +40,6 @@ const OPS = 'Security Operations';
 const GRC = 'Security Program Management and Oversight';
 
 const REF_OBJECTIVES = { label: 'CompTIA — Security+ (SY0-701) exam objectives', url: 'https://www.comptia.org/certifications/security' };
-const REF_COMPTIA_SEC = { label: 'CompTIA — Security+ certification', url: 'https://www.comptia.org/en-us/certifications/security/' };
 const REF_NIST_CIA = { label: 'NIST SP 800-12 Rev. 1 — Information security concepts', url: 'https://csrc.nist.gov/pubs/sp/800/12/r1/final' };
 const REF_NIST_ZT = { label: 'NIST SP 800-207 — Zero Trust Architecture', url: 'https://csrc.nist.gov/pubs/sp/800/207/final' };
 const REF_NIST_CRYPTO = { label: 'NIST SP 800-175B Rev. 1 — Guideline for using cryptographic standards', url: 'https://csrc.nist.gov/pubs/sp/800/175/b/r1/final' };

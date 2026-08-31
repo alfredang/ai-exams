@@ -40,8 +40,6 @@ const AUTH = 'Implement Authentication and Access Management';
 const APPS = 'Implement Access Management for Applications';
 const GOV = 'Plan and Implement Identity Governance';
 
-const REF_STUDY = { label: 'Microsoft Learn — Exam SC-300 study guide', url: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300' };
-const REF_ENTRA = { label: 'Microsoft Learn — What is Microsoft Entra ID?', url: 'https://learn.microsoft.com/en-us/entra/fundamentals/whatis' };
 const REF_USERS = { label: 'Microsoft Learn — Add or delete users in Microsoft Entra ID', url: 'https://learn.microsoft.com/en-us/entra/fundamentals/how-to-create-delete-users' };
 const REF_GROUPS = { label: 'Microsoft Learn — Manage groups and group membership', url: 'https://learn.microsoft.com/en-us/entra/fundamentals/how-to-manage-groups' };
 const REF_DYNGROUP = { label: 'Microsoft Learn — Dynamic membership rules for groups', url: 'https://learn.microsoft.com/en-us/entra/identity/users/groups-dynamic-membership' };

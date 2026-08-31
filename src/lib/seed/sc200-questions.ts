@@ -68,7 +68,6 @@ const REF_MDE_TIMELINE = { label: 'Microsoft Learn — Investigate devices in th
 const REF_MDE_LIVE_RESPONSE = { label: 'Microsoft Learn — Investigate entities on devices using live response', url: 'https://learn.microsoft.com/en-us/defender-endpoint/live-response' };
 const REF_MDE_INVESTIGATION_PKG = { label: 'Microsoft Learn — Take response actions on a device — collect investigation package', url: 'https://learn.microsoft.com/en-us/defender-endpoint/respond-machine-alerts' };
 const REF_MDE_TVM = { label: 'Microsoft Learn — Microsoft Defender Vulnerability Management', url: 'https://learn.microsoft.com/en-us/defender-vulnerability-management/defender-vulnerability-management' };
-const REF_MDE_DATA_RETENTION = { label: 'Microsoft Learn — Microsoft Defender for Endpoint data storage and privacy', url: 'https://learn.microsoft.com/en-us/defender-endpoint/data-storage-privacy' };
 
 // ── Defender for Office 365 ──
 const REF_MDO = { label: 'Microsoft Learn — Microsoft Defender for Office 365', url: 'https://learn.microsoft.com/en-us/defender-office-365/mdo-about' };
@@ -85,9 +84,7 @@ const REF_MDI_ALERTS = { label: 'Microsoft Learn — Microsoft Defender for Iden
 const REF_MDI_LATERAL = { label: 'Microsoft Learn — Lateral movement security alerts in Microsoft Defender for Identity', url: 'https://learn.microsoft.com/en-us/defender-for-identity/lateral-movement-alerts' };
 
 // ── Defender for Cloud Apps ──
-const REF_MDCA = { label: 'Microsoft Learn — What is Microsoft Defender for Cloud Apps?', url: 'https://learn.microsoft.com/en-us/defender-cloud-apps/what-is-defender-for-cloud-apps' };
 const REF_MDCA_POLICIES = { label: 'Microsoft Learn — Control cloud apps with policies', url: 'https://learn.microsoft.com/en-us/defender-cloud-apps/control-cloud-apps-with-policies' };
-const REF_MDCA_DISCOVERY = { label: 'Microsoft Learn — Set up Cloud Discovery', url: 'https://learn.microsoft.com/en-us/defender-cloud-apps/set-up-cloud-discovery' };
 const REF_MDCA_INVESTIGATE = { label: 'Microsoft Learn — Investigate risky users in Microsoft Defender for Cloud Apps', url: 'https://learn.microsoft.com/en-us/defender-cloud-apps/tutorial-ueba' };
 
 // ── Defender for Cloud (workload protection) ──
@@ -112,7 +109,6 @@ const REF_SENTINEL_SOC_OPT = { label: 'Microsoft Learn — Microsoft Sentinel SO
 const REF_SENTINEL_CONNECTORS = { label: 'Microsoft Learn — Find your Microsoft Sentinel data connector', url: 'https://learn.microsoft.com/en-us/azure/sentinel/data-connectors-reference' };
 const REF_SENTINEL_AMA = { label: 'Microsoft Learn — Collect Windows Security Events with the Azure Monitor Agent (AMA) connector', url: 'https://learn.microsoft.com/en-us/azure/sentinel/connect-windows-security-events' };
 const REF_DCR = { label: 'Microsoft Learn — Data collection rules in Azure Monitor', url: 'https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-overview' };
-const REF_WEF = { label: 'Microsoft Learn — Plan and configure Windows Event Forwarding for Microsoft Sentinel', url: 'https://learn.microsoft.com/en-us/azure/sentinel/connect-windows-firewall' };
 const REF_SYSLOG_AMA = { label: 'Microsoft Learn — Collect Syslog and CEF data with the AMA connectors', url: 'https://learn.microsoft.com/en-us/azure/sentinel/connect-cef-syslog-ama' };
 const REF_AZ_ACTIVITY = { label: 'Microsoft Learn — Connect Azure activity data to Microsoft Sentinel', url: 'https://learn.microsoft.com/en-us/azure/sentinel/data-connectors/azure-activity' };
 const REF_DIAG_SETTINGS = { label: 'Microsoft Learn — Create diagnostic settings to send Azure Monitor platform metrics and logs to different destinations', url: 'https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/diagnostic-settings' };

@@ -50,7 +50,6 @@ const FAMILIES = {
   }
 } as const;
 
-const PRICING = { practice: 2900, bundle: 17900, voucher: 14900 };
 
 const JOBS: { pdfFile: string; family: keyof typeof FAMILIES; practiceNumber: number }[] = [
   { pdfFile: '0155_Google Associate Cloud Engineer Training Practice Exam 1.pdf', family: 'ace', practiceNumber: 1 },

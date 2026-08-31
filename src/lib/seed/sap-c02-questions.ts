@@ -74,8 +74,6 @@ const REF_ACM = { label: 'AWS Docs — What is AWS Certificate Manager?', url: '
 const REF_SECRETS = { label: 'AWS Docs — What is AWS Secrets Manager?', url: 'https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html' };
 const REF_WAF = { label: 'AWS Docs — What is AWS WAF?', url: 'https://docs.aws.amazon.com/waf/latest/developerguide/what-is-aws-waf.html' };
 const REF_SHIELD = { label: 'AWS Docs — AWS Shield Advanced', url: 'https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary.html' };
-const REF_INSPECTOR = { label: 'AWS Docs — What is Amazon Inspector?', url: 'https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html' };
-const REF_DIRECTORY = { label: 'AWS Docs — What is AWS Directory Service?', url: 'https://docs.aws.amazon.com/directoryservice/latest/admin-guide/what_is.html' };
 
 // ── Reliability / DR / compute ──
 const REF_DR = { label: 'AWS Docs — Disaster recovery options in the cloud', url: 'https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html' };
@@ -94,7 +92,6 @@ const REF_BEANSTALK = { label: 'AWS Docs — What is AWS Elastic Beanstalk?', ur
 const REF_S3 = { label: 'AWS Docs — What is Amazon S3?', url: 'https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html' };
 const REF_S3_LIFECYCLE = { label: 'AWS Docs — Managing the lifecycle of objects', url: 'https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html' };
 const REF_S3_INTELLIGENT = { label: 'AWS Docs — Amazon S3 Intelligent-Tiering storage class', url: 'https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering.html' };
-const REF_S3_CRR = { label: 'AWS Docs — Replicating objects with S3 Replication', url: 'https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html' };
 const REF_EBS = { label: 'AWS Docs — Amazon EBS volume types', url: 'https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html' };
 const REF_EFS = { label: 'AWS Docs — What is Amazon EFS?', url: 'https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html' };
 const REF_FSX = { label: 'AWS Docs — What is Amazon FSx?', url: 'https://docs.aws.amazon.com/fsx/latest/WindowsGuide/what-is.html' };
@@ -108,7 +105,6 @@ const REF_AURORA_SERVERLESS = { label: 'AWS Docs — Using Aurora Serverless v2'
 const REF_DYNAMODB = { label: 'AWS Docs — What is Amazon DynamoDB?', url: 'https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html' };
 const REF_DDB_GLOBAL = { label: 'AWS Docs — Global tables: multi-Region replication for DynamoDB', url: 'https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html' };
 const REF_ELASTICACHE = { label: 'AWS Docs — What is Amazon ElastiCache?', url: 'https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html' };
-const REF_OPENSEARCH = { label: 'AWS Docs — What is Amazon OpenSearch Service?', url: 'https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html' };
 
 // ── Integration / deployment / ops ──
 const REF_SQS = { label: 'AWS Docs — What is Amazon SQS?', url: 'https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html' };

@@ -48,7 +48,6 @@ const REF_SA = { label: 'Kubernetes Docs — Configure Service Accounts', url: '
 const REF_SATOKEN = { label: 'Kubernetes Docs — ServiceAccount Token Volume Projection', url: 'https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection' };
 const REF_APISRV = { label: 'Kubernetes Docs — kube-apiserver Reference', url: 'https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/' };
 const REF_KUBELET = { label: 'Kubernetes Docs — Kubelet Authentication/Authorization', url: 'https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/' };
-const REF_AUTHN = { label: 'Kubernetes Docs — Authenticating', url: 'https://kubernetes.io/docs/reference/access-authn-authz/authentication/' };
 const REF_ADMISSION = { label: 'Kubernetes Docs — Admission Controllers Reference', url: 'https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/' };
 const REF_UPGRADE = { label: 'Kubernetes Docs — Upgrade a kubeadm Cluster', url: 'https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/' };
 const REF_APPARMOR = { label: 'Kubernetes Docs — Restrict a Container with AppArmor', url: 'https://kubernetes.io/docs/tutorials/security/apparmor/' };

@@ -49,7 +49,6 @@ const REF_STORAGE = { label: 'Vault Docs — Storage backends', url: 'https://de
 const REF_NAMESPACES = { label: 'Vault Docs — Namespaces', url: 'https://developer.hashicorp.com/vault/docs/enterprise/namespaces' };
 const REF_BARRIER = { label: 'Vault Docs — Security model', url: 'https://developer.hashicorp.com/vault/docs/internals/security' };
 const REF_TELEMETRY = { label: 'Vault Docs — Telemetry', url: 'https://developer.hashicorp.com/vault/docs/configuration/telemetry' };
-const REF_LIMITS = { label: 'Vault Docs — Limits and maximums', url: 'https://developer.hashicorp.com/vault/docs/internals/limits' };
 
 const REF_AUTH = { label: 'Vault Docs — Auth methods', url: 'https://developer.hashicorp.com/vault/docs/auth' };
 const REF_AUTH_CONCEPT = { label: 'Vault Docs — Authentication', url: 'https://developer.hashicorp.com/vault/docs/concepts/auth' };

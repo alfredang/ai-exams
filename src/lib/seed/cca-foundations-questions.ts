@@ -64,18 +64,15 @@ const REF_AGENT_PY = { label: 'Anthropic Docs — Agent SDK Python', url: 'https
 const REF_AGENT_TS = { label: 'Anthropic Docs — Agent SDK TypeScript', url: 'https://docs.claude.com/en/api/agent-sdk/typescript' };
 const REF_AGENT_SESSIONS = { label: 'Anthropic Docs — Agent SDK sessions', url: 'https://docs.claude.com/en/api/agent-sdk/sessions' };
 const REF_AGENT_BUILD = { label: 'Anthropic Engineering — Building effective agents', url: 'https://www.anthropic.com/engineering/building-effective-agents' };
-const REF_AGENT_LOOP = { label: 'Anthropic Engineering — How we build effective agents', url: 'https://www.anthropic.com/engineering/building-effective-agents' };
 
 const REF_TOOL_USE = { label: 'Anthropic Docs — Tool use overview', url: 'https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview' };
 const REF_TOOL_SCHEMA = { label: 'Anthropic Docs — How to implement tool use', url: 'https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implement-tool-use' };
 const REF_TOOL_CHOICE = { label: 'Anthropic Docs — Tool choice', url: 'https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implement-tool-use#forcing-tool-use' };
 const REF_COMPUTER_USE = { label: 'Anthropic Docs — Computer use', url: 'https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/computer-use-tool' };
-const REF_TOOL_TEXT_EDITOR = { label: 'Anthropic Docs — Text editor tool', url: 'https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/text-editor-tool' };
 
 const REF_MCP_INTRO = { label: 'MCP — Introduction', url: 'https://modelcontextprotocol.io/introduction' };
 const REF_MCP_SPEC = { label: 'MCP — Specification', url: 'https://modelcontextprotocol.io/specification' };
 const REF_MCP_TRANSPORTS = { label: 'MCP — Transports', url: 'https://modelcontextprotocol.io/specification/2025-06-18/basic/transports' };
-const REF_MCP_SERVER = { label: 'MCP — Build a server quickstart', url: 'https://modelcontextprotocol.io/quickstart/server' };
 const REF_MCP_CLAUDE_CODE = { label: 'Anthropic Docs — MCP in Claude Code', url: 'https://docs.claude.com/en/docs/claude-code/mcp' };
 
 const REF_CC_OVERVIEW = { label: 'Anthropic Docs — Claude Code overview', url: 'https://docs.claude.com/en/docs/claude-code/overview' };

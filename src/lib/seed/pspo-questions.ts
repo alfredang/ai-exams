@@ -38,7 +38,6 @@ const BACKLOG = 'Product Backlog Management';
 const STAKE = 'Stakeholders and Customers';
 const EMPIRICISM = 'Empiricism and Agility';
 
-const REF_GUIDE = { label: 'Scrum Guide 2020', url: 'https://scrumguides.org/scrum-guide.html' };
 const REF_GUIDE_TEAM = { label: 'Scrum Guide 2020 — Scrum Team', url: 'https://scrumguides.org/scrum-guide.html#scrum-team' };
 const REF_GUIDE_PO = { label: 'Scrum Guide 2020 — Product Owner', url: 'https://scrumguides.org/scrum-guide.html#product-owner' };
 const REF_GUIDE_SM = { label: 'Scrum Guide 2020 — Scrum Master', url: 'https://scrumguides.org/scrum-guide.html#scrum-master' };
@@ -59,7 +58,6 @@ const REF_GUIDE_SGOAL = { label: 'Scrum Guide 2020 — Sprint Goal', url: 'https
 const REF_GUIDE_THEORY = { label: 'Scrum Guide 2020 — Scrum Theory', url: 'https://scrumguides.org/scrum-guide.html#scrum-theory' };
 const REF_GUIDE_VALUES = { label: 'Scrum Guide 2020 — Scrum Values', url: 'https://scrumguides.org/scrum-guide.html#scrum-values' };
 const REF_GUIDE_DEF = { label: 'Scrum Guide 2020 — Scrum Definition', url: 'https://scrumguides.org/scrum-guide.html#scrum-definition' };
-const REF_SO_PO = { label: 'Scrum.org — What is a Product Owner?', url: 'https://www.scrum.org/resources/what-is-a-product-owner' };
 const REF_SO_PB = { label: 'Scrum.org — What is a Product Backlog?', url: 'https://www.scrum.org/resources/what-is-a-product-backlog' };
 const REF_SO_VALUE = { label: 'Scrum.org — What is Product Value?', url: 'https://www.scrum.org/resources/what-is-product-value' };
 const REF_SO_REFINE = { label: 'Scrum.org — Product Backlog Refinement', url: 'https://www.scrum.org/resources/blog/what-product-backlog-refinement' };

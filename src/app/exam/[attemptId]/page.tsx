@@ -27,6 +27,8 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
   // Recompute remaining for Exam mode
   let remaining = 0;
   if (attempt.mode === 'EXAM' && attempt.expiresAt) {
+    // Server-render timestamp is required to hand the runner an accurate countdown.
+    // eslint-disable-next-line react-hooks/purity
     remaining = Math.max(0, Math.floor((attempt.expiresAt.getTime() - Date.now()) / 1000));
   }
 

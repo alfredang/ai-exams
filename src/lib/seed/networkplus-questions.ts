@@ -39,7 +39,6 @@ const SEC = 'Network Security';
 const TROUBLE = 'Network Troubleshooting';
 
 const REF_OBJ = { label: 'CompTIA — Network+ (N10-009) Certification', url: 'https://www.comptia.org/certifications/network' };
-const REF_OBJ_DL = { label: 'CompTIA — Network+ exam objectives', url: 'https://www.comptia.org/explore-careers/network-engineer' };
 const REF_RFC1918 = { label: 'RFC 1918 — Address Allocation for Private Internets', url: 'https://www.rfc-editor.org/rfc/rfc1918' };
 const REF_RFC4632 = { label: 'RFC 4632 — CIDR Address Strategy', url: 'https://www.rfc-editor.org/rfc/rfc4632' };
 const REF_RFC791 = { label: 'RFC 791 — Internet Protocol', url: 'https://www.rfc-editor.org/rfc/rfc791' };

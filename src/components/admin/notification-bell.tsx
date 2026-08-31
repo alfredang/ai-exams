@@ -31,6 +31,8 @@ export function NotificationBell() {
   }
 
   useEffect(() => {
+    // Fetching is the external synchronization performed by this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
     const t = setInterval(refresh, 60_000);
     return () => clearInterval(t);

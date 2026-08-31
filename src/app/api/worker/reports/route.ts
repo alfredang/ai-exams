@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       });
       await db.reportSubscription.update({ where: { id: sub.id }, data: { lastSentAt: new Date() } });
       sent++;
-    } catch (err: any) {
+    } catch {
       // Continue; per-sub failure shouldn't stop the batch.
     }
   }

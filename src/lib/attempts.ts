@@ -1,4 +1,4 @@
-import { Question, QType } from '@prisma/client';
+import { Question } from '@prisma/client';
 
 export type ResponseEntry = { answer: string[]; flagged?: boolean; timeSpent?: number };
 export type Responses = Record<string, ResponseEntry>;

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Row checkboxes are associated to the bulk form via the `form="<id>"`
 // attribute, so they live OUTSIDE the <form> element (e.g. in the table).
@@ -139,8 +139,7 @@ export function SelectAllMatchingBanner({
   totalCount: number;
   checkboxName?: string;
 }) {
-  const [, force] = useReducer((x: number) => x + 1, 0);
-  const stateRef = useRef<{ allOnPage: boolean; matchAll: boolean }>({
+  const [selectionState, setSelectionState] = useState<{ allOnPage: boolean; matchAll: boolean }>({
     allOnPage: false,
     matchAll: false
   });
@@ -152,11 +151,11 @@ export function SelectAllMatchingBanner({
     const boxes = getBoxes(form, checkboxName);
     const checked = boxes.filter((b) => b.checked).length;
     const allOnPage = boxes.length > 0 && checked === boxes.length;
-    const s = stateRef.current;
-    if (s.allOnPage !== allOnPage || s.matchAll !== matchAll) {
-      stateRef.current = { allOnPage, matchAll };
-      force();
-    }
+    setSelectionState((current) =>
+      current.allOnPage === allOnPage && current.matchAll === matchAll
+        ? current
+        : { allOnPage, matchAll }
+    );
   }, checkboxName);
 
   // Nothing to do if there's only one page worth.
@@ -171,7 +170,7 @@ export function SelectAllMatchingBanner({
     hidden.name = 'selectAllMatching';
     hidden.value = '1';
     form.appendChild(hidden);
-    stateRef.current = { ...stateRef.current, matchAll: true };
+    setSelectionState((current) => ({ ...current, matchAll: true }));
     document.dispatchEvent(new Event(MATCHING_EVENT));
   };
 
@@ -183,12 +182,12 @@ export function SelectAllMatchingBanner({
     boxes.forEach((b) => {
       b.checked = false;
     });
-    stateRef.current = { allOnPage: false, matchAll: false };
+    setSelectionState({ allOnPage: false, matchAll: false });
     if (boxes[0]) boxes[0].dispatchEvent(new Event('change', { bubbles: true }));
     document.dispatchEvent(new Event(MATCHING_EVENT));
   };
 
-  const { allOnPage, matchAll } = stateRef.current;
+  const { allOnPage, matchAll } = selectionState;
 
   if (matchAll) {
     return (

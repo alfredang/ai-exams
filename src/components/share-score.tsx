@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { ShareButtons } from './share-buttons';
 import { Share2 } from 'lucide-react';
 
@@ -18,8 +18,11 @@ export function ShareScore({
   // reading it during render makes the server ('') and client (real origin)
   // produce different hrefs -> hydration mismatch. Start empty (matches the
   // server) and fill in the live origin post-hydration.
-  const [origin, setOrigin] = useState('');
-  useEffect(() => setOrigin(window.location.origin), []);
+  const origin = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => ''
+  );
   const url = `${origin}/results/${attemptId}/share`;
   const text = passed
     ? `I just scored ${score}% on ${examTitle} on Tertiary Exams!`

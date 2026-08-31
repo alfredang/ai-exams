@@ -33,7 +33,7 @@ export function TestPaymentButton(props: Props) {
       }
       const j = await r.json().catch(() => ({}));
       router.push(j?.orderId ? `/checkout/success?orderId=${j.orderId}` : '/checkout/success');
-    } catch (e) {
+    } catch {
       setErr('Network error');
       setLoading(false);
     }

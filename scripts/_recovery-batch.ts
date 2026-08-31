@@ -11,7 +11,6 @@ import { writeFileSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const PDF_DIR = 'practice-exams-pdfs-20260508-142418';
-const PRICING = { practice: 2900, bundle: 17900, voucher: 14900 };
 
 type Cfg = {
   pdfFile: string;

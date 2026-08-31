@@ -63,7 +63,6 @@ const REF_ENROLL_ANDROID = { label: 'Microsoft Learn — Enrollment options for 
 const REF_ANDROID_FULLY = { label: 'Microsoft Learn — Set up Intune enrollment of Android Enterprise fully managed devices', url: 'https://learn.microsoft.com/en-us/mem/intune/enrollment/android-fully-managed-enroll' };
 const REF_ANDROID_DEDICATED = { label: 'Microsoft Learn — Set up Intune enrollment of Android Enterprise dedicated devices', url: 'https://learn.microsoft.com/en-us/mem/intune/enrollment/android-kiosk-enroll' };
 const REF_ANDROID_WORK = { label: 'Microsoft Learn — Set up Intune enrollment of Android Enterprise personally-owned work profile devices', url: 'https://learn.microsoft.com/en-us/mem/intune/enrollment/android-work-profile-enroll' };
-const REF_BULK_ENROLL = { label: 'Microsoft Learn — Use Apple Configurator to enroll iOS/iPadOS devices', url: 'https://learn.microsoft.com/en-us/mem/intune/enrollment/apple-configurator-enroll-ios' };
 const REF_AUTOPILOT = { label: 'Microsoft Learn — Windows Autopilot overview', url: 'https://learn.microsoft.com/en-us/autopilot/windows-autopilot' };
 const REF_AUTOPILOT_DEVICE_UP = { label: 'Microsoft Learn — Windows Autopilot user-driven mode', url: 'https://learn.microsoft.com/en-us/autopilot/user-driven' };
 const REF_AUTOPILOT_SELFDEPLOY = { label: 'Microsoft Learn — Windows Autopilot self-deploying mode', url: 'https://learn.microsoft.com/en-us/autopilot/self-deploying' };

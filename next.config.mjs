@@ -1,7 +1,19 @@
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const handlebarsBrowserBuild = require.resolve('handlebars/dist/cjs/handlebars.js');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   experimental: { serverActions: { bodySizeLimit: '2mb' } },
+  webpack(config) {
+    // The package's Node entry registers require.extensions for .hbs files,
+    // which webpack cannot support. The CJS browser build includes the same
+    // compiler/runtime API without that Node-only registration side effect.
+    config.resolve.alias.handlebars = handlebarsBrowserBuild;
+    return config;
+  },
   async redirects() {
     return [
       // The app uses OTP-based password reset (/forgot-password issues

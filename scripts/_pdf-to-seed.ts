@@ -268,8 +268,12 @@ function parseBlockRaw(block: string, defaultDomain: string): Q | null {
       const ro = uniqueOpts.find(u => u.id === o.id);
       return o.isCorrect && ro && ro.lineLeadingSpaces > 0;
     });
-    if (lineStartCorrect) correct.length = 0, correct.push(lineStartCorrect.id);
-    else correct.length = 1;
+    if (lineStartCorrect) {
+      correct.length = 0;
+      correct.push(lineStartCorrect.id);
+    } else {
+      correct.length = 1;
+    }
   }
 
   // Reasonable explanation: just use the first 1500 chars of the explanation

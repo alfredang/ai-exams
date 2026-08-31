@@ -54,7 +54,6 @@ const R_VERTEX = { label: 'Google Cloud — Introduction to Vertex AI', url: 'ht
 const R_BQML = { label: 'Google Cloud — Introduction to BigQuery ML', url: 'https://cloud.google.com/bigquery/docs/bqml-introduction' };
 const R_BQML_CREATE = { label: 'Google Cloud — The CREATE MODEL statement', url: 'https://cloud.google.com/bigquery/docs/reference/standard-sql/bigqueryml-syntax-create' };
 const R_AUTOML = { label: 'Google Cloud — AutoML on Vertex AI', url: 'https://cloud.google.com/vertex-ai/docs/training/automl-models' };
-const R_VISION = { label: 'Google Cloud — Cloud Vision API', url: 'https://cloud.google.com/vision/docs' };
 const R_NL = { label: 'Google Cloud — Natural Language API', url: 'https://cloud.google.com/natural-language/docs' };
 const R_SPEECH = { label: 'Google Cloud — Speech-to-Text', url: 'https://cloud.google.com/speech-to-text/docs' };
 const R_TRANSLATE = { label: 'Google Cloud — Cloud Translation', url: 'https://cloud.google.com/translate/docs' };

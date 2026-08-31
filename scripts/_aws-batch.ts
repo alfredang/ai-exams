@@ -143,7 +143,6 @@ const FAMILIES: Record<string, FamilyMeta> = {
   }
 };
 
-const PRICING = { practice: 2900, bundle: 17900, voucher: 14900 };
 
 type Job = {
   pdfFile: string;

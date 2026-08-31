@@ -45,7 +45,6 @@ const NET = 'Network and Communications Security';
 const SYS = 'Systems and Application Security';
 
 const REF_OUTLINE = { label: 'ISC2 — SSCP Exam Outline', url: 'https://www.isc2.org/certifications/sscp/sscp-certification-exam-outline' };
-const REF_SSCP = { label: 'ISC2 — Systems Security Certified Practitioner (SSCP)', url: 'https://www.isc2.org/certifications/sscp' };
 const REF_ETHICS = { label: 'ISC2 — Code of Ethics', url: 'https://www.isc2.org/ethics' };
 const REF_800_53 = { label: 'NIST SP 800-53 Rev. 5 — Security and Privacy Controls', url: 'https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final' };
 const REF_800_61 = { label: 'NIST SP 800-61 — Computer Security Incident Handling Guide', url: 'https://csrc.nist.gov/pubs/sp/800/61/r2/final' };

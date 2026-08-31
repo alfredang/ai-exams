@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const ok = await argon2.verify(user.passwordHash, body.password);
     if (!ok) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
 
-    const { passwordHash: _, active: __, emailVerified: ___, ...safeUser } = user;
+    const safeUser = { id: user.id, email: user.email, name: user.name, role: user.role };
     return NextResponse.json({ token: issueMobileToken(safeUser), user: safeUser });
   } catch (error) {
     return mobileError(error);

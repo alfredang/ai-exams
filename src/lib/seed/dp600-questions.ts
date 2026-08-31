@@ -38,8 +38,6 @@ const PREP = 'Prepare and Serve Data';
 const MODEL = 'Implement and Manage Semantic Models';
 const EXPLORE = 'Explore and Analyze Data';
 
-const REF_STUDY = { label: 'Microsoft Learn — Exam DP-600 study guide', url: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-600' };
-const REF_FABRIC = { label: 'Microsoft Learn — What is Microsoft Fabric?', url: 'https://learn.microsoft.com/en-us/fabric/get-started/microsoft-fabric-overview' };
 const REF_WORKSPACE = { label: 'Microsoft Learn — Workspaces in Microsoft Fabric', url: 'https://learn.microsoft.com/en-us/fabric/fundamentals/workspaces' };
 const REF_ADMIN = { label: 'Microsoft Learn — Microsoft Fabric admin overview', url: 'https://learn.microsoft.com/en-us/fabric/admin/admin-overview' };
 const REF_CAPACITY = { label: 'Microsoft Learn — Microsoft Fabric capacity', url: 'https://learn.microsoft.com/en-us/fabric/enterprise/licenses' };

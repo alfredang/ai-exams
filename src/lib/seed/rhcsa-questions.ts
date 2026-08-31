@@ -41,8 +41,6 @@ const DEPLOY = 'Deploy, Configure, and Maintain Systems';
 const USERS = 'Manage Users and Groups';
 const SECURITY = 'Manage Security';
 
-const REF_EX200 = { label: 'Red Hat — EX200 RHCSA Exam Objectives', url: 'https://www.redhat.com/en/services/training/ex200-red-hat-certified-system-administrator-rhcsa-exam' };
-const REF_RHEL9 = { label: 'Red Hat — RHEL 9 Product Documentation', url: 'https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9' };
 const REF_SHELL = { label: 'RHEL 9 — Configuring basic system settings', url: 'https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/configuring_basic_system_settings/index' };
 const REF_SYSTEMD = { label: 'RHEL 9 — Managing systemd services', url: 'https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/configuring_basic_system_settings/managing-systemd_configuring-basic-system-settings' };
 const REF_BOOT = { label: 'RHEL 9 — Managing the boot process / rescue & emergency targets', url: 'https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_monitoring_and_updating_the_kernel/index' };

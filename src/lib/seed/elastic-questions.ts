@@ -52,7 +52,6 @@ const REF_BULK = { label: 'Elasticsearch Reference — Bulk API', url: 'https://
 const REF_REINDEX = { label: 'Elasticsearch Reference — Reindex API', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-reindex.html' };
 const REF_UBQ = { label: 'Elasticsearch Reference — Update By Query API', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-update-by-query.html' };
 const REF_ALIAS = { label: 'Elasticsearch Reference — Aliases', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/aliases.html' };
-const REF_SHARDS = { label: 'Elasticsearch Reference — Size your shards', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/size-your-shards.html' };
 const REF_ILM = { label: 'Elasticsearch Reference — Index lifecycle management', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html' };
 const REF_SNAPSHOT = { label: 'Elasticsearch Reference — Snapshot and restore', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-restore.html' };
 const REF_QDSL = { label: 'Elasticsearch Reference — Query DSL', url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html' };

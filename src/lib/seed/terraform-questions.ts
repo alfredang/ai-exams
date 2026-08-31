@@ -71,7 +71,6 @@ const REF_IMPORT = { label: 'Terraform Docs — terraform import', url: 'https:/
 const REF_STATE_CMD = { label: 'Terraform Docs — terraform state', url: 'https://developer.hashicorp.com/terraform/cli/commands/state' };
 const REF_TAINT = { label: 'Terraform Docs — terraform taint', url: 'https://developer.hashicorp.com/terraform/cli/commands/taint' };
 const REF_WORKSPACES = { label: 'Terraform Docs — Workspaces', url: 'https://developer.hashicorp.com/terraform/language/state/workspaces' };
-const REF_PROVISIONERS = { label: 'Terraform Docs — Provisioners', url: 'https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax' };
 const REF_META = { label: 'Terraform Docs — Meta-Arguments', url: 'https://developer.hashicorp.com/terraform/language/meta-arguments/depends_on' };
 const REF_COUNT = { label: 'Terraform Docs — count', url: 'https://developer.hashicorp.com/terraform/language/meta-arguments/count' };
 const REF_FOREACH = { label: 'Terraform Docs — for_each', url: 'https://developer.hashicorp.com/terraform/language/meta-arguments/for_each' };
