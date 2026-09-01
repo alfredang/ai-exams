@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { Search } from 'lucide-react';
-import { matchesCatalogSearch } from '@/lib/catalog-search';
+import { bundleSearchAliases, matchesCatalogSearch } from '@/lib/catalog-search';
 
 // ISR: vendor-page bundle listings cache for 5 min. New publishes appear
 // shortly after; avoids fetching the entire bundle catalog on every visit.
@@ -50,6 +50,7 @@ export default async function VendorCatalogPage({
           vendor.name,
           bundle.title,
           bundle.description,
+          ...bundleSearchAliases(bundle.slug),
           ...bundle.items.flatMap((item) => [
             item.exam.vendor.name,
             item.exam.code,

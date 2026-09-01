@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
-import { matchesCatalogSearch } from '@/lib/catalog-search';
+import { bundleSearchAliases, matchesCatalogSearch } from '@/lib/catalog-search';
 
 const PAGE_SIZE = 9;
 
@@ -42,6 +42,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     if (q && !matchesCatalogSearch(q, [
       b.title,
       b.description,
+      ...bundleSearchAliases(b.slug),
       ...b.items.flatMap((item) => [
         item.exam.vendor.name,
         item.exam.vendor.slug,
