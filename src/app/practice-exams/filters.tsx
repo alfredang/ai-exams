@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import Link from 'next/link';
 
 type Vendor = { id: string; slug: string; name: string };
 
@@ -47,6 +48,9 @@ export function CatalogFilters({
         {levels.map(l => <option key={l} value={l}>{l}</option>)}
       </select>
       <button className="btn-primary">Filter</button>
+      {(q || vendor || level) && (
+        <Link href="/practice-exams" className="btn-secondary">Clear</Link>
+      )}
     </form>
   );
 }

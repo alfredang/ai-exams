@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
-import { bundleSearchAliases, matchesCatalogSearch } from '@/lib/catalog-search';
+import { bundleSearchAliases, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
 
 const PAGE_SIZE = 9;
 
@@ -54,6 +54,13 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     ])) return false;
     return true;
   });
+  const suggestions = q && allBundles.length === 0
+    ? catalogSearchSuggestions(q, allBundlesRaw.flatMap((bundle) => [
+        bundle.title,
+        ...bundleSearchAliases(bundle.slug),
+        ...bundle.items.flatMap((item) => [item.exam.vendor.name, item.exam.code, item.exam.title])
+      ]))
+    : [];
 
   // Bundle-only catalog: no standalone exam cards.
   type Card = { kind: 'bundle'; data: (typeof allBundles)[number] };
@@ -92,11 +99,14 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           return (
             <Link key={`b-${b.id}`} href={firstItem ? `/practice-exams/${firstItem.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                {firstItem && <span className="badge">{firstItem.vendor.name}</span>}
-                {firstItem && <span className="badge">{firstItem.code}</span>}
+                {firstItem && <span className="badge"><HighlightedText text={firstItem.vendor.name} query={q} /></span>}
+                {firstItem && <span className="badge"><HighlightedText text={firstItem.code} query={q} /></span>}
                 {firstItem && <span className="badge">{firstItem.level}</span>}
               </div>
-              <h3 className="font-semibold">{b.title}</h3>
+              <h3 className="font-semibold"><HighlightedText text={b.title} query={q} /></h3>
+              {bundleSearchAliases(b.slug).filter(alias => matchesCatalogSearch(q, [alias])).map(alias => (
+                q && <p key={alias} className="mt-1 text-xs font-medium text-blue-700 dark:text-blue-300">Matched course code: <mark className="rounded bg-yellow-200 px-1 text-slate-950">{alias}</mark></p>
+              ))}
               <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="text-slate-500 dark:text-slate-400">{totalQuestions} questions · {practiceExamLabel(examCount)}</span>
@@ -105,7 +115,17 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
             </Link>
           );
         })}
-        {totalCount === 0 && <p className="text-slate-500">No bundles found.</p>}
+        {totalCount === 0 && (
+          <div className="md:col-span-2 lg:col-span-3 rounded-lg border border-slate-200 p-5 text-sm dark:border-slate-800">
+            <p className="font-medium">No practice-exam bundles found.</p>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">Try an exam name, certification code, vendor, or verified TGS/course code. Some training courses do not yet have a practice exam in this database.</p>
+            {suggestions.length > 0 && (
+              <p className="mt-3">Did you mean?{' '}{suggestions.map((suggestion, index) => (
+                <span key={suggestion}>{index > 0 && ', '}<Link className="text-blue-700 hover:underline dark:text-blue-300" href={`/practice-exams?q=${encodeURIComponent(suggestion)}`}>{suggestion}</Link></span>
+              ))}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {totalPages > 1 && (
@@ -118,6 +138,14 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       )}
     </div>
   );
+}
+
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const trimmed = query.trim();
+  if (!trimmed) return text;
+  const index = text.toLocaleLowerCase().indexOf(trimmed.toLocaleLowerCase());
+  if (index < 0) return text;
+  return <>{text.slice(0, index)}<mark className="rounded bg-yellow-200 px-0.5 text-slate-950">{text.slice(index, index + trimmed.length)}</mark>{text.slice(index + trimmed.length)}</>;
 }
 
 function Pagination({ page, totalPages, totalCount, searchParams }: {
