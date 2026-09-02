@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type Vendor = { id: string; slug: string; name: string };
 
@@ -19,7 +19,18 @@ export function CatalogFilters({
   levels: string[];
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   const submit = () => formRef.current?.requestSubmit();
+  const clear = () => {
+    const form = formRef.current;
+    if (form) {
+      for (const name of ['q', 'vendor', 'level']) {
+        const field = form.elements.namedItem(name);
+        if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) field.value = '';
+      }
+    }
+    router.push('/practice-exams');
+  };
 
   return (
     <form ref={formRef} className="mb-6 flex flex-wrap gap-2">
@@ -49,7 +60,7 @@ export function CatalogFilters({
       </select>
       <button className="btn-primary">Filter</button>
       {(q || vendor || level) && (
-        <Link href="/practice-exams" className="btn-secondary">Clear</Link>
+        <button type="button" onClick={clear} className="btn-secondary">Clear</button>
       )}
     </form>
   );
