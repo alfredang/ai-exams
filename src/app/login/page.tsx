@@ -28,7 +28,7 @@ function LoginInner() {
     const res = await signIn('password', { email, password, redirect: false });
     setBusy(false);
     if (res?.error) setErr('Invalid credentials or unverified email.');
-    else router.push(next);
+    else router.push(`/post-login?next=${encodeURIComponent(next)}`);
   }
 
   async function sendOtp() {
@@ -44,7 +44,7 @@ function LoginInner() {
     const res = await signIn('otp', { email, code, redirect: false });
     setBusy(false);
     if (res?.error) setErr('Invalid or expired code.');
-    else router.push(next);
+    else router.push(`/post-login?next=${encodeURIComponent(next)}`);
   }
 
   return (

@@ -47,8 +47,8 @@ export async function POST(req: Request) {
     const passwordHash = data.newPassword ? await argon2.hash(data.newPassword) : null;
     const user = await db.user.upsert({
       where: { email },
-      update: { emailVerified: new Date(), name: data.name ?? undefined, ...(passwordHash ? { passwordHash } : {}) },
-      create: { email, emailVerified: new Date(), name: data.name, passwordHash }
+      update: { emailVerified: new Date(), name: data.name?.trim() || undefined, ...(passwordHash ? { passwordHash, passwordSetupRequired: false } : {}) },
+      create: { email, emailVerified: new Date(), name: data.name?.trim() || undefined, passwordHash }
     });
 
     // Migrate any guest attempts associated with the gt cookie to this user
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     if (!data.newPassword) return NextResponse.json({ error: 'newPassword required' }, { status: 400 });
     const user = await db.user.findUnique({ where: { email } });
     if (!user) return NextResponse.json({ error: 'No such user' }, { status: 400 });
-    await db.user.update({ where: { id: user.id }, data: { passwordHash: await argon2.hash(data.newPassword) } });
+    await db.user.update({ where: { id: user.id }, data: { passwordHash: await argon2.hash(data.newPassword), passwordSetupRequired: false } });
     return NextResponse.json({ ok: true });
   }
 

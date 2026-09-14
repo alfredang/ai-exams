@@ -23,7 +23,7 @@ function VerifyOtpInner() {
       const res = await signIn('otp', { email, code, redirect: false });
       setBusy(false);
       if (res?.error) setErr('Invalid or expired code.');
-      else router.push(next);
+      else router.push(`/post-login?next=${encodeURIComponent(next)}`);
       return;
     }
     const r = await fetch('/api/otp/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, code, purpose }) });

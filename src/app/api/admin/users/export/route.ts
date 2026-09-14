@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import type { Prisma } from '@prisma/client';
+import { buildUserWhere } from '@/lib/admin-user-filters';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,26 +22,7 @@ export async function GET(req: Request) {
   const fromStr = (sp.get('from') || '').trim();
   const toStr = (sp.get('to') || '').trim();
 
-  const where: Prisma.UserWhereInput = { role: 'USER' };
-  if (q) {
-    where.OR = [
-      { email: { contains: q, mode: 'insensitive' } },
-      { name: { contains: q, mode: 'insensitive' } }
-    ];
-  }
-  if (status === 'active') where.active = true;
-  if (status === 'suspended') where.active = false;
-  if (status === 'anonymized') where.anonymizedAt = { not: null };
-  if (tagSlug) where.tags = { some: { tag: { slug: tagSlug } } };
-  const fromDate = fromStr ? new Date(fromStr) : null;
-  const toDate = toStr ? new Date(toStr) : null;
-  if (toDate) toDate.setHours(23, 59, 59, 999);
-  if ((fromDate && !isNaN(fromDate.getTime())) || (toDate && !isNaN(toDate.getTime()))) {
-    where.createdAt = {
-      ...(fromDate && !isNaN(fromDate.getTime()) ? { gte: fromDate } : {}),
-      ...(toDate && !isNaN(toDate.getTime()) ? { lte: toDate } : {})
-    };
-  }
+  const where = buildUserWhere({ q, status, tag: tagSlug, from: fromStr, to: toStr });
 
   const users = await db.user.findMany({
     where,

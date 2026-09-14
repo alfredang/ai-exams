@@ -7,16 +7,15 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GDPR data export — returns a single JSON document containing all rows
- * the platform holds about this user. Streams as `application/json`; the
- * admin or the user themselves can request it.
+ * the platform holds about this user. The admin proxy and route both require
+ * the stored ADMIN role. Credential material is omitted.
  */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   const me = session?.user as any;
   if (!me?.id) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (me.role !== 'ADMIN') return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   const { id } = await params;
-  const isAdmin = me.role !== 'USER';
-  if (!isAdmin && me.id !== id) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   const [user, orders, invoices, refunds, entitlements, attempts, notes, emails, consents] = await Promise.all([
     db.user.findUnique({ where: { id }, include: { billingAddresses: true, tags: { include: { tag: true } } } }),
@@ -33,14 +32,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const dump = {
     exportedAt: new Date().toISOString(),
-    user,
+    user: { ...user, passwordHash: undefined, totpSecret: undefined },
     orders,
     invoices,
     refunds,
     entitlements,
     attempts,
     notes,
-    emails,
+    emails: emails.map((email) => email.template?.startsWith('OTP_') ? { ...email, payloadVars: null } : email),
     consents
   };
 

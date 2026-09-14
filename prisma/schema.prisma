@@ -95,6 +95,7 @@ model User {
   active        Boolean   @default(true)
   nationality   String?
   emailVerified DateTime?
+  passwordSetupRequired Boolean @default(false)
   createdAt     DateTime  @default(now())
   attempts      Attempt[]
   entitlements  Entitlement[]

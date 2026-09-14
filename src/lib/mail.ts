@@ -276,7 +276,9 @@ async function logEmail(input: {
   try {
     const user = await db.user.findUnique({ where: { email: input.to.toLowerCase() }, select: { id: true } }).catch(() => null);
     // Truncate the vars payload to keep individual rows tame.
-    let payloadVars: any = input.meta?.vars ?? null;
+    // OTP codes are intentionally hashed in OtpCode; never persist the
+    // plaintext copy through email-template logging.
+    let payloadVars: any = input.meta?.template?.startsWith('OTP_') ? null : input.meta?.vars ?? null;
     if (payloadVars) {
       try {
         const json = JSON.stringify(payloadVars);

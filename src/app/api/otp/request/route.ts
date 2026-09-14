@@ -23,6 +23,6 @@ export async function POST(req: Request) {
   }
   const data = result.data;
   const r = await issueOtp(data.email, data.purpose, ip);
-  if (!r.ok) return NextResponse.json({ error: r.error }, { status: 429 });
+  if (!r.ok) return NextResponse.json({ error: r.error }, { status: 'deliveryFailed' in r ? 503 : 429 });
   return NextResponse.json({ ok: true });
 }

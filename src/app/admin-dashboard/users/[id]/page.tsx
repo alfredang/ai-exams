@@ -68,11 +68,12 @@ async function resendLoginOtp(formData: FormData) {
   // Reuse the public OTP issuer (writes the OtpCode + sends the email).
   // Use a synthetic IP so the per-IP rate limit doesn't reject admin-driven sends.
   const { issueOtp } = await import('@/lib/otp');
-  await issueOtp(user.email, 'LOGIN', `admin:${me.id}`).catch(() => {});
+  const result = await issueOtp(user.email, 'LOGIN', `admin:${me.id}`);
+  if (!result.ok) redirect(`/admin-dashboard/users/${id}?otp=failed`);
   await db.adminLog.create({
     data: { adminId: me.id, action: 'user.resend-login-otp', targetType: 'User', targetId: id, metadata: { email: user.email } }
   });
-  revalidatePath(`/admin-dashboard/users/${id}`);
+  redirect(`/admin-dashboard/users/${id}?otp=sent`);
 }
 
 async function anonymizeUser(formData: FormData) {
@@ -90,6 +91,7 @@ async function anonymizeUser(formData: FormData) {
       email: tag,
       name: null,
       passwordHash: null,
+      passwordSetupRequired: false,
       nationality: null,
       active: false,
       anonymizedAt: new Date(),
@@ -227,7 +229,7 @@ export default async function AdminUserDetailPage({
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; otp?: string }>;
 }) {
   const session = await auth();
   const me = session?.user as any;
@@ -307,6 +309,7 @@ export default async function AdminUserDetailPage({
   const subtitle = (
     <span className="inline-flex flex-wrap items-center gap-2">
       <Badge variant={user.active ? 'success' : 'danger'}>{user.active ? 'ACTIVE' : 'SUSPENDED'}</Badge>
+      {!user.emailVerified && !user.anonymizedAt && <Badge variant="muted">EMAIL UNVERIFIED</Badge>}
       {user.anonymizedAt && <Badge variant="muted">ANONYMIZED</Badge>}
       <Badge variant={user.role === 'ADMIN' ? 'info' : 'muted'}>{user.role}</Badge>
       <span>· joined {user.createdAt.toLocaleDateString()}</span>
@@ -322,6 +325,12 @@ export default async function AdminUserDetailPage({
         subtitle={subtitle}
         back={{ href: '/admin-dashboard/users', label: 'Back to users' }}
       />
+
+      {(sp.otp === 'sent' || sp.otp === 'failed') && (
+        <p role="status" className={`mb-4 rounded-md p-3 text-sm ${sp.otp === 'sent' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'}`}>
+          {sp.otp === 'sent' ? 'Login code sent to the user.' : 'Could not send a login code. Check email delivery or try again later.'}
+        </p>
+      )}
 
       {/* Tag chips + add */}
       <div className="card mb-4 flex flex-wrap items-center gap-2 p-3">

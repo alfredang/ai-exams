@@ -7,13 +7,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const session = await auth();
   const userId = (session?.user as any)?.id;
+  const isAdmin = (session?.user as any)?.role === 'ADMIN';
   if (!userId) return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
 
   const ent = await db.entitlement.findUnique({
     where: { id },
     include: { exam: { include: { vendor: true } }, user: true }
   });
-  if (!ent || ent.userId !== userId || !ent.voucher) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!ent || (!isAdmin && ent.userId !== userId) || !ent.voucher) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const pdf = await renderVoucherPdf({
     examTitle: ent.exam.title,

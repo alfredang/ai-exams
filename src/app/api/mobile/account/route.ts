@@ -19,6 +19,7 @@ export async function DELETE(req: Request) {
       email: tag,
       name: null,
       passwordHash: null,
+      passwordSetupRequired: false,
       nationality: null,
       active: false,
       anonymizedAt: new Date(),

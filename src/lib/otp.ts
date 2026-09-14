@@ -21,7 +21,7 @@ export async function issueOtp(email: string, purpose: OtpPurpose, ip: string) {
   });
 
   const code = String(Math.floor(100000 + Math.random() * 900000));
-  await db.otpCode.create({
+  const otp = await db.otpCode.create({
     data: {
       email: email.toLowerCase().trim(),
       codeHash: await argon2.hash(code),
@@ -29,7 +29,12 @@ export async function issueOtp(email: string, purpose: OtpPurpose, ip: string) {
       expiresAt: new Date(Date.now() + 10 * 60_000)
     }
   });
-  await sendOTPEmail(email, code, purpose).catch(() => {});
+  try {
+    await sendOTPEmail(email, code, purpose);
+  } catch {
+    await db.otpCode.update({ where: { id: otp.id }, data: { consumed: true } });
+    return { ok: false as const, error: 'Could not send the email code. Please try again later.', deliveryFailed: true as const };
+  }
   return { ok: true as const };
 }
 
