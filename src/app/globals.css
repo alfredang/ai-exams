@@ -53,6 +53,8 @@
   h1, h2, h3 { @apply font-display; text-wrap: balance; }
   :focus-visible { outline: 3px solid theme('colors.brand.500'); outline-offset: 2px; }
   ::selection { @apply bg-brand-200 text-ink dark:bg-brand-700 dark:text-white; }
+  input[type="date"] { color-scheme: light; }
+  .dark input[type="date"] { color-scheme: dark; }
 }
 
 @layer components {
