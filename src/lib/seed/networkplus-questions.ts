@@ -2011,7 +2011,7 @@ const NETWORKPLUS_BUNDLE = {
   title: 'CompTIA Network+ (N10-009)',
   description: 'All 3 CompTIA Network+ (N10-009) practice exams in one bundle — covering networking concepts, network implementation, network operations, network security, and network troubleshooting, aligned to the published N10-009 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
-  priceVoucher: 36900 // USD 369 — PRACTICE + real-exam voucher tier
+  priceVoucher: 39900 // USD 399 — PRACTICE + real-exam voucher tier
 };
 
 type SeedResult = {

@@ -126,6 +126,11 @@ Tertiary Exams covers **12 vendors** and **195+ practice exams** across cloud, s
 | SK0-005 | CompTIA Server+ | Associate |
 | XK0-005 | CompTIA Linux+ | Associate |
 | CS0-004 | CompTIA CySA+ (V4) | Professional |
+| PK0-005 | CompTIA Project+ | Associate |
+| PT0-003 | CompTIA PenTest+ | Advanced |
+| CAS-005 | CompTIA SecurityX | Expert |
+
+CompTIA voucher-tier bundle prices track CompTIA's official exam-voucher list price (USD, before GST) — e.g. Security+ / CySA+ / PenTest+ 439, SecurityX 544, Network+/Cloud+/Linux+/Server+/Project+ 399, A+ 274 (per core), Data+ 264.
 
 ### Google Cloud
 

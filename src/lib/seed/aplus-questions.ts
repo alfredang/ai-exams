@@ -2291,7 +2291,7 @@ const APLUS_BUNDLE = {
   title: 'CompTIA A+ (220-1101 / 220-1102)',
   description: 'All 3 CompTIA A+ practice exams in one bundle — covering hardware, networking, mobile devices & virtualization, operating systems, security, and software & operational troubleshooting, aligned to the published CompTIA A+ Core 1 (220-1101) and Core 2 (220-1102) exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
-  priceVoucher: 26300 // USD 263 — VOUCHER tier
+  priceVoucher: 27400 // USD 274 — VOUCHER tier
 };
 
 type SeedResult = {

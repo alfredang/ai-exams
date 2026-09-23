@@ -2326,7 +2326,7 @@ const PROJECT_PLUS_BUNDLE = {
   title: 'CompTIA Project+ (PK0-005)',
   description: 'All 3 CompTIA Project+ (PK0-005) practice exams in one bundle — covering project management concepts, project life cycle phases, tools & documentation, and the basics of IT & governance, aligned to the CompTIA Project+ exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
-  priceVoucher: 25000 // USD 250 — VOUCHER tier
+  priceVoucher: 39900 // USD 399 — VOUCHER tier
 };
 
 type SeedResult = {

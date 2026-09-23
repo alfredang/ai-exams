@@ -2600,7 +2600,7 @@ const SECURITYPLUS_BUNDLE = {
   title: 'CompTIA Security+ (SY0-701)',
   description: 'All 3 CompTIA Security+ (SY0-701) practice exams in one bundle — covering general security concepts, threats/vulnerabilities/mitigations, security architecture, security operations, and security program management & oversight, aligned to the published SY0-701 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
-  priceVoucher: 40400 // USD 404 — PRACTICE + real-exam voucher tier
+  priceVoucher: 43900 // USD 439 — PRACTICE + real-exam voucher tier (CompTIA list price)
 };
 
 type SeedResult = {
