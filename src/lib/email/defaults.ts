@@ -1,4 +1,5 @@
 import type { EmailTemplateKey } from '@prisma/client';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export type TemplateDefinition = {
   subject: string;
@@ -52,7 +53,7 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       voucherPending: true,
       invoiceNumber: 'INV-2026-00042',
       user: { name: 'Alex', email: 'alex@example.com' },
-      order: { id: 'ord_abc123', amount: 9900, currency: 'SGD' }
+      order: { id: 'ord_abc123', amount: 9900, currency: STORE_CURRENCY }
     }
   },
   VOUCHER_DELIVERY: {

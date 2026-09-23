@@ -5,6 +5,8 @@ import { auth } from '@/lib/auth';
 import { buildSgqrPayload, getMerchantConfig, isEnabled, renderQrDataUrl } from '@/lib/payments/paynow';
 import { nextNumber } from '@/lib/numbering';
 import { evaluateCoupon, recordCouponRedemption } from '@/lib/coupons';
+import { getSetting } from '@/lib/settings';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export const runtime = 'nodejs';
 
@@ -65,6 +67,14 @@ export async function POST(req: Request) {
     amount = Math.max(0, amount - discount);
   }
 
+  // Catalogue prices are in STORE_CURRENCY (USD) but SGQR can only carry SGD,
+  // so convert at the admin-configured rate. Refuse rather than guess a rate.
+  const fxBps = Number((await getSetting('FX_TO_SGD_USD_BPS')) || 0);
+  if (!(fxBps > 0)) return NextResponse.json({ error: 'paynow-fx-not-configured' }, { status: 500 });
+  const storeAmount = amount;
+  amount = Math.round((amount * fxBps) / 10000);
+  discount = Math.round((discount * fxBps) / 10000);
+
   const number = await nextNumber('ORDER', 'ORD');
   const order = await db.$transaction(async (tx) => {
     const created = await tx.order.create({
@@ -107,6 +117,9 @@ export async function POST(req: Request) {
     orderId: order.id,
     amount,
     currency: 'SGD',
+    storeAmount,
+    storeCurrency: STORE_CURRENCY,
+    fxRateBps: fxBps,
     reference: order.id,
     sgqr: payload,
     qrDataUrl: dataUrl

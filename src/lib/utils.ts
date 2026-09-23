@@ -1,10 +1,11 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { Tier } from '@prisma/client';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
-export function formatPrice(cents: number, currency = 'SGD') {
+export function formatPrice(cents: number, currency = STORE_CURRENCY) {
   if (cents === 0) return 'Free';
   if (currency.toUpperCase() === 'SGD') {
     const amount = new Intl.NumberFormat('en-SG', {

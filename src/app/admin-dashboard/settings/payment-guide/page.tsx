@@ -166,7 +166,7 @@ export default async function PaymentGuidePage() {
           <StatusRow items={hitpayStatus} />
         </div>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Charges in <b>SGD</b>. Redirect checkout supporting cards, PayNow, GrabPay, and Apple Pay — the best fit for Singapore buyers.
+          Charges in <b>USD</b> (the store currency). Redirect checkout for cards and Apple Pay; SGD-only wallets such as PayNow and GrabPay are not offered for USD payments.
         </p>
         <ol className="mt-4 space-y-4">
           <Step n={1} title="Register and complete verification">

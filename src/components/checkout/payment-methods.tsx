@@ -25,7 +25,7 @@ export function usePaymentMethods() {
 const META: Record<MethodId, { label: string; detail: string; icon: typeof CreditCard }> = {
   PAYPAL: { label: 'PayPal', detail: 'PayPal balance or credit / debit card', icon: Wallet },
   STRIPE: { label: 'Card via Stripe', detail: 'Card, Apple Pay, Google Pay', icon: CreditCard },
-  HITPAY: { label: 'HitPay', detail: 'Card, PayNow, GrabPay, Apple Pay', icon: Landmark },
+  HITPAY: { label: 'HitPay', detail: 'Credit / debit card, Apple Pay', icon: Landmark },
   PAYNOW: { label: 'PayNow QR', detail: 'Scan with any Singapore banking app', icon: QrCode }
 };
 

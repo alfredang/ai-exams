@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSetting } from '@/lib/settings';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export async function GET() {
   const [paypal, hitpay, paynow, stripe, paypalClient] = await Promise.all([
@@ -14,12 +15,12 @@ export async function GET() {
   const paypalOn = paypal === 'true' || (paypal === '' && !!paypalClient);
   return NextResponse.json({
     methods: [
-      // All public catalogue prices and new checkout orders are denominated
-      // in Singapore dollars so the displayed amount matches the charge.
-      { id: 'PAYPAL', enabled: paypalOn, currency: 'SGD' },
-      { id: 'HITPAY', enabled: hitpay === 'true', currency: 'SGD' },
+      // Catalogue prices are in STORE_CURRENCY (USD) and card providers charge
+      // in it. PayNow can only carry SGD, so it converts at the admin FX rate.
+      { id: 'PAYPAL', enabled: paypalOn, currency: STORE_CURRENCY },
+      { id: 'HITPAY', enabled: hitpay === 'true', currency: STORE_CURRENCY },
       { id: 'PAYNOW', enabled: paynow === 'true', currency: 'SGD' },
-      { id: 'STRIPE', enabled: stripe === 'true', currency: 'SGD' }
+      { id: 'STRIPE', enabled: stripe === 'true', currency: STORE_CURRENCY }
     ],
     // The PayPal JS SDK needs the client id in the browser. It's a public
     // (non-secret) value; serving the admin-configured one here means the

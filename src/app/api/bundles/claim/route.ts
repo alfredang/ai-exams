@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { fulfillOrder } from '@/lib/fulfill';
 import { nextNumber } from '@/lib/numbering';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 const Body = z.object({ bundleId: z.string() });
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       userId,
       bundleId,
       amount: 0,
-      currency: 'SGD',
+      currency: STORE_CURRENCY,
       status: 'PENDING',
       paypalOrderId: syntheticPaypalId
     }

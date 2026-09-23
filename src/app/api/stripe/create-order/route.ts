@@ -6,6 +6,7 @@ import { nextNumber } from '@/lib/numbering';
 import { evaluateCoupon, recordCouponRedemption } from '@/lib/coupons';
 import { getSetting } from '@/lib/settings';
 import Stripe from 'stripe';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export const runtime = 'nodejs';
 
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   let amount: number;
-  const currency = 'SGD';
+  const currency = STORE_CURRENCY;
   let orderTier: 'PRACTICE' | 'VOUCHER' | null = null;
   let vendorIdForCoupon: string | null = null;
 

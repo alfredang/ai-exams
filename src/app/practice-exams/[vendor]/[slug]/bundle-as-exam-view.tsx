@@ -3,6 +3,7 @@ import { Check, Timer, BookOpen, Award, BookOpenCheck, Hourglass } from 'lucide-
 import { BundleBuyForm } from './bundle-buy-form';
 import { practiceItems, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 type BundleItem = {
   id: string;
@@ -73,7 +74,7 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
       '@type': 'Offer',
       name: option.label,
       url: `${PUBLIC_SITE_URL}/checkout/bundle/${bundle.id}?tier=${option.tier}`,
-      priceCurrency: 'SGD',
+      priceCurrency: STORE_CURRENCY,
       price: (option.price / 100).toFixed(2),
       availability: 'https://schema.org/InStock'
     }))

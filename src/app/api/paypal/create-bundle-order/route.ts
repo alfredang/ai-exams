@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth';
 import { createOrder } from '@/lib/paypal';
 import { nextNumber } from '@/lib/numbering';
 import { evaluateCoupon, recordCouponRedemption } from '@/lib/coupons';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 const Body = z.object({
   bundleId: z.string(),
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
   }
   const amount = Math.max(0, subtotal - discount);
 
-  const paypal = await createOrder(amount, 'SGD', `bundle:${bundleId}${orderTier ? `:${orderTier}` : ''}`);
+  const paypal = await createOrder(amount, STORE_CURRENCY, `bundle:${bundleId}${orderTier ? `:${orderTier}` : ''}`);
   const number = await nextNumber('ORDER', 'ORD');
   const order = await db.$transaction(async (tx) => {
     const created = await tx.order.create({
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
         bundleId,
         tier: orderTier,
         amount,
-        currency: 'SGD',
+        currency: STORE_CURRENCY,
         status: 'PENDING',
         provider: 'PAYPAL',
         paypalOrderId: paypal.id,

@@ -15,6 +15,7 @@ import { auth } from '@/lib/auth';
 import { fulfillOrder } from '@/lib/fulfill';
 import { nextNumber } from '@/lib/numbering';
 import type { Tier } from '@prisma/client';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 const Body = z.object({
   kind: z.literal('bundle'),
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
       bundleId: body.bundleId,
       tier: tier as Tier,
       amount,
-      currency: 'SGD',
+      currency: STORE_CURRENCY,
       status: 'PENDING',
       paypalOrderId: testId
     }

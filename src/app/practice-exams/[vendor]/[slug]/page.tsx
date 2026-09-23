@@ -9,6 +9,7 @@ import { getExamRatingSummary } from '@/lib/reviews';
 import { ShareExam } from '@/components/share-exam';
 import { ExamBundleCTA } from '@/components/exam-bundle-cta';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { slug } = await params;
@@ -141,7 +142,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
       '@type': 'Offer',
       name: 'Practice Exam',
       url: `${checkoutUrl}?tier=PRACTICE`,
-      priceCurrency: 'SGD',
+      priceCurrency: STORE_CURRENCY,
       price: (bundle.price / 100).toFixed(2),
       availability: 'https://schema.org/InStock'
     }];
@@ -150,7 +151,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
         '@type': 'Offer',
         name: 'Exam Voucher with practice exams',
         url: `${checkoutUrl}?tier=VOUCHER`,
-        priceCurrency: 'SGD',
+        priceCurrency: STORE_CURRENCY,
         price: (bundle.priceVoucher / 100).toFixed(2),
         availability: 'https://schema.org/InStock'
       });

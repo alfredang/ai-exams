@@ -2,6 +2,7 @@ import { createSign } from 'node:crypto';
 import nodemailer, { type Transporter } from 'nodemailer';
 import { getAllSettings } from './settings';
 import { db } from './db';
+import { STORE_CURRENCY } from '@/lib/currency';
 
 export type TransportKind = 'GMAIL_OAUTH' | 'GMAIL_SERVICE_ACCOUNT' | 'SMTP';
 
@@ -352,7 +353,7 @@ export async function sendPurchaseEmail(
       voucherCode,
       voucherPending: !!voucherPending,
       paymentMethod: extras?.paymentMethod ?? 'PayPal',
-      order: extras?.order ?? { id: '', amount: 0, currency: 'SGD' },
+      order: extras?.order ?? { id: '', amount: 0, currency: STORE_CURRENCY },
       user: extras?.user ?? { name: '', email: to },
       invoiceNumber: invoice?.invoiceNumber ?? null
     },
