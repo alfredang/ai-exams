@@ -39,10 +39,73 @@ function WhatsAppGlyph({ className }: { className?: string }) {
   );
 }
 
+/**
+ * Friendly support avatar for the chat launcher: a smiling agent with a
+ * headset, rosy cheeks and blinking eyes. Decorative (aria-hidden) — the
+ * button around it carries the label.
+ */
+function SupportAvatar({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id="wa-avatar-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#e0ecff" />
+          <stop offset="100%" stopColor="#9cc0ff" />
+        </linearGradient>
+      </defs>
+      <circle cx="32" cy="32" r="32" fill="url(#wa-avatar-bg)" />
+      {/* shirt + neck */}
+      <path d="M11 64c2-11 10-17 21-17s19 6 21 17z" fill="#1d5bf0" />
+      <path d="M26 47.5c2 2.2 4 3.2 6 3.2s4-1 6-3.2" fill="none" stroke="#bcd3ff" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="28" y="40" width="8" height="8" rx="3.5" fill="#f3c3a0" />
+      {/* face */}
+      <circle cx="32" cy="30" r="15" fill="#ffdcc2" />
+      {/* hair */}
+      <path d="M17 30.5C16.4 19.6 23.4 13 32 13s15.6 6.6 15 17.5c-1.6-4.6-4.8-7.6-9-8.6-2.4 3.2-7.6 5.2-13.6 5.2-3.2 0-5.6 1.2-7.4 3.4z" fill="#3a2a22" />
+      {/* eyes (blink) */}
+      <g className="motion-safe:animate-blink [transform-box:fill-box] [transform-origin:center]">
+        <ellipse cx="26" cy="31.5" rx="2.3" ry="2.8" fill="#1b2433" />
+        <ellipse cx="38" cy="31.5" rx="2.3" ry="2.8" fill="#1b2433" />
+        <circle cx="26.9" cy="30.4" r="0.85" fill="#fff" />
+        <circle cx="38.9" cy="30.4" r="0.85" fill="#fff" />
+      </g>
+      {/* cheeks + smile */}
+      <ellipse cx="22.2" cy="36.4" rx="2.6" ry="1.6" fill="#ff9fb3" opacity="0.75" />
+      <ellipse cx="41.8" cy="36.4" rx="2.6" ry="1.6" fill="#ff9fb3" opacity="0.75" />
+      <path d="M27.6 37.2q4.4 4.6 8.8 0" fill="none" stroke="#8a3b1e" strokeWidth="1.7" strokeLinecap="round" />
+      {/* headset */}
+      <path d="M15.6 31a16.4 16.4 0 0 1 32.8 0" fill="none" stroke="#15306a" strokeWidth="2.6" strokeLinecap="round" />
+      <rect x="12.6" y="27" width="5.6" height="10" rx="2.8" fill="#15306a" />
+      <rect x="45.8" y="27" width="5.6" height="10" rx="2.8" fill="#15306a" />
+      <path d="M16 36.5c1 5.6 5 8.4 10.4 8.4" fill="none" stroke="#15306a" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="27" cy="44.9" r="2" fill="#25D366" />
+    </svg>
+  );
+}
+
+const GREETING_KEY = 'wa-greeting-dismissed';
+
 export function WhatsAppWidget() {
   const pathname = usePathname() || '/';
   const [open, setOpen] = useState(false);
+  const [greet, setGreet] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // A small "Hi there" bubble pops out once per browser session, then hides
+  // itself; dismissing or opening the chat keeps it away for the session.
+  useEffect(() => {
+    let dismissed = false;
+    try { dismissed = sessionStorage.getItem(GREETING_KEY) === '1'; } catch {}
+    if (dismissed) return;
+    const show = setTimeout(() => setGreet(true), 2500);
+    const hide = setTimeout(() => setGreet(false), 12000);
+    return () => { clearTimeout(show); clearTimeout(hide); };
+  }, []);
+
+  function dismissGreeting() {
+    setGreet(false);
+    try { sessionStorage.setItem(GREETING_KEY, '1'); } catch {}
+  }
 
   // Close on outside click / Escape.
   useEffect(() => {
@@ -72,11 +135,12 @@ export function WhatsAppWidget() {
           className="w-[min(20rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
         >
           <div className="flex items-center gap-3 bg-[#075E54] px-4 py-3 text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-              <WhatsAppGlyph className="h-5 w-5" />
+            <span className="relative shrink-0">
+              <SupportAvatar className="h-10 w-10 rounded-full ring-2 ring-white/40" />
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-[#25D366] ring-2 ring-[#075E54]" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold leading-tight">Tertiary Exams</p>
+              <p className="text-sm font-semibold leading-tight">Tertiary Exams Support</p>
               <p className="text-xs text-white/80">Typically replies within minutes</p>
             </div>
             <button
@@ -117,20 +181,43 @@ export function WhatsAppWidget() {
         </div>
       )}
 
-      <span className="relative flex">
-        {!open && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-[#25D366] opacity-60" aria-hidden="true" />
+      <div className="flex items-end gap-3">
+        {greet && !open && (
+          <div className="relative mb-2 flex max-w-[15rem] items-start gap-2 rounded-2xl rounded-br-sm border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-lift motion-safe:animate-pop-in dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+            <button
+              type="button"
+              onClick={() => { dismissGreeting(); setOpen(true); }}
+              className="text-left leading-snug"
+            >
+              <span className="font-semibold text-slate-900 dark:text-white">Hi there! 👋</span>{' '}
+              Questions about an exam? Chat with us on WhatsApp.
+            </button>
+            <button
+              type="button"
+              onClick={dismissGreeting}
+              aria-label="Dismiss greeting"
+              className="-mr-1 -mt-0.5 shrink-0 rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         )}
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => { dismissGreeting(); setOpen((v) => !v); }}
           aria-label={open ? 'Close WhatsApp chat' : 'Chat with us on WhatsApp'}
           aria-expanded={open}
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg ring-1 ring-black/5 transition hover:scale-105 hover:bg-[#1ebe5a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2"
+          className="group relative h-16 w-16 shrink-0 rounded-full bg-white p-0.5 shadow-lift ring-1 ring-slate-200 transition hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 motion-safe:animate-bob dark:bg-slate-900 dark:ring-slate-700"
         >
-          {open ? <X className="h-6 w-6" /> : <WhatsAppGlyph className="h-7 w-7" />}
+          <SupportAvatar className="h-full w-full rounded-full" />
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full text-white shadow ring-2 ring-white dark:ring-slate-900 ${open ? 'bg-slate-500' : 'bg-[#25D366]'}`}
+            aria-hidden="true"
+          >
+            {open ? <X className="h-3.5 w-3.5" /> : <WhatsAppGlyph className="h-3.5 w-3.5" />}
+          </span>
         </button>
-      </span>
+      </div>
     </div>
   );
 }

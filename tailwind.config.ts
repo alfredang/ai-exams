@@ -45,14 +45,20 @@ export default {
         float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
         drift: { '0%,100%': { transform: 'translate(0,0) scale(1)' }, '50%': { transform: 'translate(24px,-18px) scale(1.08)' } },
         'fade-up': { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-        marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } }
+        marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
+        blink: { '0%, 92%, 100%': { transform: 'scaleY(1)' }, '95%': { transform: 'scaleY(0.1)' } },
+        bob: { '0%, 100%': { transform: 'translateY(0) rotate(0deg)' }, '50%': { transform: 'translateY(-4px) rotate(-3deg)' } },
+        'pop-in': { from: { opacity: '0', transform: 'translateY(6px) scale(0.96)' }, to: { opacity: '1', transform: 'translateY(0) scale(1)' } }
       },
       animation: {
         float: 'float 6s ease-in-out infinite',
         'float-slow': 'float 8s ease-in-out infinite',
         drift: 'drift 14s ease-in-out infinite',
         'fade-up': 'fade-up .45s ease-out both',
-        marquee: 'marquee 40s linear infinite'
+        marquee: 'marquee 40s linear infinite',
+        blink: 'blink 4.5s ease-in-out infinite',
+        bob: 'bob 3.2s ease-in-out infinite',
+        'pop-in': 'pop-in .35s ease-out both'
       }
     }
   },

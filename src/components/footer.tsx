@@ -115,7 +115,7 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="container-app grid grid-cols-1 gap-x-8 gap-y-10 py-12 sm:grid-cols-2 md:grid-cols-12">
+      <div className="container-app grid grid-cols-1 gap-x-8 gap-y-5 py-5 sm:grid-cols-2 md:grid-cols-12">
         {/* Brand */}
         <div className="sm:col-span-2 md:col-span-4">
           <div className="mb-3 flex items-center gap-2">

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { DotPattern } from '@/components/dot-pattern';
-import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown, HelpCircle } from 'lucide-react';
+import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
 import { HeroExamVisual } from '@/components/hero-exam-visual';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
@@ -79,18 +79,15 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute inset-0 text-brand-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-brand-400/20">
           <DotPattern className="h-full w-full" />
         </div>
-        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 pb-12 pt-10 md:pb-16 md:pt-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-4 pb-5 pt-4 md:pb-6 md:pt-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/90 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.08em] text-brand-700 shadow-card dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Test-centre style simulation
-            </span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
+            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight md:text-[3.25rem]">
               Practice smarter <br className="hidden sm:block" />for your <span className="gradient-text">next certification</span>
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-slate-600 dark:text-slate-300">
+            <p className="mt-3 max-w-xl text-base text-slate-600 dark:text-slate-300">
               Timed exams that look and feel like test day: one question per screen, Mark for review, a review screen before you end, and a score report by domain. Try {TEASER_N} questions free on any exam.
             </p>
-            <form action="/practice-exams" className="mt-8 flex max-w-lg items-center gap-2 rounded-lg border border-brand-200 bg-white p-1.5 shadow-lift dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-glow">
+            <form action="/practice-exams" className="mt-4 flex max-w-lg items-center gap-2 rounded-lg border border-brand-200 bg-white p-1.5 shadow-lift dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-glow">
               <Search className="ml-3 h-5 w-5 text-slate-400" />
               <input
                 name="q"
@@ -101,7 +98,7 @@ export default async function HomePage() {
               />
               <button className="btn-primary">Search</button>
             </form>
-            <dl className="mt-8 grid max-w-lg grid-cols-3 gap-3">
+            <dl className="mt-4 grid max-w-lg grid-cols-3 gap-3">
               {[
                 { k: '100+', v: 'certifications' },
                 { k: `${TEASER_N}`, v: 'free questions' },
@@ -113,7 +110,7 @@ export default async function HomePage() {
                 </div>
               ))}
             </dl>
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-muted dark:text-slate-400">
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted dark:text-slate-400">
               <span className="inline-flex items-center gap-1"><ShieldCheck className="h-4 w-4" /> Money-back guarantee</span>
               <span className="inline-flex items-center gap-1"><Sparkles className="h-4 w-4" /> Exam Mode + Practice Mode</span>
               <span className="inline-flex items-center gap-1"><Award className="h-4 w-4" /> Original, blueprint-aligned questions</span>
@@ -124,11 +121,11 @@ export default async function HomePage() {
       </section>
 
       {/* Vendors */}
-      <section className="container-app py-14">
-        <div className="mb-6 flex items-end justify-between">
+      <section className="container-app py-5">
+        <div className="mb-3 flex items-end justify-between">
           <div>
             <div className="eyebrow">Catalog</div>
-            <h2 className="mt-1 text-3xl font-extrabold tracking-tight">Browse by vendor</h2>
+            <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Browse by vendor</h2>
           </div>
           <Link href="/vendors" className="text-sm font-semibold text-brand hover:underline">View all →</Link>
         </div>
@@ -136,7 +133,7 @@ export default async function HomePage() {
           {vendors.map(v => {
             const total = v._count.exams + (bundleCountByVendor.get(v.slug) || 0);
             return (
-              <Link key={v.id} href={`/practice-exams/${v.slug}`} className="card-hover group flex flex-col items-center justify-center px-4 py-6 text-center">
+              <Link key={v.id} href={`/practice-exams/${v.slug}`} className="card-hover group flex flex-col items-center justify-center px-4 py-4 text-center">
                 <div className="font-display text-base font-bold group-hover:text-brand">{v.name}</div>
                 <div className="mt-0.5 font-mono text-[11px] uppercase tracking-wider text-muted dark:text-slate-400">{total} exam{total === 1 ? '' : 's'}</div>
               </Link>
@@ -147,9 +144,9 @@ export default async function HomePage() {
 
       {/* Popular bundles — the only thing the app sells. */}
       <section className="border-y border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-16">
+        <div className="container-app py-5">
           <div className="eyebrow">Newest bundles</div>
-          <h2 className="mb-8 mt-1 text-3xl font-extrabold tracking-tight">Popular bundled exams</h2>
+          <h2 className="mb-3 mt-1 text-2xl font-extrabold tracking-tight">Popular bundled exams</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {recentBundles.map((b) => {
               const first = b.items[0]?.exam;
@@ -169,11 +166,11 @@ export default async function HomePage() {
                 ? `/practice-exams/${first.vendor.slug}/${b.slug}`
                 : `/bundles/${b.slug}`;
               return (
-                <Link key={b.id} href={bundleHref} className="card-hover p-5">
-                  <div className="mb-2 flex items-center gap-2 text-xs">
-                    {first && <span className="badge">{first.vendor.name}</span>}
-                    {displayCode && <span className="badge">{displayCode}</span>}
-                    {first && <span className="badge">{first.level}</span>}
+                <Link key={b.id} href={bundleHref} className="card-hover p-4">
+                  <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
+                    {first && <span>{first.vendor.name}</span>}
+                    {displayCode && <><span aria-hidden="true">·</span><span>{displayCode}</span></>}
+                    {first && <><span aria-hidden="true">·</span><span>{first.level}</span></>}
                   </div>
                   <h3 className="text-lg font-bold leading-snug">{b.title}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{b.description}</p>
@@ -190,23 +187,23 @@ export default async function HomePage() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="container-app py-16">
+      <section id="how" className="container-app py-5">
         <div className="text-center">
           <div className="eyebrow">How it works</div>
-          <h2 className="mt-1 text-3xl font-extrabold tracking-tight">From first question to exam day</h2>
+          <h2 className="mt-1 text-2xl font-extrabold tracking-tight">From first question to exam day</h2>
         </div>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
           {[
             { icon: BookOpen, t: 'Choose an exam', d: 'Pick from 100+ vendors and certifications.' },
             { icon: Sparkles, t: `Try ${TEASER_N} questions free`, d: 'Get a feel for our practice content before you buy.' },
             { icon: BadgeCheck, t: 'Sit a realistic mock', d: 'Timed Exam Mode with Mark for review, a review screen and a domain score report.' }
           ].map((s, i) => (
-            <div key={i} className="card relative p-6">
+            <div key={i} className="card relative p-4">
               <span className="absolute right-5 top-5 font-mono text-xs text-muted">0{i + 1}</span>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-brand-100 text-brand dark:bg-blue-950/50 dark:text-blue-300">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand dark:bg-blue-950/50 dark:text-blue-300">
                 <s.icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 text-lg font-bold">{s.t}</h3>
+              <h3 className="mt-3 text-lg font-bold">{s.t}</h3>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{s.d}</p>
             </div>
           ))}
@@ -215,20 +212,20 @@ export default async function HomePage() {
 
       {/* Pricing */}
       <section id="pricing" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-16">
+        <div className="container-app py-5">
           <div className="text-center">
             <div className="eyebrow">Plans</div>
-            <h2 className="mt-1 text-3xl font-extrabold tracking-tight">Three ways to prepare</h2>
+            <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Three ways to prepare</h2>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
             {[
               { t: `Try ${TEASER_N} questions for free`, d: 'Free teaser on every exam — no credit card required. Get a feel for our content before you buy.', cta: 'Browse exams' },
               { t: 'Practice Exam', d: 'Full access to the practice question bank with detailed explanations. Practice Mode and Exam Mode included.', cta: 'Browse' },
               { t: 'Exam Voucher (practice included)', d: 'A real exam voucher PLUS full practice access for the same exam — no separate practice purchase needed.', cta: 'Browse' }
             ].map((p, i) => (
-              <div key={i} className={`card flex flex-col p-6 ${i === 1 ? 'border-brand ring-1 ring-brand' : ''}`}>
+              <div key={i} className={`card flex flex-col p-4 ${i === 1 ? 'border-brand ring-1 ring-brand' : ''}`}>
                 <h3 className="text-lg font-bold">{p.t}</h3>
-                <p className="mb-6 mt-1 text-sm text-slate-600 dark:text-slate-400">{p.d}</p>
+                <p className="mb-4 mt-1 text-sm text-slate-600 dark:text-slate-400">{p.d}</p>
                 <Link href="/practice-exams" className={`${i === 1 ? 'btn-primary' : 'btn-outline'} mt-auto w-full`}>{p.cta}</Link>
               </div>
             ))}
@@ -240,21 +237,17 @@ export default async function HomePage() {
 
       {/* FAQ */}
       <section id="faq" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-20">
+        <div className="container-app py-5">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              <HelpCircle className="h-3.5 w-3.5" />
-              FAQ
-            </div>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">Frequently asked questions</h2>
-            <p className="mt-3 text-slate-600 dark:text-slate-400">
+            <h2 className="text-2xl font-extrabold tracking-tight">Frequently asked questions</h2>
+            <p className="mt-2 text-slate-600 dark:text-slate-400">
               Quick answers to common questions about how Tertiary Exams works.
             </p>
           </div>
 
-          <div className="mx-auto mt-10 max-w-3xl space-y-3">
+          <div className="mx-auto mt-4 max-w-3xl space-y-2">
             {FAQS.map((f, i) => (
-              <details key={i} className="group rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm open:border-brand/50 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
+              <details key={i} className="group rounded-xl border border-slate-200 bg-white px-5 py-3 transition hover:border-slate-300 hover:shadow-sm open:border-brand/50 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-base font-semibold text-slate-900 dark:text-slate-100">
                   <span>{f.q}</span>
                   <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 group-open:text-blue-600 dark:group-open:text-blue-400" />
@@ -264,7 +257,7 @@ export default async function HomePage() {
             ))}
           </div>
 
-          <p className="mx-auto mt-10 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
+          <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
             Still have questions? <Link href="/p/support" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Contact our support team</Link> — we typically reply within one business day.
           </p>
         </div>

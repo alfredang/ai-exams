@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Check, CheckCircle2, Clock, Flag } from 'lucide-react';
+import { Check, CheckCircle2, Clock } from 'lucide-react';
 
 /**
  * Animated hero illustration: a miniature exam window in the same test-centre
@@ -89,7 +89,7 @@ export function HeroExamVisual() {
   const doms = DOMAIN_FRAMES[qi];
 
   return (
-    <div className="relative mx-auto w-full max-w-[580px] select-none pb-6 pt-6 sm:pb-24 sm:pt-12" aria-hidden="true">
+    <div className="relative mx-auto w-full max-w-[580px] select-none pb-2 pt-1 sm:pb-14 sm:pt-1" aria-hidden="true">
       {/* Ambient gradient blobs */}
       <div className="pointer-events-none absolute -left-10 top-4 h-64 w-64 rounded-full bg-brand/25 blur-3xl dark:bg-brand-500/35 motion-safe:animate-drift" />
       <div className="pointer-events-none absolute -right-6 bottom-0 h-72 w-72 rounded-full bg-sky-300/40 blur-3xl dark:bg-sky-500/20 motion-safe:animate-drift [animation-delay:-7s]" />
@@ -190,19 +190,6 @@ export function HeroExamVisual() {
         ))}
       </div>
 
-      {/* Autosave chip */}
-      <div className="absolute right-2 top-1 hidden items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-[11px] text-slate-600 shadow-card dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-300 md:inline-flex">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        </span>
-        Answers auto-saved
-      </div>
-
-      {/* Flag chip */}
-      <div className="absolute left-2 top-1 hidden items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-800 shadow-card dark:border-amber-400/40 dark:bg-amber-500/10 dark:text-amber-300 md:inline-flex ">
-        <Flag className="h-3 w-3 fill-amber-400" /> 3 flagged for review
-      </div>
     </div>
   );
 }

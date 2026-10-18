@@ -12,7 +12,7 @@ export function Nav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/70">
-      <div className="flex h-20 w-full items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+      <div className="flex h-16 w-full items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold tracking-tight sm:gap-3" aria-label="Tertiary Exams home">
           <Logo />
         </Link>
@@ -54,7 +54,7 @@ function Logo() {
         alt="Tertiary Exams"
         width={48}
         height={48}
-        className="h-10 w-10 shrink-0 object-contain"
+        className="h-9 w-9 shrink-0 object-contain"
       />
       <span className="hidden truncate font-display text-base font-extrabold tracking-tight text-ink dark:text-white sm:inline sm:text-xl">
         Tertiary Exams

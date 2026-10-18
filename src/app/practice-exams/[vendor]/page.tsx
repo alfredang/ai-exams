@@ -104,10 +104,11 @@ export default async function VendorCatalogPage({
           const examCount = practiceExamCount(b.items);
           return (
             <Link key={`b-${b.id}`} href={first ? `/practice-exams/${first.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
-              <div className="mb-2 flex items-center gap-2 text-xs">
-                {first && <span className="badge">{first.code}</span>}
-                {first && <span className="badge">{first.level}</span>}
-              </div>
+              {first && (
+                <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
+                  <span>{first.code}</span><span aria-hidden="true">·</span><span>{first.level}</span>
+                </div>
+              )}
               <h3 className="font-semibold">{b.title}</h3>
               <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">

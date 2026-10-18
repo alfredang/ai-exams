@@ -98,11 +98,13 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           const examCount = practiceExamCount(b.items);
           return (
             <Link key={`b-${b.id}`} href={firstItem ? `/practice-exams/${firstItem.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
-              <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                {firstItem && <span className="badge"><HighlightedText text={firstItem.vendor.name} query={q} /></span>}
-                {firstItem && <span className="badge"><HighlightedText text={firstItem.code} query={q} /></span>}
-                {firstItem && <span className="badge">{firstItem.level}</span>}
-              </div>
+              {firstItem && (
+                <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
+                  <span><HighlightedText text={firstItem.vendor.name} query={q} /></span>
+                  <span aria-hidden="true">·</span><span><HighlightedText text={firstItem.code} query={q} /></span>
+                  <span aria-hidden="true">·</span><span>{firstItem.level}</span>
+                </div>
+              )}
               <h3 className="font-semibold"><HighlightedText text={b.title} query={q} /></h3>
               {bundleSearchAliases(b.slug).filter(alias => matchesCatalogSearch(q, [alias])).map(alias => (
                 q && <p key={alias} className="mt-1 text-xs font-medium text-blue-700 dark:text-blue-300">Matched course code: <mark className="rounded bg-yellow-200 px-1 text-slate-950">{alias}</mark></p>
