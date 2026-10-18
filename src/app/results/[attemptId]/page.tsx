@@ -13,6 +13,72 @@ import { shuffleSeeded } from '@/lib/shuffle';
 
 const LETTERS = 'ABCDEFGHIJ';
 
+type ReviewView = 'all' | 'missed' | 'flagged';
+
+const PILL_TONES = {
+  ok: 'border-emerald-700 bg-emerald-50 text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300',
+  bad: 'border-red-600 bg-red-50 text-red-700 dark:border-red-500 dark:bg-red-950/50 dark:text-red-300',
+  flag: 'border-amber-600 bg-amber-50 text-amber-800 dark:border-amber-500 dark:bg-amber-950/50 dark:text-amber-300',
+  muted: 'border-slate-400 text-muted dark:border-slate-600'
+};
+
+function Pill({ tone, children }: { tone: keyof typeof PILL_TONES; children: React.ReactNode }) {
+  return (
+    <span className={`inline-block whitespace-nowrap rounded-full border px-2.5 py-0.5 font-mono text-xs ${PILL_TONES[tone]}`}>
+      {children}
+    </span>
+  );
+}
+
+// Starts a fresh attempt at the same exam and mode and drops the taker
+// straight into the runner. Teasers go through the teaser route (it owns the
+// guest cookie); anyone without an entitlement falls back to the exam page.
+function TakeAgainButton({ examId, mode, teaser, examHref }: {
+  examId: string;
+  mode: 'PRACTICE' | 'EXAM';
+  teaser: boolean;
+  examHref: string;
+}) {
+  if (teaser) {
+    return (
+      <form action={`${examHref}/teaser`} method="post">
+        <button className="btn-primary">Take it again</button>
+      </form>
+    );
+  }
+  return (
+    <form action={async () => {
+      'use server';
+      const s = await auth();
+      const uid = (s?.user as any)?.id as string | undefined;
+      const exam = await db.exam.findUnique({ where: { id: examId } });
+      const ent = uid && exam
+        ? await db.entitlement.findFirst({
+            where: { userId: uid, examId, tier: { in: ['PRACTICE', 'BUNDLE', 'ADMIN_GRANT'] } }
+          })
+        : null;
+      if (!exam || !ent) redirect(examHref);
+      const qs = await db.question.findMany({ where: { examId, status: 'PUBLISHED' }, select: { id: true } });
+      const ids = qs.map(q => q.id);
+      for (let i = ids.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+      }
+      const att = await db.attempt.create({
+        data: {
+          userId: uid, examId, mode, questionIds: ids.slice(0, exam.questionCount),
+          durationSec: mode === 'EXAM' ? exam.durationMinutes * 60 : 0,
+          expiresAt: mode === 'EXAM' ? new Date(Date.now() + exam.durationMinutes * 60_000) : null,
+          responses: {}
+        }
+      });
+      redirect(`/exam/${att.id}`);
+    }}>
+      <button className="btn-primary">Take it again</button>
+    </form>
+  );
+}
+
 // Readiness bands scale the mock-exam reading table (0–6 / 7–9 / 10–12 /
 // 13–15 out of 15) to any exam length, so a 15-question mock reproduces it
 // exactly and a 60-question exam uses the same proportions.
@@ -43,7 +109,8 @@ export default async function ResultsPage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { attemptId } = await params;
-  const missedOnly = (await searchParams).view === 'missed';
+  const rawView = (await searchParams).view;
+  const view: ReviewView = rawView === 'missed' || rawView === 'flagged' ? rawView : 'all';
   const session = await auth();
   const userId = (session?.user as any)?.id as string | undefined;
   const gt = (await cookies()).get('gt')?.value;
@@ -88,6 +155,7 @@ export default async function ResultsPage({
   // Weakest domains first so the study target leads the list.
   const domains = Object.entries(perDomain).sort(([, a], [, b]) => a.correct / a.total - b.correct / b.total);
   const missedCount = total - correctCount;
+  const flaggedCount = ordered.filter(q => responses[q.id]?.flagged).length;
 
   return (
     <div className="min-h-full bg-canvas/60 dark:bg-transparent">
@@ -170,30 +238,36 @@ export default async function ResultsPage({
           </div>
         </section>
 
-        {/* Answer review */}
+        {/* Answer review — every option listed, the right one marked green
+            and the taker's wrong pick red, then the explanation under WHY. */}
         <section>
-          <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-bold">Answer review</h2>
-            <div className="flex gap-2">
+          <h2 className="mb-3.5 text-xl font-bold">Review your answers</h2>
+          <div className="mb-3.5 flex flex-wrap gap-2">
+            {([
+              ['all', `All ${total}`],
+              ['missed', `Missed or blank · ${missedCount}`],
+              ['flagged', `Flagged · ${flaggedCount}`]
+            ] as const).map(([key, label]) => (
               <Link
-                href={`/results/${attempt.id}`}
+                key={key}
+                href={key === 'all' ? `/results/${attempt.id}` : `/results/${attempt.id}?view=${key}`}
                 scroll={false}
-                className={`rounded-full border px-3.5 py-1.5 text-sm ${!missedOnly ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink' : 'border-line bg-white dark:border-slate-700 dark:bg-slate-900'}`}
-              >All {total}</Link>
-              <Link
-                href={`/results/${attempt.id}?view=missed`}
-                scroll={false}
-                className={`rounded-full border px-3.5 py-1.5 text-sm ${missedOnly ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink' : 'border-line bg-white dark:border-slate-700 dark:bg-slate-900'}`}
-              >Missed only · {missedCount}</Link>
-            </div>
+                aria-current={view === key ? 'true' : undefined}
+                className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-sm ${view === key ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink' : 'border-line bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900'}`}
+              >{label}</Link>
+            ))}
           </div>
           <div className="grid gap-3.5">
-            {missedOnly && missedCount === 0 && <p className="text-muted">No missed questions to show.</p>}
+            {((view === 'missed' && missedCount === 0) || (view === 'flagged' && flaggedCount === 0)) && (
+              <p className="text-muted">Nothing to show for this filter.</p>
+            )}
             {ordered.map((q, i) => {
               const r = responses[q.id];
               const ans = r?.answer || [];
+              const flagged = !!r?.flagged;
               const correct = isAnswerCorrect(q, ans);
-              if (missedOnly && correct) return null;
+              if (view === 'missed' && correct) return null;
+              if (view === 'flagged' && !flagged) return null;
               const skipped = ans.length === 0;
               const correctIds = (q.correct as unknown as string[]) || [];
               // Render options in the SAME per-attempt order the taker saw in the
@@ -203,19 +277,19 @@ export default async function ResultsPage({
               const opts = (q.options as any[]) as { id: string; text: string }[];
               const displayOptions =
                 q.type === 'TRUE_FALSE' ? opts : shuffleSeeded(opts, `${attempt.id}:${q.id}`);
-              const lettered = (ids: string[]) =>
-                displayOptions
-                  .map((o, oi) => ({ ...o, letter: LETTERS[oi] }))
-                  .filter(o => ids.includes(o.id));
-              const status = correct ? 'Correct' : skipped ? 'Unanswered' : 'Incorrect';
-              const accent = correct ? 'border-l-emerald-700' : skipped ? 'border-l-amber-500' : 'border-l-red-600';
               return (
-                <article key={q.id} className={`min-w-0 rounded-md border border-l-[5px] border-line bg-white p-5 dark:border-slate-800 dark:bg-slate-900 ${accent}`}>
-                  <div className="eyebrow">Q{i + 1} · {status} · {q.domain}</div>
-                  <h3 className="mb-3 mt-1 font-sans text-[17px] font-semibold leading-snug">{q.stem}</h3>
+                <article key={q.id} className="card min-w-0 p-5 sm:p-6">
+                  <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="eyebrow [overflow-wrap:anywhere]">Question {i + 1} · {q.domain}</span>
+                    <span className="flex gap-1.5">
+                      {correct ? <Pill tone="ok">Correct</Pill> : skipped ? <Pill tone="muted">Unanswered</Pill> : <Pill tone="bad">Missed</Pill>}
+                      {flagged && <Pill tone="flag">Flagged</Pill>}
+                    </span>
+                  </div>
+                  <h3 className="mb-4 max-w-[62ch] font-sans text-lg font-semibold leading-snug sm:text-xl">{q.stem}</h3>
                   {q.type === 'ORDERING' ? (
                     // Every option id appears in `correct` for ORDERING, so the
-                    // letter-based lines below would mark them all right. What
+                    // per-option marks below would flag them all right. What
                     // matters here is POSITION: show the sequence the taker
                     // submitted, flagging any step that sits in the wrong slot.
                     (() => {
@@ -240,20 +314,31 @@ export default async function ResultsPage({
                       );
                     })()
                   ) : (
-                    <div className="mb-3 grid gap-1.5">
-                      {!correct && !skipped && lettered(ans).map(o => (
-                        <div key={`y-${o.id}`} className="rounded border border-red-600 bg-red-50 px-3 py-2 [overflow-wrap:anywhere] dark:bg-red-950/40">
-                          <b>Your answer {o.letter}.</b> {o.text}
-                        </div>
-                      ))}
-                      {lettered(correctIds).map(o => (
-                        <div key={`c-${o.id}`} className="rounded border border-emerald-700 bg-emerald-50 px-3 py-2 [overflow-wrap:anywhere] dark:bg-emerald-950/40">
-                          <b>{correct ? 'Your answer' : 'Correct answer'} {o.letter}.</b> {o.text}
-                        </div>
-                      ))}
+                    <div className="grid gap-2">
+                      {displayOptions.map((o, oi) => {
+                        const isRight = correctIds.includes(o.id);
+                        const isWrongPick = !isRight && ans.includes(o.id);
+                        return (
+                          <div
+                            key={o.id}
+                            className={`grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-2.5 rounded-lg border px-3.5 py-3 ${
+                              isRight
+                                ? 'border-emerald-700 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/40'
+                                : isWrongPick
+                                  ? 'border-red-600 bg-red-50 dark:border-red-500 dark:bg-red-950/40'
+                                  : 'border-line dark:border-slate-700'
+                            }`}
+                          >
+                            <span className="font-mono font-semibold">{LETTERS[oi]}</span>
+                            <span className="[overflow-wrap:anywhere]">{o.text}</span>
+                            {isRight ? <Pill tone="ok">Correct</Pill> : isWrongPick ? <Pill tone="bad">Your answer</Pill> : <span />}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
-                  <div className="text-[15px] text-muted dark:text-slate-400">
+                  <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
+                    <div className="eyebrow mb-1">Why</div>
                     <ExplanationView
                       text={q.explanation}
                       options={displayOptions}
@@ -269,7 +354,12 @@ export default async function ResultsPage({
         </section>
 
         <div className="flex flex-wrap gap-2">
-          <Link href={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`} className="btn-primary">Retake exam</Link>
+          <TakeAgainButton
+            examId={attempt.examId}
+            mode={attempt.mode}
+            teaser={attempt.isTeaser}
+            examHref={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`}
+          />
           <Link href="/user-dashboard" className="btn-outline">My dashboard</Link>
           {canReview && (
             <ReviewFormModal

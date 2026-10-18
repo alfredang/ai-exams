@@ -64,7 +64,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Bundle-based Commerce:** Purchase multi-variant practice exams and optional real-exam vouchers as a single product.
 - **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with promo codes, billing addresses, and an integrated tax (GST) engine. An in-admin **Payment Setup Guide** documents provider configuration step by step with live status checks.
 - **Test-Centre Exam Runner:** A full-screen, test-centre style session for both timed Exam mode and Practice mode — navy title bar with Time Remaining and "N of M", a question card with **Mark for review** at its top-right and full-size Previous / Next / End exam buttons, an answer-sheet panel, and a **Review Screen** with Review All / Incomplete / Flagged walks before **End Exam**. Per-answer autosave, auto-submit at zero, Save & exit to resume later, right-click strike-out of ruled-out options, and keyboard navigation.
-- **Score Report:** Results show `correct / total`, a four-band readiness scale, a weakest-first domain breakdown that marks study targets, and an All / Missed-only answer review with explanations and reference links.
+- **Score Report:** Results show `correct / total`, a four-band readiness scale, a weakest-first domain breakdown that marks study targets, and a **Review your answers** section (All / Missed or blank / Flagged) that lists every option with the correct one and your pick marked, plus a Why box with the explanation and references. **Take it again** starts a fresh attempt in the same mode.
 - **Light-Blue & Premium Navy Themes:** A compact, chip-free layout with a light-blue light theme by default and an opt-in premium deep-navy dark theme with blue glow accents, Archivo / IBM Plex typography, and an animated hero that previews the exam experience. The exam runner stays a light test-centre screen in both.
 - **WhatsApp Support Avatar:** A friendly animated support avatar (bottom-right on public pages) opens a quick-question panel that links straight to WhatsApp, with a once-per-visit greeting bubble. Hidden on the exam runner, checkout, and admin pages.
 - **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per exam.
@@ -308,7 +308,7 @@ flowchart TD
 2. Select a bundle and try a free teaser attempt.
 3. Sign up, proceed to `/checkout/bundle/[bundleId]`, and complete the payment using Stripe, PayPal, or HitPay.
 4. Navigate to `/user-dashboard` to view purchased exams, vouchers, and start practice attempts.
-5. Take an attempt at `/exam/[attemptId]` (test-centre style runner), end it from the Review Screen, and read the score report at `/results/[attemptId]` (`?view=missed` filters the answer review).
+5. Take an attempt at `/exam/[attemptId]` (test-centre style runner), end it from the Review Screen, and read the score report at `/results/[attemptId]` (`?view=missed` / `?view=flagged` filter the answer review; **Take it again** starts a new attempt).
 
 ### Admin Flow
 1. Sign in using the seeded admin credentials.
