@@ -11,9 +11,9 @@ export function Nav() {
   const inBackend = pathname.startsWith('/admin-dashboard') || pathname.startsWith('/user-dashboard');
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur dark:bg-slate-950/90">
-      <div className="flex h-24 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight" aria-label="Tertiary Exams home">
+    <header className="sticky top-0 z-40 border-b border-line/70 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/85">
+      <div className="flex h-20 w-full items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold tracking-tight sm:gap-3" aria-label="Tertiary Exams home">
           <Logo />
         </Link>
         {!inBackend && (
@@ -25,7 +25,7 @@ export function Nav() {
             <Link href="/p/support" className="btn-ghost">Support</Link>
           </nav>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {!inBackend && (
             <Link
               href="/p/support"
@@ -37,7 +37,7 @@ export function Nav() {
             </Link>
           )}
           <UserMenu />
-          <div className="ml-2 border-l border-slate-200 pl-3 dark:border-slate-800">
+          <div className="border-l border-line pl-1 dark:border-slate-800 sm:ml-2 sm:pl-3">
             <ThemeToggle />
           </div>
         </div>
@@ -54,9 +54,9 @@ function Logo() {
         alt="Tertiary Exams"
         width={48}
         height={48}
-        className="h-12 w-12 shrink-0 object-contain"
+        className="h-10 w-10 shrink-0 object-contain"
       />
-      <span className="text-lg font-semibold text-slate-900 dark:text-white sm:text-xl">
+      <span className="hidden truncate font-display text-base font-extrabold tracking-tight text-ink dark:text-white sm:inline sm:text-xl">
         Tertiary Exams
       </span>
     </>

@@ -7,17 +7,18 @@ type ThemePref = 'system' | 'light' | 'dark';
 /**
  * Three-way theme picker for the user profile page. Persists to
  * localStorage; the inline init script in <head> reads it on next page load.
- * "System" clears the stored value so the OS prefers-color-scheme decides.
+ * The site defaults to light when nothing is stored; "System" is stored
+ * explicitly so only visitors who opt in follow the OS prefers-color-scheme.
  */
 export function ThemePreferenceSelect() {
-  const [pref, setPref] = useState<ThemePref>('system');
+  const [pref, setPref] = useState<ThemePref>('light');
 
   useEffect(() => {
     try {
       const t = localStorage.getItem('theme');
       // Hydrate the persisted browser-only preference after SSR.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPref(t === 'dark' ? 'dark' : t === 'light' ? 'light' : 'system');
+      setPref(t === 'dark' ? 'dark' : t === 'system' ? 'system' : 'light');
     } catch {}
   }, []);
 
@@ -25,7 +26,7 @@ export function ThemePreferenceSelect() {
     setPref(next);
     try {
       if (next === 'system') {
-        localStorage.removeItem('theme');
+        localStorage.setItem('theme', 'system');
         const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.classList.toggle('dark', sysDark);
       } else {

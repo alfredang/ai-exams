@@ -1,9 +1,13 @@
 /**
  * Claude Certified Associate — Foundations (CCAO-F) bundle seed —
- * vendor, 1 practice-exam variant (P1, 60 blueprint-aligned questions),
- * and the bundle. Idempotent: replaces rows tagged
- * `generatedBy: 'manual:ccao-foundations-seed'` and upserts catalog rows.
- * P2/P3 variants come later and will mirror the CCA-F module's shape.
+ * vendor, 4 practice-exam variants (P1: 60 blueprint-aligned questions,
+ * 120 min; P2–P4: three 15-question, 30-minute mock exams), and the bundle.
+ * Idempotent: replaces rows tagged
+ * `generatedBy: 'manual:ccao-foundations-{seed,mock1-seed,mock2-seed,mock3-seed}'`
+ * and upserts catalog rows. Mock exam content lives in the sibling
+ * `ccao-foundations-mock-questions.ts` module (MIT — Mock exam questions ©
+ * Amey Thakur, CLAUDE-CERTIFICATIONS, MIT License,
+ * https://github.com/Amey-Thakur/CLAUDE-CERTIFICATIONS/tree/main/associate-foundations).
  *
  * Exported as `seedCcaoFoundations(db)` so the same code path is reachable
  * from the standalone CLI shim (`prisma/seeds/ccao-foundations.ts`) and the
@@ -37,10 +41,12 @@
  * business user actually touches (Projects, Artifacts, chat, research mode,
  * file uploads, connectors, custom instructions) and, above all, judgment.
  *
- * No exam dumps — every question is original and references first-party
- * Anthropic documentation. See [[feedback_no_exam_dumps]] for rationale.
+ * No exam dumps — every P1 question is original and references first-party
+ * Anthropic documentation; the P2–P4 mocks are third-party originals under MIT
+ * (not live exam items). See [[feedback_no_exam_dumps]] for rationale.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { CCAO_MOCK1, CCAO_MOCK2, CCAO_MOCK3 } from './ccao-foundations-mock-questions';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -881,12 +887,13 @@ const QUESTIONS: Q[] = [
 ];
 
 // ───────────────────── Exam shell config ─────────────────────
-// CCAO-F launches as a single-variant practice bundle (P1 only, on the bare
-// slug — no `-p1` suffix, matching the CCA-F P1 convention so the bundle slug
-// and exam slug agree). P2/P3 are planned and will slot into VARIANTS below as
-// sibling exams sharing this same CCAO_DOMAINS blueprint. Each variant's
-// question domain strings must match CCAO_DOMAINS exactly so the per-domain
-// results breakdown maps.
+// CCAO-F is a 4-variant practice bundle. P1 (60 questions, 120 min) keeps the
+// bare slug — no `-p1` suffix, matching the CCA-F P1 convention so the bundle
+// slug and exam slug agree. P2–P4 are the three 15-question, 30-minute mock
+// exams from the MIT-licensed CLAUDE-CERTIFICATIONS repo (see
+// ccao-foundations-mock-questions.ts for attribution). All variants share the
+// CCAO_DOMAINS blueprint; each question's domain string must match it exactly
+// so the per-domain results breakdown maps — seedCcaoFoundations() asserts it.
 const CCAO_EXAM_DESC =
   'Foundational certification for professionals who apply Claude to real-world business and productivity tasks. Covers prompting and task execution, evaluating and validating output, choosing the right Claude product and model, integrating Claude into workflows, Projects and knowledge configuration, responsible use, and troubleshooting.';
 
@@ -903,6 +910,10 @@ type Variant = {
   // Legacy tags retired on this exam (counted as legacyRetired). CCAO-F is
   // net-new as of 2026-07, so this is just the current tag.
   retiredTags: string[];
+  // Per-variant exam settings: P1 is the full-length blueprint exam; the
+  // mock exams are short timed sets. questionCount is always questions.length.
+  durationMinutes: number;
+  passingScore: number;
 };
 
 // Code is the vendor's official one (CCAO-F), taken from the Claude Certified
@@ -916,15 +927,67 @@ const VARIANTS: Variant[] = [
     title: 'Claude Certified Associate — Foundations',
     questions: QUESTIONS,
     tag: 'manual:ccao-foundations-seed',
-    retiredTags: ['manual:ccao-foundations-seed']
+    retiredTags: ['manual:ccao-foundations-seed'],
+    durationMinutes: 120,
+    passingScore: 72
+  },
+  // Mock exams 1–3 (15 questions / 30 min each). Codes must agree with the
+  // VENDOR_EXAM_CODE_OVERRIDES['anthropic-ccao-foundations'] = 'CCAO-F' entry
+  // in prisma/seed.ts, whose variant recode loop derives `CCAO-F-P${n}`.
+  {
+    slug: 'anthropic-ccao-foundations-p2',
+    code: 'CCAO-F-P2',
+    title: 'Claude Certified Associate — Foundations · Mock Exam 1',
+    questions: CCAO_MOCK1 as unknown as Q[],
+    tag: 'manual:ccao-foundations-mock1-seed',
+    retiredTags: ['manual:ccao-foundations-mock1-seed'],
+    durationMinutes: 30,
+    passingScore: 72
+  },
+  {
+    slug: 'anthropic-ccao-foundations-p3',
+    code: 'CCAO-F-P3',
+    title: 'Claude Certified Associate — Foundations · Mock Exam 2',
+    questions: CCAO_MOCK2 as unknown as Q[],
+    tag: 'manual:ccao-foundations-mock2-seed',
+    retiredTags: ['manual:ccao-foundations-mock2-seed'],
+    durationMinutes: 30,
+    passingScore: 72
+  },
+  {
+    slug: 'anthropic-ccao-foundations-p4',
+    code: 'CCAO-F-P4',
+    title: 'Claude Certified Associate — Foundations · Mock Exam 3',
+    questions: CCAO_MOCK3 as unknown as Q[],
+    tag: 'manual:ccao-foundations-mock3-seed',
+    retiredTags: ['manual:ccao-foundations-mock3-seed'],
+    durationMinutes: 30,
+    passingScore: 72
   }
 ];
+
+// Fail loudly (before touching the DB) if any variant carries a domain string
+// outside the blueprint, an option-id mismatch, or a non-single answer.
+function assertVariantsValid(): void {
+  const domainNames = new Set(CCAO_DOMAINS.map((d) => d.name));
+  for (const v of VARIANTS) {
+    v.questions.forEach((q, i) => {
+      const where = `${v.slug} question ${i + 1}`;
+      if (!domainNames.has(q.domain)) throw new Error(`${where}: domain "${q.domain}" is not in CCAO_DOMAINS`);
+      const ids = new Set(q.options.map((o) => o.id));
+      if (q.correct.length === 0 || !q.correct.every((c) => ids.has(c))) {
+        throw new Error(`${where}: correct ${JSON.stringify(q.correct)} not among option ids`);
+      }
+      if (q.type === QType.SINGLE && q.correct.length !== 1) throw new Error(`${where}: SINGLE needs exactly one correct id`);
+    });
+  }
+}
 
 const CCAO_BUNDLE = {
   slug: 'anthropic-ccao-foundations',
   title: 'Claude Certified Associate — Foundations (CCAO-F)',
   description:
-    'Practice bundle for the Claude Certified Associate — Foundations (CCAO-F) credential. 60 questions matching the official exam blueprint — prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
+    'Practice bundle for the Claude Certified Associate — Foundations (CCAO-F) credential. 4 practice exams and 105 questions — a 60-question full-length exam matching the official exam blueprint plus three 15-question timed mock exams — covering prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
   // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
   // through Partner Academy (credit card, then schedule with Pearson VUE), and
   // its partner voucher storefront is still "in progress" as of July 2026 —
@@ -940,6 +1003,8 @@ export type SeedResult = {
 };
 
 export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult> {
+  assertVariantsValid();
+
   // Vendor row already exists in prisma/seed.ts VENDORS[] but make the
   // seed self-sufficient: if it is missing, create it.
   const existingVendor = await db.vendor.findUnique({ where: { slug: 'anthropic' } });
@@ -968,8 +1033,8 @@ export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult>
       code: v.code,
       description: CCAO_EXAM_DESC,
       level: 'Foundational',
-      durationMinutes: 120,
-      passingScore: 72,
+      durationMinutes: v.durationMinutes,
+      passingScore: v.passingScore,
       questionCount: v.questions.length,
       infoUrl: CCAO_INFO_URL,
       domains: CCAO_DOMAINS,
@@ -1032,7 +1097,8 @@ export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult>
     }
   });
 
-  // Replace bundle items deterministically: 1 PRACTICE variant.
+  // Replace bundle items deterministically: one PRACTICE item per variant,
+  // in VARIANTS order (P1 at position 1 — the bundle page links P1's teaser).
   await db.bundleItem.deleteMany({ where: { bundleId: bundle.id } });
   let position = 1;
   for (const v of VARIANTS) {

@@ -56,14 +56,16 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 
 ## Screenshot
 
-![Screenshot](screenshot.png)
+![Tertiary Exams — home screen](screenshot.png)
 
 ## Features
 
 - **Public Catalog:** Browse certification vendors, levels, and exam bundles with search and pagination.
 - **Bundle-based Commerce:** Purchase multi-variant practice exams and optional real-exam vouchers as a single product.
 - **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with promo codes, billing addresses, and an integrated tax (GST) engine. An in-admin **Payment Setup Guide** documents provider configuration step by step with live status checks.
-- **Exam Runner:** Timed exam mode and practice mode with a sticky progress header, per-answer autosave, question flagging, keyboard navigation, a pre-submit review screen, and detailed post-exam result breakdowns with explanations and reference links.
+- **Test-Centre Exam Runner:** A full-screen, test-centre style session for both timed Exam mode and Practice mode — navy title bar with Time Remaining and "N of M", a **Mark for review** checkbox, an answer-sheet panel, a bottom navigation bar, and a **Review Screen** with Review All / Incomplete / Flagged walks before **End Exam**. Per-answer autosave, auto-submit at zero, Save & exit to resume later, right-click strike-out of ruled-out options, and keyboard navigation.
+- **Score Report:** Results show `correct / total`, a four-band readiness scale, a weakest-first domain breakdown that marks study targets, and an All / Missed-only answer review with explanations and reference links.
+- **Modern Light Design:** Light theme by default (dark is opt-in), Archivo / IBM Plex typography, and an animated hero that previews the exam experience.
 - **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per exam.
 - **AI-Assisted Question Authoring:** Generate blueprint-aligned questions using Claude AI and Firecrawl via manual input, blueprints, PDFs, or web scraping.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
@@ -176,7 +178,12 @@ CompTIA voucher-tier bundle prices track CompTIA's official exam-voucher list pr
 | PMI | PMP | Project Management Professional | Associate |
 | Scrum.org | PSM I | Professional Scrum Master I | Associate |
 | GitHub | Foundations | GitHub Foundations | Associate |
-| Anthropic | CCA-F | Claude Certified Architect – Foundations | Foundational |
+| Anthropic | CCAR-F | Claude Certified Architect – Foundations (3 practice exams) | Foundational |
+| Anthropic | CCAR-P | Claude Certified Architect – Professional | Professional |
+| Anthropic | CCDV-F | Claude Certified Developer – Foundations | Foundational |
+| Anthropic | CCAO-F | Claude Certified Associate – Foundations (60-question exam + 3 timed 15-question mock exams¹) | Foundational |
+
+¹ CCAO-F mock exams 1–3 are adapted from [CLAUDE-CERTIFICATIONS](https://github.com/Amey-Thakur/CLAUDE-CERTIFICATIONS) by Amey Thakur (MIT License).
 
 > Additional vendor slugs (AXELOS, IASSC, Tableau) are registered for upcoming catalog expansion.
 
@@ -299,6 +306,7 @@ flowchart TD
 2. Select a bundle and try a free teaser attempt.
 3. Sign up, proceed to `/checkout/bundle/[bundleId]`, and complete the payment using Stripe, PayPal, or HitPay.
 4. Navigate to `/user-dashboard` to view purchased exams, vouchers, and start practice attempts.
+5. Take an attempt at `/exam/[attemptId]` (test-centre style runner), end it from the Review Screen, and read the score report at `/results/[attemptId]` (`?view=missed` filters the answer review).
 
 ### Admin Flow
 1. Sign in using the seeded admin credentials.

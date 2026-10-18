@@ -7,9 +7,11 @@ export const runtime = 'nodejs';
 
 /**
  * One-shot admin endpoint to seed the Claude Certified Associate —
- * Foundations (CCAO-F) bundle (vendor + practice exam + 60 questions +
- * bundle) into the current database. Idempotent — safe to call repeatedly;
- * rewrites questions tagged `manual:ccao-foundations-seed`.
+ * Foundations (CCAO-F) bundle (vendor + 4 practice exams — P1 with 60
+ * questions plus three 15-question mock exams P2–P4 — + bundle) into the
+ * current database. Idempotent — safe to call repeatedly; rewrites questions
+ * tagged `manual:ccao-foundations-seed` and
+ * `manual:ccao-foundations-mock{1,2,3}-seed`.
  *
  * Intended for bootstrapping the production DB after deploy without
  * shelling into the container.

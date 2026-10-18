@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { DotPattern } from '@/components/dot-pattern';
 import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown, HelpCircle } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
+import { HeroExamVisual } from '@/components/hero-exam-visual';
 import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
 import { serializeJsonLd } from '@/lib/structured-data';
 
@@ -74,63 +74,70 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-slate-200 dark:border-slate-800">
-        <div className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/2 text-blue-200/40 md:block dark:text-blue-400/15 md:dark:hidden">
+      <section className="relative overflow-hidden border-b border-line bg-gradient-to-b from-canvas via-white to-white dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+        <div className="pointer-events-none absolute inset-0 text-slate-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-slate-700/40">
           <DotPattern className="h-full w-full" />
         </div>
-        <div className="container-app relative grid gap-10 pb-6 pt-4 md:grid-cols-2 md:pb-10 md:pt-6">
-          <div>
-            <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-6xl">
-              Practice Smarter <br />for Your <span className="gradient-text">Next Certification</span>
+        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 pb-12 pt-10 md:pb-16 md:pt-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted shadow-card dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Test-centre style simulation
+            </span>
+            <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
+              Practice smarter <br className="hidden sm:block" />for your <span className="gradient-text">next certification</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-slate-600 dark:text-slate-300">
-              Realistic practice exams across AWS, Microsoft, Cisco, CompTIA, Google Cloud and more. Try {TEASER_N} questions for free on any exam.
+              Timed exams that look and feel like test day: one question per screen, Mark for review, a review screen before you end, and a score report by domain. Try {TEASER_N} questions free on any exam.
             </p>
-            <form action="/practice-exams" className="mt-8 flex max-w-lg items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-card dark:border-slate-700 dark:bg-slate-900">
+            <form action="/practice-exams" className="mt-8 flex max-w-lg items-center gap-2 rounded-lg border border-line bg-white p-1.5 shadow-lift dark:border-slate-700 dark:bg-slate-900">
               <Search className="ml-3 h-5 w-5 text-slate-400" />
               <input
                 name="q"
                 type="search"
                 aria-label="Search certification practice exams"
-                placeholder="Search exams (e.g. SAA-C03, AZ-900)"
-                className="flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500"
+                placeholder="Search exams (e.g. SAA-C03, AZ-900, CCAO-F)"
+                className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500"
               />
-              <button className="btn-primary-grad rounded-full">Search</button>
+              <button className="btn-primary">Search</button>
             </form>
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <dl className="mt-8 grid max-w-lg grid-cols-3 gap-3">
+              {[
+                { k: '100+', v: 'certifications' },
+                { k: `${TEASER_N}`, v: 'free questions' },
+                { k: '24/7', v: 'timed mock exams' }
+              ].map((f) => (
+                <div key={f.v} className="rounded-lg border border-line bg-white/80 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900/80">
+                  <dt className="font-display text-2xl font-extrabold text-ink dark:text-white">{f.k}</dt>
+                  <dd className="text-xs text-muted dark:text-slate-400">{f.v}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-muted dark:text-slate-400">
               <span className="inline-flex items-center gap-1"><ShieldCheck className="h-4 w-4" /> Money-back guarantee</span>
-              <span className="inline-flex items-center gap-1"><Sparkles className="h-4 w-4" /> Exam Mode</span>
-              <span className="inline-flex items-center gap-1"><Sparkles className="h-4 w-4" /> Practice Mode</span>
-              <span className="inline-flex items-center gap-1"><Award className="h-4 w-4" /> 100+ certifications</span>
+              <span className="inline-flex items-center gap-1"><Sparkles className="h-4 w-4" /> Exam Mode + Practice Mode</span>
+              <span className="inline-flex items-center gap-1"><Award className="h-4 w-4" /> Original, blueprint-aligned questions</span>
             </div>
           </div>
-          <div className="relative hidden items-center justify-center md:flex">
-            <Image
-              src="/hero.webp"
-              alt="Online exam preparation with instructor-led learning"
-              width={1200}
-              height={897}
-              priority
-              sizes="(min-width: 1024px) 600px, (min-width: 768px) 480px, 100vw"
-              className="h-auto max-h-[480px] w-full max-w-full object-contain dark:brightness-90 dark:[mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)] dark:[-webkit-mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_85%)]"
-            />
-          </div>
+          <HeroExamVisual />
         </div>
       </section>
 
       {/* Vendors */}
-      <section className="container-app py-8">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold">Browse by vendor</h2>
-          <Link href="/vendors" className="text-sm text-blue-600 hover:underline">View all</Link>
+      <section className="container-app py-14">
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <div className="eyebrow">Catalog</div>
+            <h2 className="mt-1 text-3xl font-extrabold tracking-tight">Browse by vendor</h2>
+          </div>
+          <Link href="/vendors" className="text-sm font-semibold text-brand hover:underline">View all →</Link>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
           {vendors.map(v => {
             const total = v._count.exams + (bundleCountByVendor.get(v.slug) || 0);
             return (
-              <Link key={v.id} href={`/practice-exams/${v.slug}`} className="card-hover flex flex-col items-center justify-center px-4 py-6 text-center">
-                <div className="text-sm font-medium">{v.name}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">{total} exam{total === 1 ? '' : 's'}</div>
+              <Link key={v.id} href={`/practice-exams/${v.slug}`} className="card-hover group flex flex-col items-center justify-center px-4 py-6 text-center">
+                <div className="font-display text-base font-bold group-hover:text-brand">{v.name}</div>
+                <div className="mt-0.5 font-mono text-[11px] uppercase tracking-wider text-muted dark:text-slate-400">{total} exam{total === 1 ? '' : 's'}</div>
               </Link>
             );
           })}
@@ -138,9 +145,10 @@ export default async function HomePage() {
       </section>
 
       {/* Popular bundles — the only thing the app sells. */}
-      <section className="border-y border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
-        <div className="container-app py-14">
-          <h2 className="mb-6 text-2xl font-semibold">Popular Bundled Exams</h2>
+      <section className="border-y border-line bg-canvas dark:border-slate-800 dark:bg-slate-900">
+        <div className="container-app py-16">
+          <div className="eyebrow">Newest bundles</div>
+          <h2 className="mb-8 mt-1 text-3xl font-extrabold tracking-tight">Popular bundled exams</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {recentBundles.map((b) => {
               const first = b.items[0]?.exam;
@@ -166,11 +174,11 @@ export default async function HomePage() {
                     {displayCode && <span className="badge">{displayCode}</span>}
                     {first && <span className="badge">{first.level}</span>}
                   </div>
-                  <h3 className="font-semibold">{b.title}</h3>
+                  <h3 className="text-lg font-bold leading-snug">{b.title}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{b.description}</p>
                   <div className="mt-4 flex items-center justify-between text-sm">
                     <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {practiceExamLabel(examCount)}</span>
-                    <span className="font-semibold text-blue-700 dark:text-blue-400">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
+                    <span className="font-display font-bold text-brand dark:text-blue-400">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
                   </div>
                 </Link>
               );
@@ -182,16 +190,22 @@ export default async function HomePage() {
 
       {/* How it works */}
       <section id="how" className="container-app py-16">
-        <h2 className="text-center text-2xl font-semibold">How it works</h2>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
+        <div className="text-center">
+          <div className="eyebrow">How it works</div>
+          <h2 className="mt-1 text-3xl font-extrabold tracking-tight">From first question to exam day</h2>
+        </div>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
           {[
             { icon: BookOpen, t: 'Choose an exam', d: 'Pick from 100+ vendors and certifications.' },
             { icon: Sparkles, t: `Try ${TEASER_N} questions free`, d: 'Get a feel for our practice content before you buy.' },
-            { icon: BadgeCheck, t: 'Pass with confidence', d: 'Practice + Exam modes simulate the real test.' }
+            { icon: BadgeCheck, t: 'Sit a realistic mock', d: 'Timed Exam Mode with Mark for review, a review screen and a domain score report.' }
           ].map((s, i) => (
-            <div key={i} className="card p-6 text-center">
-              <s.icon className="mx-auto h-8 w-8 text-blue-600 dark:text-blue-400" />
-              <h3 className="mt-3 font-semibold">{s.t}</h3>
+            <div key={i} className="card relative p-6">
+              <span className="absolute right-5 top-5 font-mono text-xs text-muted">0{i + 1}</span>
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-brand-100 text-brand dark:bg-blue-950/50 dark:text-blue-300">
+                <s.icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-lg font-bold">{s.t}</h3>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{s.d}</p>
             </div>
           ))}
@@ -199,19 +213,22 @@ export default async function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
+      <section id="pricing" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900">
         <div className="container-app py-16">
-          <h2 className="text-center text-2xl font-semibold">Three ways to prepare</h2>
+          <div className="text-center">
+            <div className="eyebrow">Plans</div>
+            <h2 className="mt-1 text-3xl font-extrabold tracking-tight">Three ways to prepare</h2>
+          </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               { t: `Try ${TEASER_N} questions for free`, d: 'Free teaser on every exam — no credit card required. Get a feel for our content before you buy.', cta: 'Browse exams' },
               { t: 'Practice Exam', d: 'Full access to the practice question bank with detailed explanations. Practice Mode and Exam Mode included.', cta: 'Browse' },
               { t: 'Exam Voucher (practice included)', d: 'A real exam voucher PLUS full practice access for the same exam — no separate practice purchase needed.', cta: 'Browse' }
             ].map((p, i) => (
-              <div key={i} className="card p-6">
-                <h3 className="font-semibold">{p.t}</h3>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{p.d}</p>
-                <Link href="/practice-exams" className="btn-outline mt-4 w-full">{p.cta}</Link>
+              <div key={i} className={`card flex flex-col p-6 ${i === 1 ? 'border-brand ring-1 ring-brand' : ''}`}>
+                <h3 className="text-lg font-bold">{p.t}</h3>
+                <p className="mb-6 mt-1 text-sm text-slate-600 dark:text-slate-400">{p.d}</p>
+                <Link href="/practice-exams" className={`${i === 1 ? 'btn-primary' : 'btn-outline'} mt-auto w-full`}>{p.cta}</Link>
               </div>
             ))}
           </div>
@@ -221,7 +238,7 @@ export default async function HomePage() {
       <LandingTestimonials />
 
       {/* FAQ */}
-      <section id="faq" className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
+      <section id="faq" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900">
         <div className="container-app py-20">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
@@ -236,7 +253,7 @@ export default async function HomePage() {
 
           <div className="mx-auto mt-10 max-w-3xl space-y-3">
             {FAQS.map((f, i) => (
-              <details key={i} className="group rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm open:border-blue-300 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
+              <details key={i} className="group rounded-xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm open:border-brand/50 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-base font-semibold text-slate-900 dark:text-slate-100">
                   <span>{f.q}</span>
                   <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 group-open:text-blue-600 dark:group-open:text-blue-400" />

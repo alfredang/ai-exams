@@ -192,7 +192,11 @@ const HIDDEN_EXAM_SLUGS = [
   // here later will NOT hide an already-published exam.
   'anthropic-ccar-professional',
   'anthropic-ccdv-foundations',
-  'anthropic-ccao-foundations'
+  'anthropic-ccao-foundations',
+  // CCAO-F mock exams 1–3 (P2–P4, added 2026-10) — sold only via the bundle.
+  'anthropic-ccao-foundations-p2',
+  'anthropic-ccao-foundations-p3',
+  'anthropic-ccao-foundations-p4'
 ];
 
 // Vendor allowlist for the public catalog. Any exam whose vendorSlug is NOT
@@ -347,13 +351,21 @@ const BUNDLES: BundleSeed[] = [
     items: [{ examSlug: 'anthropic-ccdv-foundations', tier: 'PRACTICE', position: 1 }]
   },
   {
-    // Launches with P1 only (60 questions); P2/P3 follow.
+    // 4-variant practice bundle: P1 (60 questions, 120 min) plus three
+    // 15-question, 30-minute mock exams (P2–P4, added 2026-10) from the
+    // MIT-licensed CLAUDE-CERTIFICATIONS repo. All four exams are in
+    // HIDDEN_EXAM_SLUGS so the bundle is the customer-facing surface.
     slug: 'anthropic-ccao-foundations',
     title: 'Claude Certified Associate — Foundations (CCAO-F)',
     description:
-      'Practice bundle for the Claude Certified Associate — Foundations (CCAO-F) credential. 60 questions matching the official exam blueprint — prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
+      'Practice bundle for the Claude Certified Associate — Foundations (CCAO-F) credential. 4 practice exams and 105 questions — a 60-question full-length exam matching the official exam blueprint plus three 15-question timed mock exams — covering prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
     price: 2000, // $20 — PRACTICE tier
-    items: [{ examSlug: 'anthropic-ccao-foundations', tier: 'PRACTICE', position: 1 }]
+    items: [
+      { examSlug: 'anthropic-ccao-foundations', tier: 'PRACTICE', position: 1 },
+      { examSlug: 'anthropic-ccao-foundations-p2', tier: 'PRACTICE', position: 2 },
+      { examSlug: 'anthropic-ccao-foundations-p3', tier: 'PRACTICE', position: 3 },
+      { examSlug: 'anthropic-ccao-foundations-p4', tier: 'PRACTICE', position: 4 }
+    ]
   },
   // ───── Auto-generated multi-variant cert bundles ─────
   // Each entry follows the same shape: practice tier covers all variants,
@@ -1083,6 +1095,35 @@ const EXAMS: ExamSeed[] = [
     title: 'Claude Certified Associate — Foundations',
     description: CLAUDE_ASSOCIATE_DESCRIPTION,
     level: 'Foundational', durationMinutes: 120, passingScore: 72, questionCount: 60,
+    infoUrl: CLAUDE_CERT_INFO.ccaoF,
+    domains: CLAUDE_ASSOCIATE_DOMAINS
+  },
+  // CCAO-F mock exams 1–3 (variants P2–P4): 15 questions / 30 min each, from
+  // the MIT-licensed CLAUDE-CERTIFICATIONS repo. Content seeded by
+  // src/lib/seed/ccao-foundations-mock-questions.ts via seedCcaoFoundations().
+  // durationMinutes/passingScore sync on every deploy, so they must match the
+  // VARIANTS entries in src/lib/seed/ccao-foundations-questions.ts.
+  {
+    vendorSlug: 'anthropic', slug: 'anthropic-ccao-foundations-p2', code: 'CCAO-F-P2',
+    title: 'Claude Certified Associate — Foundations · Mock Exam 1',
+    description: CLAUDE_ASSOCIATE_DESCRIPTION,
+    level: 'Foundational', durationMinutes: 30, passingScore: 72, questionCount: 15,
+    infoUrl: CLAUDE_CERT_INFO.ccaoF,
+    domains: CLAUDE_ASSOCIATE_DOMAINS
+  },
+  {
+    vendorSlug: 'anthropic', slug: 'anthropic-ccao-foundations-p3', code: 'CCAO-F-P3',
+    title: 'Claude Certified Associate — Foundations · Mock Exam 2',
+    description: CLAUDE_ASSOCIATE_DESCRIPTION,
+    level: 'Foundational', durationMinutes: 30, passingScore: 72, questionCount: 15,
+    infoUrl: CLAUDE_CERT_INFO.ccaoF,
+    domains: CLAUDE_ASSOCIATE_DOMAINS
+  },
+  {
+    vendorSlug: 'anthropic', slug: 'anthropic-ccao-foundations-p4', code: 'CCAO-F-P4',
+    title: 'Claude Certified Associate — Foundations · Mock Exam 3',
+    description: CLAUDE_ASSOCIATE_DESCRIPTION,
+    level: 'Foundational', durationMinutes: 30, passingScore: 72, questionCount: 15,
     infoUrl: CLAUDE_CERT_INFO.ccaoF,
     domains: CLAUDE_ASSOCIATE_DOMAINS
   },
@@ -2130,7 +2171,9 @@ async function main() {
     // set by src/lib/seed/cca-foundations-questions.ts on every deploy.
     'anthropic-cca-foundations': 'CCAR-F',
     // The remaining Claude certs: slug tail ("ccar-professional") is not the
-    // vendor code ("CCAR-P"). Needed before P2/P3 variants land.
+    // vendor code ("CCAR-P"). Needed before P2/P3 variants land. The CCAO-F
+    // entry already covers its mock-exam variants: -p2..-p4 recode to
+    // CCAO-F-P2..P4, matching src/lib/seed/ccao-foundations-questions.ts.
     'anthropic-ccar-professional': 'CCAR-P',
     'anthropic-ccdv-foundations': 'CCDV-F',
     'anthropic-ccao-foundations': 'CCAO-F'

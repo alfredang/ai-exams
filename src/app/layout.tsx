@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
 import Script from 'next/script';
 import { Nav } from '@/components/nav';
 import { Footer, PersistentCopyright } from '@/components/footer';
@@ -9,7 +9,9 @@ import { WhatsAppWidget } from '@/components/whatsapp-widget';
 import { AuthProvider } from '@/components/session-provider';
 import { getAllSettings } from '@/lib/settings';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const display = Archivo({ subsets: ['latin'], weight: ['500', '700', '800'], variable: '--font-display' });
+const body = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-body' });
+const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-mono' });
 
 // Social card image used by openGraph + twitter metadata. Defaults to
 // /hero.webp (already in /public, 200 on prod). When a dedicated
@@ -89,12 +91,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Runs synchronously in <head> before paint to avoid a flash of the wrong
-// theme. Respects (1) explicit localStorage('theme'), then (2) the OS
-// prefers-color-scheme media query. Falls back to light when neither is set.
+// theme. The site is light by default: dark applies only when the visitor
+// chose it (localStorage 'theme' === 'dark'), or chose 'system' in their
+// settings and the OS prefers dark.
 const themeInitScript = `(function(){try{
   var t=localStorage.getItem('theme');
-  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var d = t ? (t==='dark') : prefersDark;
+  var d = t==='dark' || (t==='system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   if (d) document.documentElement.classList.add('dark');
 } catch(e) {}})();`;
 
@@ -107,8 +109,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
 
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col bg-white font-sans text-ink dark:bg-slate-950 dark:text-slate-100">
         <Script id="theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
         <script
           type="application/ld+json"

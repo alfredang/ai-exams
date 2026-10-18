@@ -5,7 +5,7 @@
 // the exam-runner edits from PR #72 actually make it into the bundle.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Flag, Loader2, X } from 'lucide-react';
+import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Flag, LayoutGrid, ListChecks, Loader2, LogOut, X } from 'lucide-react';
 import { ExplanationView } from '@/components/explanation-view';
 import { shuffleSeeded } from '@/lib/shuffle';
 
@@ -31,6 +31,8 @@ export type ExamRunnerProps = {
   questions: RunnerQuestion[];
   remainingSec: number;        // 0 for untimed
   initialResponses: Record<string, RunnerResponse>;
+  // Where "Save & exit" lands. Defaults to the signed-in attempts list.
+  exitHref?: string;
 };
 
 const TYPE_HINT: Record<RunnerQuestion['type'], string> = {
@@ -50,7 +52,6 @@ export function ExamRunner(props: ExamRunnerProps) {
   const router = useRouter();
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, RunnerResponse>>(props.initialResponses || {});
-  const [filter, setFilter] = useState<'all' | 'unanswered' | 'incorrect' | 'flagged'>('all');
   const [remaining, setRemaining] = useState(props.remainingSec);
   const [submitted, setSubmitted] = useState(false);
   const [showReview, setShowReview] = useState(false);
@@ -156,17 +157,9 @@ export function ExamRunner(props: ExamRunnerProps) {
     setAnswer(next);
   }
 
-  const visible = useMemo(() => props.questions.map((_, i) => i).filter(i => {
-    const r = answers[props.questions[i].id];
-    if (filter === 'unanswered') return !r?.answer?.length;
-    if (filter === 'incorrect') return r?.submitted && r.isCorrect === false;
-    if (filter === 'flagged') return r?.flagged;
-    return true;
-  }), [answers, filter, props.questions]);
-
   const answeredCount = Object.values(answers).filter(r => r.answer?.length).length;
   const flaggedCount = Object.values(answers).filter(r => r.flagged).length;
-  const unansweredIdx = props.questions.map((qq, i) => i).filter(i => !answers[props.questions[i].id]?.answer?.length);
+  const unansweredIdx = props.questions.map((_, i) => i).filter(i => !answers[props.questions[i].id]?.answer?.length);
 
   const goto = useCallback((i: number) => {
     setIdx(Math.min(props.questions.length - 1, Math.max(0, i)));
@@ -275,400 +268,550 @@ export function ExamRunner(props: ExamRunnerProps) {
     }
   }
 
+  // ── Test-centre navigation ──────────────────────────────────────────────
+  // Mirrors the flow candidates meet at a proctored test centre: Next on the
+  // last item opens the Review Screen; from there "Review Incomplete" /
+  // "Review Flagged" walk ONLY those items (reviewSeq) and return to the
+  // Review Screen when the walk ends. End Exam always asks for confirmation.
+  const [view, setView] = useState<'question' | 'review'>('question');
+  const [reviewSeq, setReviewSeq] = useState<{ label: string; items: number[] } | null>(null);
+  const [navOpen, setNavOpen] = useState(true);
+  const [showExit, setShowExit] = useState(false);
+  // Right-click strike-out of options the candidate has ruled out. Visual aid
+  // only — never persisted or scored.
+  const [struck, setStruck] = useState<Record<string, string[]>>({});
+
+  function next() {
+    if (reviewSeq) {
+      const pos = reviewSeq.items.indexOf(idx);
+      if (pos >= 0 && pos < reviewSeq.items.length - 1) setIdx(reviewSeq.items[pos + 1]);
+      else { setReviewSeq(null); setView('review'); }
+      return;
+    }
+    if (idx >= props.questions.length - 1) setView('review');
+    else goto(idx + 1);
+  }
+  function prev() {
+    if (reviewSeq) {
+      const pos = reviewSeq.items.indexOf(idx);
+      if (pos > 0) setIdx(reviewSeq.items[pos - 1]);
+      return;
+    }
+    goto(idx - 1);
+  }
+  function startReview(kind: 'all' | 'incomplete' | 'flagged' | 'incorrect') {
+    const items = props.questions.map((_, i) => i).filter(i => {
+      const r = answers[props.questions[i].id];
+      if (kind === 'incomplete') return !r?.answer?.length;
+      if (kind === 'flagged') return !!r?.flagged;
+      if (kind === 'incorrect') return r?.submitted && r.isCorrect === false;
+      return true;
+    });
+    if (!items.length) return;
+    const label = kind === 'all' ? 'all questions' : `${kind} questions`;
+    setReviewSeq(kind === 'all' ? null : { label, items });
+    setIdx(items[0]);
+    setView('question');
+  }
+  function jumpTo(i: number) {
+    setReviewSeq(null);
+    goto(i);
+    setView('question');
+  }
+  function toggleStrike(optId: string) {
+    setStruck(prev => {
+      const cur = prev[q.id] || [];
+      return { ...prev, [q.id]: cur.includes(optId) ? cur.filter(x => x !== optId) : [...cur, optId] };
+    });
+  }
+  async function saveAndExit() {
+    const payload = Object.fromEntries(Object.entries(answers).map(([qid, r]) => [qid, { answer: r.answer || [], flagged: r.flagged }]));
+    await fetch('/api/attempts/autosave', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: props.attemptId, responses: payload }) }).catch(() => {});
+    dirty.current = false;
+    router.push(props.exitHref || '/user-dashboard/attempts');
+  }
+
+  // The runner takes over the viewport like a test-centre workstation, so
+  // the page behind it must not scroll.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prevOverflow; };
+  }, []);
+
   // Keyboard shortcuts: ← / → navigate, F toggles the flag. Disabled while
-  // the review modal is open or when focus is in a form field.
+  // a dialog is open, on the Review Screen, or when focus is in a form field.
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if (showReview || timeUp) return;
+      if (showReview || timeUp || showExit || view !== 'question') return;
       const el = e.target as HTMLElement;
-      if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return;
-      if (e.key === 'ArrowRight') goto(idx + 1);
-      else if (e.key === 'ArrowLeft') goto(idx - 1);
+      if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) && (el as HTMLInputElement).type !== 'radio' && (el as HTMLInputElement).type !== 'checkbox') return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
       else if (e.key === 'f' || e.key === 'F') toggleFlag();
     };
     window.addEventListener('keydown', fn);
     return () => window.removeEventListener('keydown', fn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, showReview, timeUp, answers]);
+  }, [idx, showReview, timeUp, showExit, view, reviewSeq, answers]);
 
   function fmt(sec: number) {
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
-    return h > 0
-      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-      : `${m}:${String(s).padStart(2, '0')}`;
+    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
   const timed = props.mode === 'EXAM' && props.remainingSec > 0;
   const timerTone = remaining < 60
-    ? 'animate-pulse bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
+    ? 'motion-safe:animate-pulse bg-red-600 text-white'
     : remaining < 300
-    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-    : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+    ? 'bg-amber-400 text-navy-800'
+    : 'bg-white/10 text-white';
 
-  const progressPct = Math.round((answeredCount / props.questions.length) * 100);
+  const total = props.questions.length;
+  const progressPct = Math.round((answeredCount / total) * 100);
+  const incorrectCount = Object.values(answers).filter(r => r.submitted && r.isCorrect === false).length;
   const isK8sPerf = props.examVendor === 'Linux Foundation' && /CKAD?\b/i.test(props.examTitle);
+  const struckHere = struck[q.id] || [];
+  const seqPos = reviewSeq ? reviewSeq.items.indexOf(idx) : -1;
+  const atFirst = reviewSeq ? seqPos <= 0 : idx === 0;
+
+  const barBase = 'inline-flex items-center gap-1 rounded border px-2.5 py-1.5 sm:px-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40';
+  const barBtn = `${barBase} border-white/35 text-white hover:bg-white/15`;
+  const barPrimary = `${barBase} border-white bg-white text-navy hover:bg-white/90`;
 
   return (
-    <div className="container-app py-6">
-      {/* Sticky exam header — sits directly under the h-24 global nav */}
-      <div className="sticky top-24 z-30 -mx-4 mb-6 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 xl:-mx-16 xl:px-16">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2 text-sm">
-            <span className="badge">{props.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}</span>
-            {props.isTeaser && <span className="badge-brand">Free teaser</span>}
-            <span className="hidden truncate text-slate-500 md:inline">{props.examVendor} · {props.examTitle}</span>
+    <div className="fixed inset-0 z-50 flex flex-col bg-white font-sans text-ink" role="application" aria-label={`${props.examTitle} exam`}>
+      {/* Title bar */}
+      <header className="bg-navy text-white">
+        <div className="flex items-center gap-3 px-4 py-2.5 sm:px-6">
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold sm:text-base">{props.examVendor} · {props.examTitle}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/70">
+              {props.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}{props.isTeaser ? ' · Free teaser' : ''}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1 text-xs text-slate-400 sm:flex" aria-live="polite">
-              {saveState === 'saving' && <><Loader2 className="h-3 w-3 animate-spin" /> Saving…</>}
-              {saveState === 'saved' && <><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Saved</>}
+          {timed && (
+            <div className={`flex items-center gap-2 rounded px-2.5 py-1 ${timerTone}`} role="timer" aria-label="Time remaining">
+              <Clock className="h-4 w-4" />
+              <span className="hidden text-xs sm:inline">Time Remaining</span>
+              <span className="font-mono text-base font-medium tabular-nums">{fmt(remaining)}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 rounded bg-white/10 px-2.5 py-1 font-mono text-sm tabular-nums" aria-live="polite">
+            <ListChecks className="h-4 w-4" />
+            {view === 'review' ? 'Review' : `${idx + 1} of ${total}`}
+          </div>
+        </div>
+      </header>
+
+      {/* Tool strip */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-line bg-slate-100 px-4 py-1.5 text-sm sm:px-6">
+        <div className="flex min-w-0 items-center gap-3 text-xs text-muted">
+          <span className="font-mono tabular-nums">{answeredCount} / {total} answered</span>
+          <span className="hidden items-center gap-1 sm:inline-flex" aria-live="polite">
+            {saveState === 'saving' && <><Loader2 className="h-3 w-3 animate-spin" /> Saving…</>}
+            {saveState === 'saved' && <><CheckCircle2 className="h-3 w-3 text-emerald-600" /> Saved</>}
+          </span>
+          {reviewSeq && view === 'question' && (
+            <span className="rounded bg-brand-100 px-2 py-0.5 font-medium text-brand-700">
+              Reviewing {reviewSeq.label} · {seqPos + 1} of {reviewSeq.items.length}
             </span>
-            {timed && (
-              <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 font-mono text-sm font-semibold tabular-nums ${timerTone}`}>
-                <Clock className="h-4 w-4" /> {fmt(remaining)}
-              </span>
-            )}
-            <button
-              onClick={toggleFlag}
-              title="Flag this question for review (F)"
-              className={`btn-outline ${a.flagged ? 'border-amber-400 text-amber-700 dark:text-amber-300' : ''}`}
-            >
-              <Flag className={`mr-1 inline h-4 w-4 ${a.flagged ? 'fill-amber-400' : ''}`} />{a.flagged ? 'Flagged' : 'Flag'}
-            </button>
-            <button onClick={() => setShowReview(true)} className="btn-primary-grad">
-              {props.mode === 'EXAM' ? 'Review & submit' : 'Finish & see results'}
-            </button>
-          </div>
+          )}
         </div>
-        {/* Progress bar */}
-        <div className="mt-2 flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" role="progressbar" aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={props.questions.length}>
-            <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all" style={{ width: `${progressPct}%` }} />
+        {view === 'question' && (
+          <div className="flex items-center gap-4">
+            <button type="button" onClick={() => setNavOpen(o => !o)} className="hidden text-xs font-medium text-muted underline-offset-2 hover:text-ink hover:underline lg:inline">
+              {navOpen ? 'Hide answer sheet' : 'Show answer sheet'}
+            </button>
+            <label className={`inline-flex cursor-pointer items-center gap-2 rounded px-2 py-0.5 font-medium ${a.flagged ? 'bg-amber-100 text-amber-900' : 'text-ink'}`} title="Mark this question for review (F)">
+              <input type="checkbox" checked={!!a.flagged} onChange={toggleFlag} className="h-4 w-4 accent-amber-500" />
+              <Flag className={`h-4 w-4 ${a.flagged ? 'fill-amber-400 text-amber-600' : 'text-muted'}`} />
+              Mark for review
+            </label>
           </div>
-          <span className="whitespace-nowrap text-xs tabular-nums text-slate-500">{answeredCount}/{props.questions.length} answered</span>
-        </div>
+        )}
+      </div>
+      <div className="h-1 bg-line" role="progressbar" aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={total} aria-label="Questions answered">
+        <div className="h-full bg-brand transition-[width] duration-300" style={{ width: `${progressPct}%` }} />
       </div>
 
-      {timed && remaining < 300 && remaining > 0 && (
-        <div className={`mb-4 flex items-center gap-2 rounded-md border p-3 text-sm ${remaining < 60 ? 'border-red-300 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200' : 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200'}`}>
-          <AlertTriangle className="h-4 w-4 shrink-0" />
-          {remaining < 60 ? 'Less than a minute left — your exam will auto-submit when the timer reaches zero.' : 'Less than 5 minutes remaining. Unanswered questions score zero.'}
-        </div>
-      )}
-
-      {isK8sPerf && (
-        <details className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm dark:border-blue-900 dark:bg-blue-950/40">
-          <summary className="cursor-pointer font-medium text-blue-900 dark:text-blue-200">
-            Practice these tasks hands-on — free Kubernetes playground
-          </summary>
-          <div className="mt-2 space-y-2 text-slate-700 dark:text-slate-200">
-            <p>
-              The real CKA / CKAD exam is performance-based — you solve tasks on a live cluster from a browser terminal. Open the Killercoda playground in a second tab and reproduce each question with <code className="rounded bg-white px-1 dark:bg-slate-800">kubectl</code> while you work through this set.
-            </p>
-            <p>
-              <a
-                href="https://killercoda.com/playgrounds/scenario/kubernetes"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-blue-700 underline hover:no-underline dark:text-blue-300"
-              >
-                Open the free Kubernetes playground →
-              </a>
-            </p>
-            <ul className="list-disc space-y-1 pl-5 text-xs text-slate-600 dark:text-slate-300">
-              <li>Spins up a single-node cluster in your browser — no signup, no install.</li>
-              <li>For each question, also try to <em>produce</em> the resource: <code className="rounded bg-white px-1 dark:bg-slate-800">kubectl run</code>, <code className="rounded bg-white px-1 dark:bg-slate-800">create -f</code>, <code className="rounded bg-white px-1 dark:bg-slate-800">edit</code>, then verify with <code className="rounded bg-white px-1 dark:bg-slate-800">describe</code> / <code className="rounded bg-white px-1 dark:bg-slate-800">get -o yaml</code>.</li>
-              <li>Practice imperative shortcuts you&apos;ll need under time pressure — <code className="rounded bg-white px-1 dark:bg-slate-800">--dry-run=client -o yaml</code>, <code className="rounded bg-white px-1 dark:bg-slate-800">kubectl explain</code>, <code className="rounded bg-white px-1 dark:bg-slate-800">alias k=kubectl</code>.</li>
-              <li>Killercoda sessions expire after ~60 min of inactivity. KodeKloud runs the playground; we are not affiliated with them.</li>
-            </ul>
-          </div>
-        </details>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <div className="card p-6">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold uppercase tracking-wide">Question {idx + 1} of {props.questions.length}</span>
-              {q.domain && (
-                <span className="rounded-full bg-blue-50 px-2.5 py-0.5 font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{q.domain}</span>
+      {/* Workspace */}
+      <div className="flex-1 overflow-y-auto bg-canvas">
+        {view === 'question' ? (
+          <div className={`mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 ${navOpen ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'max-w-4xl'}`}>
+            <div className="min-w-0">
+              {timed && remaining < 300 && remaining > 0 && (
+                <div className={`mb-4 flex items-center gap-2 rounded-md border p-3 text-sm ${remaining < 60 ? 'border-red-300 bg-red-50 text-red-800' : 'border-amber-300 bg-amber-50 text-amber-900'}`}>
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {remaining < 60 ? 'Less than a minute left. The exam ends automatically when the timer reaches zero.' : 'Less than 5 minutes remaining. Unanswered questions score zero.'}
+                </div>
               )}
-            </span>
-            <span className={`rounded-full px-2 py-0.5 font-medium ${NEEDS_CONFIRM(q.type) ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-              {TYPE_HINT[q.type]}
-            </span>
-          </div>
-          <p className="whitespace-pre-wrap text-base font-medium leading-relaxed">{q.stem}</p>
-          {q.type === 'ORDERING' ? (
-            <div className="mt-5 space-y-2">
-              {displayOptions.map((o, oi) => {
-                // After submission the correct position is known, so mark each
-                // row by whether the user placed it where it belongs.
-                const correctSeq = a.correct ?? [];
-                const placedRight = a.submitted && correctSeq[oi] === o.id;
-                const placedWrong = a.submitted && correctSeq.length > 0 && correctSeq[oi] !== o.id;
-                const locked = a.submitted && props.mode === 'PRACTICE';
-                return (
-                  <div
-                    key={`${oi}-${o.id}`}
-                    className={`flex items-center gap-3 rounded-md border px-4 py-3 text-sm ${
-                      placedRight ? 'border-green-500 bg-green-50 dark:bg-green-950/40' :
-                      placedWrong ? 'border-red-500 bg-red-50 dark:bg-red-950/40' :
-                      'border-slate-200 dark:border-slate-700'
-                    }`}
-                  >
-                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 text-xs font-semibold text-slate-600 dark:border-slate-600 dark:text-slate-300">
-                      {oi + 1}
-                    </span>
-                    <span className="flex-1">{o.text}</span>
-                    {a.submitted && correctSeq.length > 0 && (
-                      <span className="shrink-0 text-xs font-semibold text-slate-500">
-                        correct: {correctSeq.indexOf(o.id) + 1}
-                      </span>
-                    )}
-                    <span className="flex shrink-0 flex-col gap-1">
-                      <button
-                        type="button"
-                        onClick={() => move(o.id, -1)}
-                        disabled={locked || oi === 0}
-                        aria-label={`Move "${o.text}" up`}
-                        className="rounded border border-slate-300 px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-600"
-                      >▲</button>
-                      <button
-                        type="button"
-                        onClick={() => move(o.id, 1)}
-                        disabled={locked || oi === displayOptions.length - 1}
-                        aria-label={`Move "${o.text}" down`}
-                        className="rounded border border-slate-300 px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-600"
-                      >▼</button>
-                    </span>
+
+              {isK8sPerf && (
+                <details className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm">
+                  <summary className="cursor-pointer font-medium text-blue-900">Practice these tasks hands-on — free Kubernetes playground</summary>
+                  <div className="mt-2 space-y-2 text-slate-700">
+                    <p>
+                      The real CKA / CKAD exam is performance-based — you solve tasks on a live cluster from a browser terminal. Open the Killercoda playground in a second tab and reproduce each question with <code className="rounded bg-white px-1">kubectl</code> while you work through this set.
+                    </p>
+                    <p>
+                      <a href="https://killercoda.com/playgrounds/scenario/kubernetes" target="_blank" rel="noopener noreferrer" className="font-medium text-blue-700 underline hover:no-underline">
+                        Open the free Kubernetes playground →
+                      </a>
+                    </p>
+                    <ul className="list-disc space-y-1 pl-5 text-xs text-slate-600">
+                      <li>Spins up a single-node cluster in your browser — no signup, no install.</li>
+                      <li>For each question, also try to <em>produce</em> the resource: <code className="rounded bg-white px-1">kubectl run</code>, <code className="rounded bg-white px-1">create -f</code>, <code className="rounded bg-white px-1">edit</code>, then verify with <code className="rounded bg-white px-1">describe</code> / <code className="rounded bg-white px-1">get -o yaml</code>.</li>
+                      <li>Practice imperative shortcuts you&apos;ll need under time pressure — <code className="rounded bg-white px-1">--dry-run=client -o yaml</code>, <code className="rounded bg-white px-1">kubectl explain</code>, <code className="rounded bg-white px-1">alias k=kubectl</code>.</li>
+                      <li>Killercoda sessions expire after ~60 min of inactivity. KodeKloud runs the playground; we are not affiliated with them.</li>
+                    </ul>
                   </div>
-                );
-              })}
-              {!a.answer.length && (
-                <p className="pt-1 text-xs text-slate-500">
-                  Use the arrows to arrange these into the correct sequence, then check your answer.
-                </p>
+                </details>
               )}
-            </div>
-          ) : (
-          <div className="mt-5 space-y-2">
-            {displayOptions.map((o, oi) => {
-              const sel = a.answer.includes(o.id);
-              const isAnswered = !!a.submitted;
-              const correct = a.correct?.includes(o.id);
-              const wrong = isAnswered && sel && !correct;
-              return (
-                <button
-                  key={`${oi}-${o.id}`}
-                  onClick={() => toggle(o.id)}
-                  disabled={a.submitted && props.mode === 'PRACTICE'}
-                  aria-pressed={sel}
-                  className={`group flex w-full items-start gap-3 rounded-md border px-4 py-3 text-left text-sm transition ${
-                    isAnswered && correct ? 'border-green-500 bg-green-50 dark:bg-green-950/40' :
-                    wrong ? 'border-red-500 bg-red-50 dark:bg-red-950/40' :
-                    sel ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 dark:bg-blue-950/40' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:hover:border-slate-600 dark:hover:bg-slate-800/50'
-                  }`}
-                >
-                  <span className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
-                    isAnswered && correct ? 'border-green-600 bg-green-600 text-white' :
-                    wrong ? 'border-red-600 bg-red-600 text-white' :
-                    sel ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 text-slate-500 group-hover:border-slate-400 dark:border-slate-600 dark:text-slate-400'
-                  }`}>
-                    {sel && !isAnswered ? <Check className="h-3.5 w-3.5" /> : LETTERS[oi] ?? '?'}
-                  </span>
-                  <span className="flex-1">{o.text}</span>
-                  {isAnswered && correct && (
-                    <span className="shrink-0 rounded-full bg-green-600 px-2 py-0.5 text-xs font-semibold text-white">✓ Correct answer</span>
+
+              <section className="rounded-md border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="q-stem">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <span className="eyebrow">Question {idx + 1} of {total}</span>
+                  {/* The live exam never names the domain mid-test, so Exam
+                      mode keeps it hidden until the results page. */}
+                  {q.domain && props.mode === 'PRACTICE' && (
+                    <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-brand-700">{q.domain}</span>
                   )}
-                  {wrong && (
-                    <span className="shrink-0 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">✗ Your answer</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          )}
-          {revealErr && <p className="mt-3 text-xs text-red-600">{revealErr}</p>}
-          {!a.submitted && props.mode === 'PRACTICE' && !NEEDS_CONFIRM(q.type) && !a.answer.length && (
-            <p className="mt-4 text-xs text-slate-500">Pick an option to reveal the answer.</p>
-          )}
-          {a.submitted && a.explanation && (
-            <div className={`mt-4 rounded-md border p-4 text-sm ${a.isCorrect ? 'border-green-200 bg-green-50/60 dark:border-green-900 dark:bg-green-950/20' : 'border-red-200 bg-red-50/60 dark:border-red-900 dark:bg-red-950/20'}`}>
-              <div className={`mb-2 font-semibold ${a.isCorrect ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>{a.isCorrect ? '✓ Correct' : '✗ Incorrect'}</div>
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Suggested Answer</div>
-              <ExplanationView
-                text={a.explanation}
-                options={q.options}
-                correctIds={a.correct ?? []}
-              />
-              {!!a.references?.length && (
-                <div className="mt-3 border-t border-slate-200 pt-3 text-xs dark:border-slate-700">
-                  <div className="mb-1 font-semibold text-slate-600 dark:text-slate-300">References</div>
-                  <ul className="space-y-1">
-                    {a.references.map((ref, i) => {
-                      const url = typeof ref === 'string' ? ref : ref?.url || '';
-                      const label = typeof ref === 'string' ? ref : ref?.label || ref?.url || '';
-                      if (!label) return null;
+                </div>
+                <p id="q-stem" className="whitespace-pre-wrap text-[17px] font-medium leading-relaxed sm:text-[19px]">{q.stem}</p>
+                <p className="eyebrow mb-2 mt-5">{TYPE_HINT[q.type]}</p>
+
+                {q.type === 'ORDERING' ? (
+                  <div className="space-y-2">
+                    {displayOptions.map((o, oi) => {
+                      // After submission the correct position is known, so mark each
+                      // row by whether the user placed it where it belongs.
+                      const correctSeq = a.correct ?? [];
+                      const placedRight = a.submitted && correctSeq[oi] === o.id;
+                      const placedWrong = a.submitted && correctSeq.length > 0 && correctSeq[oi] !== o.id;
+                      const locked = a.submitted && props.mode === 'PRACTICE';
                       return (
-                        <li key={i}>
-                          {/^https?:\/\//.test(url)
-                            ? <a href={url} target="_blank" rel="noopener noreferrer" className="break-all text-blue-700 underline hover:no-underline dark:text-blue-300">{label}</a>
-                            : <span className="text-slate-600 dark:text-slate-300">{label}</span>}
-                        </li>
+                        <div
+                          key={`${oi}-${o.id}`}
+                          className={`flex items-center gap-3 rounded-md border px-4 py-3 ${
+                            placedRight ? 'border-emerald-600 bg-emerald-50' :
+                            placedWrong ? 'border-red-600 bg-red-50' :
+                            'border-line bg-white'
+                          }`}
+                        >
+                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-[1.5px] border-muted font-mono text-xs">{oi + 1}</span>
+                          <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{o.text}</span>
+                          {a.submitted && correctSeq.length > 0 && (
+                            <span className="shrink-0 text-xs font-semibold text-muted">correct: {correctSeq.indexOf(o.id) + 1}</span>
+                          )}
+                          <span className="flex shrink-0 flex-col gap-1">
+                            <button type="button" onClick={() => move(o.id, -1)} disabled={locked || oi === 0} aria-label={`Move "${o.text}" up`} className="rounded border border-line px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30">▲</button>
+                            <button type="button" onClick={() => move(o.id, 1)} disabled={locked || oi === displayOptions.length - 1} aria-label={`Move "${o.text}" down`} className="rounded border border-line px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30">▼</button>
+                          </span>
+                        </div>
                       );
                     })}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-          <div className="mt-6 flex items-center justify-between">
-            {/* Hide Previous entirely on the first question (nothing to go
-                back to). The empty <div> keeps it occupying the left slot so
-                justify-between still right-aligns Next. Mirrors the Next-hide
-                on the last question below. */}
-            {idx > 0 ? (
-              <button onClick={() => goto(idx - 1)} className="btn-outline"><ChevronLeft className="h-4 w-4" /> Previous</button>
-            ) : (
-              <div />
-            )}
-            {/* MULTI in PRACTICE: the right slot holds "Check answer" until the
-                user confirms their picks (one click ≠ done picking). Next is
-                hidden until then, so they can't skip past without checking —
-                and it's disabled until at least one option is selected. Once
-                checkAnswer() flips a.submitted, this falls through to Next. */}
-            {!a.submitted && props.mode === 'PRACTICE' && NEEDS_CONFIRM(q.type) ? (
-              <button
-                onClick={checkAnswer}
-                disabled={!a.answer.length}
-                title={!a.answer.length ? 'Select at least one option first' : ''}
-                className="btn-primary-grad disabled:cursor-not-allowed disabled:opacity-50"
-              >Check answer</button>
-            ) : (
-              /* Hide Next entirely on the last question — there's nothing
-                 to navigate to. Submit button stays available in the header
-                 bar for the explicit-finish action. (Per user feedback
-                 2026-05-26: the disabled Next button on Q10/10 was visually
-                 indistinguishable from active and added clutter.) */
-              idx < props.questions.length - 1 && (
-                <button onClick={() => goto(idx + 1)} className="btn-primary">Next <ChevronRight className="h-4 w-4" /></button>
-              )
-            )}
-          </div>
-          <p className="mt-4 hidden text-center text-[11px] text-slate-400 lg:block">
-            Keyboard: <kbd className="rounded border border-slate-300 px-1 dark:border-slate-600">←</kbd>{' '}
-            <kbd className="rounded border border-slate-300 px-1 dark:border-slate-600">→</kbd> to navigate ·{' '}
-            <kbd className="rounded border border-slate-300 px-1 dark:border-slate-600">F</kbd> to flag
-          </p>
-        </div>
+                    {!a.answer.length && (
+                      <p className="pt-1 text-xs text-muted">Use the arrows to arrange these into the correct sequence, then check your answer.</p>
+                    )}
+                  </div>
+                ) : (
+                  <fieldset className="grid min-w-0 gap-2.5">
+                    <legend className="sr-only">{TYPE_HINT[q.type]}</legend>
+                    {displayOptions.map((o, oi) => {
+                      const sel = a.answer.includes(o.id);
+                      const isAnswered = !!a.submitted;
+                      const correct = a.correct?.includes(o.id);
+                      const wrong = isAnswered && sel && !correct;
+                      const isStruck = struckHere.includes(o.id) && !sel;
+                      const locked = a.submitted && props.mode === 'PRACTICE';
+                      const inputId = `q-${q.id}-${o.id}`;
+                      return (
+                        <label
+                          key={`${oi}-${o.id}`}
+                          htmlFor={inputId}
+                          onContextMenu={(e) => { e.preventDefault(); if (!locked) toggleStrike(o.id); }}
+                          className={`group flex min-w-0 items-start gap-3.5 rounded-md border px-4 py-3.5 transition has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand ${
+                            locked ? 'cursor-default' : 'cursor-pointer'
+                          } ${
+                            isAnswered && correct ? 'border-emerald-600 bg-emerald-50' :
+                            wrong ? 'border-red-600 bg-red-50' :
+                            sel ? 'border-brand bg-brand-100' : 'border-line bg-white hover:border-brand'
+                          }`}
+                        >
+                          <input
+                            id={inputId}
+                            type={q.type === 'MULTI' ? 'checkbox' : 'radio'}
+                            name={`q-${q.id}`}
+                            checked={sel}
+                            disabled={locked}
+                            onChange={() => toggle(o.id)}
+                            className="pointer-events-none absolute opacity-0"
+                          />
+                          <span className={`flex h-7 w-7 shrink-0 items-center justify-center border-[1.5px] font-mono text-[13px] ${q.type === 'MULTI' ? 'rounded' : 'rounded-full'} ${
+                            isAnswered && correct ? 'border-emerald-600 bg-emerald-600 text-white' :
+                            wrong ? 'border-red-600 bg-red-600 text-white' :
+                            sel ? 'border-brand bg-brand text-white' : 'border-muted text-ink'
+                          }`}>
+                            {sel && q.type === 'MULTI' && !isAnswered ? <Check className="h-4 w-4" /> : LETTERS[oi] ?? '?'}
+                          </span>
+                          <span className={`min-w-0 flex-1 pt-0.5 [overflow-wrap:anywhere] ${isStruck ? 'text-muted line-through decoration-2' : ''}`}>{o.text}</span>
+                          {isAnswered && correct && (
+                            <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white">Correct answer</span>
+                          )}
+                          {wrong && (
+                            <span className="shrink-0 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">Your answer</span>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </fieldset>
+                )}
 
-        <aside className="card h-fit p-4 lg:sticky lg:top-52">
-          <div className="mb-3 flex flex-wrap gap-1 text-xs">
-            {(['all', 'unanswered', 'incorrect', 'flagged'] as const)
-              .filter(f => f !== 'incorrect' || props.mode === 'PRACTICE')
-              .map(f => {
-                const count = f === 'all' ? props.questions.length
-                  : f === 'unanswered' ? props.questions.length - answeredCount
-                  : f === 'flagged' ? flaggedCount
-                  : Object.values(answers).filter(r => r.submitted && r.isCorrect === false).length;
-                return (
-                  <button key={f} onClick={() => setFilter(f)} className={`badge capitalize ${filter === f ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : ''}`}>
-                    {f} · {count}
-                  </button>
-                );
-              })}
-          </div>
-          <div className="grid grid-cols-6 gap-1">
-            {props.questions.map((qq, i) => {
-              const r = answers[qq.id];
-              const hidden = !visible.includes(i);
-              const cls = hidden ? 'opacity-30' :
-                r?.isCorrect === true ? 'bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300' :
-                r?.isCorrect === false ? 'bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300' :
-                r?.answer?.length ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-              return (
-                <button
-                  key={qq.id}
-                  onClick={() => goto(i)}
-                  aria-label={`Go to question ${i + 1}`}
-                  aria-current={i === idx ? 'true' : undefined}
-                  className={`relative rounded-md py-1 text-xs tabular-nums ${cls} ${i === idx ? 'ring-2 ring-blue-500' : ''}`}
-                >
-                  {i + 1}
-                  {r?.flagged && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-400" aria-hidden />}
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-3 space-y-1 border-t border-slate-200 pt-3 text-[11px] text-slate-500 dark:border-slate-700">
-            <div className="flex items-center gap-2"><span className="h-3 w-3 rounded bg-blue-100 dark:bg-blue-950/50" /> Answered</div>
-            <div className="flex items-center gap-2"><span className="h-3 w-3 rounded bg-slate-100 dark:bg-slate-800" /> Not answered</div>
-            <div className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-amber-400" /> Flagged for review</div>
-            {props.mode === 'PRACTICE' && (
-              <>
-                <div className="flex items-center gap-2"><span className="h-3 w-3 rounded bg-green-100 dark:bg-green-950/50" /> Correct</div>
-                <div className="flex items-center gap-2"><span className="h-3 w-3 rounded bg-red-100 dark:bg-red-950/50" /> Incorrect</div>
-              </>
+                {revealErr && <p className="mt-3 text-xs text-red-600">{revealErr}</p>}
+                {!a.submitted && props.mode === 'PRACTICE' && NEEDS_CONFIRM(q.type) && (
+                  <button
+                    onClick={checkAnswer}
+                    disabled={!a.answer.length}
+                    title={!a.answer.length ? 'Select at least one option first' : ''}
+                    className="btn-primary mt-5 disabled:cursor-not-allowed disabled:opacity-50"
+                  >Check answer</button>
+                )}
+                {!a.submitted && props.mode === 'PRACTICE' && !NEEDS_CONFIRM(q.type) && !a.answer.length && (
+                  <p className="mt-4 text-xs text-muted">Pick an option to reveal the answer.</p>
+                )}
+                {a.submitted && a.explanation && (
+                  <div className={`mt-5 rounded-md border border-l-[5px] p-4 text-sm ${a.isCorrect ? 'border-emerald-600 bg-emerald-50/60' : 'border-red-600 bg-red-50/60'}`}>
+                    <div className={`mb-2 font-semibold ${a.isCorrect ? 'text-emerald-800' : 'text-red-800'}`}>{a.isCorrect ? 'Correct' : 'Incorrect'}</div>
+                    <div className="eyebrow mb-2">Suggested answer</div>
+                    <ExplanationView text={a.explanation} options={q.options} correctIds={a.correct ?? []} />
+                    {!!a.references?.length && (
+                      <div className="mt-3 border-t border-line pt-3 text-xs">
+                        <div className="mb-1 font-semibold text-slate-600">References</div>
+                        <ul className="space-y-1">
+                          {a.references.map((ref, i) => {
+                            const url = typeof ref === 'string' ? ref : ref?.url || '';
+                            const label = typeof ref === 'string' ? ref : ref?.label || ref?.url || '';
+                            if (!label) return null;
+                            return (
+                              <li key={i}>
+                                {/^https?:\/\//.test(url)
+                                  ? <a href={url} target="_blank" rel="noopener noreferrer" className="break-all text-brand-700 underline hover:no-underline">{label}</a>
+                                  : <span className="text-slate-600">{label}</span>}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+              <p className="mt-3 hidden text-center text-[11px] text-muted lg:block">
+                <kbd className="rounded border border-line bg-white px-1">←</kbd> <kbd className="rounded border border-line bg-white px-1">→</kbd> navigate ·{' '}
+                <kbd className="rounded border border-line bg-white px-1">F</kbd> mark for review · right-click an option to strike it out
+              </p>
+            </div>
+
+            {navOpen && (
+              <aside className="hidden h-fit rounded-md border border-line bg-white p-4 shadow-card lg:sticky lg:top-0 lg:block" aria-label="Answer sheet">
+                <div className="eyebrow">Answer sheet</div>
+                <div className="mb-3 mt-2.5 grid grid-cols-5 gap-1.5">
+                  {props.questions.map((qq, i) => {
+                    const r = answers[qq.id];
+                    const tone =
+                      r?.isCorrect === true ? 'border-emerald-600 bg-emerald-50' :
+                      r?.isCorrect === false ? 'border-red-600 bg-red-50' :
+                      r?.answer?.length ? 'border-brand bg-brand-100' : 'border-line bg-white';
+                    return (
+                      <button
+                        key={qq.id}
+                        type="button"
+                        onClick={() => jumpTo(i)}
+                        aria-label={`Question ${i + 1}, ${r?.answer?.length ? 'answered' : 'unanswered'}${r?.flagged ? ', marked for review' : ''}`}
+                        aria-current={i === idx ? 'true' : undefined}
+                        className={`relative aspect-square rounded border font-mono text-sm tabular-nums ${tone} ${i === idx ? 'outline outline-2 outline-offset-1 outline-ink' : ''}`}
+                      >
+                        {i + 1}
+                        {r?.flagged && <span className="absolute right-0.5 top-0.5 h-[7px] w-[7px] rounded-full bg-amber-500" aria-hidden />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid gap-1 border-t border-line pt-3 text-xs text-muted">
+                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-brand bg-brand-100" /> Answered</span>
+                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-line bg-white" /> Not answered</span>
+                  <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500" /> Marked for review</span>
+                  {props.mode === 'PRACTICE' && (
+                    <>
+                      <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-emerald-600 bg-emerald-50" /> Correct</span>
+                      <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-red-600 bg-red-50" /> Incorrect</span>
+                    </>
+                  )}
+                </div>
+              </aside>
             )}
           </div>
-        </aside>
+        ) : (
+          /* Review Screen */
+          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+            <div className="rounded-md border border-line bg-white p-5 shadow-card sm:p-7">
+              <h2 className="text-2xl font-extrabold">Review Screen</h2>
+              <p className="mt-2 max-w-3xl text-sm text-muted">
+                Below is a summary of your answers. Select a question to return to it, or use the buttons at the bottom of the screen to review all questions, only incomplete questions, or only questions marked for review.
+                {props.mode === 'EXAM' ? ' Every question must be answered before you can end the exam.' : ''} When you are finished, select End Exam.
+              </p>
+              <div className="mt-5 grid grid-cols-3 gap-3 sm:max-w-md">
+                <div className="rounded-md border border-line bg-canvas px-3 py-2">
+                  <div className="font-display text-2xl font-extrabold">{answeredCount}</div>
+                  <div className="text-xs text-muted">Complete</div>
+                </div>
+                <div className={`rounded-md border px-3 py-2 ${unansweredIdx.length ? 'border-amber-400 bg-amber-50' : 'border-line bg-canvas'}`}>
+                  <div className="font-display text-2xl font-extrabold">{unansweredIdx.length}</div>
+                  <div className="text-xs text-muted">Incomplete</div>
+                </div>
+                <div className="rounded-md border border-line bg-canvas px-3 py-2">
+                  <div className="font-display text-2xl font-extrabold">{flaggedCount}</div>
+                  <div className="text-xs text-muted">Marked for review</div>
+                </div>
+              </div>
+              <div className="mt-6 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+                {props.questions.map((qq, i) => {
+                  const r = answers[qq.id];
+                  const done = !!r?.answer?.length;
+                  return (
+                    <button
+                      key={qq.id}
+                      type="button"
+                      onClick={() => jumpTo(i)}
+                      className="flex items-center gap-3 border-b border-line px-1 py-2 text-left text-sm hover:bg-brand-50"
+                    >
+                      <span className="w-4 shrink-0">{r?.flagged && <Flag className="h-4 w-4 fill-amber-400 text-amber-600" aria-label="Marked for review" />}</span>
+                      <span className="flex-1 font-medium">Question {i + 1}</span>
+                      {props.mode === 'PRACTICE' && r?.submitted ? (
+                        <span className={`font-mono text-xs font-medium ${r.isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>{r.isCorrect ? 'Correct' : 'Incorrect'}</span>
+                      ) : (
+                        <span className={`font-mono text-xs font-medium ${done ? 'text-muted' : 'text-amber-700'}`}>{done ? 'Complete' : 'Incomplete'}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Review & submit modal — replaces the old alert()-based flow */}
-      {showReview && !timeUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true" aria-label="Review and submit">
-          <div className="card max-h-[85vh] w-full max-w-lg overflow-y-auto p-6">
-            <div className="flex items-start justify-between">
-              <h2 className="text-lg font-bold">Review your {props.mode === 'EXAM' ? 'exam' : 'practice session'}</h2>
-              <button onClick={() => setShowReview(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="h-5 w-5" /></button>
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-              <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
-                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{answeredCount}</div>
-                <div className="text-xs text-slate-500">Answered</div>
-              </div>
-              <div className={`rounded-lg p-3 ${unansweredIdx.length ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-slate-50 dark:bg-slate-800/50'}`}>
-                <div className={`text-2xl font-bold ${unansweredIdx.length ? 'text-amber-700 dark:text-amber-300' : 'text-slate-400'}`}>{unansweredIdx.length}</div>
-                <div className="text-xs text-slate-500">Unanswered</div>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/50">
-                <div className="text-2xl font-bold text-slate-700 dark:text-slate-200">{flaggedCount}</div>
-                <div className="text-xs text-slate-500">Flagged</div>
-              </div>
-            </div>
-            {timed && (
-              <p className="mt-3 text-center text-xs text-slate-500">Time remaining: <span className="font-mono font-semibold">{fmt(remaining)}</span></p>
+      {/* Bottom navigation bar */}
+      <footer className="flex flex-wrap items-center justify-between gap-2 bg-navy px-3 py-2.5 sm:px-6">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setShowReview(true)} className={`${barBtn} bg-white/10`}>
+            <LogOut className="hidden h-4 w-4 sm:block" /> End Exam
+          </button>
+          <button type="button" onClick={() => setShowExit(true)} className={`${barBtn} hidden sm:inline-flex`}>
+            Save &amp; exit
+          </button>
+        </div>
+        {view === 'question' ? (
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={prev} disabled={atFirst} className={barBtn} aria-label="Previous question">
+              <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Previous</span>
+            </button>
+            <button type="button" onClick={next} className={barPrimary}>
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={() => { setReviewSeq(null); setView('review'); }} className={barBtn}>
+              <LayoutGrid className="h-4 w-4" /> <span className="hidden sm:inline">Review Screen</span><span className="sm:hidden">Review</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => startReview('all')} className={barBtn}>Review All</button>
+            <button type="button" onClick={() => startReview('incomplete')} disabled={!unansweredIdx.length} className={barBtn}>Review Incomplete</button>
+            <button type="button" onClick={() => startReview('flagged')} disabled={!flaggedCount} className={barBtn}>Review Flagged</button>
+            {props.mode === 'PRACTICE' && (
+              <button type="button" onClick={() => startReview('incorrect')} disabled={!incorrectCount} className={barBtn}>Review Incorrect</button>
             )}
-            {unansweredIdx.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                  {props.mode === 'EXAM'
-                    ? 'All questions must be answered before you can submit:'
-                    : 'Unanswered questions (tap to jump):'}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {unansweredIdx.slice(0, 40).map(i => (
-                    <button key={i} onClick={() => { setShowReview(false); goto(i); }} className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-950/50 dark:text-amber-300">
-                      {i + 1}
-                    </button>
-                  ))}
-                  {unansweredIdx.length > 40 && <span className="px-1 text-xs text-slate-500">+{unansweredIdx.length - 40} more</span>}
+          </div>
+        )}
+      </footer>
+
+      {/* End Exam confirmation — replaces the old alert()-based flow */}
+      {showReview && !timeUp && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/60 p-4" role="dialog" aria-modal="true" aria-labelledby="end-title">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-md border border-line bg-white shadow-lift">
+            <div className="flex items-center justify-between bg-navy px-5 py-3 text-white">
+              <h2 id="end-title" className="font-display text-base font-bold">End {props.mode === 'EXAM' ? 'Exam' : 'Practice Session'}</h2>
+              <button onClick={() => setShowReview(false)} aria-label="Close" className="text-white/70 hover:text-white"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-md border border-line bg-canvas p-3">
+                  <div className="font-display text-2xl font-extrabold text-brand">{answeredCount}</div>
+                  <div className="text-xs text-muted">Answered</div>
+                </div>
+                <div className={`rounded-md border p-3 ${unansweredIdx.length ? 'border-amber-400 bg-amber-50' : 'border-line bg-canvas'}`}>
+                  <div className={`font-display text-2xl font-extrabold ${unansweredIdx.length ? 'text-amber-700' : 'text-muted'}`}>{unansweredIdx.length}</div>
+                  <div className="text-xs text-muted">Unanswered</div>
+                </div>
+                <div className="rounded-md border border-line bg-canvas p-3">
+                  <div className="font-display text-2xl font-extrabold">{flaggedCount}</div>
+                  <div className="text-xs text-muted">Marked</div>
                 </div>
               </div>
-            )}
-            {submitErr && <p className="mt-3 text-sm text-red-600">{submitErr}</p>}
-            <div className="mt-6 flex items-center justify-end gap-2">
-              <button onClick={() => setShowReview(false)} className="btn-outline">Keep working</button>
-              <button
-                onClick={() => submitAttempt()}
-                disabled={submitted || (props.mode === 'EXAM' && unansweredIdx.length > 0)}
-                className="btn-primary-grad disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {submitted ? 'Submitting…' : props.mode === 'EXAM' ? 'Submit exam' : 'See my results'}
-              </button>
+              {timed && (
+                <p className="mt-3 text-center text-xs text-muted">Time remaining: <span className="font-mono font-semibold">{fmt(remaining)}</span></p>
+              )}
+              {unansweredIdx.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-amber-800">
+                    {props.mode === 'EXAM' ? 'All questions must be answered before you can end the exam:' : 'Unanswered questions (tap to jump):'}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {unansweredIdx.slice(0, 40).map(i => (
+                      <button key={i} onClick={() => { setShowReview(false); jumpTo(i); }} className="rounded border border-amber-300 bg-amber-50 px-2 py-1 font-mono text-xs font-medium text-amber-900 hover:bg-amber-100">
+                        {i + 1}
+                      </button>
+                    ))}
+                    {unansweredIdx.length > 40 && <span className="px-1 text-xs text-muted">+{unansweredIdx.length - 40} more</span>}
+                  </div>
+                </div>
+              )}
+              <p className="mt-4 text-sm text-slate-700">
+                {props.mode === 'EXAM'
+                  ? 'Once you end the exam you cannot return to your answers. Your score report appears immediately.'
+                  : 'Your results and a full answer review appear on the next screen.'}
+              </p>
+              {submitErr && <p className="mt-3 text-sm text-red-600">{submitErr}</p>}
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button onClick={() => setShowReview(false)} className="btn-outline">Return to exam</button>
+                <button
+                  onClick={() => submitAttempt()}
+                  disabled={submitted || (props.mode === 'EXAM' && unansweredIdx.length > 0)}
+                  className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {submitted ? 'Submitting…' : props.mode === 'EXAM' ? 'End exam' : 'See my results'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save & exit confirmation */}
+      {showExit && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/60 p-4" role="dialog" aria-modal="true" aria-labelledby="exit-title">
+          <div className="w-full max-w-md rounded-md border border-line bg-white p-5 shadow-lift">
+            <h2 id="exit-title" className="font-display text-lg font-bold">Save and exit?</h2>
+            <p className="mt-2 text-sm text-slate-700">
+              Your answers are saved and you can resume this attempt later.
+              {timed ? ' The timer keeps running while you are away, and the exam ends automatically when it reaches zero.' : ''}
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setShowExit(false)} className="btn-outline">Stay</button>
+              <button onClick={saveAndExit} className="btn-primary">Save &amp; exit</button>
             </div>
           </div>
         </div>
@@ -676,18 +819,18 @@ export function ExamRunner(props: ExamRunnerProps) {
 
       {/* Time-expired overlay */}
       {timeUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="alertdialog" aria-modal="true" aria-label="Time is up">
-          <div className="card w-full max-w-sm p-8 text-center">
-            <Clock className="mx-auto h-10 w-10 text-red-500" />
-            <h2 className="mt-3 text-lg font-bold">Time&apos;s up</h2>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Your exam is being submitted automatically…</p>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/70 p-4" role="alertdialog" aria-modal="true" aria-label="Time is up">
+          <div className="w-full max-w-sm rounded-md border border-line bg-white p-8 text-center shadow-lift">
+            <Clock className="mx-auto h-10 w-10 text-red-600" />
+            <h2 className="mt-3 text-xl font-extrabold">Time&apos;s up</h2>
+            <p className="mt-2 text-sm text-slate-700">Your exam is being submitted automatically…</p>
             {submitErr ? (
               <>
                 <p className="mt-3 text-sm text-red-600">{submitErr}</p>
                 <button onClick={() => { setTimeUp(true); submitAttempt(true); }} className="btn-primary mt-4">Retry submission</button>
               </>
             ) : (
-              <Loader2 className="mx-auto mt-4 h-5 w-5 animate-spin text-slate-400" />
+              <Loader2 className="mx-auto mt-4 h-5 w-5 animate-spin text-muted" />
             )}
           </div>
         </div>

@@ -102,12 +102,16 @@ export function ExplanationView({
   text,
   options,
   correctIds,
-  references = []
+  references = [],
+  hideCorrectTitle = false
 }: {
   text: string;
   options: Opt[];
   correctIds: string[];
   references?: { label: string; url: string }[];
+  // The results page already prints the correct answer above the
+  // explanation, so it skips the repeated "Correct option" heading.
+  hideCorrectTitle?: boolean;
 }) {
   const p = parseExplanation(text, options, correctIds);
   const hasStructure =
@@ -125,7 +129,9 @@ export function ExplanationView({
     <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
       {p.intro && <p>{p.intro}</p>}
 
-      {(p.correctTitle || p.correctBody) && (
+      {hideCorrectTitle && p.correctBody && <p>{p.correctBody}</p>}
+
+      {!hideCorrectTitle && (p.correctTitle || p.correctBody) && (
         <div>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
             Correct option
