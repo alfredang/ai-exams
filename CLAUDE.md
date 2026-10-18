@@ -33,7 +33,7 @@ There is no test runner. Manual verification flows live in [README.md](README.md
 
 ## Architecture
 
-**Theme & design tokens**: the site is light by default — the `<head>` init script only applies `dark` when `localStorage.theme` is `'dark'`, or `'system'` (set from the user settings picker) and the OS prefers dark. Fonts are Archivo (`font-display`, h1–h3), IBM Plex Sans (`font-sans`) and IBM Plex Mono (`font-mono`, `.eyebrow` labels); colour tokens `canvas`/`ink`/`muted`/`line`/`navy` live in `tailwind.config.ts`. The homepage hero is the animated `components/hero-exam-visual.tsx` (no hero image; `/hero.webp` remains only as the social-card fallback).
+**Theme & design tokens**: the site is light by default — the `<head>` init script only applies `dark` when `localStorage.theme` is `'dark'`, or `'system'` (set from the user settings picker) and the OS prefers dark. **Light = light blue** (light-blue page and alternating `bg-canvas` bands, white cards, blue-tinted borders, navy text); **dark = premium deep navy** (navy page with a fixed blue radial glow, raised navy cards, brighter `brand-500` buttons with `shadow-glow`). Every neutral on the site is `slate`, so the theme lives in the blue-tinted `slate` ramp in `tailwind.config.ts` — keep its lightness order (50 lightest → 950 darkest) or light/dark class pairs lose contrast. `page`/`canvas`/`ink`/`muted`/`line` are CSS-variable tokens in `globals.css` that switch under `.dark`; `navy` is the fixed test-centre chrome. `globals.css` also lifts bare `text-slate-500…900` in dark mode (explicit `dark:text-*` still wins), so an element with `bg-white` and grey text **must** carry its own `dark:bg-*`. `.light-scope` pins light tokens and text colour — the exam runner and the hero's exam window use it so they stay a light test-centre screen in both themes; inside them use fixed light classes, not the shared `.btn-*` (those carry dark variants). Fonts are Archivo (`font-display`, h1–h3), IBM Plex Sans (`font-sans`) and IBM Plex Mono (`font-mono`, `.eyebrow` labels). The homepage hero is the animated `components/hero-exam-visual.tsx` (no hero image; `/hero.webp` remains only as the social-card fallback).
 
 Single Next.js App Router app — server logic (payment webhooks for PayPal/Stripe/HitPay, Auth.js, Claude SSE, voucher PDF) lives in route handlers. The brief mentioned Vite as an alternative; we chose Next.js for the unified server.
 
@@ -65,7 +65,7 @@ Single Next.js App Router app — server logic (payment webhooks for PayPal/Stri
 
 ### Exam runtime — the most subtle part
 - [components/exam-runner.tsx](src/components/exam-runner.tsx) is one client component for both modes. Mode is a prop. Differences: PRACTICE reveals correctness/explanation/references immediately (references rows are historically either URL strings or `{url,label}` objects — handle both); EXAM persists each answer via a debounced call to `/api/attempts/answer`, auto-saves every 15s, and auto-submits at timer 0 with a "Time's up" overlay.
-- The runner is a **full-viewport test-centre shell** (fixed overlay above the site nav, body scroll locked): navy title bar with Time Remaining and "N of M", a tool strip with the **Mark for review** checkbox, an optional answer-sheet side panel, and a navy bottom bar (End Exam / Save & exit / Previous / Next / Review Screen). Next on the last question opens the **Review Screen**; its Review All / Incomplete / Flagged (and Incorrect in PRACTICE) buttons walk only those items, then return to it. Exam mode hides the question's domain until results, like the live exam. Right-click strikes out an option (visual only, never saved). "Save & exit" flushes autosave and leaves via `exitHref` (set in `exam-shell.tsx`); the timer keeps running server-side.
+- The runner is a **full-viewport test-centre shell** (fixed overlay above the site nav, body scroll locked, `.light-scope` so it stays light in dark mode): navy title bar with Time Remaining and "N of M", a slim tool strip (answered count, save state, answer-sheet toggle), and the question card laid out like the mock-exam booklet — "Question N of M" with a **Mark for review** toggle at its top-right, the options, then full-size **Previous / Next** and a primary **End exam** button inside the card. An optional answer-sheet panel sits to the right. The navy bottom bar holds only Save & exit and Review Screen. Next on the last question opens the **Review Screen**; its Review All / Incomplete / Flagged (and Incorrect in PRACTICE) buttons walk only those items, then return to it. Exam mode hides the question's domain until results, like the live exam. Right-click strikes out an option (visual only, never saved). "Save & exit" flushes autosave and leaves via `exitHref` (set in `exam-shell.tsx`); the timer keeps running server-side.
 - Ending goes through the **End Exam dialog** (answered/unanswered/flagged counts, tap-to-jump chips) — EXAM mode disables the submit button until every question is answered; PRACTICE can finish anytime. Keyboard: ←/→ navigate, F flags. Don't reintroduce `alert()`/`confirm()` here.
 - `/results/[attemptId]` follows the mock-exam score report: big `correct / total`, a 4-band readiness scale scaled from the 15-question table (`readinessBands()`), domains sorted weakest-first with a NEXT STUDY TARGET tag at 2+ misses, and an answer review filtered by `?view=missed`.
 - **Question types**: schema reserves `SINGLE | MULTI | TRUE_FALSE | ORDERING | HOTSPOT`, but the runner currently only renders SINGLE/MULTI/TRUE_FALSE. ORDERING and HOTSPOT are deferred — admins can still seed them but users can't take them yet.
@@ -137,30 +137,24 @@ For every new bundle `xyz` (mirror [src/lib/seed/ckad-questions.ts](src/lib/seed
    - Add an entry to `VENDOR_EXAM_CODE_OVERRIDES` whenever the vendor's exam code isn't the slug-minus-vendor-prefix uppercased — otherwise the variant recode loop rewrites your exam codes on **every** deploy.
    - `published`, `questionCount`, and `code` are deliberately excluded from the exam upsert's `update` clause (prod admins are authoritative), so `HIDDEN_EXAM_SLUGS` and the initial question count only take effect on **create**. Get them right on the first deploy.
 5. `git push origin main` and wait ~1–2 min for Coolify to redeploy.
-6. Seed production from this machine:
+6. **Confirm the new build is live** before seeding. An *existing* seed endpoint keeps answering 200 with the OLD code until Coolify finishes, so "it returned 200" proves nothing. Poll the site for something only the new commit renders, or pass the expected exam slugs to the script (step 7), which fails with exit 4 if they are missing.
+7. Seed production from this machine with the script (CSRF → login → session check → POST):
 
 ```bash
-# 1. CSRF
-curl -sS -c /tmp/cookies.txt https://exams.tertiaryinfotech.com/api/auth/csrf -o /tmp/csrf.json
-CSRF=$(jq -r .csrfToken /tmp/csrf.json)
-
-# 2. Admin login via NextAuth credentials provider id `password`
-curl -sS -c /tmp/cookies.txt -b /tmp/cookies.txt \
-  -X POST https://exams.tertiaryinfotech.com/api/auth/callback/password \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode "csrfToken=$CSRF" \
-  --data-urlencode "email=angch@tertiaryinfotech.com" \
-  --data-urlencode "password=$PROD_ADMIN_PASSWORD" \
-  --data-urlencode "callbackUrl=https://exams.tertiaryinfotech.com/admin-dashboard"
-
-# 3. Fire the seed (idempotent)
-curl -sS -b /tmp/cookies.txt -X POST \
-  https://exams.tertiaryinfotech.com/api/admin/seed-xyz \
-  -w "\nHTTP_STATUS=%{http_code}\n"
+npm run seed:prod -- xyz                      # POST /api/admin/seed-xyz
+npm run seed:prod -- ccao-foundations anthropic-ccao-foundations-p4   # + assert slugs present
 ```
 
+Credentials:
+- The script reads `PROD_ADMIN_EMAIL` / `PROD_ADMIN_PASSWORD` from the shell, then from the git-ignored `.env` (also excluded by `.dockerignore`). It never prints the password or puts it on a command line.
+- **Never use `ADMIN_PASSWORD` for production.** It is the LOCAL dev admin's password and does not match prod.
+- A wrong password still returns HTTP 302 from `/api/auth/callback/password`, so the script checks `/api/auth/session` for `role: ADMIN` and stops after ONE failed attempt (exit 3). Don't retry in a loop — ask the user.
+- If `PROD_ADMIN_PASSWORD` is empty or wrong, **don't guess**. Fallback that needs no stored secret: open `https://exams.tertiaryinfotech.com/login?next=/admin-dashboard` in the Playwright browser, let the user type their own password there, poll `/api/auth/session` until `role === 'ADMIN'`, then run `fetch('/api/admin/seed-xyz', { method: 'POST' })` inside the page and close the browser afterwards. (Equivalent manual route: the user pastes that `fetch(...)` into DevTools while signed in as admin.)
+
+Exit codes: 0 ok · 1 non-200 from the seed · 2 no password configured · 3 login failed · 4 expected exam slug missing (deploy not live yet — wait and re-run).
+
 Notes:
-- The session cookie is `__Secure-authjs.session-token` (NextAuth v5 / authjs).
-- The credentials provider id is **`password`** — POST to `/api/auth/callback/password`, NOT `/api/auth/signin/password` (that's the form page). The `otp` provider only accepts one-time codes.
-- A 404 right after push means the new route hasn't rolled out yet — retry after the deploy completes. A 200 with `{ ok: true, exams: [...] }` confirms the seed ran.
+- The credentials provider id is **`password`** — POST to `/api/auth/callback/password`, NOT `/api/auth/signin/password` (that's the form page). The `otp` provider only accepts one-time codes. Session cookie: `__Secure-authjs.session-token` (the script's cookie jar handles it).
+- A 404 right after push means a *new* route hasn't rolled out yet — retry after the deploy completes. A 200 with `{ ok: true, exams: [...] }` listing the expected slugs confirms the seed ran.
 - Seeds are idempotent (delete-and-recreate by `generatedBy` tag); safe to re-run.
+- The bundle page labels variants generically as "Practice Exam 1…N" regardless of the exam titles.

@@ -377,12 +377,19 @@ export function ExamRunner(props: ExamRunnerProps) {
   const seqPos = reviewSeq ? reviewSeq.items.indexOf(idx) : -1;
   const atFirst = reviewSeq ? seqPos <= 0 : idx === 0;
 
+  // Fixed light buttons: the shared .btn-* classes carry dark-theme variants,
+  // and the runner stays a light test-centre screen in both themes.
+  const lightPrimary = 'btn bg-brand text-white shadow-sm hover:bg-brand-700';
+  const lightOutline = 'btn border border-line bg-white text-ink hover:border-brand-300 hover:bg-brand-50';
+  // Full-size question-card buttons, as in the mock-exam booklet layout.
+  const navBase = 'inline-flex items-center justify-center gap-1.5 rounded-md px-[22px] py-3 text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-40';
+  const navGhost = `${navBase} border border-line bg-white text-ink hover:border-brand hover:text-brand-700`;
+  const navPrimary = `${navBase} bg-brand text-white shadow-sm hover:bg-brand-700`;
   const barBase = 'inline-flex items-center gap-1 rounded border px-2.5 py-1.5 sm:px-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40';
   const barBtn = `${barBase} border-white/35 text-white hover:bg-white/15`;
-  const barPrimary = `${barBase} border-white bg-white text-navy hover:bg-white/90`;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white font-sans text-ink" role="application" aria-label={`${props.examTitle} exam`}>
+    <div className="light-scope fixed inset-0 z-50 flex flex-col bg-white font-sans text-ink" role="application" aria-label={`${props.examTitle} exam`}>
       {/* Title bar */}
       <header className="bg-navy text-white">
         <div className="flex items-center gap-3 px-4 py-2.5 sm:px-6">
@@ -421,16 +428,9 @@ export function ExamRunner(props: ExamRunnerProps) {
           )}
         </div>
         {view === 'question' && (
-          <div className="flex items-center gap-4">
-            <button type="button" onClick={() => setNavOpen(o => !o)} className="hidden text-xs font-medium text-muted underline-offset-2 hover:text-ink hover:underline lg:inline">
-              {navOpen ? 'Hide answer sheet' : 'Show answer sheet'}
-            </button>
-            <label className={`inline-flex cursor-pointer items-center gap-2 rounded px-2 py-0.5 font-medium ${a.flagged ? 'bg-amber-100 text-amber-900' : 'text-ink'}`} title="Mark this question for review (F)">
-              <input type="checkbox" checked={!!a.flagged} onChange={toggleFlag} className="h-4 w-4 accent-amber-500" />
-              <Flag className={`h-4 w-4 ${a.flagged ? 'fill-amber-400 text-amber-600' : 'text-muted'}`} />
-              Mark for review
-            </label>
-          </div>
+          <button type="button" onClick={() => setNavOpen(o => !o)} className="hidden text-xs font-medium text-muted underline-offset-2 hover:text-ink hover:underline lg:inline">
+            {navOpen ? 'Hide answer sheet' : 'Show answer sheet'}
+          </button>
         )}
       </div>
       <div className="h-1 bg-line" role="progressbar" aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={total} aria-label="Questions answered">
@@ -472,13 +472,27 @@ export function ExamRunner(props: ExamRunnerProps) {
               )}
 
               <section className="rounded-md border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="q-stem">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                  <span className="eyebrow">Question {idx + 1} of {total}</span>
-                  {/* The live exam never names the domain mid-test, so Exam
-                      mode keeps it hidden until the results page. */}
-                  {q.domain && props.mode === 'PRACTICE' && (
-                    <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-brand-700">{q.domain}</span>
-                  )}
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="eyebrow">Question {idx + 1} of {total}</span>
+                    {/* The live exam never names the domain mid-test, so Exam
+                        mode keeps it hidden until the results page. */}
+                    {q.domain && props.mode === 'PRACTICE' && (
+                      <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-brand-700">{q.domain}</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleFlag}
+                    aria-pressed={!!a.flagged}
+                    title="Mark this question for review (F)"
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition ${
+                      a.flagged ? 'border-amber-600 bg-amber-50 text-amber-800' : 'border-line bg-white text-ink hover:border-amber-500'
+                    }`}
+                  >
+                    <Flag className={`h-4 w-4 ${a.flagged ? 'fill-amber-400 text-amber-600' : 'text-muted'}`} />
+                    {a.flagged ? 'Marked for review' : 'Mark for review'}
+                  </button>
                 </div>
                 <p id="q-stem" className="whitespace-pre-wrap text-[17px] font-medium leading-relaxed sm:text-[19px]">{q.stem}</p>
                 <p className="eyebrow mb-2 mt-5">{TYPE_HINT[q.type]}</p>
@@ -576,7 +590,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                     onClick={checkAnswer}
                     disabled={!a.answer.length}
                     title={!a.answer.length ? 'Select at least one option first' : ''}
-                    className="btn-primary mt-5 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`${lightPrimary} mt-5 disabled:cursor-not-allowed disabled:opacity-50`}
                   >Check answer</button>
                 )}
                 {!a.submitted && props.mode === 'PRACTICE' && !NEEDS_CONFIRM(q.type) && !a.answer.length && (
@@ -608,6 +622,18 @@ export function ExamRunner(props: ExamRunnerProps) {
                     )}
                   </div>
                 )}
+
+                <div className="mt-6 flex flex-wrap gap-2.5">
+                  <button type="button" onClick={prev} disabled={atFirst} className={navGhost}>
+                    <ChevronLeft className="h-5 w-5" /> Previous
+                  </button>
+                  <button type="button" onClick={next} className={navGhost}>
+                    Next <ChevronRight className="h-5 w-5" />
+                  </button>
+                  <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
+                    {props.mode === 'EXAM' ? 'End exam' : 'Finish'}
+                  </button>
+                </div>
               </section>
               <p className="mt-3 hidden text-center text-[11px] text-muted lg:block">
                 <kbd className="rounded border border-line bg-white px-1">←</kbd> <kbd className="rounded border border-line bg-white px-1">→</kbd> navigate ·{' '}
@@ -699,6 +725,14 @@ export function ExamRunner(props: ExamRunnerProps) {
                   );
                 })}
               </div>
+              <div className="mt-6 flex flex-wrap gap-2.5">
+                <button type="button" onClick={() => jumpTo(idx)} className={navGhost}>
+                  <ChevronLeft className="h-5 w-5" /> Back to question {idx + 1}
+                </button>
+                <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
+                  {props.mode === 'EXAM' ? 'End exam' : 'Finish'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -706,22 +740,11 @@ export function ExamRunner(props: ExamRunnerProps) {
 
       {/* Bottom navigation bar */}
       <footer className="flex flex-wrap items-center justify-between gap-2 bg-navy px-3 py-2.5 sm:px-6">
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => setShowReview(true)} className={`${barBtn} bg-white/10`}>
-            <LogOut className="hidden h-4 w-4 sm:block" /> End Exam
-          </button>
-          <button type="button" onClick={() => setShowExit(true)} className={`${barBtn} hidden sm:inline-flex`}>
-            Save &amp; exit
-          </button>
-        </div>
+        <button type="button" onClick={() => setShowExit(true)} className={barBtn}>
+          <LogOut className="h-4 w-4" /> Save &amp; exit
+        </button>
         {view === 'question' ? (
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={prev} disabled={atFirst} className={barBtn} aria-label="Previous question">
-              <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Previous</span>
-            </button>
-            <button type="button" onClick={next} className={barPrimary}>
-              Next <ChevronRight className="h-4 w-4" />
-            </button>
             <button type="button" onClick={() => { setReviewSeq(null); setView('review'); }} className={barBtn}>
               <LayoutGrid className="h-4 w-4" /> <span className="hidden sm:inline">Review Screen</span><span className="sm:hidden">Review</span>
             </button>
@@ -786,11 +809,11 @@ export function ExamRunner(props: ExamRunnerProps) {
               </p>
               {submitErr && <p className="mt-3 text-sm text-red-600">{submitErr}</p>}
               <div className="mt-5 flex items-center justify-end gap-2">
-                <button onClick={() => setShowReview(false)} className="btn-outline">Return to exam</button>
+                <button onClick={() => setShowReview(false)} className={lightOutline}>Return to exam</button>
                 <button
                   onClick={() => submitAttempt()}
                   disabled={submitted || (props.mode === 'EXAM' && unansweredIdx.length > 0)}
-                  className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`${lightPrimary} disabled:cursor-not-allowed disabled:opacity-50`}
                 >
                   {submitted ? 'Submitting…' : props.mode === 'EXAM' ? 'End exam' : 'See my results'}
                 </button>
@@ -810,8 +833,8 @@ export function ExamRunner(props: ExamRunnerProps) {
               {timed ? ' The timer keeps running while you are away, and the exam ends automatically when it reaches zero.' : ''}
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setShowExit(false)} className="btn-outline">Stay</button>
-              <button onClick={saveAndExit} className="btn-primary">Save &amp; exit</button>
+              <button onClick={() => setShowExit(false)} className={lightOutline}>Stay</button>
+              <button onClick={saveAndExit} className={lightPrimary}>Save &amp; exit</button>
             </div>
           </div>
         </div>
@@ -827,7 +850,7 @@ export function ExamRunner(props: ExamRunnerProps) {
             {submitErr ? (
               <>
                 <p className="mt-3 text-sm text-red-600">{submitErr}</p>
-                <button onClick={() => { setTimeUp(true); submitAttempt(true); }} className="btn-primary mt-4">Retry submission</button>
+                <button onClick={() => { setTimeUp(true); submitAttempt(true); }} className={`${lightPrimary} mt-4`}>Retry submission</button>
               </>
             ) : (
               <Loader2 className="mx-auto mt-4 h-5 w-5 animate-spin text-muted" />

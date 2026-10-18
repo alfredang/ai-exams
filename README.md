@@ -63,9 +63,9 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Public Catalog:** Browse certification vendors, levels, and exam bundles with search and pagination.
 - **Bundle-based Commerce:** Purchase multi-variant practice exams and optional real-exam vouchers as a single product.
 - **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with promo codes, billing addresses, and an integrated tax (GST) engine. An in-admin **Payment Setup Guide** documents provider configuration step by step with live status checks.
-- **Test-Centre Exam Runner:** A full-screen, test-centre style session for both timed Exam mode and Practice mode — navy title bar with Time Remaining and "N of M", a **Mark for review** checkbox, an answer-sheet panel, a bottom navigation bar, and a **Review Screen** with Review All / Incomplete / Flagged walks before **End Exam**. Per-answer autosave, auto-submit at zero, Save & exit to resume later, right-click strike-out of ruled-out options, and keyboard navigation.
+- **Test-Centre Exam Runner:** A full-screen, test-centre style session for both timed Exam mode and Practice mode — navy title bar with Time Remaining and "N of M", a question card with **Mark for review** at its top-right and full-size Previous / Next / End exam buttons, an answer-sheet panel, and a **Review Screen** with Review All / Incomplete / Flagged walks before **End Exam**. Per-answer autosave, auto-submit at zero, Save & exit to resume later, right-click strike-out of ruled-out options, and keyboard navigation.
 - **Score Report:** Results show `correct / total`, a four-band readiness scale, a weakest-first domain breakdown that marks study targets, and an All / Missed-only answer review with explanations and reference links.
-- **Modern Light Design:** Light theme by default (dark is opt-in), Archivo / IBM Plex typography, and an animated hero that previews the exam experience.
+- **Light-Blue & Premium Navy Themes:** A light-blue light theme by default and an opt-in premium deep-navy dark theme with blue glow accents, Archivo / IBM Plex typography, and an animated hero that previews the exam experience. The exam runner stays a light test-centre screen in both.
 - **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per exam.
 - **AI-Assisted Question Authoring:** Generate blueprint-aligned questions using Claude AI and Firecrawl via manual input, blueprints, PDFs, or web scraping.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
@@ -298,6 +298,7 @@ flowchart TD
 - `npm run db:seed`: Seeds the database with default vendors, exams, bundles, and admin users.
 - `npm run db:studio`: Opens Prisma Studio to visually inspect the database.
 - `npm run generate:exam`: CLI question generation (`scripts/generate-questions.ts`) — bulk-author blueprint-aligned questions with Claude outside the admin UI.
+- `npm run seed:prod -- <bundle> [expected-exam-slug ...]`: Runs a bundle's idempotent seed endpoint (`POST /api/admin/seed-<bundle>`) on production via `scripts/seed-prod.sh`. Reads `PROD_ADMIN_EMAIL` / `PROD_ADMIN_PASSWORD` from the git-ignored `.env` (never the local `ADMIN_PASSWORD`), verifies the admin session before seeding, and fails if the expected exam slugs are missing (deploy not live yet). See CLAUDE.md → *Seeding a new exam bundle to production*.
 
 ## Usage
 

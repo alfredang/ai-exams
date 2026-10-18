@@ -7,16 +7,29 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#1b4fd8',
-          50: '#eef3fe', 100: '#e3eafc', 500: '#3b6cf0', 600: '#1b4fd8', 700: '#163fb0'
+          DEFAULT: '#1d5bf0',
+          50: '#eef4ff', 100: '#dde9ff', 200: '#bcd3ff', 300: '#8fb4ff', 400: '#5b8dff',
+          500: '#3b72f6', 600: '#1d5bf0', 700: '#1747c4', 800: '#143b9c', 900: '#132f73'
         },
-        // Exam-booklet tokens shared by the runner, results and marketing
-        // surfaces: cool grey canvas, white surfaces, navy test-centre chrome.
-        canvas: '#eef1f4',
-        ink: '#131c26',
-        muted: '#5a6776',
-        line: '#d3dae2',
-        navy: { DEFAULT: '#1d3557', 600: '#25446d', 800: '#15263f' }
+        // Every neutral on the site is `slate`, so the theme lives here: a
+        // blue-tinted ramp that reads as light blue at 50–200 (light theme
+        // canvases and borders) and as premium deep navy at 800–950 (dark
+        // theme surfaces). Lightness order matches Tailwind's default slate,
+        // so existing light/dark class pairs keep their contrast.
+        slate: {
+          50: '#f3f7fe', 100: '#e7effc', 200: '#d2e0f7', 300: '#aec4e8', 400: '#8299c2',
+          500: '#5d749e', 600: '#45597f', 700: '#2c3f63', 800: '#182848', 900: '#0e1a33', 950: '#070f22'
+        },
+        // Theme-aware tokens (CSS variables in globals.css): light values on
+        // :root, premium-navy values under .dark, and forced light values
+        // inside .light-scope (the exam runner).
+        page: 'rgb(var(--c-page) / <alpha-value>)',
+        canvas: 'rgb(var(--c-canvas) / <alpha-value>)',
+        ink: 'rgb(var(--c-ink) / <alpha-value>)',
+        muted: 'rgb(var(--c-muted) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        // Test-centre chrome (runner bars, hero exam window) — same in both themes.
+        navy: { DEFAULT: '#15306a', 600: '#1d3f86', 800: '#0e2150' }
       },
       fontFamily: {
         sans: ['var(--font-body)', 'system-ui', 'sans-serif'],
@@ -24,8 +37,9 @@ export default {
         mono: ['var(--font-mono)', 'ui-monospace', 'Menlo', 'monospace']
       },
       boxShadow: {
-        card: '0 1px 2px rgb(19 28 38 / 0.04), 0 1px 3px rgb(19 28 38 / 0.06)',
-        lift: '0 12px 32px -12px rgb(19 28 38 / 0.18), 0 2px 6px rgb(19 28 38 / 0.06)'
+        card: '0 1px 2px rgb(23 71 196 / 0.05), 0 2px 6px rgb(23 71 196 / 0.06)',
+        lift: '0 16px 36px -14px rgb(23 71 196 / 0.28), 0 3px 8px rgb(23 71 196 / 0.08)',
+        glow: '0 0 0 1px rgb(91 141 255 / 0.25), 0 10px 30px -10px rgb(59 114 246 / 0.55)'
       },
       keyframes: {
         float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },

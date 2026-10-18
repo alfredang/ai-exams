@@ -110,7 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col bg-white font-sans text-ink dark:bg-slate-950 dark:text-slate-100">
+      <body className="min-h-screen flex flex-col bg-page font-sans text-ink dark:text-slate-100">
         <Script id="theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
         <script
           type="application/ld+json"

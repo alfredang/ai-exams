@@ -2,32 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens (space-separated RGB so Tailwind opacity modifiers work).
+   Light: airy light-blue page with white surfaces. Dark: premium deep navy.
+   .light-scope pins the light values — the exam runner always looks like a
+   test-centre screen, whichever theme the visitor picked. */
+:root,
+.light-scope {
+  --c-page: 244 248 255;   /* #f4f8ff */
+  --c-canvas: 230 239 255; /* #e6efff */
+  --c-ink: 14 26 51;       /* #0e1a33 */
+  --c-muted: 77 97 134;    /* #4d6186 */
+  --c-line: 205 220 246;   /* #cddcf6 */
+}
+.dark {
+  --c-page: 7 15 34;       /* #070f22 */
+  --c-canvas: 11 23 49;    /* #0b1731 */
+  --c-ink: 233 240 251;    /* #e9f0fb */
+  --c-muted: 147 169 207;  /* #93a9cf */
+  --c-line: 32 52 90;      /* #20345a */
+  color-scheme: dark;
+}
+.light-scope { color: rgb(var(--c-ink)); }
+.dark .light-scope { color-scheme: light; }
+
 @layer base {
-  html, body { @apply bg-white text-ink dark:bg-slate-950 dark:text-slate-100; }
+  html, body { @apply bg-page text-ink dark:text-slate-100; }
   body { font-feature-settings: 'ss01'; -webkit-font-smoothing: antialiased; }
+  /* Premium dark: a soft blue glow anchored to the top of the viewport. */
+  .dark body {
+    background-image:
+      radial-gradient(1100px 520px at 50% -8%, rgb(59 114 246 / 0.20), transparent 62%),
+      radial-gradient(700px 420px at 100% 30%, rgb(56 189 248 / 0.07), transparent 60%);
+    background-attachment: fixed;
+  }
+  /* Many pages set grey text (text-slate-500…900) with no dark: pair, which
+     goes dim on navy. In dark mode lift those shades to readable ones. These
+     sit in the base layer at (0,2,0), so they beat a bare .text-slate-600
+     but lose to any explicit dark:text-* utility (same specificity, later). */
+  .dark .text-slate-500 { color: theme('colors.slate.400'); }
+  .dark .text-slate-600 { color: theme('colors.slate.300'); }
+  .dark .text-slate-700 { color: theme('colors.slate.200'); }
+  .dark .text-slate-800,
+  .dark .text-slate-900 { color: theme('colors.slate.100'); }
+  /* …except inside light-scope surfaces (exam runner, hero exam window). */
+  .dark .light-scope .text-slate-500 { color: theme('colors.slate.500'); }
+  .dark .light-scope .text-slate-600 { color: theme('colors.slate.600'); }
+  .dark .light-scope .text-slate-700 { color: theme('colors.slate.700'); }
+  .dark .light-scope .text-slate-800 { color: theme('colors.slate.800'); }
+  .dark .light-scope .text-slate-900 { color: theme('colors.slate.900'); }
   h1, h2, h3 { @apply font-display; text-wrap: balance; }
-  :focus-visible { outline: 3px solid theme('colors.brand.DEFAULT'); outline-offset: 2px; }
+  :focus-visible { outline: 3px solid theme('colors.brand.500'); outline-offset: 2px; }
+  ::selection { @apply bg-brand-200 text-ink dark:bg-brand-700 dark:text-white; }
 }
 
 @layer components {
   .container-app { @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10; }
   .btn { @apply inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition; }
-  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-700; }
+  .btn-primary { @apply btn bg-brand text-white shadow-sm hover:bg-brand-700 dark:bg-brand-500 dark:shadow-glow dark:hover:bg-brand-400; }
   /* Kept under its old name so existing call sites pick up the new look. */
-  .btn-primary-grad { @apply btn bg-brand text-white shadow-sm hover:bg-brand-700; }
-  .btn-outline { @apply btn border border-line bg-white text-ink hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800; }
-  .btn-secondary { @apply btn border border-brand bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/40; }
-  .btn-ghost { @apply btn font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800; }
-  .card { @apply rounded-lg border border-line bg-white shadow-card transition dark:border-slate-800 dark:bg-slate-900; }
-  .card-hover { @apply card hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lift dark:hover:border-slate-700; }
+  .btn-primary-grad { @apply btn bg-gradient-to-r from-brand to-indigo-600 text-white shadow-sm hover:from-brand-700 hover:to-indigo-700 dark:from-brand-500 dark:to-indigo-500 dark:shadow-glow; }
+  .btn-outline { @apply btn border border-line bg-white text-ink hover:border-brand-300 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:hover:border-brand-400/60 dark:hover:bg-slate-800; }
+  .btn-secondary { @apply btn border border-brand bg-brand-50 text-brand-700 hover:bg-brand-100 dark:border-brand-400/60 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20; }
+  .btn-ghost { @apply btn font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 dark:text-slate-300 dark:hover:bg-slate-800/70 dark:hover:text-white; }
+  .card { @apply rounded-lg border border-line bg-white shadow-card transition dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.04),0_8px_24px_-12px_rgb(0_0_0/0.6)]; }
+  .card-hover { @apply card hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lift dark:hover:border-brand-400/50 dark:hover:shadow-glow; }
   .input { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500; }
   .input-sm { @apply h-8 w-full rounded-md border border-line bg-white px-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500; }
   .btn-sm { @apply inline-flex h-7 items-center justify-center rounded-md px-2.5 text-[11px] font-medium transition; }
   .icon-btn { @apply inline-flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200; }
   .label { @apply mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300; }
   /* Mono uppercase eyebrow used on exam/results surfaces. */
-  .eyebrow { @apply font-mono text-xs uppercase tracking-[0.08em] text-muted dark:text-slate-400; }
+  .eyebrow { @apply font-mono text-xs uppercase tracking-[0.08em] text-muted; }
   .badge { @apply inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300; }
-  .badge-brand { @apply inline-flex items-center rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-blue-950/50 dark:text-blue-300; }
-  .gradient-text { @apply bg-gradient-to-r from-brand via-indigo-500 to-sky-500 bg-clip-text text-transparent; }
+  .badge-brand { @apply inline-flex items-center rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300; }
+  .gradient-text { @apply bg-gradient-to-r from-brand via-indigo-500 to-sky-500 bg-clip-text text-transparent dark:from-sky-300 dark:via-brand-300 dark:to-indigo-300; }
 }

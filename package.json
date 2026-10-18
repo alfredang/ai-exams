@@ -13,7 +13,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "generate:exam": "tsx scripts/generate-questions.ts"
+    "generate:exam": "tsx scripts/generate-questions.ts",
+    "seed:prod": "bash scripts/seed-prod.sh"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",

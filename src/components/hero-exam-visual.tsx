@@ -91,11 +91,11 @@ export function HeroExamVisual() {
   return (
     <div className="relative mx-auto w-full max-w-[580px] select-none pb-6 pt-6 sm:pb-24 sm:pt-12" aria-hidden="true">
       {/* Ambient gradient blobs */}
-      <div className="pointer-events-none absolute -left-10 top-4 h-64 w-64 rounded-full bg-brand/25 blur-3xl motion-safe:animate-drift" />
-      <div className="pointer-events-none absolute -right-6 bottom-0 h-72 w-72 rounded-full bg-sky-300/40 blur-3xl motion-safe:animate-drift [animation-delay:-7s]" />
+      <div className="pointer-events-none absolute -left-10 top-4 h-64 w-64 rounded-full bg-brand/25 blur-3xl dark:bg-brand-500/35 motion-safe:animate-drift" />
+      <div className="pointer-events-none absolute -right-6 bottom-0 h-72 w-72 rounded-full bg-sky-300/40 blur-3xl dark:bg-sky-500/20 motion-safe:animate-drift [animation-delay:-7s]" />
 
       {/* Exam window */}
-      <div className="relative overflow-hidden rounded-xl border border-line bg-white shadow-lift">
+      <div className="light-scope relative overflow-hidden rounded-xl border border-line bg-white shadow-lift dark:border-brand-400/30 dark:shadow-glow">
         <div className="flex items-center justify-between gap-3 bg-navy px-4 py-2.5 text-[11px] text-white sm:text-xs">
           <span className="truncate font-semibold">{q.tag} · Practice Exam</span>
           <span className="flex shrink-0 items-center gap-3">
@@ -160,26 +160,26 @@ export function HeroExamVisual() {
       </div>
 
       {/* Floating score card */}
-      <div className="absolute bottom-0 -left-2 hidden w-48 rounded-lg border border-line bg-white p-3 shadow-lift motion-safe:animate-float sm:block lg:-left-8">
+      <div className="absolute bottom-0 -left-2 hidden w-48 rounded-lg border border-line bg-white p-3 shadow-lift dark:border-slate-700 dark:bg-slate-900/90 dark:backdrop-blur motion-safe:animate-float sm:block lg:-left-8">
         <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">Your score · 87%</div>
         <div className="mt-1 flex items-baseline gap-1 font-display">
-          <span className="text-3xl font-extrabold text-ink">52</span>
+          <span className="text-3xl font-extrabold text-ink dark:text-white">52</span>
           <span className="text-sm font-bold text-muted">/ 60</span>
-          <span className="ml-auto text-xs font-bold text-emerald-700">Comfortable</span>
+          <span className="ml-auto text-xs font-bold text-emerald-700 dark:text-emerald-400">Comfortable</span>
         </div>
         <div className="mt-2 grid grid-cols-4 gap-1">
           {[0, 1, 2, 3].map(i => (
-            <span key={i} className={`h-1.5 rounded-full ${i === 3 ? 'bg-brand' : 'bg-line'}`} />
+            <span key={i} className={`h-1.5 rounded-full ${i === 3 ? 'bg-brand dark:bg-brand-400' : 'bg-line'}`} />
           ))}
         </div>
       </div>
 
       {/* Floating domain card */}
-      <div className="absolute -right-2 bottom-0 hidden w-52 rounded-lg border border-line bg-white p-3 shadow-lift motion-safe:animate-float-slow sm:block lg:-right-8">
+      <div className="absolute -right-2 bottom-0 hidden w-52 rounded-lg border border-line bg-white p-3 shadow-lift dark:border-slate-700 dark:bg-slate-900/90 dark:backdrop-blur motion-safe:animate-float-slow sm:block lg:-right-8">
         <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">By domain</div>
         {['Design', 'Security', 'Operations'].map((d, i) => (
           <div key={d} className="mt-2">
-            <div className="flex justify-between text-[11px] text-ink">
+            <div className="flex justify-between text-[11px] text-ink dark:text-slate-200">
               <span>{d}</span>
               <span className="font-mono">{doms[i]}%</span>
             </div>
@@ -191,7 +191,7 @@ export function HeroExamVisual() {
       </div>
 
       {/* Autosave chip */}
-      <div className="absolute right-2 top-1 hidden items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-[11px] text-slate-600 shadow-card md:inline-flex">
+      <div className="absolute right-2 top-1 hidden items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-[11px] text-slate-600 shadow-card dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-300 md:inline-flex">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -200,7 +200,7 @@ export function HeroExamVisual() {
       </div>
 
       {/* Flag chip */}
-      <div className="absolute left-2 top-1 hidden items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-800 shadow-card md:inline-flex ">
+      <div className="absolute left-2 top-1 hidden items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-800 shadow-card dark:border-amber-400/40 dark:bg-amber-500/10 dark:text-amber-300 md:inline-flex ">
         <Flag className="h-3 w-3 fill-amber-400" /> 3 flagged for review
       </div>
     </div>

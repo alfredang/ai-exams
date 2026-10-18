@@ -141,7 +141,7 @@ function ReviewRow({
             </button>
           )}
           {row.status !== 'PENDING' && (
-            <button type="button" disabled={!!busy} onClick={() => run('pending', onUnset)} className="btn-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+            <button type="button" disabled={!!busy} onClick={() => run('pending', onUnset)} className="btn-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
               Move to pending
             </button>
           )}

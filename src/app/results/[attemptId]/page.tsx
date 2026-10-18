@@ -90,7 +90,7 @@ export default async function ResultsPage({
   const missedCount = total - correctCount;
 
   return (
-    <div className="min-h-full bg-canvas dark:bg-slate-950">
+    <div className="min-h-full bg-canvas/60 dark:bg-transparent">
       <div className="mx-auto grid max-w-[980px] gap-6 px-4 pb-16 pt-8 sm:px-6">
         <div className="eyebrow">{attempt.exam.vendor.name} · {attempt.exam.code} · {attempt.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}</div>
 

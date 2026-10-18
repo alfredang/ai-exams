@@ -74,13 +74,14 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line bg-gradient-to-b from-canvas via-white to-white dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
-        <div className="pointer-events-none absolute inset-0 text-slate-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-slate-700/40">
+      <section className="relative overflow-hidden border-b border-line bg-gradient-to-br from-brand-100 via-sky-50 to-page dark:border-slate-800 dark:from-[#0a1838] dark:via-slate-950 dark:to-slate-950">
+        <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-brand-300/30 blur-3xl dark:bg-brand-500/20" />
+        <div className="pointer-events-none absolute inset-0 text-brand-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-brand-400/20">
           <DotPattern className="h-full w-full" />
         </div>
         <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 pb-12 pt-10 md:pb-16 md:pt-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted shadow-card dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+            <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/90 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.08em] text-brand-700 shadow-card dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Test-centre style simulation
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
@@ -89,7 +90,7 @@ export default async function HomePage() {
             <p className="mt-5 max-w-xl text-lg text-slate-600 dark:text-slate-300">
               Timed exams that look and feel like test day: one question per screen, Mark for review, a review screen before you end, and a score report by domain. Try {TEASER_N} questions free on any exam.
             </p>
-            <form action="/practice-exams" className="mt-8 flex max-w-lg items-center gap-2 rounded-lg border border-line bg-white p-1.5 shadow-lift dark:border-slate-700 dark:bg-slate-900">
+            <form action="/practice-exams" className="mt-8 flex max-w-lg items-center gap-2 rounded-lg border border-brand-200 bg-white p-1.5 shadow-lift dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-glow">
               <Search className="ml-3 h-5 w-5 text-slate-400" />
               <input
                 name="q"
@@ -106,8 +107,8 @@ export default async function HomePage() {
                 { k: `${TEASER_N}`, v: 'free questions' },
                 { k: '24/7', v: 'timed mock exams' }
               ].map((f) => (
-                <div key={f.v} className="rounded-lg border border-line bg-white/80 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900/80">
-                  <dt className="font-display text-2xl font-extrabold text-ink dark:text-white">{f.k}</dt>
+                <div key={f.v} className="rounded-lg border border-brand-200/80 bg-white/85 px-3 py-2.5 shadow-card dark:border-slate-700/80 dark:bg-slate-900/70">
+                  <dt className="font-display text-2xl font-extrabold text-brand-700 dark:text-brand-300">{f.k}</dt>
                   <dd className="text-xs text-muted dark:text-slate-400">{f.v}</dd>
                 </div>
               ))}
@@ -145,7 +146,7 @@ export default async function HomePage() {
       </section>
 
       {/* Popular bundles — the only thing the app sells. */}
-      <section className="border-y border-line bg-canvas dark:border-slate-800 dark:bg-slate-900">
+      <section className="border-y border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
         <div className="container-app py-16">
           <div className="eyebrow">Newest bundles</div>
           <h2 className="mb-8 mt-1 text-3xl font-extrabold tracking-tight">Popular bundled exams</h2>
@@ -213,7 +214,7 @@ export default async function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900">
+      <section id="pricing" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
         <div className="container-app py-16">
           <div className="text-center">
             <div className="eyebrow">Plans</div>
@@ -238,7 +239,7 @@ export default async function HomePage() {
       <LandingTestimonials />
 
       {/* FAQ */}
-      <section id="faq" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900">
+      <section id="faq" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
         <div className="container-app py-20">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">

@@ -11,7 +11,7 @@ export function Nav() {
   const inBackend = pathname.startsWith('/admin-dashboard') || pathname.startsWith('/user-dashboard');
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/85">
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/70">
       <div className="flex h-20 w-full items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold tracking-tight sm:gap-3" aria-label="Tertiary Exams home">
           <Logo />
