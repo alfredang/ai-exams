@@ -71,6 +71,8 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per certification, drawn by exam domain.
 - **AI-Assisted Question Authoring:** Generate blueprint-aligned questions using Claude AI and Firecrawl via manual input, blueprints, PDFs, or web scraping.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
+- **Invoices, Refunds & Credit Notes:** Every paid order gets a sequential GST tax invoice (PDF marked PAID) emailed with the order confirmation, CC'd to the business. Refunds — through the provider's API or recorded as "already refunded" in the provider dashboard — mint a `CN-` credit note that references the original invoice, email it to the customer, cancel undelivered vouchers and revoke access on a full refund.
+- **Sales Order Alerts:** Each paid order also emails the sales inbox the buyer's name, email, phone, exam title and code, payment method and date.
 - **Question Pool Admin:** Each exam's admin page shows the exam % per domain, questions in the pool, and questions drawn per attempt, with editable weights and the official source link.
 - **Comprehensive Admin Dashboard:** Manage catalog, orders, users (RBAC), refunds, coupons, API tokens, dynamic settings, and CMS content (FAQ, Banners).
 - **Social Login:** Authenticate via Password, OTP, Google, GitHub, Microsoft, and LinkedIn (configurable in settings).
@@ -345,7 +347,8 @@ The application is built for deployment on platforms like Vercel or self-hosted 
 The repository includes a multi-stage `Dockerfile` tailored for Next.js standalone output.
 
 1. Ensure environment variables (`NEXTAUTH_URL`, `DATABASE_URL`, `WORKER_SHARED_SECRET`, etc.) are configured in the deployment platform.
-2. Build and deploy the Docker image. The container will automatically run `prisma migrate deploy` before starting the server.
+2. Build and deploy the Docker image. On boot the container runs `prisma migrate deploy`, then `prisma/seed.ts`, then the server — anything the seed imports must be in the runner image (the Dockerfile copies `src/lib` for this). If a push never shows up live, check the boot log for a seed crash first.
+3. Production email is sent from the Gmail account connected in Admin → Settings → Email (currently sales@tertiarycourses.com.sg via Gmail OAuth). Reconnect it there if the mailbox password changes.
 
 ## Security
 
@@ -355,6 +358,7 @@ The repository includes a multi-stage `Dockerfile` tailored for Next.js standalo
 
 - Ensure `NEXTAUTH_SECRET` and `WORKER_SHARED_SECRET` are randomly generated and securely stored.
 - Most sensitive keys (Stripe, HitPay, OAuth Client Secrets) are stored encrypted in the `Setting` database table and decrypted at runtime.
+- **Sign-up spam protection:** Cloudflare Turnstile CAPTCHA on every email-code request (keys in Admin → Settings → Security), disposable/no-MX email blocking, a honeypot and minimum fill time, failures-only rate limits keyed on the proxy-appended client IP and a normalised email (`+tag` / Gmail dots), and one-time codes that burn after 5 wrong guesses. Mobile sign-up requires an emailed verification code.
 - Next.js Route handlers acting as webhooks verify request signatures (e.g., Stripe, HitPay) before processing logic.
 
 ## Troubleshooting
