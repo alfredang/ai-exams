@@ -11,6 +11,12 @@ export type RefundInput = {
   byAdminId: string;
   /** Free-text bank/manual reference for PayNow/TEST orders. */
   manualRef?: string | null;
+  /**
+   * The refund was already made in the provider's own dashboard: record it
+   * and issue the credit note without calling the provider (which would
+   * refund the money a second time).
+   */
+  recordOnly?: boolean;
 };
 
 export type RefundOutcome = {
@@ -28,7 +34,7 @@ export type RefundOutcome = {
  * writes an AdminLog entry. Safe to call from a server action or admin route.
  */
 export async function refundOrder(input: RefundInput): Promise<RefundOutcome> {
-  const { orderId, amountCents, reason, byAdminId, manualRef } = input;
+  const { orderId, amountCents, reason, byAdminId, manualRef, recordOnly } = input;
 
   if (!Number.isFinite(amountCents) || amountCents <= 0) {
     return { ok: false, status: 'FAILED', message: 'Amount must be positive cents.' };
@@ -59,7 +65,9 @@ export async function refundOrder(input: RefundInput): Promise<RefundOutcome> {
   let providerRefundId: string | null = null;
   let providerStatus: 'SUCCEEDED' | 'FAILED' | 'PENDING' = 'SUCCEEDED';
   let failureMessage: string | undefined;
-  try {
+  if (recordOnly) {
+    providerRefundId = manualRef ?? null;
+  } else try {
     const result = await callProviderRefund(
       order.provider as PaymentProvider,
       {

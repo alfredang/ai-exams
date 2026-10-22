@@ -11,6 +11,8 @@ export const COLORS = {
   red: rgb(0.78, 0.18, 0.18),
   redSoft: rgb(1, 0.93, 0.93),
   amber: rgb(0.85, 0.55, 0.04),
+  green: rgb(0.09, 0.55, 0.27),
+  greenSoft: rgb(0.88, 0.96, 0.9),
   borderSoft: rgb(0.84, 0.86, 0.9)
 } as const;
 

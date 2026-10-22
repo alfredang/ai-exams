@@ -39,6 +39,7 @@ async function issueRefund(formData: FormData) {
   const reason = String(formData.get('reason') || '').trim() || null;
   const amountStr = String(formData.get('amount') || '').trim();
   const manualRef = String(formData.get('manualRef') || '').trim() || null;
+  const recordOnly = formData.get('recordOnly') === 'on';
   const order = await db.order.findUnique({ where: { id }, include: { refunds: true } });
   if (!order) return;
   const already = order.refunds
@@ -49,7 +50,7 @@ async function issueRefund(formData: FormData) {
   if (!Number.isFinite(dollars) || dollars <= 0) return;
   const amountCents = Math.round(dollars * 100);
   const { refundOrder } = await import('@/lib/payments/refund');
-  await refundOrder({ orderId: id, amountCents, reason, byAdminId: user.id, manualRef });
+  await refundOrder({ orderId: id, amountCents, reason, byAdminId: user.id, manualRef, recordOnly });
   revalidatePath(`/admin-dashboard/orders/${id}`);
   revalidatePath('/admin-dashboard/orders');
 }
@@ -311,11 +312,22 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                   Reason
                   <input name="reason" placeholder="Reason (optional)" className="input-sm mt-0.5 w-full" />
                 </label>
-                {(order.provider === 'PAYNOW' || order.provider === 'TEST') && (
+                {order.provider === 'PAYNOW' || order.provider === 'TEST' ? (
                   <label className="flex flex-col text-[10px] uppercase tracking-wider text-slate-500">
                     Bank ref
                     <input name="manualRef" placeholder="Bank ref" className="input-sm mt-0.5 w-32" />
                   </label>
+                ) : (
+                  <>
+                    <label className="flex flex-col text-[10px] uppercase tracking-wider text-slate-500">
+                      Refund ref
+                      <input name="manualRef" placeholder="Optional" className="input-sm mt-0.5 w-32" />
+                    </label>
+                    <label className="flex h-8 items-center gap-1.5 text-[12px] text-slate-600 dark:text-slate-300">
+                      <input type="checkbox" name="recordOnly" />
+                      Already refunded in {order.provider} — record only
+                    </label>
+                  </>
                 )}
                 <button className="inline-flex h-8 items-center rounded-md bg-red-600 px-3 text-[12px] font-medium text-white hover:bg-red-700">
                   Issue refund

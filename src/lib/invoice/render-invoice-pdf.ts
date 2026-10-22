@@ -28,10 +28,14 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
 
   const isCredit = invoice.status === 'CREDIT_NOTE';
   const isVoid = invoice.status === 'VOID';
+  // Invoices are only issued once an order is PAID (lib/invoice/issue.ts),
+  // so an ISSUED invoice is always a paid one.
+  const isPaid = invoice.status === 'ISSUED';
   const title = isCredit ? 'Credit Note' : 'Tax Invoice';
 
   drawHeaderBar(page, fonts, `Tertiary Exams — ${title}`);
   if (isVoid) drawWatermark(page, fonts, 'VOID', { color: COLORS.redSoft });
+  if (isPaid) drawWatermark(page, fonts, 'PAID', { color: COLORS.greenSoft });
 
   // Right-aligned invoice meta box
   let y = A4.height - 70;
@@ -42,10 +46,10 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
   drawText(page, fonts, invoice.issueDate.toISOString().slice(0, 10), A4.width - 200, y - 14, { size: 11 });
   y -= 36;
   drawLabel(page, fonts, 'STATUS', A4.width - 200, y);
-  drawText(page, fonts, invoice.status, A4.width - 200, y - 14, {
+  drawText(page, fonts, isPaid ? 'PAID' : invoice.status, A4.width - 200, y - 14, {
     size: 11,
     bold: true,
-    color: isCredit ? COLORS.amber : isVoid ? COLORS.red : COLORS.slate
+    color: isCredit ? COLORS.amber : isVoid ? COLORS.red : COLORS.green
   });
   if (orderNumber) {
     y -= 36;
@@ -142,7 +146,14 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
       color: COLORS.red
     });
   } else {
-    drawText(page, fonts, 'Thank you for your purchase.', 36, footerY, { size: 9, color: COLORS.muted });
+    drawText(
+      page,
+      fonts,
+      `Paid in full on ${invoice.issueDate.toISOString().slice(0, 10)}. Thank you for your purchase.`,
+      36,
+      footerY,
+      { size: 9, color: COLORS.muted }
+    );
   }
   drawText(
     page,
