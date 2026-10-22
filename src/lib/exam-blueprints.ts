@@ -13,6 +13,13 @@ export type ExamBlueprint = {
   verifiedAt?: string; // ISO date the weights were checked against sourceUrl
   domains?: { name: string; weight: number }[];
   aliases?: Record<string, string>; // legacy Question.domain → blueprint name
+  // Official subtopics per domain name, shown in the product page's domain
+  // accordion. Display-only — kept out of `domains` so the weights stay the
+  // only thing the deploy fold compares and writes.
+  topics?: Record<string, string[]>;
+  // Product page "References" section.
+  examPageUrl?: string; // vendor's official exam / certification page
+  studyGuideUrl?: string; // vendor's official exam guide / objectives / study guide
 };
 
 // Weights below were checked against each vendor's official exam guide on

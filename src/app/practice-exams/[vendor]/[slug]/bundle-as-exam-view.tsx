@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Check, Timer, BookOpen, Award, BookOpenCheck, Hourglass } from 'lucide-react';
 import { BundleBuyForm } from './bundle-buy-form';
 import { StartButton } from './start-attempt-button';
+import { ExamDomains, ExamReferences } from '@/components/exam-domains';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 import { STORE_CURRENCY } from '@/lib/currency';
 
@@ -19,6 +20,7 @@ type BundleItem = {
     durationMinutes: number;
     passingScore: number;
     domains: any;
+    infoUrl?: string | null;
     vendor: { slug: string; name: string };
     _count?: { questions: number };
   };
@@ -44,7 +46,6 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
   const poolSize = first._count?.questions ?? first.questionCount;
   const perAttempt = Math.min(first.questionCount, poolSize);
   const vendor = first.vendor;
-  const domains = (first.domains as any[]) || [];
   // Display code without per-exam suffix, e.g. "AI-900-P1" -> "AI-900"
   const displayCode = first.code.replace(/-P\d+$/, '');
 
@@ -115,20 +116,7 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
             </div>
           </div>
 
-          {domains.length > 0 && (
-            <div className="mt-8 card p-6">
-              <h2 className="font-semibold">Exam domains</h2>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Each attempt follows these official weightings.</p>
-              <ul className="mt-3 space-y-2 text-sm">
-                {domains.map((d, i) => (
-                  <li key={i} className="flex items-center justify-between">
-                    <span className="text-slate-700 dark:text-slate-100">{d.name}</span>
-                    <span className="text-slate-500 dark:text-slate-300">{d.weight}%</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <ExamDomains domains={first.domains} productSlug={bundle.slug} />
 
           <div className="mt-6 card p-6">
             <h2 className="font-semibold">What you get</h2>
@@ -147,6 +135,8 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
             </ul>
           </div>
 
+
+          <ExamReferences productSlug={bundle.slug} fallbackExamUrl={first.infoUrl} />
 
           <p className="mt-6 text-xs text-slate-500 dark:text-slate-400">
             This platform provides original practice questions for learning. We are not affiliated with {vendor.name}, and we do not provide real exam dumps.

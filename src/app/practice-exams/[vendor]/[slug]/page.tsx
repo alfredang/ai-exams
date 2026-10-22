@@ -12,6 +12,7 @@ import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 import { STORE_CURRENCY } from '@/lib/currency';
 import { hasPracticeAccess } from '@/lib/question-pool';
 import { StartButton } from './start-attempt-button';
+import { ExamDomains, ExamReferences } from '@/components/exam-domains';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { slug } = await params;
@@ -136,7 +137,8 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
       }
     })
   ]);
-  const domains = (exam.domains as any[]) || [];
+  // Subtopics and reference links are keyed by product (Bundle) slug.
+  const productSlug = purchaseBundles[0]?.slug ?? exam.slug;
   const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${exam.vendor.slug}/${exam.slug}`;
   const jsonLd: any = {
     '@context': 'https://schema.org',
@@ -238,20 +240,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
             </div>
           </div>
 
-          {domains.length > 0 && (
-            <div className="mt-8 card p-6">
-              <h2 className="font-semibold">Exam domains</h2>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Each attempt follows these official weightings.</p>
-              <ul className="mt-3 space-y-2 text-sm">
-                {domains.map((d, i) => (
-                  <li key={i} className="flex items-center justify-between">
-                    <span className="text-slate-700 dark:text-slate-100">{d.name}</span>
-                    <span className="text-slate-500 dark:text-slate-300">{d.weight}%</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <ExamDomains domains={exam.domains} productSlug={productSlug} />
 
           <div className="mt-6 card p-6">
             <h2 className="font-semibold">What you get</h2>
@@ -269,6 +258,8 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
               ))}
             </ul>
           </div>
+
+          <ExamReferences productSlug={productSlug} fallbackExamUrl={exam.infoUrl} />
 
           <ShareExam vendorSlug={exam.vendor.slug} examSlug={exam.slug} title={`${exam.vendor.name} ${exam.code} — ${exam.title}`} />
 
