@@ -1,56 +1,73 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { getGroupedExams, toListItems } from '@/lib/my-exams';
-import { MyExamsList } from '@/components/my-exams-list';
-import { Pagination } from '@/components/pagination';
+import { getPracticeBadges } from '@/lib/my-exams';
+import { getAttemptHistory } from '@/lib/attempt-history';
+import { PracticeBadges } from '@/components/practice-badges';
+import { AttemptRow } from '@/components/attempt-row';
 import { BookOpen, ChartBar, Trophy } from 'lucide-react';
 
-const PAGE_SIZE = 9;
-
+// The signed-in landing page: every practice exam the user owns as a
+// click-to-start badge, their latest attempts, then overall stats.
 export default async function MyContentPage({
   searchParams
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ start?: string }>;
 }) {
   const session = await auth();
   const userId = (session?.user as any)?.id as string | undefined;
   if (!userId) redirect('/login');
 
-  const [grouped, totalAttempts, allSubmitted] = await Promise.all([
-    getGroupedExams(userId),
-    db.attempt.count({ where: { userId, submittedAt: { not: null } } }),
-    db.attempt.findMany({
-      where: { userId, submittedAt: { not: null } },
-      select: { score: true }
-    })
-  ]);
+  const history = await getAttemptHistory(userId);
+  const badges = await getPracticeBadges(userId, history);
+  const startFailed = (await searchParams).start === 'failed';
 
-  const allListItems = toListItems(grouped);
-  const totalPages = Math.max(1, Math.ceil(allListItems.length / PAGE_SIZE));
-  const sp = await searchParams;
-  const rawPage = Number.parseInt(sp.page ?? '1', 10);
-  const page = Number.isFinite(rawPage) ? Math.min(Math.max(1, rawPage), totalPages) : 1;
-  const pagedItems = allListItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const totalExams = grouped.bundles.length + grouped.standalone.length;
-  const avgScore = allSubmitted.length === 0
-    ? null
-    : Math.round(allSubmitted.reduce((s, a) => s + (a.score ?? 0), 0) / allSubmitted.length);
+  const scores = history.attempts.filter((a) => a.score !== null).map((a) => a.score!);
+  const avgScore = scores.length === 0 ? null : Math.round(scores.reduce((s, x) => s + x, 0) / scores.length);
+  const recent = history.attempts.slice(0, 5);
   const userName = session!.user!.name || session!.user!.email?.split('@')[0] || 'there';
 
   return (
     <>
-      {/* Welcome header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Welcome, {userName}</h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">Resume practice or start a timed exam.</p>
+        <p className="mt-1 text-slate-600 dark:text-slate-400">
+          {badges.length > 0
+            ? 'Pick an exam to start practising — you go straight into the questions.'
+            : 'Your practice exams will appear here.'}
+        </p>
       </div>
 
-      {/* Stats row */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={BookOpen} label="Exams owned" value={totalExams.toString()} accent="blue" />
-        <StatCard icon={ChartBar} label="Attempts taken" value={totalAttempts.toString()} accent="purple" />
+      {startFailed && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          That exam couldn't be started. Please try again, or contact us if it keeps happening.
+        </div>
+      )}
+
+      <section className="mb-10">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">My Practice Exams</h2>
+        </div>
+        <PracticeBadges badges={badges} />
+      </section>
+
+      {recent.length > 0 && (
+        <section className="mb-10">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Recent attempts</h2>
+            <Link href="/user-dashboard/attempts" className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
+              Full history →
+            </Link>
+          </div>
+          <div className="card divide-y divide-line overflow-hidden dark:divide-slate-800">
+            {recent.map((a) => <AttemptRow key={a.id} a={a} />)}
+          </div>
+        </section>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard icon={BookOpen} label="Practice exams" value={badges.length.toString()} accent="blue" />
+        <StatCard icon={ChartBar} label="Attempts taken" value={scores.length.toString()} accent="purple" />
         <StatCard
           icon={Trophy}
           label="Average score"
@@ -58,15 +75,6 @@ export default async function MyContentPage({
           accent="emerald"
         />
       </div>
-
-      {/* My Exams — 3 cols, paginated */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">My Exams</h2>
-        </div>
-        <MyExamsList items={pagedItems} cols={3} />
-        <Pagination page={page} totalPages={totalPages} basePath="/user-dashboard" />
-      </section>
     </>
   );
 }

@@ -11,7 +11,7 @@ import { ReviewFormModal } from '@/components/review-form-modal';
 import { ResultsSignupPrompt } from '@/components/results-signup-prompt';
 import { canUserReview } from '@/lib/reviews';
 import { sequencingSteps, shuffleSeeded } from '@/lib/shuffle';
-import { drawAttemptQuestions, hasPracticeAccess, resolvePoolExam } from '@/lib/question-pool';
+import { createAttempt } from '@/lib/start-attempt';
 
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -55,18 +55,8 @@ function TakeAgainButton({ examId, mode, teaser, examHref }: {
       const uid = (s?.user as any)?.id as string | undefined;
       // A retake is a fresh domain-weighted draw from the pool — old
       // attempts on a retired variant retake the certification's pool exam.
-      const exam = await resolvePoolExam(db, examId);
-      if (!exam || !uid || !(await hasPracticeAccess(db, uid, exam.id))) redirect(examHref);
-      const ids = await drawAttemptQuestions(db, exam);
-      const att = await db.attempt.create({
-        data: {
-          userId: uid, examId: exam.id, mode, questionIds: ids,
-          durationSec: mode === 'EXAM' ? exam.durationMinutes * 60 : 0,
-          expiresAt: mode === 'EXAM' ? new Date(Date.now() + exam.durationMinutes * 60_000) : null,
-          responses: {}
-        }
-      });
-      redirect(`/exam/${att.id}`);
+      const id = uid ? await createAttempt(uid, examId, mode) : null;
+      redirect(id ? `/exam/${id}` : examHref);
     }}>
       <button className="btn-primary">Take it again</button>
     </form>
@@ -150,10 +140,16 @@ export default async function ResultsPage({
   const domains = Object.entries(perDomain).sort(([, a], [, b]) => a.correct / a.total - b.correct / b.total);
   const missedCount = total - correctCount;
   const flaggedCount = ordered.filter(q => responses[q.id]?.flagged).length;
+  const historyHref = `/user-dashboard/attempts?exam=${attempt.exam.poolExamId ?? attempt.examId}`;
 
   return (
     <div className="min-h-full bg-canvas/60 dark:bg-transparent">
       <div className="mx-auto grid max-w-[980px] gap-6 px-4 pb-16 pt-8 sm:px-6">
+        {userId && (
+          <Link href={historyHref} className="-mb-3 w-fit text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
+            ← Attempt history
+          </Link>
+        )}
         <div className="eyebrow">{attempt.exam.vendor.name} · {attempt.exam.code} · {attempt.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}</div>
 
         {/* Score card */}
@@ -255,7 +251,7 @@ export default async function ResultsPage({
                 href={key === 'all' ? `/results/${attempt.id}` : `/results/${attempt.id}?view=${key}`}
                 scroll={false}
                 aria-current={view === key ? 'true' : undefined}
-                className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-sm ${view === key ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-ink' : 'border-line bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900'}`}
+                className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-sm ${view === key ? 'border-ink bg-ink text-white dark:border-white dark:bg-white dark:text-slate-950' : 'border-line bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900'}`}
               >{label}</Link>
             ))}
           </div>
@@ -365,6 +361,7 @@ export default async function ResultsPage({
             teaser={attempt.isTeaser}
             examHref={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`}
           />
+          {userId && <Link href={historyHref} className="btn-outline">Attempt history</Link>}
           <Link href="/user-dashboard" className="btn-outline">My dashboard</Link>
           {canReview && (
             <ReviewFormModal

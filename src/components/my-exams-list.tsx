@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { BookOpen, Ticket } from 'lucide-react';
+import { useFormStatus } from 'react-dom';
+import { BookOpen, Loader2, Play, Ticket } from 'lucide-react';
+import { startFromDashboard } from '@/app/user-dashboard/actions';
 import { tierLabel } from '@/lib/utils';
 import type { MyExamsListItem } from '@/lib/my-exams';
 
@@ -56,11 +58,7 @@ export function MyExamsList({ items, cols = 2 }: { items: MyExamsListItem[]; col
                   </span>
                 </div>
               )}
-              <div className="mt-auto pt-3">
-                <Link href={`/practice-exams/${b.vendorSlug}/${b.bundleSlug}`} className="btn-secondary w-full text-sm">
-                  Open exam
-                </Link>
-              </div>
+              <StartActions examId={row.examId} detailsHref={`/practice-exams/${b.vendorSlug}/${b.bundleSlug}`} />
             </div>
           );
         }
@@ -86,18 +84,42 @@ export function MyExamsList({ items, cols = 2 }: { items: MyExamsListItem[]; col
             <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {e.questionCount} questions · {e.durationMinutes} min
             </div>
-            <div className="mt-auto pt-3">
-              <Link
-                href={`/practice-exams/${e.vendorSlug}/${e.examSlug}`}
-                className="btn-secondary w-full text-sm"
-              >
-                Open exam
-              </Link>
-            </div>
+            {e.tier === 'VOUCHER' ? (
+              <div className="mt-auto pt-3">
+                <Link href={`/practice-exams/${e.vendorSlug}/${e.examSlug}`} className="btn-secondary w-full text-sm">
+                  Open exam
+                </Link>
+              </div>
+            ) : (
+              <StartActions examId={e.examId} detailsHref={`/practice-exams/${e.vendorSlug}/${e.examSlug}`} />
+            )}
           </div>
         );
       })}
     </div>
+  );
+}
+
+// One click into the runner (resumes an unfinished practice attempt).
+function StartActions({ examId, detailsHref }: { examId: string; detailsHref: string }) {
+  return (
+    <form action={startFromDashboard} className="mt-auto flex gap-2 pt-3">
+      <input type="hidden" name="examId" value={examId} />
+      <StartSubmit />
+      <Link href={detailsHref} className="btn-secondary text-sm">
+        Details
+      </Link>
+    </form>
+  );
+}
+
+function StartSubmit() {
+  const { pending } = useFormStatus();
+  return (
+    <button name="mode" value="PRACTICE" disabled={pending} className="btn-primary-grad flex-1 gap-1.5 text-sm disabled:cursor-wait">
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+      {pending ? 'Starting…' : 'Start practice'}
+    </button>
   );
 }
 

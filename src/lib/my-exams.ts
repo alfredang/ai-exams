@@ -1,5 +1,6 @@
 import type { Tier } from '@prisma/client';
 import { db } from './db';
+import { getAttemptHistory, type ExamHistory } from './attempt-history';
 
 export type ExamRow = {
   entitlementId: string;
@@ -182,4 +183,55 @@ export async function getGroupedExams(userId: string): Promise<GroupedExams> {
   standalone.sort((a, b) => b.grantedAt.getTime() - a.grantedAt.getTime());
 
   return { bundles: finalBundles, standalone };
+}
+
+export type PracticeBadge = {
+  examId: string;      // pool exam — what the one-click start runs
+  code: string;
+  title: string;
+  vendorName: string;
+  questionCount: number;
+  durationMinutes: number;
+  attemptsTaken: number;
+  lastScore: number | null;
+  bestScore: number | null;
+  inProgress: boolean; // an unfinished practice attempt will be resumed
+};
+
+/**
+ * One badge per practice exam the user can take, for the dashboard's
+ * click-to-start grid. Voucher-only rows are left out (no practice access
+ * shown there); progress comes from the same attempt history the Attempts
+ * page shows, so the numbers always agree.
+ */
+export async function getPracticeBadges(
+  userId: string,
+  history?: { exams: ExamHistory[] }
+): Promise<PracticeBadge[]> {
+  const [g, h] = await Promise.all([getGroupedExams(userId), history ?? getAttemptHistory(userId)]);
+  const rows: { row: ExamRow; title: string; code: string }[] = [
+    ...g.bundles.map((b) => ({ row: b.items[0], title: b.bundleTitle, code: b.code })),
+    ...g.standalone
+      .filter((r) => r.tier !== 'VOUCHER')
+      .map((r) => ({ row: r, title: r.examTitle, code: r.examCode.replace(/-P\d+$/, '') }))
+  ];
+
+  return rows
+    .map(({ row, title, code }) => {
+      const exam = h.exams.find((e) => e.examId === row.examId);
+      const scored = exam?.attempts.filter((a) => a.score !== null) ?? [];
+      return {
+        examId: row.examId,
+        code,
+        title,
+        vendorName: row.vendorName,
+        questionCount: row.questionCount,
+        durationMinutes: row.durationMinutes,
+        attemptsTaken: scored.length,
+        lastScore: exam?.latest ?? null,
+        bestScore: exam?.best ?? null,
+        inProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'PRACTICE' && !a.isTeaser)
+      };
+    })
+    .sort((a, b) => a.code.localeCompare(b.code));
 }

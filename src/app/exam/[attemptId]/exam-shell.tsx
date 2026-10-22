@@ -30,7 +30,7 @@ export function ExamShell(props: {
       questions={props.questions}
       remainingSec={props.remainingSec}
       initialResponses={props.initialResponses}
-      exitHref={props.isGuest ? `/practice-exams/${props.vendorSlug}` : '/user-dashboard/attempts'}
+      exitHref={props.isGuest ? `/practice-exams/${props.vendorSlug}` : '/user-dashboard'}
     />
   );
 }

@@ -52,9 +52,29 @@ export function UserChrome({ children }: { children: React.ReactNode }) {
   const width = collapsed ? 'w-16' : 'w-60';
 
   return (
-    <div className="flex min-h-[calc(100vh-6rem)] w-full">
+    <div className="flex min-h-[calc(100vh-6rem)] w-full flex-col md:flex-row">
+      {/* Phones: a scrollable tab strip instead of the sidebar. */}
+      <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-4 py-2 md:hidden dark:border-slate-800 dark:bg-slate-900">
+        {ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = href === '/user-dashboard' ? pathname === '/user-dashboard' : pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
+                active
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                  : 'text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
       <aside
-        className={`relative shrink-0 border-r border-slate-200 bg-white transition-all dark:border-slate-800 dark:bg-slate-900 ${width} ${
+        className={`relative hidden shrink-0 border-r md:block border-slate-200 bg-white transition-all dark:border-slate-800 dark:bg-slate-900 ${width} ${
           mounted ? '' : 'opacity-0'
         }`}
       >
@@ -93,7 +113,7 @@ export function UserChrome({ children }: { children: React.ReactNode }) {
           })}
         </nav>
       </aside>
-      <main className="min-w-0 flex-1 p-6 lg:p-8">{children}</main>
+      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
     </div>
   );
 }
