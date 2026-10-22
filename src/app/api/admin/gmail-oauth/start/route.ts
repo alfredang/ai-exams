@@ -5,7 +5,9 @@ import { getPublicOrigin, publicUrl } from '@/lib/url';
 
 export const dynamic = 'force-dynamic';
 
-const SCOPE = 'https://www.googleapis.com/auth/gmail.send';
+// The transport sends over SMTP XOAUTH2, which rejects gmail.send — it needs
+// the full mail scope (same as the service-account transport in lib/mail.ts).
+const SCOPE = 'https://mail.google.com/';
 
 function callbackUrl(req: Request): string {
   // Must match the OAuth client's registered redirect URI exactly.

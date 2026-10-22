@@ -1,7 +1,7 @@
 import { PaymentProvider, Tier } from '@prisma/client';
 import { db } from './db';
-import { sendPurchaseEmail } from './mail';
-import { tierLabel } from './utils';
+import { sendOrderAlertEmail, sendPurchaseEmail } from './mail';
+import { formatPrice, tierLabel } from './utils';
 import { getDelayDays } from './scheduling/voucher-delivery';
 import { issueInvoiceForOrder } from './invoice/issue';
 import { renderInvoicePdf } from './invoice/render-invoice-pdf';
@@ -29,7 +29,14 @@ type EmailSpec = {
     user: { name: string | null; email: string };
     paymentMethod: string;
   };
+  alert: Omit<Parameters<typeof sendOrderAlertEmail>[0], 'invoiceNumber'>;
 };
+
+function formatAddress(a: { line1: string; line2: string | null; city: string; state: string | null; postalCode: string; country: string }) {
+  return [a.line1, a.line2, `${a.city}${a.state ? `, ${a.state}` : ''} ${a.postalCode}`, a.country]
+    .filter(Boolean)
+    .join(', ');
+}
 
 export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCaptureId: string) {
   // Fetch the voucher delivery delay once before opening the transaction so
@@ -43,6 +50,7 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
       include: {
         exam: true,
         user: true,
+        billingAddress: true,
         bundle: { include: { items: { include: { exam: { include: { vendor: true } } } } } }
       }
     });
@@ -62,6 +70,7 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
     let voucherPending = false;
     let productName = '';
     let tierText = '';
+    let examCodes: string[] = [];
 
     if (order.bundleId && order.bundle) {
       const grantAllItems = !order.tier || order.tier === 'VOUCHER';
@@ -85,6 +94,7 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
       }
       productName = order.bundle.title;
       tierText = 'Bundle';
+      examCodes = items.map((i) => i.exam.code);
     } else {
       // Single-exam order.
       if (!order.examId || !order.tier || !order.exam) {
@@ -111,6 +121,7 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
       voucherPending = tiersToGrant.includes('VOUCHER');
       productName = order.exam.title;
       tierText = tierLabel(order.tier);
+      examCodes = [order.exam.code];
     }
 
     // Issue invoice inside the same transaction so the row exists atomically
@@ -128,6 +139,21 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
         order: { id: order.id, amount: order.amount, currency: order.currency },
         user: { name: order.user.name, email: order.user.email },
         paymentMethod: providerLabel(order.provider)
+      },
+      alert: {
+        orderNumber: order.number ?? order.id,
+        name: order.billingAddress?.fullName || order.user.name || order.user.email,
+        email: order.user.email,
+        phone: order.billingAddress?.phone ?? null,
+        examTitle: productName,
+        // Variant codes are `<code>-P1..-Pn`; sales needs the vendor exam code.
+        examCode: [...new Set(examCodes.map((c) => c.replace(/-P\d+$/i, '')))].join(', '),
+        tier: order.tier ? tierLabel(order.tier) : tierText,
+        paymentMethod: providerLabel(order.provider),
+        amount: formatPrice(order.amount, order.currency),
+        paidAt: new Date(),
+        billingAddress: order.billingAddress ? formatAddress(order.billingAddress) : null,
+        voucherPending
       }
     };
     return { order, emailSpec };
@@ -161,6 +187,11 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
       );
     } catch {
       // Email + PDF must never break fulfilment.
+    }
+    try {
+      await sendOrderAlertEmail({ ...emailSpec.alert, invoiceNumber: emailSpec.invoiceNumber });
+    } catch {
+      // Failure is recorded in EmailLog by sendMail; never break fulfilment.
     }
   }
   return order;

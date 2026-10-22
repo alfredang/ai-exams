@@ -361,6 +361,61 @@ export async function sendPurchaseEmail(
   );
 }
 
+// Internal "new order" alert so sales can action every paid order (vouchers
+// are bought and issued by hand). Sent in addition to the buyer's receipt.
+export const ORDER_ALERT_TO = 'sales@tertiarycourses.com.sg';
+export const ORDER_ALERT_CC = ['angch@tertiaryinfotech.com', 'tansc@tertiaryinfotech.com'];
+
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+export async function sendOrderAlertEmail(alert: {
+  orderNumber: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  examTitle: string;
+  examCode: string;
+  tier: string;
+  paymentMethod: string;
+  amount: string;
+  paidAt: Date;
+  invoiceNumber: string | null;
+  billingAddress: string | null;
+  voucherPending: boolean;
+}) {
+  const date = alert.paidAt.toLocaleString('en-SG', {
+    timeZone: 'Asia/Singapore',
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+  const rows: [string, string][] = [
+    ['Name', alert.name],
+    ['Email', alert.email],
+    ['Tel', alert.phone || '—'],
+    ['Exam Title', alert.examTitle],
+    ['Exam Code', alert.examCode || '—'],
+    ['Payment Method', `${alert.paymentMethod} — ${alert.amount}, PAID`],
+    ['Date', `${date} (SGT)`],
+    ['Order', alert.orderNumber + (alert.invoiceNumber ? ` · Invoice ${alert.invoiceNumber}` : '')],
+    ['Tier', alert.tier],
+    ['Billing Address', alert.billingAddress || '—']
+  ];
+  const html = `<p>A new order has been paid on Tertiary Exams.</p>
+<table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">
+${rows.map(([k, v]) => `<tr><td><b>${k}</b></td><td>${escapeHtml(v)}</td></tr>`).join('\n')}
+</table>
+${alert.voucherPending ? '<p><b>Action needed:</b> this order includes an exam voucher. Purchase it and issue the code under Admin → Vouchers.</p>' : ''}`;
+  return sendMail(
+    ORDER_ALERT_TO,
+    `New order ${alert.orderNumber} — ${alert.examTitle} — ${alert.name}`,
+    html,
+    undefined,
+    ORDER_ALERT_CC,
+    { template: 'ORDER_ALERT' }
+  );
+}
+
 export async function sendVoucherDeliveredEmail(
   to: string,
   examName: string,
