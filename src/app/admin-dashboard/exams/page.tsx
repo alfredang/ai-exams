@@ -51,6 +51,36 @@ function searchClause(q: string) {
  *    'drafts' → has ≥1 DRAFT question (work outstanding)
  *    'empty'  → has 0 questions at all (a bare shell)
  */
+// Lifecycle views. A practice exam sold by a published product is Active even
+// when its own row is hidden (the product page is the customer surface).
+// Retired "Practice Exam N" variants (poolExamId set) only appear under All.
+const SOLD = { bundleItems: { some: { tier: 'PRACTICE' as const, bundle: { published: true } } } };
+function lifecycleClause(view: string) {
+  switch (view) {
+    case 'active':
+      return { deletedAt: null, poolExamId: null, OR: [{ published: true }, SOLD] };
+    case 'inactive':
+      return { deletedAt: null, poolExamId: null, published: false, NOT: SOLD };
+    case 'archived':
+      return { deletedAt: { not: null } };
+    default:
+      return {};
+  }
+}
+
+// Filters are combined with AND so each clause can use its own OR/AND keys.
+function examWhere(view: string, vendor: string, level: string, q: string, qs: string) {
+  return {
+    AND: [
+      lifecycleClause(view),
+      vendor ? { vendor: { slug: vendor } } : {},
+      level ? { level } : {},
+      searchClause(q),
+      qstatusClause(qs)
+    ].filter((c) => Object.keys(c).length > 0)
+  };
+}
+
 function qstatusClause(qs: string) {
   switch (qs) {
     case 'clean':
@@ -135,19 +165,7 @@ async function bulkExamAction(formData: FormData) {
       rawView === 'inactive' || rawView === 'archived' || rawView === 'all'
         ? rawView
         : 'active';
-    const where = {
-      ...(fView === 'active'
-        ? { deletedAt: null, published: true }
-        : fView === 'inactive'
-          ? { deletedAt: null, published: false }
-          : fView === 'archived'
-            ? { deletedAt: { not: null } }
-            : {}),
-      ...(fVendor ? { vendor: { slug: fVendor } } : {}),
-      ...(fLevel ? { level: fLevel } : {}),
-      ...searchClause(fQ),
-      ...qstatusClause(fQstatus)
-    };
+    const where = examWhere(fView, fVendor, fLevel, fQ, fQstatus);
     const matching = await db.exam.findMany({ where, select: { id: true } });
     ids = matching.map((e) => e.id);
   } else {
@@ -320,19 +338,7 @@ export default async function AdminExamsPage({
   // filters. Extracted so the empty-state hint can count how many rows would
   // match in OTHER views with the same search.
   function buildWhere(v: View, qs: QStatus = qstatus) {
-    return {
-      ...(v === 'active'
-        ? { deletedAt: null, published: true }
-        : v === 'inactive'
-          ? { deletedAt: null, published: false }
-          : v === 'archived'
-            ? { deletedAt: { not: null } }
-            : {}),
-      ...(vendorFilter ? { vendor: { slug: vendorFilter } } : {}),
-      ...(levelFilter ? { level: levelFilter } : {}),
-      ...searchClause(q),
-      ...qstatusClause(qs)
-    };
+    return examWhere(v, vendorFilter, levelFilter, q, qs);
   }
 
   const where = buildWhere(view);

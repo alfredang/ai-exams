@@ -321,7 +321,7 @@ flowchart TD
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
 4. Go to `/admin-dashboard/exams/[id]/author` to generate new exam questions using the AI integration.
-5. Check `/admin-dashboard/exams/[id]#pool` for the question pool by exam domain (exam %, pool size, per-attempt draw) and adjust weights if needed.
+5. Open any practice exam under `/admin-dashboard/exams` to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Products & Pricing) shows each product's single practice exam, pool size and practice/voucher prices.
 
 ## Database
 

@@ -307,8 +307,15 @@ async function saveSeoMeta(formData: FormData) {
 
 const LEVELS = ['Foundational', 'Associate', 'Professional', 'Specialty'];
 
-export default async function EditExamPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditExamPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string }>;
+}) {
   const { id } = await params;
+  const sp = await searchParams;
   const exam = await db.exam.findUnique({
     where: { id },
     include: { vendor: true, poolExam: { select: { id: true, code: true } }, questions: { orderBy: { createdAt: 'asc' } } }
@@ -316,6 +323,28 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
   if (!exam) notFound();
   const pool = await poolStats(db, exam);
   const weightTotal = pool.rows.reduce((s, r) => s + r.weight, 0);
+
+  // Question-pool browser filters (?domain=&qstatus=&qtype=), applied in memory
+  // — a pool is at most a few hundred rows.
+  const domainCounts = new Map<string, number>();
+  for (const q of exam.questions) domainCounts.set(q.domain, (domainCounts.get(q.domain) ?? 0) + 1);
+  const blueprintOrder = pool.rows.map((r) => r.name);
+  const domainList = [...domainCounts.keys()].sort((a, b) => {
+    const ia = blueprintOrder.indexOf(a), ib = blueprintOrder.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+  const fDomain = sp.domain && domainCounts.has(sp.domain) ? sp.domain : '';
+  const fStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'].includes(sp.qstatus ?? '') ? sp.qstatus! : '';
+  const fType = ['SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING', 'HOTSPOT'].includes(sp.qtype ?? '') ? sp.qtype! : '';
+  const shownQuestions = exam.questions.filter(
+    (q) => (!fDomain || q.domain === fDomain) && (!fStatus || q.status === fStatus) && (!fType || q.type === fType)
+  );
+  const filterHref = (patch: Record<string, string>) => {
+    const next = { domain: fDomain, qstatus: fStatus, qtype: fType, ...patch };
+    const qs = Object.entries(next).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    return `/admin-dashboard/exams/${exam.id}${qs ? `?${qs}` : ''}#questions`;
+  };
+  const TYPE_NAMES: Record<string, string> = { SINGLE: 'MCQ', MULTI: 'Multiple select', ORDERING: 'Sequencing', TRUE_FALSE: 'True/False', HOTSPOT: 'Hotspot' };
 
   return (
     <div className="space-y-6">
@@ -573,14 +602,15 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
         </form>
       </section>
 
-      <section className="card p-4">
+      <section id="questions" className="card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">Questions ({exam.questions.length})</h2>
+            <h2 className="text-lg font-semibold">Question pool ({exam.questions.length})</h2>
             <div className="text-xs text-slate-500">
-              {exam.questions.filter((q) => q.status === 'DRAFT').length} draft ·{' '}
               {exam.questions.filter((q) => q.status === 'PUBLISHED').length} published ·{' '}
-              Target: {exam.questionCount} · Duration: {exam.durationMinutes} min
+              {exam.questions.filter((q) => q.status === 'DRAFT').length} draft ·{' '}
+              {exam.questions.filter((q) => q.status === 'ARCHIVED').length} archived ·{' '}
+              each attempt draws {exam.questionCount} published questions by domain · Exam mode {exam.durationMinutes} min · pass {exam.passingScore}%
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -615,6 +645,35 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
 
+        {exam.questions.length > 0 && (
+          <div className="mt-3 space-y-2 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="w-14 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Domain</span>
+              <a href={filterHref({ domain: '' })} className={`rounded-full border px-2.5 py-1 ${!fDomain ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>All ({exam.questions.length})</a>
+              {domainList.map((d) => (
+                <a key={d} href={filterHref({ domain: d })} className={`rounded-full border px-2.5 py-1 ${fDomain === d ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
+                  {d} ({domainCounts.get(d)}){!blueprintOrder.includes(d) && blueprintOrder.length > 0 ? ' · not in blueprint' : ''}
+                </a>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="w-14 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Status</span>
+              {['', 'PUBLISHED', 'DRAFT', 'ARCHIVED'].map((st) => (
+                <a key={st || 'all'} href={filterHref({ qstatus: st })} className={`rounded-full border px-2.5 py-1 ${fStatus === st ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
+                  {st ? st.charAt(0) + st.slice(1).toLowerCase() : 'All'}
+                </a>
+              ))}
+              <span className="ml-3 w-10 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Type</span>
+              {['', 'SINGLE', 'MULTI', 'ORDERING', 'TRUE_FALSE'].map((t) => (
+                <a key={t || 'all'} href={filterHref({ qtype: t })} className={`rounded-full border px-2.5 py-1 ${fType === t ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
+                  {t ? TYPE_NAMES[t] : 'All'}
+                </a>
+              ))}
+            </div>
+            <div className="text-slate-500">Showing {shownQuestions.length} of {exam.questions.length}</div>
+          </div>
+        )}
+
         <div className="mt-3 overflow-x-auto">
           <table className="w-max min-w-full text-sm">
             <thead className="border-b border-slate-200 text-left text-xs uppercase text-slate-500 dark:border-slate-800">
@@ -628,7 +687,7 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {exam.questions.map((q, idx) => {
+              {shownQuestions.map((q, idx) => {
                 const opts = (q.options as { id: string; text: string }[]) || [];
                 const correct = (q.correct as string[]) || [];
                 return (
@@ -636,20 +695,35 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
                     <td className="px-2 py-2 text-xs text-slate-500">{idx + 1}</td>
                     <td className="px-2 py-2">
                       <div className="font-medium">{q.stem}</div>
-                      <ul className="mt-1 space-y-0.5 text-xs text-slate-600 dark:text-slate-400">
-                        {opts.map((o, i) => (
-                          <li key={`${i}-${o.id}`} className={correct.includes(o.id) ? 'font-semibold text-emerald-700 dark:text-emerald-400' : ''}>
-                            {o.id.toUpperCase()}. {o.text} {correct.includes(o.id) && '✓'}
-                          </li>
-                        ))}
-                      </ul>
+                      {q.type === 'ORDERING' ? (
+                        <>
+                          <ol className="mt-1 space-y-0.5 text-xs text-slate-600 dark:text-slate-400">
+                            {opts.map((o, i) => <li key={`${i}-${o.id}`}>Step {i + 1}. {o.text}</li>)}
+                          </ol>
+                          <div className="mt-1 font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                            Correct sequence: {correct.map((c) => opts.findIndex((o) => o.id === c) + 1).join(' → ')}
+                          </div>
+                        </>
+                      ) : (
+                        <ul className="mt-1 space-y-0.5 text-xs text-slate-600 dark:text-slate-400">
+                          {opts.map((o, i) => (
+                            <li key={`${i}-${o.id}`} className={correct.includes(o.id) ? 'font-semibold text-emerald-700 dark:text-emerald-400' : ''}>
+                              {o.id.toUpperCase()}. {o.text} {correct.includes(o.id) && '✓'}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </td>
-                    <td className="whitespace-nowrap px-2 py-2 text-slate-500">{q.type}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-slate-500">{TYPE_NAMES[q.type] ?? q.type}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-slate-500">{q.domain}</td>
                     <td className="whitespace-nowrap px-2 py-2">
                       {q.status === 'PUBLISHED' ? (
                         <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
                           PUBLISHED
+                        </span>
+                      ) : q.status === 'ARCHIVED' ? (
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                          ARCHIVED
                         </span>
                       ) : (
                         <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
@@ -676,6 +750,11 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
                   </tr>
                 );
               })}
+              {exam.questions.length > 0 && shownQuestions.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-2 py-6 text-center text-sm text-slate-500">No questions match these filters.</td>
+                </tr>
+              )}
               {exam.questions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-2 py-6 text-center text-sm text-slate-500">

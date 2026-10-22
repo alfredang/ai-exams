@@ -59,6 +59,16 @@ export function ExamDomains({ domains, productSlug }: { domains: unknown; produc
   );
 }
 
+// Show the site, not the raw (often very long) URL; the href keeps the full link.
+function linkText(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.hostname.replace(/^www\./, '')}${/\.pdf$/i.test(u.pathname) ? ' (PDF)' : ''}`;
+  } catch {
+    return url;
+  }
+}
+
 /** "References" — the vendor's official exam page and study guide. */
 export function ExamReferences({ productSlug, fallbackExamUrl }: { productSlug: string; fallbackExamUrl?: string | null }) {
   const bp = EXAM_BLUEPRINTS[productSlug];
@@ -74,8 +84,8 @@ export function ExamReferences({ productSlug, fallbackExamUrl }: { productSlug: 
         {links.map((l) => (
           <li key={l.label} className="flex flex-wrap items-baseline gap-x-2">
             <span className="text-slate-500 dark:text-slate-400">{l.label}:</span>
-            <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 break-all text-blue-600 hover:underline dark:text-blue-300">
-              {l.url.replace(/^https?:\/\//, '').replace(/\/$/, '')} <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <a href={l.url} target="_blank" rel="noopener noreferrer" title={l.url} className="inline-flex items-center gap-1 break-all text-blue-600 hover:underline dark:text-blue-300">
+              {linkText(l.url)} <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
             </a>
           </li>
         ))}

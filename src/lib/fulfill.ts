@@ -92,7 +92,8 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
         }
       }
       productName = order.bundle.title;
-      tierText = 'Bundle';
+      // Customer-facing: "Practice Exam" or "Exam Voucher (practice exam included)".
+      tierText = order.tier ? tierLabel(order.tier) : 'Practice Exam';
       examCodes = items.map((i) => i.exam.code);
     } else {
       // Single-exam order.

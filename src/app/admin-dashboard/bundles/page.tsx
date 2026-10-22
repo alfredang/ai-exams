@@ -31,7 +31,13 @@ async function loadBundles(where: Prisma.BundleWhereInput, skip: number, take: n
       items: {
         orderBy: { position: 'asc' },
         include: {
-          exam: { select: { code: true, questionCount: true, durationMinutes: true, level: true, vendor: { select: { name: true } } } }
+          exam: {
+            select: {
+              id: true, code: true, questionCount: true, durationMinutes: true, level: true, passingScore: true,
+              vendor: { select: { name: true } },
+              _count: { select: { questions: { where: { status: 'PUBLISHED' } } } }
+            }
+          }
         }
       }
     },
@@ -242,7 +248,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
     },
     {
       key: 'title',
-      header: 'Bundle Name',
+      header: 'Product',
       cell: (b) => (
         <Link
           href={`/admin-dashboard/bundles/${b.id}`}
@@ -266,24 +272,19 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
       }
     },
     {
-      key: 'practiceExams',
-      header: 'Practice Exams',
+      // One practice exam per product; its question pool is managed on the exam page.
+      key: 'practiceExam',
+      header: 'Practice exam',
       cell: (b) => {
-        const practiceItems = b.items.filter((it) => it.tier === 'PRACTICE');
-        return practiceItems.length > 0 ? (
-          <div
-            className="flex max-w-[22rem] flex-nowrap items-center gap-1 overflow-x-auto"
-            title={practiceItems.map((i) => `${i.exam.vendor.name} ${i.exam.code}`).join('\n')}
+        const pe = b.items.find((it) => it.tier === 'PRACTICE')?.exam;
+        return pe ? (
+          <Link
+            href={`/admin-dashboard/exams/${pe.id}#questions`}
+            className="inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-blue-700 hover:underline dark:bg-slate-800 dark:text-blue-300"
+            title="Open the question pool"
           >
-            {practiceItems.map((it) => (
-              <span
-                key={it.id}
-                className="inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-              >
-                {it.exam.code}
-              </span>
-            ))}
-          </div>
+            {pe.code}
+          </Link>
         ) : (
           <span className="text-slate-400">—</span>
         );
@@ -296,20 +297,19 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
       cell: (b) => <StatusBadge status={b.published ? 'PUBLISHED' : 'DRAFT'} />
     },
     {
-      key: 'numExams',
-      header: '# Exams',
+      key: 'pool',
+      header: 'Pool',
       align: 'right',
-      cell: (b) => (
-        <span className="font-mono text-[11px]" title={b.items.map((i) => `${i.exam.vendor.name} ${i.exam.code} [${i.tier}]`).join('\n')}>
-          {b._count.items}
-        </span>
-      )
+      cell: (b) => {
+        const pe = b.items.find((it) => it.tier === 'PRACTICE')?.exam;
+        return pe ? <span className="font-mono text-[11px]" title="Published questions in the pool">{pe._count.questions}</span> : '—';
+      }
     },
     {
       key: 'qPerExam',
-      header: 'Q / Exam',
+      header: 'Q / attempt',
       align: 'right',
-      cell: (b) => b.items[0]?.exam.questionCount ?? '—'
+      cell: (b) => b.items.find((it) => it.tier === 'PRACTICE')?.exam.questionCount ?? '—'
     },
     {
       key: 'duration',
@@ -319,11 +319,12 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
     },
     {
       key: 'price',
-      header: 'Price',
+      header: 'Practice / Voucher',
       align: 'right',
       cell: (b) => (
-        <span className="whitespace-nowrap font-semibold" title={b.priceVoucher != null ? `voucher ${formatPrice(b.priceVoucher)}` : undefined}>
+        <span className="whitespace-nowrap font-semibold">
           {formatPrice(b.price)}
+          <span className="font-normal text-slate-500"> / {b.priceVoucher != null ? formatPrice(b.priceVoucher) : '—'}</span>
         </span>
       )
     },
@@ -362,7 +363,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
           </Link>
           <form action={duplicateBundle} className="inline-flex">
             <input type="hidden" name="id" value={b.id} />
-            <button title="Duplicate bundle (items copy as DRAFT)" className="icon-btn">
+            <button title="Duplicate product (copies as DRAFT)" className="icon-btn">
               <Copy className="h-3.5 w-3.5" />
             </button>
           </form>
@@ -388,11 +389,11 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
   return (
     <div>
       <PageHeader
-        title="View Bundled Exams"
-        subtitle={`${total} bundle${total === 1 ? '' : 's'}${pages > 1 ? ` · page ${page} of ${pages}` : ''}`}
+        title="Products & Pricing"
+        subtitle={`${total} product${total === 1 ? '' : 's'} — one practice exam each, sold as Practice Exam or Exam Voucher (practice exam included)${pages > 1 ? ` · page ${page} of ${pages}` : ''}`}
         actions={
           <Link href="/admin-dashboard/bundles/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
-            + Create Bundle
+            + Create Product
           </Link>
         }
       />
@@ -485,7 +486,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         </button>
       </form>
 
-      <DataTable columns={columns} rows={bundles} rowKey={(b) => b.id} empty="No bundles yet. Click + Create Bundle to start one." />
+      <DataTable columns={columns} rows={bundles} rowKey={(b) => b.id} empty="No products yet. Click + Create Product to start one." />
 
       <Pager page={page} pages={pages} buildHref={buildHref} />
     </div>
