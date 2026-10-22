@@ -2722,7 +2722,7 @@ const GCP_PCDOE_EXAMS: { slug: string; code: string; titleSuffix: string; descri
 const GCP_PCDOE_BUNDLE = {
   slug: 'google-professional-cloud-devops-engineer',
   title: 'Google Professional Cloud DevOps Engineer',
-  description: 'All 3 Google Professional Cloud DevOps Engineer practice exams in one bundle — covering organization bootstrapping, CI/CD pipelines, Site Reliability Engineering practices, observability, and service performance optimization, aligned to the official exam guide.',
+  description: 'Unlimited Google Professional Cloud DevOps Engineer practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering organization bootstrapping, CI/CD pipelines, Site Reliability Engineering practices, observability, and service performance optimization, aligned to the official exam guide.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 20000 // USD 200 — VOUCHER tier
 };

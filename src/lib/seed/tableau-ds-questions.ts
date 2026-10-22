@@ -2632,7 +2632,7 @@ const TABLEAU_DS_EXAMS: { slug: string; code: string; titleSuffix: string; descr
 const TABLEAU_DS_BUNDLE = {
   slug: 'tableau-desktop-specialist',
   title: 'Tableau Desktop Specialist',
-  description: 'All 3 Tableau Desktop Specialist practice exams in one bundle — covering connecting to and preparing data, exploring and analyzing data, sharing insights, and understanding Tableau concepts, aligned to the Tableau Desktop Specialist exam domains.',
+  description: 'Unlimited Tableau Desktop Specialist practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering connecting to and preparing data, exploring and analyzing data, sharing insights, and understanding Tableau concepts, aligned to the Tableau Desktop Specialist exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 10000 // USD 100 — VOUCHER tier
 };

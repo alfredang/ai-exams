@@ -2447,7 +2447,7 @@ const KCNA_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const KCNA_BUNDLE = {
   slug: 'linuxfoundation-kcna',
   title: 'Kubernetes and Cloud Native Associate (KCNA)',
-  description: 'All 3 KCNA practice exams in one bundle — covering Kubernetes fundamentals, container orchestration, cloud native architecture, observability, and application delivery, aligned to the CNCF KCNA exam curriculum.',
+  description: 'Unlimited KCNA practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering Kubernetes fundamentals, container orchestration, cloud native architecture, observability, and application delivery, aligned to the CNCF KCNA exam curriculum.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 25000 // USD 250 — VOUCHER tier
 };

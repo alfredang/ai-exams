@@ -2610,7 +2610,7 @@ const CAPM_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const CAPM_BUNDLE = {
   slug: 'pmi-capm',
   title: 'PMI CAPM',
-  description: 'All 3 PMI CAPM practice exams in one bundle — covering project management fundamentals and core concepts, predictive plan-based methodologies, agile frameworks/methodologies, and business analysis frameworks, aligned to the PMI Certified Associate in Project Management exam content outline.',
+  description: 'Unlimited PMI CAPM practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering project management fundamentals and core concepts, predictive plan-based methodologies, agile frameworks/methodologies, and business analysis frameworks, aligned to the PMI Certified Associate in Project Management exam content outline.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 30000 // USD 300 — VOUCHER tier
 };

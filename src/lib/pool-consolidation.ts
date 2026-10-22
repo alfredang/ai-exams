@@ -22,6 +22,7 @@ import { domainKey, matchDomain, parseDomains } from './question-pool';
 export type PoolPlan = {
   bundleSlug: string;
   bundleTitle: string;
+  bundleDescription: string;
   poolExamSlug: string;
   variantSlugs: string[];
 };
@@ -113,10 +114,12 @@ export async function consolidateExamPools(db: PrismaClient, plans: PoolPlan[]) 
       totals.archived += r.count;
     }
 
-    // The pool exam IS the product's practice exam — drop the "Practice Exam 1" naming.
+    // The pool exam IS the product's practice exam — drop the "Practice Exam 1"
+    // naming and the "Practice exam 1 of 3" description; it carries the
+    // product's title and description.
     const code = pool.code.replace(/-P\d+$/i, '');
-    if (pool.title !== plan.bundleTitle || pool.label !== 'Practice Exam' || pool.code !== code) {
-      await db.exam.update({ where: { id: pool.id }, data: { title: plan.bundleTitle, label: 'Practice Exam', code } });
+    if (pool.title !== plan.bundleTitle || pool.label !== 'Practice Exam' || pool.code !== code || pool.description !== plan.bundleDescription) {
+      await db.exam.update({ where: { id: pool.id }, data: { title: plan.bundleTitle, label: 'Practice Exam', code, description: plan.bundleDescription } });
     }
   }
   return totals;
@@ -149,6 +152,7 @@ export async function refoldProductPools(db: PrismaClient) {
     plans.push({
       bundleSlug: b.slug,
       bundleTitle: b.title,
+      bundleDescription: b.description,
       poolExamSlug: pool.exam.slug,
       variantSlugs: [...new Set([...practice.slice(1).map((i) => i.exam.slug), b.slug])].filter((s) => s !== pool.exam.slug)
     });

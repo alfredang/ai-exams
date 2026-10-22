@@ -2764,7 +2764,7 @@ const PL300_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const PL300_BUNDLE = {
   slug: 'microsoft-pl-300',
   title: 'Microsoft Power BI Data Analyst Associate (PL-300)',
-  description: 'All 3 PL-300 practice exams in one bundle — covering preparing data with Power Query, modeling with DAX, visualizing & analyzing reports, and managing & securing Power BI content, aligned to the official Microsoft Power BI Data Analyst Associate (PL-300) study guide.',
+  description: 'Unlimited PL-300 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering preparing data with Power Query, modeling with DAX, visualizing & analyzing reports, and managing & securing Power BI content, aligned to the official Microsoft Power BI Data Analyst Associate (PL-300) study guide.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

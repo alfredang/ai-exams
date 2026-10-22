@@ -2580,7 +2580,7 @@ const SC300_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const SC300_BUNDLE = {
   slug: 'microsoft-sc-300',
   title: 'Microsoft Identity and Access Administrator (SC-300)',
-  description: 'All 3 SC-300 practice exams in one bundle — covering implementing identities in Microsoft Entra, authentication and access management, access management for applications, and planning and implementing identity governance, aligned to the Microsoft Identity and Access Administrator exam objectives.',
+  description: 'Unlimited SC-300 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering implementing identities in Microsoft Entra, authentication and access management, access management for applications, and planning and implementing identity governance, aligned to the Microsoft Identity and Access Administrator exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

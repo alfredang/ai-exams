@@ -2685,7 +2685,7 @@ const SECURITYX_EXAMS: { slug: string; code: string; titleSuffix: string; descri
 const SECURITYX_BUNDLE = {
   slug: 'comptia-securityx',
   title: 'CompTIA SecurityX (CASP+, CAS-005)',
-  description: 'All 3 CompTIA SecurityX (CAS-005) practice exams in one bundle — covering governance, risk & compliance, security architecture, security engineering, and security operations, aligned to the CompTIA SecurityX exam objectives.',
+  description: 'Unlimited CompTIA SecurityX (CAS-005) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering governance, risk & compliance, security architecture, security engineering, and security operations, aligned to the CompTIA SecurityX exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 54400 // USD 544 — VOUCHER tier
 };

@@ -34,3 +34,19 @@ export function shuffleSeeded<T>(arr: readonly T[], seed: string): T[] {
   }
   return out;
 }
+
+/**
+ * The fixed, numbered order a sequencing (ORDERING) question's steps are
+ * shown in — Step 1…N — so the answer reads like "5 → 3 → 2 → 4 → 1".
+ *
+ * Authors list steps out of order and that order is kept. A question
+ * authored in its correct order gets a stable per-question shuffle
+ * (seed = question id) so it never starts pre-solved. Server (exam page,
+ * results) and client must call this with the same seed.
+ */
+export function sequencingSteps<T extends { id: string }>(options: readonly T[], correct: readonly string[], seed: string): T[] {
+  const solved = (list: readonly T[]) => list.length === correct.length && list.every((o, i) => o.id === correct[i]);
+  if (!solved(options)) return [...options];
+  const out = shuffleSeeded(options, seed);
+  return solved(out) ? [...out.slice(1), out[0]] : out;
+}

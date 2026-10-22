@@ -2660,7 +2660,7 @@ const AI900_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const AI900_BUNDLE = {
   slug: 'microsoft-ai-900',
   title: 'Microsoft Azure AI Fundamentals (AI-900)',
-  description: 'All 3 AI-900 practice exams in one bundle — covering AI workloads & considerations, machine learning on Azure, computer vision, natural language processing, and generative AI on Azure, aligned to the Microsoft Azure AI Fundamentals (AI-900) exam blueprint.',
+  description: 'Unlimited AI-900 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering AI workloads & considerations, machine learning on Azure, computer vision, natural language processing, and generative AI on Azure, aligned to the Microsoft Azure AI Fundamentals (AI-900) exam blueprint.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 9900 // USD 99 — VOUCHER tier (Foundational pricing, mirrors DP-900)
 };

@@ -86,6 +86,25 @@ export function matchesCatalogSearch(query: string, values: Array<string | null 
   return keywords.every((keyword) => searchableText.includes(keyword));
 }
 
+/**
+ * Relevance of a catalogue match, for ordering results. `primary` holds the
+ * product's own identifiers (titles, exam codes, course-code aliases); the
+ * full match set also covers descriptions, so a broad word like "security"
+ * matches dozens of products — without ranking, "security+" buried
+ * CompTIA Security+ behind every card whose blurb mentions security.
+ *   3 — a primary value contains the query verbatim ("security+")
+ *   2 — a primary value matches punctuation-insensitively ("SY0 701")
+ *   1 — matched only through descriptions/vendor/level
+ */
+export function catalogSearchRank(query: string, primary: Array<string | null | undefined>): number {
+  const trimmed = query.trim().toLocaleLowerCase();
+  if (!trimmed) return 0;
+  if (primary.some((value) => value?.toLocaleLowerCase().includes(trimmed))) return 3;
+  const compactQuery = normalized(trimmed);
+  if (compactQuery && primary.some((value) => value && normalized(value.toLocaleLowerCase()).includes(compactQuery))) return 2;
+  return 1;
+}
+
 function editDistance(left: string, right: string): number {
   const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
   for (let i = 1; i <= left.length; i += 1) {

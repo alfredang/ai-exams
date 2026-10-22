@@ -2703,7 +2703,7 @@ const GITLAB_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const GITLAB_BUNDLE = {
   slug: 'gitlab-certified-associate',
   title: 'GitLab Certified Associate',
-  description: 'All 3 GitLab Certified Associate practice exams in one bundle — covering Git and GitLab fundamentals, source code management & workflows, CI/CD pipelines, project management & collaboration, and security & compliance basics, aligned to the GitLab Certified Associate curriculum.',
+  description: 'Unlimited GitLab Certified Associate practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering Git and GitLab fundamentals, source code management & workflows, CI/CD pipelines, project management & collaboration, and security & compliance basics, aligned to the GitLab Certified Associate curriculum.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 9900 // USD 99 — VOUCHER tier
 };

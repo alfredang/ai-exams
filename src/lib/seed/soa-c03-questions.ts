@@ -2840,7 +2840,7 @@ const SOA_C03_EXAMS: { slug: string; code: string; titleSuffix: string; descript
 const SOA_C03_BUNDLE = {
   slug: 'aws-soa-c03',
   title: 'AWS Certified CloudOps Engineer — Associate (SOA-C03)',
-  description: 'All 3 SOA-C03 practice exams in one bundle — 195 curated questions covering monitoring, logging, analysis, remediation, and performance optimization (CloudWatch, CloudTrail, EventBridge, Systems Manager); reliability and business continuity (Auto Scaling, ELB, Route 53, AWS Backup, disaster recovery); deployment, provisioning, and automation (CloudFormation, StackSets, EC2 Image Builder, the AWS CDK); security and compliance (IAM, AWS KMS, AWS Config, GuardDuty, Security Hub); and networking and content delivery (VPC, Route 53, CloudFront, AWS Global Accelerator). Aligned to the official AWS Certified CloudOps Engineer - Associate (SOA-C03) exam guide.',
+  description: 'Unlimited SOA-C03 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering monitoring, logging, analysis, remediation, and performance optimization (CloudWatch, CloudTrail, EventBridge, Systems Manager); reliability and business continuity (Auto Scaling, ELB, Route 53, AWS Backup, disaster recovery); deployment, provisioning, and automation (CloudFormation, StackSets, EC2 Image Builder, the AWS CDK); security and compliance (IAM, AWS KMS, AWS Config, GuardDuty, Security Hub); and networking and content delivery (VPC, Route 53, CloudFront, AWS Global Accelerator). Aligned to the official AWS Certified CloudOps Engineer - Associate (SOA-C03) exam guide.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 15000 // USD 150 — VOUCHER tier
 };

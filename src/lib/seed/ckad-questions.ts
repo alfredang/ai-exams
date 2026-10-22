@@ -2697,7 +2697,7 @@ const CKAD_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const CKAD_BUNDLE = {
   slug: 'linuxfoundation-ckad',
   title: 'Certified Kubernetes Application Developer (CKAD)',
-  description: 'All 3 CKAD practice exams in one bundle — covering application design & build, deployment, observability & maintenance, environment/configuration/security, and services & networking, aligned to CNCF CKAD v1.35.',
+  description: 'Unlimited CKAD practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering application design & build, deployment, observability & maintenance, environment/configuration/security, and services & networking, aligned to CNCF CKAD v1.35.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 39500 // USD 395 — VOUCHER tier (matches CKAD real-exam fee)
 };

@@ -34,7 +34,7 @@ export function BundleBuyForm({
 
   return (
     <div className="card p-5">
-      <div className="mb-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Pick a plan</div>
+      <div className="mb-3 text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Pick a product</div>
       <div className="space-y-2">
         {options.map(o => (
           <label

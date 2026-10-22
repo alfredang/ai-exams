@@ -2625,7 +2625,7 @@ const GCP_PCA_EXAMS: { slug: string; code: string; titleSuffix: string; descript
 const GCP_PCA_BUNDLE = {
   slug: 'google-professional-cloud-architect',
   title: 'Google Professional Cloud Architect',
-  description: 'All 3 Google Professional Cloud Architect practice exams in one bundle — covering solution architecture design & planning, provisioning and managing infrastructure, security & compliance, analyzing and optimizing processes, managing implementation, and ensuring operations reliability, aligned to the Professional Cloud Architect exam domains.',
+  description: 'Unlimited Google Professional Cloud Architect practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering solution architecture design & planning, provisioning and managing infrastructure, security & compliance, analyzing and optimizing processes, managing implementation, and ensuring operations reliability, aligned to the Professional Cloud Architect exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 20000 // USD 200 — VOUCHER tier
 };

@@ -2748,7 +2748,7 @@ const MS102_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const MS102_BUNDLE = {
   slug: 'microsoft-ms-102',
   title: 'Microsoft 365 Administrator Expert (MS-102)',
-  description: 'All 3 MS-102 practice exams in one bundle — covering deploying & managing a Microsoft 365 tenant, Microsoft Entra identity & access, Microsoft Defender XDR security & threat management, and Microsoft Purview compliance, aligned to the official Microsoft 365 Administrator Expert (MS-102) study guide.',
+  description: 'Unlimited MS-102 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering deploying & managing a Microsoft 365 tenant, Microsoft Entra identity & access, Microsoft Defender XDR security & threat management, and Microsoft Purview compliance, aligned to the official Microsoft 365 Administrator Expert (MS-102) study guide.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

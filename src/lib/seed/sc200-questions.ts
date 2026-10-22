@@ -2749,7 +2749,7 @@ const SC200_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const SC200_BUNDLE = {
   slug: 'microsoft-sc-200',
   title: 'Microsoft Security Operations Analyst (SC-200)',
-  description: 'All 3 SC-200 practice exams in one bundle — covering managing a security operations environment (Defender XDR + Sentinel automation, SIEM platform configuration, data ingestion, and detection engineering), responding to security incidents across Defender XDR and Microsoft Defender for Endpoint, and performing threat hunting with KQL, Sentinel Graph, hunting notebooks, and the Sentinel MCP Server. Aligned to the official Microsoft Security Operations Analyst (SC-200) study guide (skills measured as of April 16, 2026).',
+  description: 'Unlimited SC-200 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering managing a security operations environment (Defender XDR + Sentinel automation, SIEM platform configuration, data ingestion, and detection engineering), responding to security incidents across Defender XDR and Microsoft Defender for Endpoint, and performing threat hunting with KQL, Sentinel Graph, hunting notebooks, and the Sentinel MCP Server. Aligned to the official Microsoft Security Operations Analyst (SC-200) study guide (skills measured as of April 16, 2026).',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

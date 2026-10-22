@@ -157,7 +157,7 @@ export default async function HomePage() {
               // [bundle-as-exam-view](src/app/practice-exams/[vendor]/[slug]/bundle-as-exam-view.tsx).
               const displayCode = first?.code.replace(/-P\d+$/i, '');
               // Link to the unified `/practice-exams/[vendor]/[slug]` route
-              // (which renders BundleAsExamView with PICK A PLAN) instead of
+              // (which renders BundleAsExamView with PICK A PRODUCT) instead of
               // the legacy `/bundles/[slug]` page. Keeps the URL surface
               // consistent with the catalog and the vendor pages.
               const bundleHref = first
@@ -212,19 +212,19 @@ export default async function HomePage() {
       <section id="pricing" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
         <div className="container-app py-5">
           <div className="text-center">
-            <div className="eyebrow">Plans</div>
+            <div className="eyebrow">Products</div>
             <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Three ways to prepare</h2>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {[
-              { t: `Try ${TEASER_N} questions for free`, d: 'Free teaser on every exam — no credit card required. Get a feel for our content before you buy.', cta: 'Browse exams' },
-              { t: 'Practice Exam', d: 'Full access to the practice question bank with detailed explanations. Practice Mode and Exam Mode included.', cta: 'Browse' },
-              { t: 'Exam Voucher (practice included)', d: 'A real exam voucher PLUS full practice access for the same exam — no separate practice purchase needed.', cta: 'Browse' }
+              { t: `Try ${TEASER_N} questions for free`, d: 'Free teaser on every exam — no credit card required. Get a feel for our content before you buy.', cta: 'Browse exams', href: '/practice-exams' },
+              { t: 'Practice Exam', d: 'Full access to the practice question bank with detailed explanations. Practice Mode and Exam Mode included.', cta: 'Browse', href: '/practice-exams' },
+              { t: 'Exam Voucher (practice included)', d: 'A real exam voucher PLUS full practice access for the same exam — no separate practice purchase needed.', cta: 'Browse vouchers', href: '/exam-vouchers' }
             ].map((p, i) => (
               <div key={i} className={`card flex flex-col p-4 ${i === 1 ? 'border-brand ring-1 ring-brand' : ''}`}>
                 <h3 className="text-lg font-bold">{p.t}</h3>
                 <p className="mb-4 mt-1 text-sm text-slate-600 dark:text-slate-400">{p.d}</p>
-                <Link href="/practice-exams" className={`${i === 1 ? 'btn-primary' : 'btn-outline'} mt-auto w-full`}>{p.cta}</Link>
+                <Link href={p.href} className={`${i === 1 ? 'btn-primary' : 'btn-outline'} mt-auto w-full`}>{p.cta}</Link>
               </div>
             ))}
           </div>

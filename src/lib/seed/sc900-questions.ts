@@ -2628,7 +2628,7 @@ const SC900_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const SC900_BUNDLE = {
   slug: 'microsoft-sc-900',
   title: 'Microsoft Security, Compliance, and Identity Fundamentals (SC-900)',
-  description: 'All 3 SC-900 practice exams in one bundle — covering the concepts of security, compliance, and identity; the capabilities of Microsoft Entra; Microsoft security solutions; and Microsoft compliance solutions, aligned to the Microsoft SC-900 exam domains.',
+  description: 'Unlimited SC-900 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering the concepts of security, compliance, and identity; the capabilities of Microsoft Entra; Microsoft security solutions; and Microsoft compliance solutions, aligned to the Microsoft SC-900 exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 9900 // USD 99 — VOUCHER tier
 };

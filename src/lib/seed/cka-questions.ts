@@ -2953,7 +2953,7 @@ const CKA_EXAMS: { slug: string; code: string; titleSuffix: string; descriptionS
 const CKA_BUNDLE = {
   slug: 'linuxfoundation-cka',
   title: 'Certified Kubernetes Administrator (CKA)',
-  description: 'All 3 CKA practice exams in one bundle — covering cluster architecture & install (kubeadm, etcd, RBAC, CRDs, CNI), workloads & scheduling, services & networking (Ingress + Gateway API), storage, and troubleshooting. Aligned to the CNCF CKA v1.32 blueprint.',
+  description: 'Unlimited CKA practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering cluster architecture & install (kubeadm, etcd, RBAC, CRDs, CNI), workloads & scheduling, services & networking (Ingress + Gateway API), storage, and troubleshooting. Aligned to the CNCF CKA v1.32 blueprint.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 39500 // USD 395 — VOUCHER tier (matches CKA real-exam fee)
 };

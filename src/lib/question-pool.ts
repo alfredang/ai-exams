@@ -150,9 +150,10 @@ export async function hasPracticeAccess(db: PrismaClient, userId: string, poolEx
 }
 
 /**
- * Draw a fresh attempt's question ids for a pool exam.
- * Teasers prefer curated `isTeaser` questions and top up from the rest of
- * the pool so the promised 10 questions always appear.
+ * Draw a fresh attempt's question ids for a pool exam. The free teaser
+ * draws from the same whole pool as the paid exam (just fewer questions),
+ * so every teaser is a different domain-weighted sample — `isTeaser` flags
+ * no longer restrict it.
  */
 export async function drawAttemptQuestions(
   db: PrismaClient,
@@ -162,16 +163,9 @@ export async function drawAttemptQuestions(
   const domains = parseDomains(exam.domains);
   const all = await db.question.findMany({
     where: { examId: exam.id, status: 'PUBLISHED' },
-    select: { id: true, domain: true, isTeaser: true }
+    select: { id: true, domain: true }
   });
-  const count = opts.count ?? exam.questionCount;
-  if (!opts.teaser) return drawFromPool(all, domains, count);
-  const curated = all.filter((q) => q.isTeaser);
-  const ids = drawFromPool(curated, domains, count);
-  if (ids.length >= count) return ids;
-  const taken = new Set(ids);
-  const rest = drawFromPool(all.filter((q) => !taken.has(q.id)), domains, count - ids.length);
-  return shuffle([...ids, ...rest]);
+  return drawFromPool(all, domains, opts.count ?? exam.questionCount);
 }
 
 /** Per-domain pool size and per-attempt allocation, for the admin pool view. */

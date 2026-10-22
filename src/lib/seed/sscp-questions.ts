@@ -2689,7 +2689,7 @@ const SSCP_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const SSCP_BUNDLE = {
   slug: 'isc2-sscp',
   title: 'ISC2 Systems Security Certified Practitioner (SSCP)',
-  description: 'All 3 SSCP practice exams in one bundle — covering security operations & administration, access controls, risk identification/monitoring/analysis, incident response & recovery, cryptography, network & communications security, and systems & application security, aligned to the ISC2 SSCP exam outline.',
+  description: 'Unlimited SSCP practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering security operations & administration, access controls, risk identification/monitoring/analysis, incident response & recovery, cryptography, network & communications security, and systems & application security, aligned to the ISC2 SSCP exam outline.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 28900 // USD 289 — PRACTICE + real-exam voucher tier
 };

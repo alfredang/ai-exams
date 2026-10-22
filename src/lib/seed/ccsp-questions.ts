@@ -2453,7 +2453,7 @@ const CCSP_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const CCSP_BUNDLE = {
   slug: 'isc2-ccsp',
   title: 'ISC2 CCSP',
-  description: 'All 3 CCSP practice exams in one bundle — covering cloud concepts/architecture/design, cloud data security, cloud platform & infrastructure security, cloud application security, cloud security operations, and legal/risk/compliance, aligned to the ISC2 CCSP exam domains.',
+  description: 'Unlimited CCSP practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering cloud concepts/architecture/design, cloud data security, cloud platform & infrastructure security, cloud application security, cloud security operations, and legal/risk/compliance, aligned to the ISC2 CCSP exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 59900 // USD 599 — VOUCHER tier
 };

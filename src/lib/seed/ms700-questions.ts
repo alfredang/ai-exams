@@ -2729,7 +2729,7 @@ const MS700_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const MS700_BUNDLE = {
   slug: 'microsoft-ms-700',
   title: 'Microsoft Teams Administrator Associate (MS-700)',
-  description: 'All 3 MS-700 practice exams in one bundle — 195 curated questions covering configuring and managing a Microsoft Teams environment (network planning, security & compliance, governance and lifecycle, external and guest collaboration, Teams clients and devices), managing teams / channels / chats / apps, managing meetings and calling including Teams Phone (auto attendants, call queues, phone numbers, policies), and monitoring, reporting on, and troubleshooting Teams. Aligned to the official Managing Microsoft Teams (MS-700) study guide (skills measured as of April 28, 2026).',
+  description: 'Unlimited MS-700 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering configuring and managing a Microsoft Teams environment (network planning, security & compliance, governance and lifecycle, external and guest collaboration, Teams clients and devices), managing teams / channels / chats / apps, managing meetings and calling including Teams Phone (auto attendants, call queues, phone numbers, policies), and monitoring, reporting on, and troubleshooting Teams. Aligned to the official Managing Microsoft Teams (MS-700) study guide (skills measured as of April 28, 2026).',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

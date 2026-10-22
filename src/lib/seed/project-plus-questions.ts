@@ -2324,7 +2324,7 @@ const PROJECT_PLUS_EXAMS: { slug: string; code: string; titleSuffix: string; des
 const PROJECT_PLUS_BUNDLE = {
   slug: 'comptia-project-plus',
   title: 'CompTIA Project+ (PK0-005)',
-  description: 'All 3 CompTIA Project+ (PK0-005) practice exams in one bundle — covering project management concepts, project life cycle phases, tools & documentation, and the basics of IT & governance, aligned to the CompTIA Project+ exam objectives.',
+  description: 'Unlimited CompTIA Project+ (PK0-005) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering project management concepts, project life cycle phases, tools & documentation, and the basics of IT & governance, aligned to the CompTIA Project+ exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 39900 // USD 399 — VOUCHER tier
 };

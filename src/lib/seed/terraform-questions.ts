@@ -2676,7 +2676,7 @@ const TERRAFORM_EXAMS: { slug: string; code: string; titleSuffix: string; descri
 const TERRAFORM_BUNDLE = {
   slug: 'hashicorp-terraform-associate',
   title: 'HashiCorp Certified: Terraform Associate (003)',
-  description: 'All 3 HashiCorp Certified: Terraform Associate (003) practice exams in one bundle — 195 blueprint-weighted questions covering Infrastructure as Code concepts, the purpose of Terraform, Terraform fundamentals, the core write/plan/apply workflow, modules, using Terraform outside the core workflow, implementing and maintaining state, and reading/generating/modifying configuration, aligned to the Terraform Associate 003 objectives.',
+  description: 'Unlimited HashiCorp Certified: Terraform Associate (003) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — 195 blueprint-weighted questions covering Infrastructure as Code concepts, the purpose of Terraform, Terraform fundamentals, the core write/plan/apply workflow, modules, using Terraform outside the core workflow, implementing and maintaining state, and reading/generating/modifying configuration, aligned to the Terraform Associate 003 objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 7050 // USD 70.50 — VOUCHER tier (matches Terraform Associate real-exam fee)
 };

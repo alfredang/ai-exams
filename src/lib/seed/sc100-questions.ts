@@ -2638,7 +2638,7 @@ const SC100_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const SC100_BUNDLE = {
   slug: 'microsoft-sc-100',
   title: 'Microsoft Cybersecurity Architect Expert (SC-100)',
-  description: 'All 3 SC-100 practice exams in one bundle — covering security best practices and priorities, security operations/identity/compliance, infrastructure security, and application & data security, aligned to the Microsoft Cybersecurity Architect Expert (SC-100) exam domains.',
+  description: 'Unlimited SC-100 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering security best practices and priorities, security operations/identity/compliance, infrastructure security, and application & data security, aligned to the Microsoft Cybersecurity Architect Expert (SC-100) exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

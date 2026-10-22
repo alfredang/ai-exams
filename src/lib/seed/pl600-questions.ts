@@ -2641,7 +2641,7 @@ const PL600_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const PL600_BUNDLE = {
   slug: 'microsoft-pl-600',
   title: 'Microsoft Power Platform Solution Architect (PL-600)',
-  description: 'All 3 PL-600 practice exams in one bundle — covering solution envisioning & requirement analysis, architecting a solution, and implementing the solution, aligned to the Microsoft Power Platform Solution Architect (PL-600) exam domains.',
+  description: 'Unlimited PL-600 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering solution envisioning & requirement analysis, architecting a solution, and implementing the solution, aligned to the Microsoft Power Platform Solution Architect (PL-600) exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

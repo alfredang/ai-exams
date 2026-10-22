@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { ExamShell } from './exam-shell';
 import type { Responses } from '@/lib/attempts';
+import { sequencingSteps } from '@/lib/shuffle';
 
 export default async function ExamAttemptPage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params;
@@ -34,17 +35,24 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
 
   const questions = await db.question.findMany({
     where: { id: { in: attempt.questionIds } },
-    select: { id: true, stem: true, type: true, options: true, domain: true }
+    // `correct` is read only to number sequencing steps and count MULTI picks —
+    // it is never sent to the client.
+    select: { id: true, stem: true, type: true, options: true, domain: true, correct: true }
   });
   const ordered = attempt.questionIds.map(id => questions.find(q => q.id === id)!).filter(Boolean);
 
-  const runnerQuestions = ordered.map(q => ({
-    id: q.id,
-    stem: q.stem,
-    type: q.type as 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING',
-    options: (q.options as any[]).map(o => ({ id: o.id, text: o.text })),
-    domain: q.domain ?? undefined
-  }));
+  const runnerQuestions = ordered.map(q => {
+    const options = (q.options as any[]).map(o => ({ id: String(o.id), text: String(o.text) }));
+    const correct = ((q.correct as unknown as string[]) || []).map(String);
+    return {
+      id: q.id,
+      stem: q.stem,
+      type: q.type as 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING',
+      options: q.type === 'ORDERING' ? sequencingSteps(options, correct, q.id) : options,
+      domain: q.domain ?? undefined,
+      selectCount: q.type === 'MULTI' ? correct.length : undefined
+    };
+  });
 
   return (
     <ExamShell

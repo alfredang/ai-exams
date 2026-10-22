@@ -2613,7 +2613,7 @@ const JAVA17_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const JAVA17_BUNDLE = {
   slug: 'oracle-java-se-17-1z0-829',
   title: 'Oracle Certified Professional: Java SE 17 Developer (1Z0-829)',
-  description: 'All 3 Java SE 17 Developer (1Z0-829) practice exams in one bundle — covering dates/text/numbers, program flow, the object-oriented approach, exception handling, arrays & collections, streams & lambdas, the Java Platform Module System, concurrency, JDBC, and localization, aligned to the Oracle 1Z0-829 exam objectives.',
+  description: 'Unlimited Java SE 17 Developer (1Z0-829) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering dates/text/numbers, program flow, the object-oriented approach, exception handling, arrays & collections, streams & lambdas, the Java Platform Module System, concurrency, JDBC, and localization, aligned to the Oracle 1Z0-829 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 24500 // USD 245 — VOUCHER tier
 };

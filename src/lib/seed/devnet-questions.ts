@@ -2688,7 +2688,7 @@ const DEVNET_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const DEVNET_BUNDLE = {
   slug: 'cisco-devnet-associate-200-901',
   title: 'Cisco DevNet Associate (200-901 DEVASC)',
-  description: 'All 3 Cisco DevNet Associate (200-901 DEVASC) practice exams in one bundle — covering software development & design, understanding & using APIs, Cisco platforms & development, application deployment & security, infrastructure & automation, and network fundamentals, aligned to the official Cisco 200-901 DEVASC exam topics.',
+  description: 'Unlimited Cisco DevNet Associate (200-901 DEVASC) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering software development & design, understanding & using APIs, Cisco platforms & development, application deployment & security, infrastructure & automation, and network fundamentals, aligned to the official Cisco 200-901 DEVASC exam topics.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 30000 // USD 300 — VOUCHER tier
 };

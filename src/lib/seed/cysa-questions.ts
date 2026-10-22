@@ -964,7 +964,7 @@ const CYSA_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const CYSA_BUNDLE = {
   slug: 'comptia-cysa-plus',
   title: 'CompTIA CySA+ (CS0-004)',
-  description: 'All 3 CompTIA CySA+ (CS0-004) practice exams in one bundle — 195 curated questions covering security operations (log analysis, threat hunting, SIEM/EDR tooling, threat intelligence, and the use of AI in the SOC); vulnerability management (scanning methods, CVSS v4.0 and EPSS prioritization, web and cloud assessment tooling, and mitigating controls); incident response and management (attack frameworks, forensics and order of volatility, containment through recovery, and business continuity); and reporting and communication (action plans, inhibitors to remediation, stakeholder communication, and KPIs). Aligned to the CompTIA CySA+ V4 (CS0-004) exam objectives.',
+  description: 'Unlimited CompTIA CySA+ (CS0-004) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering security operations (log analysis, threat hunting, SIEM/EDR tooling, threat intelligence, and the use of AI in the SOC); vulnerability management (scanning methods, CVSS v4.0 and EPSS prioritization, web and cloud assessment tooling, and mitigating controls); incident response and management (attack frameworks, forensics and order of volatility, containment through recovery, and business continuity); and reporting and communication (action plans, inhibitors to remediation, stakeholder communication, and KPIs). Aligned to the CompTIA CySA+ V4 (CS0-004) exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 43900 // USD 439 — VOUCHER tier (CompTIA CySA+ CS0-004 list price)
 };

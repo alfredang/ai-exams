@@ -2617,7 +2617,7 @@ const VAULT_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const VAULT_BUNDLE = {
   slug: 'hashicorp-vault-associate',
   title: 'HashiCorp Certified: Vault Associate (002)',
-  description: 'All 3 HashiCorp Certified: Vault Associate (002) practice exams in one bundle — 195 blueprint-weighted questions covering Vault architecture, authentication and authorization, secrets engines, Vault policies, tokens, and encryption as a service, aligned to the Vault Associate 002 exam objectives.',
+  description: 'Unlimited HashiCorp Certified: Vault Associate (002) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — 195 blueprint-weighted questions covering Vault architecture, authentication and authorization, secrets engines, Vault policies, tokens, and encryption as a service, aligned to the Vault Associate 002 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 7050 // USD 70.50 — VOUCHER tier
 };

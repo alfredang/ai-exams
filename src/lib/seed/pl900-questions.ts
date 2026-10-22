@@ -2608,7 +2608,7 @@ const PL900_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const PL900_BUNDLE = {
   slug: 'microsoft-pl-900',
   title: 'Microsoft Power Platform Fundamentals (PL-900)',
-  description: 'All 3 PL-900 practice exams in one bundle — covering the business value of Power Platform, core components, Power Apps, Power Automate, Power BI, and Power Pages & Copilot Studio, aligned to the Microsoft Power Platform Fundamentals (PL-900) exam blueprint.',
+  description: 'Unlimited PL-900 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering the business value of Power Platform, core components, Power Apps, Power Automate, Power BI, and Power Pages & Copilot Studio, aligned to the Microsoft Power Platform Fundamentals (PL-900) exam blueprint.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 9900 // USD 99 — VOUCHER tier
 };

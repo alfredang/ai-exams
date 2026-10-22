@@ -2596,7 +2596,7 @@ const PMIRMP_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const PMIRMP_BUNDLE = {
   slug: 'pmi-rmp',
   title: 'PMI Risk Management Professional (PMI-RMP)',
-  description: 'All 3 PMI-RMP practice exams in one bundle — covering risk strategy and planning, risk identification, qualitative and quantitative risk analysis, risk response, and monitoring and closing risks, aligned to the PMI-RMP exam content outline.',
+  description: 'Unlimited PMI-RMP practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering risk strategy and planning, risk identification, qualitative and quantitative risk analysis, risk response, and monitoring and closing risks, aligned to the PMI-RMP exam content outline.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 52000 // USD 520 — VOUCHER tier
 };

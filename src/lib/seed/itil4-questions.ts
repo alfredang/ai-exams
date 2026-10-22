@@ -3457,7 +3457,7 @@ const ITIL4_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const ITIL4_BUNDLE = {
   slug: 'axelos-itil4-foundation',
   title: 'ITIL 4 Foundation',
-  description: 'All 4 ITIL 4 Foundation practice exams in one bundle — covering key concepts of service management, the four dimensions and guiding principles, the service value system and value chain, and ITIL practices, aligned to the ITIL 4 Foundation syllabus.',
+  description: 'Unlimited ITIL 4 Foundation practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering key concepts of service management, the four dimensions and guiding principles, the service value system and value chain, and ITIL practices, aligned to the ITIL 4 Foundation syllabus.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 38000 // USD 380 — PRACTICE + real-exam voucher tier
 };

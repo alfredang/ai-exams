@@ -27,6 +27,7 @@ export async function GET(req: Request) {
   const urls = [
     base,
     `${base}/practice-exams`,
+    `${base}/exam-vouchers`,
     `${base}/vendors`,
     ...vendors.map((v) => `${base}/practice-exams/${v.slug}`),
     ...exams.map((e) => `${base}/practice-exams/${e.vendor.slug}/${e.slug}`),

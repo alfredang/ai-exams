@@ -2703,7 +2703,7 @@ const RHCSA_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const RHCSA_BUNDLE = {
   slug: 'redhat-rhcsa-ex200',
   title: 'Red Hat Certified System Administrator (RHCSA EX200)',
-  description: 'All 3 RHCSA EX200 practice exams in one bundle — covering essential tools, operating running systems, local storage, file systems, system deployment/configuration/maintenance, user & group management, and security, aligned to the official Red Hat EX200 objectives on RHEL 9.',
+  description: 'Unlimited RHCSA EX200 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering essential tools, operating running systems, local storage, file systems, system deployment/configuration/maintenance, user & group management, and security, aligned to the official Red Hat EX200 objectives on RHEL 9.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 50000 // USD 500 — VOUCHER tier (matches RHCSA real-exam fee)
 };

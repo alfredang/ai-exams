@@ -2618,7 +2618,7 @@ const GCP_PCNE_DOMAINS = [
 const GCP_PCNE_BUNDLE = {
   slug: 'google-professional-cloud-network-engineer',
   title: 'Google Professional Cloud Network Engineer',
-  description: 'All 3 Google Professional Cloud Network Engineer practice exams in one bundle — covering network design and prototyping, VPC implementation, network services, hybrid interconnectivity, and network operations, aligned to the Google Cloud Professional Cloud Network Engineer exam guide.',
+  description: 'Unlimited Google Professional Cloud Network Engineer practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering network design and prototyping, VPC implementation, network services, hybrid interconnectivity, and network operations, aligned to the Google Cloud Professional Cloud Network Engineer exam guide.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 20000 // USD 200 — VOUCHER tier
 };

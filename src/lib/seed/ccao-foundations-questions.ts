@@ -1,9 +1,9 @@
 /**
- * Claude Certified Associate — Foundations (CCAO-F) bundle seed —
- * vendor, 4 practice-exam variants (P1: 60 blueprint-aligned questions,
- * 120 min; P2–P4: three 15-question, 30-minute mock exams), and the bundle.
+ * Claude Certified Associate — Foundations (CCAO-F) seed — vendor, the
+ * single practice exam (60 questions per attempt, 120 min in Exam mode, 72%
+ * to pass) with its domain-weighted question pool, and the product.
  * Idempotent: replaces rows tagged
- * `generatedBy: 'manual:ccao-foundations-{seed,mock1-seed,mock2-seed,mock3-seed}'`
+ * `generatedBy: 'manual:ccao-foundations-{seed,mock1-seed,mock2-seed,mock3-seed,pool-seed}'`
  * and upserts catalog rows. Mock exam content lives in the sibling
  * `ccao-foundations-mock-questions.ts` module (MIT — Mock exam questions ©
  * Amey Thakur, CLAUDE-CERTIFICATIONS, MIT License,
@@ -47,6 +47,7 @@
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
 import { CCAO_MOCK1, CCAO_MOCK2, CCAO_MOCK3 } from './ccao-foundations-mock-questions';
+import { CCAO_POOL } from './ccao-foundations-pool-questions';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -109,9 +110,6 @@ const REF_PROMPT_LONG = { label: 'Anthropic Docs — Long context tips', url: 'h
 
 const opts4 = (a: string, b: string, c: string, d: string): Opt[] => [
   { id: 'a', text: a }, { id: 'b', text: b }, { id: 'c', text: c }, { id: 'd', text: d }
-];
-const optsTF = (): Opt[] => [
-  { id: 't', text: 'True' }, { id: 'f', text: 'False' }
 ];
 
 // ───────────────────── 60 questions ─────────────────────
@@ -209,11 +207,16 @@ const QUESTIONS: Q[] = [
     references: [REF_PROMPT_COT, REF_PROMPT_OVERVIEW]
   },
   {
-    domain: PROMPTING, difficulty: 3, type: QType.TRUE_FALSE,
-    stem: 'TRUE or FALSE: A longer prompt is reliably a better prompt — adding more words and more background will consistently improve the quality of Claude\'s output.',
-    options: optsTF(),
-    correct: ['f'],
-    explanation: 'False. What improves output is relevant specificity — audience, purpose, format, constraints, and pertinent source material — not volume. Padding a prompt with background that has no bearing on the task adds noise and can bury the actual instruction, which is why the guidance is to be clear and direct rather than simply lengthy.',
+    domain: PROMPTING, difficulty: 3, type: QType.SINGLE,
+    stem: 'A colleague believes that the longer a prompt is, the better Claude\'s output will be. Which statement best describes what actually improves output quality?',
+    options: opts4(
+      'Length itself: every extra paragraph of background reliably raises the quality of the result',
+      'Relevant specificity — the audience, purpose, format, constraints and pertinent source material',
+      'Repeating the key instruction several times throughout the prompt so it cannot be missed',
+      'Writing the prompt as formally as possible, since formal wording is read more carefully'
+    ),
+    correct: ['b'],
+    explanation: 'What improves output is relevant specificity — audience, purpose, format, constraints, and pertinent source material — not volume. Padding a prompt with background that has no bearing on the task adds noise and can bury the actual instruction, which is why the guidance is to be clear and direct rather than simply lengthy.',
     references: [REF_PROMPT_CLEAR, REF_PROMPT_OVERVIEW]
   },
 
@@ -362,11 +365,16 @@ const QUESTIONS: Q[] = [
     references: [REF_DEFINE_SUCCESS, REF_DEVELOP_TESTS]
   },
   {
-    domain: OUTPUT, difficulty: 2, type: QType.TRUE_FALSE,
-    stem: 'TRUE or FALSE: If Claude introduces a claim with "according to the uploaded file", that phrasing confirms the claim genuinely appears in the file you uploaded.',
-    options: optsTF(),
-    correct: ['f'],
-    explanation: 'False. Attribution phrasing is generated text like any other part of the response — the model can produce a source-flavoured preamble in front of a claim the document does not actually make. The phrase tells you where Claude asserts the claim came from, which is a starting point for verification, not the verification itself.',
+    domain: OUTPUT, difficulty: 2, type: QType.SINGLE,
+    stem: 'Claude introduces a claim with "according to the uploaded file". What does that phrasing tell you?',
+    options: opts4(
+      'That the claim is confirmed, because Claude only uses that phrase for text it found in the file',
+      'That the claim appears word for word in the file, so it can be quoted without checking',
+      'Only where Claude says the claim came from — a starting point for checking the file, not proof that it is there',
+      'That Claude has double-checked the claim against the file before writing it'
+    ),
+    correct: ['c'],
+    explanation: 'Attribution phrasing is generated text like any other part of the response — the model can produce a source-flavoured preamble in front of a claim the document does not actually make. The phrase tells you where Claude asserts the claim came from, which is a starting point for verification, not the verification itself.',
     references: [REF_HALLUCINATION, REF_CITATIONS]
   },
   {
@@ -688,11 +696,16 @@ const QUESTIONS: Q[] = [
     references: [REF_PROJECTS, REF_AUP]
   },
   {
-    domain: CONFIG, difficulty: 2, type: QType.TRUE_FALSE,
-    stem: 'TRUE or FALSE: Knowledge you add to a Claude Project is available to Claude across the conversations in that Project, rather than only in the single chat where you added it.',
-    options: optsTF(),
-    correct: ['t'],
-    explanation: 'True — and this is the central reason Projects exist. Knowledge added to a Project is available across that Project\'s conversations, so recurring context does not have to be re-supplied in every new chat. That persistence is also why what you place in shared Project knowledge is a governance decision, not just a convenience one.',
+    domain: CONFIG, difficulty: 2, type: QType.SINGLE,
+    stem: 'You add a reference document to a Claude Project\'s knowledge while working in one of its chats. Where can Claude use that document?',
+    options: opts4(
+      'Only in the chat where you were working when you added it',
+      'Across the conversations in that Project',
+      'In every conversation in your account, including chats outside the Project',
+      'Only after you paste its contents into each new chat in the Project'
+    ),
+    correct: ['b'],
+    explanation: 'This is the central reason Projects exist. Knowledge added to a Project is available across that Project\'s conversations, so recurring context does not have to be re-supplied in every new chat. That persistence is also why what you place in shared Project knowledge is a governance decision, not just a convenience one.',
     references: [REF_PROJECTS, REF_PROJECTS_NEWS]
   },
 
@@ -802,11 +815,16 @@ const QUESTIONS: Q[] = [
     references: [REF_HALLUCINATION, REF_AUP]
   },
   {
-    domain: GOVERNANCE, difficulty: 2, type: QType.TRUE_FALSE,
-    stem: 'TRUE or FALSE: Instructing Claude in your prompt not to remember or retain sensitive information you paste in satisfies an organisational policy that restricts sharing that information with AI tools.',
-    options: optsTF(),
-    correct: ['f'],
-    explanation: 'False. Once you paste restricted information into the tool you have already done the thing the policy prohibits — an instruction in the prompt is a request to the model, not a technical or contractual control over data handling. The compliant approaches are to remove or anonymise the restricted content, or to use tooling and terms your organisation has actually approved for it.',
+    domain: GOVERNANCE, difficulty: 2, type: QType.SINGLE,
+    stem: 'Policy restricts sharing certain sensitive information with AI tools. A colleague pastes it in anyway, adding "do not remember or retain this". Which statement is correct?',
+    options: opts4(
+      'The instruction satisfies the policy, because Claude is told not to keep the information',
+      'The instruction satisfies the policy, provided that the chat is deleted straight afterwards',
+      'The policy is breached only if Claude later repeats the information in another chat',
+      'The policy has been breached: the prompt instruction is a request to the model, not a control over how the data is handled'
+    ),
+    correct: ['d'],
+    explanation: 'Once you paste restricted information into the tool you have already done the thing the policy prohibits — an instruction in the prompt is a request to the model, not a technical or contractual control over data handling. The compliant approaches are to remove or anonymise the restricted content, or to use tooling and terms your organisation has actually approved for it.',
     references: [REF_AUP, REF_FILES]
   },
 
@@ -877,122 +895,99 @@ const QUESTIONS: Q[] = [
     references: [REF_PROMPT_XML, REF_PROMPT_CLEAR]
   },
   {
-    domain: TROUBLESHOOT, difficulty: 2, type: QType.TRUE_FALSE,
-    stem: 'TRUE or FALSE: When Claude returns an output that misses what you wanted, replying only "that is not right, try again" is generally as effective as explaining specifically what was wrong.',
-    options: optsTF(),
-    correct: ['f'],
-    explanation: 'False. "Try again" tells Claude that the output failed but not on which dimension, so the next attempt is a fresh guess that may miss in a new way. Specific feedback — the tone was too formal, the second section is too long, the figures should be quarterly — identifies what to change while preserving what already worked, which is why targeted iteration converges and vague rejection does not.',
+    domain: TROUBLESHOOT, difficulty: 2, type: QType.SINGLE,
+    stem: 'Claude\'s output misses what you wanted. Which reply is most likely to get a better second attempt?',
+    options: opts4(
+      '"That is not right, try again."',
+      '"Please try much harder this time."',
+      '"The tone is too formal, section two is too long, and the figures should be quarterly."',
+      '"Start over completely and do something different."'
+    ),
+    correct: ['c'],
+    explanation: '"Try again" tells Claude that the output failed but not on which dimension, so the next attempt is a fresh guess that may miss in a new way. Specific feedback — the tone was too formal, the second section is too long, the figures should be quarterly — identifies what to change while preserving what already worked, which is why targeted iteration converges and vague rejection does not.',
     references: [REF_PROMPT_CLEAR, REF_PROMPT_OVERVIEW]
   }
 ];
 
 // ───────────────────── Exam shell config ─────────────────────
-// CCAO-F is a 4-variant practice bundle. P1 (60 questions, 120 min) keeps the
-// bare slug — no `-p1` suffix, matching the CCA-F P1 convention so the bundle
-// slug and exam slug agree. P2–P4 are the three 15-question, 30-minute mock
-// exams from the MIT-licensed CLAUDE-CERTIFICATIONS repo (see
-// ccao-foundations-mock-questions.ts for attribution). All variants share the
-// CCAO_DOMAINS blueprint; each question's domain string must match it exactly
-// so the per-domain results breakdown maps — seedCcaoFoundations() asserts it.
-const CCAO_EXAM_DESC =
-  'Foundational certification for professionals who apply Claude to real-world business and productivity tasks. Covers prompting and task execution, evaluating and validating output, choosing the right Claude product and model, integrating Claude into workflows, Projects and knowledge configuration, responsible use, and troubleshooting.';
-
+// CCAO-F sells ONE practice exam (bare slug, no `-p1`). Its question pool is
+// every set in POOL_SETS — the 60 original blueprint questions, the three
+// MIT-licensed 15-question mock sets (see ccao-foundations-mock-questions.ts
+// for attribution) and the 60 additional pool questions
+// (ccao-foundations-pool-questions.ts). Each attempt — Practice or Exam mode
+// (120 min, 72% to pass) — draws 60 questions in the CCAO_DOMAINS proportions.
+// Every question's domain string must match CCAO_DOMAINS exactly so the draw
+// and the per-domain results breakdown map — assertPoolValid() enforces it.
 // Vendor's official exam page (carries the authoritative exam guide PDF).
 const CCAO_INFO_URL =
   'https://anthropic-partners.skilljar.com/claude-certified-associate-foundations-certification';
 
-type Variant = {
-  slug: string;
-  code: string;
-  title: string;
-  questions: Q[];
-  tag: string;
-  // Legacy tags retired on this exam (counted as legacyRetired). CCAO-F is
-  // net-new as of 2026-07, so this is just the current tag.
-  retiredTags: string[];
-  // Per-variant exam settings: P1 is the full-length blueprint exam; the
-  // mock exams are short timed sets. questionCount is always questions.length.
-  durationMinutes: number;
-  passingScore: number;
+// The single practice exam. Code is the vendor's official one (CCAO-F),
+// from the Claude Certified Associate — Foundations Exam Guide v1.0 (July
+// 2026); it must agree with VENDOR_EXAM_CODE_OVERRIDES in prisma/seed.ts.
+// The title matches the product title so the deploy-time pool fold
+// (src/lib/pool-consolidation.ts) does not rename it back and forth.
+const POOL_EXAM = {
+  slug: 'anthropic-ccao-foundations',
+  code: 'CCAO-F',
+  title: 'Claude Certified Associate — Foundations (CCAO-F)',
+  questionCount: 60,
+  durationMinutes: 120,
+  passingScore: 72
 };
 
-// Code is the vendor's official one (CCAO-F), taken from the Claude Certified
-// Associate — Foundations Exam Guide v1.0 (July 2026). If a matching
-// VENDOR_EXAM_CODE_OVERRIDES entry is added in prisma/seed.ts it must agree
-// with this code or the two seeds will fight over it on every deploy.
-const VARIANTS: Variant[] = [
-  {
-    slug: 'anthropic-ccao-foundations',
-    code: 'CCAO-F',
-    title: 'Claude Certified Associate — Foundations',
-    questions: QUESTIONS,
-    tag: 'manual:ccao-foundations-seed',
-    retiredTags: ['manual:ccao-foundations-seed'],
-    durationMinutes: 120,
-    passingScore: 72
-  },
-  // Mock exams 1–3 (15 questions / 30 min each). Codes must agree with the
-  // VENDOR_EXAM_CODE_OVERRIDES['anthropic-ccao-foundations'] = 'CCAO-F' entry
-  // in prisma/seed.ts, whose variant recode loop derives `CCAO-F-P${n}`.
-  {
-    slug: 'anthropic-ccao-foundations-p2',
-    code: 'CCAO-F-P2',
-    title: 'Claude Certified Associate — Foundations · Mock Exam 1',
-    questions: CCAO_MOCK1 as unknown as Q[],
-    tag: 'manual:ccao-foundations-mock1-seed',
-    retiredTags: ['manual:ccao-foundations-mock1-seed'],
-    durationMinutes: 30,
-    passingScore: 72
-  },
-  {
-    slug: 'anthropic-ccao-foundations-p3',
-    code: 'CCAO-F-P3',
-    title: 'Claude Certified Associate — Foundations · Mock Exam 2',
-    questions: CCAO_MOCK2 as unknown as Q[],
-    tag: 'manual:ccao-foundations-mock2-seed',
-    retiredTags: ['manual:ccao-foundations-mock2-seed'],
-    durationMinutes: 30,
-    passingScore: 72
-  },
-  {
-    slug: 'anthropic-ccao-foundations-p4',
-    code: 'CCAO-F-P4',
-    title: 'Claude Certified Associate — Foundations · Mock Exam 3',
-    questions: CCAO_MOCK3 as unknown as Q[],
-    tag: 'manual:ccao-foundations-mock3-seed',
-    retiredTags: ['manual:ccao-foundations-mock3-seed'],
-    durationMinutes: 30,
-    passingScore: 72
-  }
+type QuestionSet = { tag: string; questions: Q[] };
+const POOL_SETS: QuestionSet[] = [
+  { tag: 'manual:ccao-foundations-seed', questions: QUESTIONS },
+  { tag: 'manual:ccao-foundations-mock1-seed', questions: CCAO_MOCK1 as unknown as Q[] },
+  { tag: 'manual:ccao-foundations-mock2-seed', questions: CCAO_MOCK2 as unknown as Q[] },
+  { tag: 'manual:ccao-foundations-mock3-seed', questions: CCAO_MOCK3 as unknown as Q[] },
+  { tag: 'manual:ccao-foundations-pool-seed', questions: CCAO_POOL as Q[] }
 ];
 
-// Fail loudly (before touching the DB) if any variant carries a domain string
-// outside the blueprint, an option-id mismatch, or a non-single answer.
-function assertVariantsValid(): void {
+// The former "Mock Exam 1–3" exams. Their rows stay (old attempts point at
+// them) but they are folded into the pool exam and never sold again.
+const RETIRED_VARIANT_SLUGS = ['anthropic-ccao-foundations-p2', 'anthropic-ccao-foundations-p3', 'anthropic-ccao-foundations-p4'];
+
+const stemKey = (stem: string) => stem.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// Fail loudly (before touching the DB) on a domain outside the blueprint, an
+// option-id mismatch, a malformed answer, or a stem duplicated in the pool.
+function assertPoolValid(): void {
   const domainNames = new Set(CCAO_DOMAINS.map((d) => d.name));
-  for (const v of VARIANTS) {
-    v.questions.forEach((q, i) => {
-      const where = `${v.slug} question ${i + 1}`;
+  const seen = new Map<string, string>();
+  for (const set of POOL_SETS) {
+    set.questions.forEach((q, i) => {
+      const where = `${set.tag} question ${i + 1}`;
       if (!domainNames.has(q.domain)) throw new Error(`${where}: domain "${q.domain}" is not in CCAO_DOMAINS`);
-      const ids = new Set(q.options.map((o) => o.id));
-      if (q.correct.length === 0 || !q.correct.every((c) => ids.has(c))) {
+      const ids = q.options.map((o) => o.id);
+      if (q.correct.length === 0 || !q.correct.every((c) => ids.includes(c))) {
         throw new Error(`${where}: correct ${JSON.stringify(q.correct)} not among option ids`);
       }
-      if (q.type === QType.SINGLE && q.correct.length !== 1) throw new Error(`${where}: SINGLE needs exactly one correct id`);
+      if ((q.type === QType.SINGLE || q.type === QType.TRUE_FALSE) && q.correct.length !== 1) throw new Error(`${where}: ${q.type} needs exactly one correct id`);
+      if (q.type === QType.MULTI && /select two/i.test(q.stem) && q.correct.length !== 2) throw new Error(`${where}: "Select TWO" needs exactly two correct ids`);
+      if (q.type === QType.ORDERING) {
+        if (q.correct.length !== ids.length || new Set(q.correct).size !== ids.length) throw new Error(`${where}: ORDERING correct must list every step once`);
+      }
+      const key = stemKey(q.stem);
+      if (seen.has(key)) throw new Error(`${where}: duplicate stem (also ${seen.get(key)})`);
+      seen.set(key, where);
     });
   }
 }
+
+const POOL_SIZE = POOL_SETS.reduce((n, s) => n + s.questions.length, 0);
 
 const CCAO_BUNDLE = {
   slug: 'anthropic-ccao-foundations',
   title: 'Claude Certified Associate — Foundations (CCAO-F)',
   description:
-    'Practice exam for the Claude Certified Associate — Foundations (CCAO-F) credential: a full-length 60-question exam with unlimited retakes, each drawn fresh from a 105-question pool weighted by the official exam domains — covering prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
-  // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
-  // through Partner Academy (credit card, then schedule with Pearson VUE), and
-  // its partner voucher storefront is still "in progress" as of July 2026 —
-  // there is nothing for us to resell.
-  price: 2000
+    `Practice exam for the Claude Certified Associate — Foundations (CCAO-F) credential: a full-length 60-question exam (120 minutes in Exam mode, 72% to pass) with unlimited retakes, each drawn fresh from a ${POOL_SIZE}-question pool weighted by the official exam domains — multiple-choice, multiple-select and sequencing questions covering prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.`,
+  // Practice Exam $20; Exam Voucher $120 (practice exam included). Must match
+  // the anthropic-ccao-foundations entry in prisma/seed.ts BUNDLE_SPECS, which
+  // re-syncs prices on every deploy.
+  price: 2000,
+  priceVoucher: 12000
 };
 
 // ───────────────────── Seed entry point ─────────────────────
@@ -1003,7 +998,7 @@ export type SeedResult = {
 };
 
 export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult> {
-  assertVariantsValid();
+  assertPoolValid();
 
   // Vendor row already exists in prisma/seed.ts VENDORS[] but make the
   // seed self-sufficient: if it is missing, create it.
@@ -1019,39 +1014,43 @@ export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult>
         }
       });
 
-  // Upsert each variant exam + its questions. We set published: false because
-  // the bundle is the customer-facing product (HIDDEN_EXAM_SLUGS pattern);
-  // only the bundle shows on the catalog. The seed.ts visibility loop keeps
-  // it that way. Questions authored via /admin-dashboard/questions (other
-  // generatedBy strings) are left untouched.
-  const examIdBySlug: Record<string, string> = {};
-  const examResults: SeedResult['exams'] = [];
+  // The pool exam stays unpublished: the product page (Bundle with the same
+  // slug) is the customer-facing surface. Domain weights are written only on
+  // create — after that they belong to src/lib/exam-blueprints.ts / admins.
+  const examData = {
+    title: POOL_EXAM.title,
+    code: POOL_EXAM.code,
+    description: CCAO_BUNDLE.description, // same copy as the product (the pool fold syncs it)
+    level: 'Foundational',
+    durationMinutes: POOL_EXAM.durationMinutes,
+    passingScore: POOL_EXAM.passingScore,
+    questionCount: POOL_EXAM.questionCount,
+    infoUrl: CCAO_INFO_URL,
+    label: 'Practice Exam'
+  };
+  const exam = await db.exam.upsert({
+    where: { slug: POOL_EXAM.slug },
+    update: { ...examData, poolExamId: null },
+    create: { ...examData, slug: POOL_EXAM.slug, vendorId: vendor.id, domains: CCAO_DOMAINS, published: false }
+  });
 
-  for (const v of VARIANTS) {
-    const examData = {
-      title: v.title,
-      code: v.code,
-      description: CCAO_EXAM_DESC,
-      level: 'Foundational',
-      durationMinutes: v.durationMinutes,
-      passingScore: v.passingScore,
-      questionCount: v.questions.length,
-      infoUrl: CCAO_INFO_URL,
-      domains: CCAO_DOMAINS,
-      published: false
-    };
-    const exam = await db.exam.upsert({
-      where: { slug: v.slug },
-      update: examData,
-      create: { ...examData, slug: v.slug, vendorId: vendor.id }
-    });
-    examIdBySlug[v.slug] = exam.id;
+  // Keep the retired mock exams folded into this pool.
+  await db.exam.updateMany({
+    where: { slug: { in: RETIRED_VARIANT_SLUGS } },
+    data: { poolExamId: exam.id, published: false }
+  });
+  const variantIds = (await db.exam.findMany({ where: { poolExamId: exam.id }, select: { id: true } })).map((v) => v.id);
 
-    const wiped = await db.question.deleteMany({
-      where: { examId: exam.id, generatedBy: { in: v.retiredTags } }
-    });
-    let teaserCount = 0;
-    for (const q of v.questions) {
+  // Replace this seed's questions wherever they currently live (the pool exam
+  // or a folded variant). Questions authored via /admin-dashboard/questions
+  // (other generatedBy strings) are left untouched.
+  const tags = POOL_SETS.map((s) => s.tag);
+  const wiped = await db.question.deleteMany({
+    where: { examId: { in: [exam.id, ...variantIds] }, generatedBy: { in: tags } }
+  });
+  let teaserCount = 0;
+  for (const set of POOL_SETS) {
+    for (const q of set.questions) {
       await db.question.create({
         data: {
           examId: exam.id,
@@ -1064,57 +1063,28 @@ export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult>
           explanation: q.explanation,
           references: q.references,
           status: QStatus.PUBLISHED,
-          generatedBy: v.tag,
+          generatedBy: set.tag,
           isTeaser: !!q.isTeaser
         }
       });
       if (q.isTeaser) teaserCount++;
     }
-
-    // legacyRetired = wiped rows beyond this run's question count. 0 on a
-    // fresh DB / steady state.
-    const legacyRetired = Math.max(0, wiped.count - v.questions.length);
-    examResults.push({ slug: v.slug, questionCount: v.questions.length, teaserCount, legacyRetired });
   }
 
-  // Upsert the bundle. No priceVoucher — see the CCAO_BUNDLE comment: there is
-  // no Anthropic partner voucher storefront to resell against yet.
   const existingBundle = await db.bundle.findUnique({ where: { slug: CCAO_BUNDLE.slug } });
   const bundle = await db.bundle.upsert({
     where: { slug: CCAO_BUNDLE.slug },
-    update: {
-      title: CCAO_BUNDLE.title,
-      description: CCAO_BUNDLE.description,
-      price: CCAO_BUNDLE.price,
-      published: true
-    },
-    create: {
-      slug: CCAO_BUNDLE.slug,
-      title: CCAO_BUNDLE.title,
-      description: CCAO_BUNDLE.description,
-      price: CCAO_BUNDLE.price,
-      published: true
-    }
+    update: { title: CCAO_BUNDLE.title, description: CCAO_BUNDLE.description, price: CCAO_BUNDLE.price, priceVoucher: CCAO_BUNDLE.priceVoucher, published: true },
+    create: { slug: CCAO_BUNDLE.slug, title: CCAO_BUNDLE.title, description: CCAO_BUNDLE.description, price: CCAO_BUNDLE.price, priceVoucher: CCAO_BUNDLE.priceVoucher, published: true }
   });
-
-  // Replace bundle items deterministically: one PRACTICE item per variant,
-  // in VARIANTS order (P1 at position 1 — the bundle page links P1's teaser).
+  // One product, one practice exam; the voucher tier sits on the same exam.
   await db.bundleItem.deleteMany({ where: { bundleId: bundle.id } });
-  let position = 1;
-  for (const v of VARIANTS) {
-    await db.bundleItem.create({
-      data: {
-        bundleId: bundle.id,
-        examId: examIdBySlug[v.slug],
-        tier: 'PRACTICE',
-        position: position++
-      }
-    });
-  }
+  await db.bundleItem.create({ data: { bundleId: bundle.id, examId: exam.id, tier: 'PRACTICE', position: 1 } });
+  await db.bundleItem.create({ data: { bundleId: bundle.id, examId: exam.id, tier: 'VOUCHER', position: 2 } });
 
   return {
     vendor: existingVendor ? 'existing' : 'created',
-    exams: examResults,
+    exams: [{ slug: POOL_EXAM.slug, questionCount: POOL_SIZE, teaserCount, legacyRetired: Math.max(0, wiped.count - POOL_SIZE) }],
     bundle: existingBundle ? 'updated' : 'created'
   };
 }

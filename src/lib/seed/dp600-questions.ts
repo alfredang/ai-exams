@@ -2622,7 +2622,7 @@ const DP600_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const DP600_BUNDLE = {
   slug: 'microsoft-dp-600',
   title: 'Microsoft Fabric Analytics Engineer (DP-600)',
-  description: 'All 3 DP-600 practice exams in one bundle — covering planning and managing analytics solutions, preparing and serving data, implementing and managing semantic models, and exploring and analyzing data, aligned to the Microsoft Certified: Fabric Analytics Engineer Associate (DP-600) exam domains.',
+  description: 'Unlimited DP-600 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering planning and managing analytics solutions, preparing and serving data, implementing and managing semantic models, and exploring and analyzing data, aligned to the Microsoft Certified: Fabric Analytics Engineer Associate (DP-600) exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

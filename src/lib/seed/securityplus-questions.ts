@@ -2598,7 +2598,7 @@ const SECURITYPLUS_EXAMS: { slug: string; code: string; titleSuffix: string; des
 const SECURITYPLUS_BUNDLE = {
   slug: 'comptia-security-plus',
   title: 'CompTIA Security+ (SY0-701)',
-  description: 'All 3 CompTIA Security+ (SY0-701) practice exams in one bundle — covering general security concepts, threats/vulnerabilities/mitigations, security architecture, security operations, and security program management & oversight, aligned to the published SY0-701 exam objectives.',
+  description: 'Unlimited CompTIA Security+ (SY0-701) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering general security concepts, threats/vulnerabilities/mitigations, security architecture, security operations, and security program management & oversight, aligned to the published SY0-701 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 43900 // USD 439 — PRACTICE + real-exam voucher tier (CompTIA list price)
 };

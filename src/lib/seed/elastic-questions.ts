@@ -2658,7 +2658,7 @@ const ELASTIC_EXAMS: { slug: string; code: string; titleSuffix: string; descript
 const ELASTIC_BUNDLE = {
   slug: 'elastic-certified-engineer',
   title: 'Elastic Certified Engineer',
-  description: 'All 3 Elastic Certified Engineer practice exams in one bundle — covering installation & configuration, indexing data, queries, mappings & text analysis, cluster administration, and data processing & aggregations, aligned to the Elastic Certified Engineer exam objectives on Elasticsearch 8.x.',
+  description: 'Unlimited Elastic Certified Engineer practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering installation & configuration, indexing data, queries, mappings & text analysis, cluster administration, and data processing & aggregations, aligned to the Elastic Certified Engineer exam objectives on Elasticsearch 8.x.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 40000 // USD 400 — VOUCHER tier (matches Elastic Certified Engineer real-exam fee)
 };

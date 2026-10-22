@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { Download } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
@@ -9,7 +10,7 @@ import { ShareScore } from '@/components/share-score';
 import { ReviewFormModal } from '@/components/review-form-modal';
 import { ResultsSignupPrompt } from '@/components/results-signup-prompt';
 import { canUserReview } from '@/lib/reviews';
-import { shuffleSeeded } from '@/lib/shuffle';
+import { sequencingSteps, shuffleSeeded } from '@/lib/shuffle';
 import { drawAttemptQuestions, hasPracticeAccess, resolvePoolExam } from '@/lib/question-pool';
 
 const LETTERS = 'ABCDEFGHIJ';
@@ -192,6 +193,14 @@ export default async function ResultsPage({
 
         <ShareScore attemptId={attempt.id} examTitle={`${attempt.exam.vendor.name} ${attempt.exam.code}`} score={score} passed={passed} />
 
+        <a
+          href={`/api/results/${attempt.id}/pdf`}
+          className="btn-outline inline-flex w-fit items-center gap-2"
+          download
+        >
+          <Download className="h-4 w-4" /> Download summary (PDF) — questions, answers, explanations and domains
+        </a>
+
         {/* Anonymous guest who submitted the teaser without converting in
             the in-attempt modal lands here. Give them a second chance to
             create an account — same TEASER_GATE OTP flow, but the post-
@@ -287,6 +296,9 @@ export default async function ResultsPage({
                     // submitted, flagging any step that sits in the wrong slot.
                     (() => {
                       const byId = new Map(opts.map(o => [o.id, o]));
+                      // Same fixed Step 1…N numbering the runner showed.
+                      const steps = sequencingSteps(opts, correctIds, q.id);
+                      const stepNo = (id: string) => steps.findIndex(o => o.id === id) + 1;
                       const submitted = ans.length ? ans : correctIds.map(() => '');
                       return (
                         <ol className="mb-3 grid gap-1.5 text-sm">
@@ -295,13 +307,13 @@ export default async function ResultsPage({
                             const right = correctIds[oi] === id;
                             return (
                               <li key={`${oi}-${id}`} className={`rounded border px-3 py-1.5 ${right ? 'border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40' : 'border-red-600 bg-red-50 dark:bg-red-950/40'}`}>
-                                <span className="font-semibold">{oi + 1}.</span> {o?.text ?? <em>no answer</em>}
-                                {!right && <span className="ml-2 text-xs opacity-80">should be #{correctIds.indexOf(id) + 1}</span>}
+                                <span className="font-semibold">{oi + 1}.</span> {o ? <><span className="font-mono text-xs">[Step {stepNo(id)}]</span> {o.text}</> : <em>no answer</em>}
+                                {!right && o && <span className="ml-2 text-xs opacity-80">should be position {correctIds.indexOf(id) + 1}</span>}
                               </li>
                             );
                           })}
-                          <li className="px-1 pt-1 text-xs text-muted">
-                            Correct order: {correctIds.map((id, n) => `${n + 1}. ${byId.get(id)?.text ?? id}`).join('  →  ')}
+                          <li className="px-1 pt-1 font-mono text-xs text-muted">
+                            {ans.length > 0 && <>Your sequence: {ans.map(stepNo).join(' → ')} · </>}Correct sequence: {correctIds.map(stepNo).join(' → ')}
                           </li>
                         </ol>
                       );

@@ -2673,7 +2673,7 @@ const IASSC_GB_EXAMS: { slug: string; code: string; titleSuffix: string; descrip
 const IASSC_GB_BUNDLE = {
   slug: 'iassc-lean-six-sigma-green-belt',
   title: 'IASSC Lean Six Sigma Green Belt',
-  description: 'All 3 IASSC Lean Six Sigma Green Belt practice exams in one bundle — covering the Define, Measure, Analyze, Improve, and Control phases of DMAIC, aligned to the IASSC Lean Six Sigma Green Belt Body of Knowledge blueprint weights.',
+  description: 'Unlimited IASSC Lean Six Sigma Green Belt practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering the Define, Measure, Analyze, Improve, and Control phases of DMAIC, aligned to the IASSC Lean Six Sigma Green Belt Body of Knowledge blueprint weights.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 29500 // USD 295 — PRACTICE + real-exam voucher tier
 };

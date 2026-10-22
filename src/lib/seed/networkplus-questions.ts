@@ -2009,7 +2009,7 @@ const NETWORKPLUS_EXAMS: { slug: string; code: string; titleSuffix: string; desc
 const NETWORKPLUS_BUNDLE = {
   slug: 'comptia-network-plus',
   title: 'CompTIA Network+ (N10-009)',
-  description: 'All 3 CompTIA Network+ (N10-009) practice exams in one bundle — covering networking concepts, network implementation, network operations, network security, and network troubleshooting, aligned to the published N10-009 exam objectives.',
+  description: 'Unlimited CompTIA Network+ (N10-009) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering networking concepts, network implementation, network operations, network security, and network troubleshooting, aligned to the published N10-009 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 39900 // USD 399 — PRACTICE + real-exam voucher tier
 };

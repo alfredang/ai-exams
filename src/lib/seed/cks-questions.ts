@@ -2601,7 +2601,7 @@ const CKS_EXAMS: { slug: string; code: string; titleSuffix: string; descriptionS
 const CKS_BUNDLE = {
   slug: 'linuxfoundation-cks',
   title: 'Certified Kubernetes Security Specialist (CKS)',
-  description: 'All 3 CKS practice exams in one bundle — cluster setup, cluster hardening, system hardening, minimizing microservice vulnerabilities, supply chain security, and monitoring/logging/runtime security. Aligned to CNCF CKS v1.32.',
+  description: 'Unlimited CKS practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — cluster setup, cluster hardening, system hardening, minimizing microservice vulnerabilities, supply chain security, and monitoring/logging/runtime security. Aligned to CNCF CKS v1.32.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 44500 // USD 445 — VOUCHER tier (matches CKS real-exam fee)
 };

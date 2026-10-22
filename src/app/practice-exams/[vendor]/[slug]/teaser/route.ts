@@ -59,9 +59,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ven
     c.set('gt', gt, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 24 * 30, path: '/' });
   }
 
-  // Pinned teaser size (10). See getTeaserSize() doc. Curated isTeaser
-  // questions first, topped up from the rest of the pool, drawn in the
-  // blueprint's domain proportions.
+  // Pinned teaser size (10). See getTeaserSize() doc. A random draw from the
+  // whole question pool in the blueprint's domain proportions — the same pool
+  // the paid practice exam uses.
   const { getTeaserSize } = await import('@/lib/settings');
   const teaserSize = await getTeaserSize();
   const ids = await drawAttemptQuestions(db, exam, { teaser: true, count: teaserSize });

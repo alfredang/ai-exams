@@ -15,6 +15,8 @@ export type RunnerQuestion = {
   type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING';
   options: { id: string; text: string }[];
   domain?: string;
+  // MULTI only: how many options to pick ("Select TWO answers").
+  selectCount?: number;
 };
 
 // `references` rows come from Question.references JSON — historically either
@@ -39,8 +41,14 @@ const TYPE_HINT: Record<RunnerQuestion['type'], string> = {
   SINGLE: 'Select ONE answer',
   MULTI: 'Select ALL that apply',
   TRUE_FALSE: 'True or False',
-  ORDERING: 'Put the steps in the correct order'
+  ORDERING: 'Arrange the steps in the correct sequence'
 };
+
+const COUNT_WORDS = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
+const typeHint = (q: RunnerQuestion) =>
+  q.type === 'MULTI' && q.selectCount && q.selectCount > 1
+    ? `Select ${COUNT_WORDS[q.selectCount] ?? q.selectCount} answers`
+    : TYPE_HINT[q.type];
 
 // Types where one click is not "I'm done": the user confirms with an explicit
 // button before the answer is checked (PRACTICE) — see checkAnswer().
@@ -124,13 +132,15 @@ export function ExamRunner(props: ExamRunnerProps) {
   // is left untouched — convention is True before False, swapping is jarring
   // with no anti-cheat benefit (only two options anyway).
   const shuffledOptions = useMemo(() => {
-    if (q.type === 'TRUE_FALSE') return q.options;
+    // ORDERING arrives in its fixed Step 1…N order (sequencingSteps() on the
+    // server) — the step numbers must not move between attempts.
+    if (q.type === 'TRUE_FALSE' || q.type === 'ORDERING') return q.options;
     return shuffleSeeded(q.options, `${props.attemptId}:${q.id}`);
   }, [q.options, q.type, q.id, props.attemptId]);
 
   // ORDERING renders as a working list the user rearranges, so the displayed
   // sequence IS the answer. Once they've moved anything we follow the stored
-  // answer; before that we show the shuffled starting arrangement. Any id in
+  // answer; before that we show the steps in their numbered order. Any id in
   // the stored answer that no longer exists (option edited after the attempt
   // started) is dropped, and any missing option is appended, so a stale
   // response can never blank the list.
@@ -156,6 +166,9 @@ export function ExamRunner(props: ExamRunnerProps) {
     [next[from], next[to]] = [next[to], next[from]];
     setAnswer(next);
   }
+
+  // Each sequencing step keeps its original number wherever it is moved.
+  const stepNo = (id: string) => q.options.findIndex(o => o.id === id) + 1;
 
   const answeredCount = Object.values(answers).filter(r => r.answer?.length).length;
   const flaggedCount = Object.values(answers).filter(r => r.flagged).length;
@@ -485,17 +498,17 @@ export function ExamRunner(props: ExamRunnerProps) {
                     type="button"
                     onClick={toggleFlag}
                     aria-pressed={!!a.flagged}
-                    title="Mark this question for review (F)"
+                    title="Flag this question for review (F)"
                     className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition ${
                       a.flagged ? 'border-amber-600 bg-amber-50 text-amber-800' : 'border-line bg-white text-ink hover:border-amber-500'
                     }`}
                   >
                     <Flag className={`h-4 w-4 ${a.flagged ? 'fill-amber-400 text-amber-600' : 'text-muted'}`} />
-                    {a.flagged ? 'Marked for review' : 'Mark for review'}
+                    {a.flagged ? 'Flagged for review' : 'Flag for review'}
                   </button>
                 </div>
                 <p id="q-stem" className="whitespace-pre-wrap text-[17px] font-medium leading-relaxed sm:text-[19px]">{q.stem}</p>
-                <p className="eyebrow mb-2 mt-5">{TYPE_HINT[q.type]}</p>
+                <p className="eyebrow mb-2 mt-5">{typeHint(q)}</p>
 
                 {q.type === 'ORDERING' ? (
                   <div className="space-y-2">
@@ -515,10 +528,10 @@ export function ExamRunner(props: ExamRunnerProps) {
                             'border-line bg-white'
                           }`}
                         >
-                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-[1.5px] border-muted font-mono text-xs">{oi + 1}</span>
+                          <span className="inline-flex h-7 shrink-0 items-center justify-center rounded-full border-[1.5px] border-muted px-2 font-mono text-xs" aria-label={`Step ${stepNo(o.id)}`}>{stepNo(o.id)}</span>
                           <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{o.text}</span>
                           {a.submitted && correctSeq.length > 0 && (
-                            <span className="shrink-0 text-xs font-semibold text-muted">correct: {correctSeq.indexOf(o.id) + 1}</span>
+                            <span className="shrink-0 text-xs font-semibold text-muted">position {correctSeq.indexOf(o.id) + 1}</span>
                           )}
                           <span className="flex shrink-0 flex-col gap-1">
                             <button type="button" onClick={() => move(o.id, -1)} disabled={locked || oi === 0} aria-label={`Move "${o.text}" up`} className="rounded border border-line px-1.5 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-30">▲</button>
@@ -527,13 +540,18 @@ export function ExamRunner(props: ExamRunnerProps) {
                         </div>
                       );
                     })}
-                    {!a.answer.length && (
-                      <p className="pt-1 text-xs text-muted">Use the arrows to arrange these into the correct sequence, then check your answer.</p>
+                    {!a.answer.length ? (
+                      <p className="pt-1 text-xs text-muted">The steps are numbered 1–{q.options.length} in a scrambled order. Use the arrows to arrange them into the correct sequence{props.mode === 'PRACTICE' ? ', then check your answer' : ''}.</p>
+                    ) : (
+                      <p className="pt-1 font-mono text-sm text-ink">Your sequence: {displayOptions.map(o => stepNo(o.id)).join(' → ')}</p>
+                    )}
+                    {a.submitted && (a.correct?.length ?? 0) > 0 && (
+                      <p className="font-mono text-sm font-semibold text-emerald-800">Correct sequence: {(a.correct ?? []).map(stepNo).join(' → ')}</p>
                     )}
                   </div>
                 ) : (
                   <fieldset className="grid min-w-0 gap-2.5">
-                    <legend className="sr-only">{TYPE_HINT[q.type]}</legend>
+                    <legend className="sr-only">{typeHint(q)}</legend>
                     {displayOptions.map((o, oi) => {
                       const sel = a.answer.includes(o.id);
                       const isAnswered = !!a.submitted;
@@ -631,13 +649,13 @@ export function ExamRunner(props: ExamRunnerProps) {
                     Next <ChevronRight className="h-5 w-5" />
                   </button>
                   <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
-                    {props.mode === 'EXAM' ? 'End exam' : 'Finish'}
+                    {props.mode === 'EXAM' ? 'Submit exam' : 'Submit'}
                   </button>
                 </div>
               </section>
               <p className="mt-3 hidden text-center text-[11px] text-muted lg:block">
                 <kbd className="rounded border border-line bg-white px-1">←</kbd> <kbd className="rounded border border-line bg-white px-1">→</kbd> navigate ·{' '}
-                <kbd className="rounded border border-line bg-white px-1">F</kbd> mark for review · right-click an option to strike it out
+                <kbd className="rounded border border-line bg-white px-1">F</kbd> flag for review · right-click an option to strike it out
               </p>
             </div>
 
@@ -656,7 +674,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                         key={qq.id}
                         type="button"
                         onClick={() => jumpTo(i)}
-                        aria-label={`Question ${i + 1}, ${r?.answer?.length ? 'answered' : 'unanswered'}${r?.flagged ? ', marked for review' : ''}`}
+                        aria-label={`Question ${i + 1}, ${r?.answer?.length ? 'completed' : 'incomplete'}${r?.flagged ? ', flagged for review' : ''}`}
                         aria-current={i === idx ? 'true' : undefined}
                         className={`relative aspect-square rounded border font-mono text-sm tabular-nums ${tone} ${i === idx ? 'outline outline-2 outline-offset-1 outline-ink' : ''}`}
                       >
@@ -667,9 +685,9 @@ export function ExamRunner(props: ExamRunnerProps) {
                   })}
                 </div>
                 <div className="grid gap-1 border-t border-line pt-3 text-xs text-muted">
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-brand bg-brand-100" /> Answered</span>
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-line bg-white" /> Not answered</span>
-                  <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500" /> Marked for review</span>
+                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-brand bg-brand-100" /> Completed</span>
+                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-line bg-white" /> Incomplete</span>
+                  <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500" /> Flagged for review</span>
                   {props.mode === 'PRACTICE' && (
                     <>
                       <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm border border-emerald-600 bg-emerald-50" /> Correct</span>
@@ -686,13 +704,14 @@ export function ExamRunner(props: ExamRunnerProps) {
             <div className="rounded-md border border-line bg-white p-5 shadow-card sm:p-7">
               <h2 className="text-2xl font-extrabold">Review Screen</h2>
               <p className="mt-2 max-w-3xl text-sm text-muted">
-                Below is a summary of your answers. Select a question to return to it, or use the buttons at the bottom of the screen to review all questions, only incomplete questions, or only questions marked for review.
-                {props.mode === 'EXAM' ? ' Every question must be answered before you can end the exam.' : ''} When you are finished, select End Exam.
+                Below is the summary of your reviews and completed questions. Select a question to return to it, or use the buttons at the bottom of the screen to show all reviews, only incomplete questions, or only questions flagged for review.
+                {props.mode === 'EXAM' ? ' Every question must be completed before you can submit the exam.' : ''} When you are finished, select Submit {props.mode === 'EXAM' ? 'Exam' : ''}.
               </p>
-              <div className="mt-5 grid grid-cols-3 gap-3 sm:max-w-md">
+              <div className="eyebrow mt-5">Summary of reviews and completed</div>
+              <div className="mt-2 grid grid-cols-3 gap-3 sm:max-w-md">
                 <div className="rounded-md border border-line bg-canvas px-3 py-2">
                   <div className="font-display text-2xl font-extrabold">{answeredCount}</div>
-                  <div className="text-xs text-muted">Complete</div>
+                  <div className="text-xs text-muted">Completed</div>
                 </div>
                 <div className={`rounded-md border px-3 py-2 ${unansweredIdx.length ? 'border-amber-400 bg-amber-50' : 'border-line bg-canvas'}`}>
                   <div className="font-display text-2xl font-extrabold">{unansweredIdx.length}</div>
@@ -700,7 +719,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                 </div>
                 <div className="rounded-md border border-line bg-canvas px-3 py-2">
                   <div className="font-display text-2xl font-extrabold">{flaggedCount}</div>
-                  <div className="text-xs text-muted">Marked for review</div>
+                  <div className="text-xs text-muted">Flagged for review</div>
                 </div>
               </div>
               <div className="mt-6 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -714,12 +733,12 @@ export function ExamRunner(props: ExamRunnerProps) {
                       onClick={() => jumpTo(i)}
                       className="flex items-center gap-3 border-b border-line px-1 py-2 text-left text-sm hover:bg-brand-50"
                     >
-                      <span className="w-4 shrink-0">{r?.flagged && <Flag className="h-4 w-4 fill-amber-400 text-amber-600" aria-label="Marked for review" />}</span>
+                      <span className="w-4 shrink-0">{r?.flagged && <Flag className="h-4 w-4 fill-amber-400 text-amber-600" aria-label="Flagged for review" />}</span>
                       <span className="flex-1 font-medium">Question {i + 1}</span>
                       {props.mode === 'PRACTICE' && r?.submitted ? (
                         <span className={`font-mono text-xs font-medium ${r.isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>{r.isCorrect ? 'Correct' : 'Incorrect'}</span>
                       ) : (
-                        <span className={`font-mono text-xs font-medium ${done ? 'text-muted' : 'text-amber-700'}`}>{done ? 'Complete' : 'Incomplete'}</span>
+                        <span className={`font-mono text-xs font-medium ${done ? 'text-muted' : 'text-amber-700'}`}>{done ? 'Completed' : 'Incomplete'}</span>
                       )}
                     </button>
                   );
@@ -730,7 +749,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                   <ChevronLeft className="h-5 w-5" /> Back to question {idx + 1}
                 </button>
                 <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
-                  {props.mode === 'EXAM' ? 'End exam' : 'Finish'}
+                  {props.mode === 'EXAM' ? 'Submit exam' : 'Submit'}
                 </button>
               </div>
             </div>
@@ -751,7 +770,7 @@ export function ExamRunner(props: ExamRunnerProps) {
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => startReview('all')} className={barBtn}>Review All</button>
+            <button type="button" onClick={() => startReview('all')} className={barBtn}>Show all reviews</button>
             <button type="button" onClick={() => startReview('incomplete')} disabled={!unansweredIdx.length} className={barBtn}>Review Incomplete</button>
             <button type="button" onClick={() => startReview('flagged')} disabled={!flaggedCount} className={barBtn}>Review Flagged</button>
             {props.mode === 'PRACTICE' && (
@@ -761,27 +780,27 @@ export function ExamRunner(props: ExamRunnerProps) {
         )}
       </footer>
 
-      {/* End Exam confirmation — replaces the old alert()-based flow */}
+      {/* Submit Exam confirmation — replaces the old alert()-based flow */}
       {showReview && !timeUp && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/60 p-4" role="dialog" aria-modal="true" aria-labelledby="end-title">
           <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-md border border-line bg-white shadow-lift">
             <div className="flex items-center justify-between bg-navy px-5 py-3 text-white">
-              <h2 id="end-title" className="font-display text-base font-bold">End {props.mode === 'EXAM' ? 'Exam' : 'Practice Session'}</h2>
+              <h2 id="end-title" className="font-display text-base font-bold">Submit {props.mode === 'EXAM' ? 'Exam' : 'Practice Session'}</h2>
               <button onClick={() => setShowReview(false)} aria-label="Close" className="text-white/70 hover:text-white"><X className="h-5 w-5" /></button>
             </div>
             <div className="p-5">
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="rounded-md border border-line bg-canvas p-3">
                   <div className="font-display text-2xl font-extrabold text-brand">{answeredCount}</div>
-                  <div className="text-xs text-muted">Answered</div>
+                  <div className="text-xs text-muted">Completed</div>
                 </div>
                 <div className={`rounded-md border p-3 ${unansweredIdx.length ? 'border-amber-400 bg-amber-50' : 'border-line bg-canvas'}`}>
                   <div className={`font-display text-2xl font-extrabold ${unansweredIdx.length ? 'text-amber-700' : 'text-muted'}`}>{unansweredIdx.length}</div>
-                  <div className="text-xs text-muted">Unanswered</div>
+                  <div className="text-xs text-muted">Incomplete</div>
                 </div>
                 <div className="rounded-md border border-line bg-canvas p-3">
                   <div className="font-display text-2xl font-extrabold">{flaggedCount}</div>
-                  <div className="text-xs text-muted">Marked</div>
+                  <div className="text-xs text-muted">Flagged</div>
                 </div>
               </div>
               {timed && (
@@ -790,7 +809,7 @@ export function ExamRunner(props: ExamRunnerProps) {
               {unansweredIdx.length > 0 && (
                 <div className="mt-4">
                   <p className="text-sm font-medium text-amber-800">
-                    {props.mode === 'EXAM' ? 'All questions must be answered before you can end the exam:' : 'Unanswered questions (tap to jump):'}
+                    {props.mode === 'EXAM' ? 'All questions must be completed before you can submit the exam:' : 'Incomplete questions (tap to jump):'}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {unansweredIdx.slice(0, 40).map(i => (
@@ -804,7 +823,7 @@ export function ExamRunner(props: ExamRunnerProps) {
               )}
               <p className="mt-4 text-sm text-slate-700">
                 {props.mode === 'EXAM'
-                  ? 'Once you end the exam you cannot return to your answers. Your score report appears immediately.'
+                  ? 'Once you submit the exam you cannot return to your answers. Your score report appears immediately.'
                   : 'Your results and a full answer review appear on the next screen.'}
               </p>
               {submitErr && <p className="mt-3 text-sm text-red-600">{submitErr}</p>}
@@ -815,7 +834,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                   disabled={submitted || (props.mode === 'EXAM' && unansweredIdx.length > 0)}
                   className={`${lightPrimary} disabled:cursor-not-allowed disabled:opacity-50`}
                 >
-                  {submitted ? 'Submitting…' : props.mode === 'EXAM' ? 'End exam' : 'See my results'}
+                  {submitted ? 'Submitting…' : props.mode === 'EXAM' ? 'Submit exam' : 'Submit and see results'}
                 </button>
               </div>
             </div>

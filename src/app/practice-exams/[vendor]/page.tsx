@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
 import { Search } from 'lucide-react';
-import { bundleSearchAliases, matchesCatalogSearch } from '@/lib/catalog-search';
+import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
 
 // ISR: vendor-page bundle listings cache for 5 min. New publishes appear
 // shortly after; avoids fetching the entire bundle catalog on every visit.
@@ -44,6 +44,11 @@ export default async function VendorCatalogPage({
   ]);
   if (!vendor) notFound();
 
+  const bundleRank = (bundle: (typeof bundles)[number]) => catalogSearchRank(query, [
+    bundle.title,
+    ...bundleSearchAliases(bundle.slug),
+    ...bundle.items.flatMap((item) => [item.exam.code, item.exam.title])
+  ]);
   const visibleBundles = query
     ? bundles.filter((bundle) =>
         matchesCatalogSearch(query, [
@@ -59,7 +64,7 @@ export default async function VendorCatalogPage({
             item.exam.description
           ])
         ])
-      )
+      ).sort((a, b) => bundleRank(b) - bundleRank(a))
     : bundles;
   type Card = { kind: 'bundle'; data: (typeof bundles)[number] };
   const cards: Card[] = visibleBundles.map(b => ({ kind: 'bundle' as const, data: b }));

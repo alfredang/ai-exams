@@ -2731,7 +2731,7 @@ const AZ104_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const AZ104_BUNDLE = {
   slug: 'microsoft-az-104',
   title: 'Microsoft Azure Administrator (AZ-104)',
-  description: 'All 3 AZ-104 practice exams in one bundle — covering Azure identities & governance, storage, compute, virtual networking, and monitoring & maintenance, aligned to the official Microsoft Azure Administrator (AZ-104) study guide.',
+  description: 'Unlimited AZ-104 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering Azure identities & governance, storage, compute, virtual networking, and monitoring & maintenance, aligned to the official Microsoft Azure Administrator (AZ-104) study guide.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

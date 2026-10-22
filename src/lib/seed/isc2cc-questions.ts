@@ -1920,7 +1920,7 @@ const ISC2CC_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const ISC2CC_BUNDLE = {
   slug: 'isc2-cc',
   title: 'ISC2 Certified in Cybersecurity (CC)',
-  description: 'All 3 ISC2 Certified in Cybersecurity (CC) practice exams in one bundle — covering security principles, access controls concepts, network security, security operations, and business continuity / disaster recovery / incident response, aligned to the official ISC2 CC exam outline.',
+  description: 'Unlimited ISC2 Certified in Cybersecurity (CC) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering security principles, access controls concepts, network security, security operations, and business continuity / disaster recovery / incident response, aligned to the official ISC2 CC exam outline.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 5000 // USD 50 — VOUCHER tier
 };

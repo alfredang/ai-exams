@@ -2530,7 +2530,7 @@ const KCSA_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const KCSA_BUNDLE = {
   slug: 'linuxfoundation-kcsa',
   title: 'Kubernetes and Cloud Native Security Associate (KCSA)',
-  description: 'All 3 KCSA practice exams in one bundle — covering the cloud native security overview and 4Cs, Kubernetes cluster component security, security fundamentals, the Kubernetes threat model, platform security, and compliance & security frameworks, aligned to the CNCF KCSA exam domains.',
+  description: 'Unlimited KCSA practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering the cloud native security overview and 4Cs, Kubernetes cluster component security, security fundamentals, the Kubernetes threat model, platform security, and compliance & security frameworks, aligned to the CNCF KCSA exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 25000 // USD 250 — VOUCHER tier
 };

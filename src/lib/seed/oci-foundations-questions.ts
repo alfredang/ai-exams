@@ -2606,7 +2606,7 @@ const OCI_FOUNDATIONS_EXAMS: { slug: string; code: string; titleSuffix: string; 
 const OCI_FOUNDATIONS_BUNDLE = {
   slug: 'oracle-oci-foundations',
   title: 'Oracle Cloud Infrastructure Foundations Associate (1Z0-1085)',
-  description: 'All 3 OCI Foundations Associate (1Z0-1085) practice exams in one bundle — covering OCI introduction, identity & access management, networking, compute, storage, and security & observability, aligned to the official Oracle 1Z0-1085 exam objectives.',
+  description: 'Unlimited OCI Foundations Associate (1Z0-1085) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering OCI introduction, identity & access management, networking, compute, storage, and security & observability, aligned to the official Oracle 1Z0-1085 exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 12500 // USD 125 — VOUCHER tier
 };

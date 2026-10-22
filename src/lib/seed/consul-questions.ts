@@ -2636,7 +2636,7 @@ const CONSUL_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const CONSUL_BUNDLE = {
   slug: 'hashicorp-consul-associate',
   title: 'HashiCorp Certified: Consul Associate (003)',
-  description: 'All 3 Consul Associate (003) practice exams in one bundle — covering Consul architecture, deployment, service discovery & registration, service mesh, network infrastructure automation, and security, aligned to the HashiCorp Certified: Consul Associate (003) exam objectives.',
+  description: 'Unlimited Consul Associate (003) practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering Consul architecture, deployment, service discovery & registration, service mesh, network infrastructure automation, and security, aligned to the HashiCorp Certified: Consul Associate (003) exam objectives.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 7050 // USD 70.50 — VOUCHER tier
 };

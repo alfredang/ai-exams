@@ -2672,7 +2672,7 @@ const DCA_EXAMS: { slug: string; code: string; titleSuffix: string; descriptionS
 const DCA_BUNDLE = {
   slug: 'docker-dca',
   title: 'Docker Certified Associate (DCA)',
-  description: 'All 3 DCA practice exams in one bundle — covering orchestration, image creation/management/registry, installation & configuration, networking, security, and storage & volumes, aligned to the Docker Certified Associate exam domains.',
+  description: 'Unlimited DCA practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering orchestration, image creation/management/registry, installation & configuration, networking, security, and storage & volumes, aligned to the Docker Certified Associate exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 19500 // USD 195 — VOUCHER tier
 };

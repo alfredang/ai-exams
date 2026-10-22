@@ -2628,7 +2628,7 @@ const AZ305_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const AZ305_BUNDLE = {
   slug: 'microsoft-az-305',
   title: 'Microsoft Azure Solutions Architect Expert (AZ-305)',
-  description: 'All 3 AZ-305 practice exams in one bundle — covering identity, governance, and monitoring design; data storage design; business continuity design; and infrastructure solution design, aligned to the Designing Microsoft Azure Infrastructure Solutions (AZ-305) exam domains.',
+  description: 'Unlimited AZ-305 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering identity, governance, and monitoring design; data storage design; business continuity design; and infrastructure solution design, aligned to the Designing Microsoft Azure Infrastructure Solutions (AZ-305) exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

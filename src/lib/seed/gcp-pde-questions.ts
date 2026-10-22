@@ -2641,7 +2641,7 @@ const GCP_PDE_EXAMS: { slug: string; code: string; titleSuffix: string; descript
 const GCP_PDE_BUNDLE = {
   slug: 'google-professional-data-engineer',
   title: 'Google Professional Data Engineer',
-  description: 'All 3 Google Professional Data Engineer practice exams in one bundle — covering designing data processing systems, ingesting & processing data, storing data, preparing & using data for analysis, and maintaining & automating data workloads, aligned to the Google Professional Data Engineer exam domains.',
+  description: 'Unlimited Google Professional Data Engineer practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering designing data processing systems, ingesting & processing data, storing data, preparing & using data for analysis, and maintaining & automating data workloads, aligned to the Google Professional Data Engineer exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 20000 // USD 200 — VOUCHER tier
 };

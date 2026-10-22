@@ -2580,7 +2580,7 @@ const PSPO_EXAMS: { slug: string; code: string; titleSuffix: string; description
 const PSPO_BUNDLE = {
   slug: 'scrum-org-pspo-i',
   title: 'Professional Scrum Product Owner I (PSPO I)',
-  description: 'All 3 PSPO I practice exams in one bundle — covering the Scrum framework & accountabilities, product value & vision, Product Backlog management, stakeholder & customer collaboration, and empiricism & agility, grounded strictly in the 2020 Scrum Guide and Scrum.org Product Owner guidance.',
+  description: 'Unlimited PSPO I practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering the Scrum framework & accountabilities, product value & vision, Product Backlog management, stakeholder & customer collaboration, and empiricism & agility, grounded strictly in the 2020 Scrum Guide and Scrum.org Product Owner guidance.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 20000 // USD 200 — VOUCHER tier
 };

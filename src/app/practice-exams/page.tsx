@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
-import { bundleSearchAliases, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
+import { bundleSearchAliases, catalogSearchRank, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
 
 const PAGE_SIZE = 9;
 
@@ -54,6 +54,16 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     ])) return false;
     return true;
   });
+  if (q) {
+    // Title/code matches first; Array.prototype.sort is stable, so ties keep
+    // the newest-first order from the query.
+    const rank = new Map(allBundles.map((b) => [b.id, catalogSearchRank(q, [
+      b.title,
+      ...bundleSearchAliases(b.slug),
+      ...b.items.flatMap((item) => [item.exam.code, item.exam.title])
+    ])]));
+    allBundles.sort((a, b) => rank.get(b.id)! - rank.get(a.id)!);
+  }
   const suggestions = q && allBundles.length === 0
     ? catalogSearchSuggestions(q, allBundlesRaw.flatMap((bundle) => [
         bundle.title,

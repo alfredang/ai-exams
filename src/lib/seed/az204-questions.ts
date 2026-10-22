@@ -2636,7 +2636,7 @@ const AZ204_EXAMS: { slug: string; code: string; titleSuffix: string; descriptio
 const AZ204_BUNDLE = {
   slug: 'microsoft-az-204',
   title: 'Microsoft Azure Developer Associate (AZ-204)',
-  description: 'All 3 AZ-204 practice exams in one bundle — covering Azure compute solutions, Azure storage, Azure security, monitoring/troubleshooting/optimization, and connecting to and consuming Azure & third-party services, aligned to the Microsoft Azure Developer Associate (AZ-204) exam domains.',
+  description: 'Unlimited AZ-204 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering Azure compute solutions, Azure storage, Azure security, monitoring/troubleshooting/optimization, and connecting to and consuming Azure & third-party services, aligned to the Microsoft Azure Developer Associate (AZ-204) exam domains.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 16500 // USD 165 — VOUCHER tier
 };

@@ -2603,7 +2603,7 @@ const CCNP_SECURITY_EXAMS: { slug: string; code: string; titleSuffix: string; de
 const CCNP_SECURITY_BUNDLE = {
   slug: 'cisco-ccnp-security-350-701',
   title: 'Cisco CCNP Security (SCOR 350-701)',
-  description: 'All 3 CCNP Security SCOR 350-701 practice exams in one bundle — covering security concepts, network security, securing the cloud, content security, endpoint protection and detection, and secure network access, visibility, and enforcement, aligned to the Cisco 350-701 SCOR exam topics.',
+  description: 'Unlimited CCNP Security SCOR 350-701 practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering security concepts, network security, securing the cloud, content security, endpoint protection and detection, and secure network access, visibility, and enforcement, aligned to the Cisco 350-701 SCOR exam topics.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 40000 // USD 400 — VOUCHER tier
 };

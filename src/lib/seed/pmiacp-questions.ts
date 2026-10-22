@@ -2590,7 +2590,7 @@ const PMIACP_EXAMS: { slug: string; code: string; titleSuffix: string; descripti
 const PMIACP_BUNDLE = {
   slug: 'pmi-acp',
   title: 'PMI Agile Certified Practitioner (PMI-ACP)',
-  description: 'All 3 PMI-ACP practice exams in one bundle — covering agile principles & mindset, value-driven delivery, stakeholder engagement, team performance, adaptive planning, problem detection & resolution, and continuous improvement, aligned to the PMI-ACP exam content outline.',
+  description: 'Unlimited PMI-ACP practice exam retakes, each drawn fresh from a question pool weighted by the official exam domains — covering agile principles & mindset, value-driven delivery, stakeholder engagement, team performance, adaptive planning, problem detection & resolution, and continuous improvement, aligned to the PMI-ACP exam content outline.',
   price: 2000, // USD 20 — PRACTICE tier
   priceVoucher: 50500 // USD 505 — PRACTICE + real-exam VOUCHER tier
 };

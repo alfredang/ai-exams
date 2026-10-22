@@ -19,6 +19,7 @@ export function Nav() {
         {!inBackend && (
           <nav className="hidden items-center gap-1 md:flex">
             <Link href="/practice-exams" className="btn-ghost">Practice Exams</Link>
+            <Link href="/exam-vouchers" className="btn-ghost">Exam Vouchers</Link>
             <Link href="/vendors" className="btn-ghost">Vendors</Link>
             <Link href="/p/about-us" className="btn-ghost">About Us</Link>
             <Link href="/#faq" className="btn-ghost">FAQ</Link>
