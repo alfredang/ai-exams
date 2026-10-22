@@ -612,7 +612,48 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Network Assurance', weight: 10 },
       { name: 'Security', weight: 20 },
       { name: 'Automation', weight: 15 }
-    ]
+    ],
+    topics: {
+      'Architecture': [
+        'Enterprise network design principles: 2-tier, 3-tier, fabric, cloud and high availability',
+        'Working principles of the Cisco Catalyst SD-WAN solution',
+        'Working principles of the Cisco SD-Access solution',
+        'Interpret QoS configurations'
+      ],
+      'Virtualization': [
+        'Device virtualization: type 1 and 2 hypervisors, virtual machines and virtual switching',
+        'Configure and verify data path virtualization: VRF, GRE and IPsec tunneling',
+        'Network virtualization concepts: LISP and VXLAN'
+      ],
+      'Infrastructure': [
+        'Layer 2: troubleshoot 802.1q trunking and EtherChannels; configure RSTP and MST',
+        'Layer 3: compare EIGRP and OSPF; configure OSPFv2/v3 and eBGP; policy-based routing',
+        'IP services: NTP/PTP, NAT/PAT, first hop redundancy (HSRP, VRRP) and multicast'
+      ],
+      'Network Assurance': [
+        'Diagnose network problems with debugs, traceroute, ping, SNMP and syslog',
+        'Configure and verify Flexible NetFlow',
+        'Configure SPAN/RSPAN/ERSPAN',
+        'Configure and verify IPSLA',
+        'How Cisco Catalyst Center applies network configuration, monitoring and management',
+        'Configure and verify NETCONF and RESTCONF'
+      ],
+      'Security': [
+        'Configure and verify device access control: lines, local user authentication and AAA',
+        'Configure and verify infrastructure security features: ACLs and CoPP',
+        'Describe REST API security',
+        'Network security design: threat defense, endpoint security, NGFW, TrustSec and MACsec'
+      ],
+      'Automation': [
+        'Interpret basic Python components and scripts',
+        'Construct valid JSON-encoded files',
+        'Principles and benefits of a data modeling language such as YANG',
+        'APIs for Cisco Catalyst Center and SD-WAN Manager',
+        'Interpret REST API response codes and payloads from Catalyst Center and RESTCONF',
+        'Construct an EEM applet to automate configuration, troubleshooting or data collection',
+        'Compare agent vs. agentless orchestration tools'
+      ]
+    }
   },
   'cisco-ccnp-security-350-701': {
     sourceUrl: 'https://learningcontent.cisco.com/documents/marketing/exam-topics/350-701-SCOR-v2.0.pdf',
@@ -624,7 +665,64 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Content Security', weight: 10 },
       { name: 'Endpoint Protection and Detection', weight: 15 },
       { name: 'Secure Network Access, Visibility, and Enforcement', weight: 15 }
-    ]
+    ],
+    topics: {
+      'Security Concepts': [
+        'Attack threats against on-premises, hybrid and cloud environments',
+        'Security vulnerabilities and exploits, incl. OWASP Top 10 and CVE/CVSS prioritization',
+        'Vulnerabilities in AI/LLM models such as prompt injection and system prompt leakage',
+        'Controls that protect against phishing and social engineering attacks',
+        'Cryptography components and site-to-site/remote access VPN deployment types',
+        'Security intelligence authoring, sharing and consumption',
+        'Zero trust architecture and defense-in-depth strategy (SAFE)',
+        'Interpret scripts that call security appliance APIs in a language such as Python'
+      ],
+      'Network Security': [
+        'Network security solutions and deployment models for intrusion prevention and firewalls',
+        'Security monitoring and telemetry technologies',
+        'Configure infrastructure security: segmentation, port security, DHCP snooping, DAI',
+        'Management options for security solutions and CIS benchmarks for device hardening',
+        'Troubleshoot AAA for device and network access such as TACACS+ and RADIUS',
+        'Configure secure network management: SNMPv3, NETCONF/RESTCONF, secure syslog, NTP auth',
+        'Implement access control, AVC, URL filtering, malware and intrusion prevention on FTD',
+        'Configure and troubleshoot site-to-site and remote access VPN on Secure Firewall (FTD)'
+      ],
+      'Securing the Cloud': [
+        'Security responsibility within cloud shared responsibility models',
+        'Select cloud security capabilities, deployment models, frameworks and policy management',
+        'Select security solutions for public, private, hybrid and community clouds, incl. CASB',
+        'Network, application and data security in the cloud (Multicloud Defense, Secure Workload)',
+        'Configure Splunk to ingest cloud logging and monitoring data',
+        'Application and workload security concepts, including eBPF',
+        'DevSecOps: IaC security, CI/CD pipelines, container orchestration, secure development'
+      ],
+      'Content Security': [
+        'Security Service Edge (SSE) and Secure Access Service Edge (SASE)',
+        'Configure Cisco Secure Access Secure Internet Access',
+        'Configure Cisco Secure Access Secure Private Access',
+        'Configure data loss prevention and AI guardrails for secure internet access',
+        'Interpret Cisco Secure Access Investigate scores and indicators',
+        'Configure email security features with Cisco Secure Email Threat Defense'
+      ],
+      'Endpoint Protection and Detection': [
+        'Endpoint Protection Platforms (EPP) and Endpoint Detection and Response (EDR)',
+        'Endpoint device management and asset inventory systems such as MDM',
+        'Endpoint posture assessment solutions',
+        'Endpoint protection with Cisco Secure Client and Secure Malware Analytics',
+        'Configure endpoint antimalware protection using Cisco Secure Endpoint',
+        'Interpret Cisco Secure Endpoint malware detection events'
+      ],
+      'Secure Network Access, Visibility, and Enforcement': [
+        'Identity management and secure access: guest services, profiling, posture and BYOD',
+        'Device compliance and application control',
+        'Configure 802.1X and MAB network access control with Cisco ISE',
+        'Configure network access with Change of Authorization (CoA)',
+        'Exfiltration techniques such as DNS tunneling, HTTPS, email, ICMP and cloud storage',
+        'Visibility and enforcement with telemetry, AI/ML, XDR and SIEM/SOAR (Splunk, Cisco XDR)',
+        'Cisco Duo in zero trust: Trust Monitor, MFA, Device Trust and Adaptive Access',
+        'Manage, orchestrate and automate security information and events with Splunk'
+      ]
+    }
   },
   'cisco-devnet-associate-200-901': {
     sourceUrl: 'https://learningcontent.cisco.com/documents/marketing/exam-topics/200-901-CCNAAUTO_v.1.1.pdf',
@@ -636,7 +734,69 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Application Deployment and Security', weight: 15 },
       { name: 'Infrastructure and Automation', weight: 20 },
       { name: 'Network Fundamentals', weight: 15 }
-    ]
+    ],
+    topics: {
+      'Software Development and Design': [
+        'Compare data formats: XML, JSON and YAML',
+        'Parse XML, JSON and YAML into Python data structures',
+        'Concepts of test-driven development',
+        'Compare software development methods: agile, lean and waterfall',
+        'Benefits of organizing code into functions, classes and modules',
+        'Advantages of common design patterns (MVC and Observer)',
+        'Advantages of version control',
+        'Common Git operations: clone, add/remove, commit, push/pull, branch, merge, diff'
+      ],
+      'Understanding and Using APIs': [
+        'Construct a REST API request from API documentation',
+        'Common usage patterns for webhooks',
+        'Constraints when consuming APIs',
+        'Common REST API HTTP response codes and the parts of an HTTP response',
+        'Troubleshoot a problem from the HTTP response code, request and API documentation',
+        'API authentication: basic, custom token and API keys',
+        'Compare API styles: REST, RPC, synchronous and asynchronous',
+        'Write a Python script that calls a REST API using the requests library'
+      ],
+      'Cisco Platforms and Development': [
+        'Construct a Python script that uses a Cisco SDK',
+        'Cisco network management platforms and APIs: Meraki, Catalyst Center, ACI, SD-WAN, NSO',
+        'Cisco compute (UCS Manager, Intersight) and collaboration (Webex, CUCM) platforms and APIs',
+        'Cisco security platforms and APIs: XDR, Firepower, Secure Endpoint, ISE and more',
+        'Device-level APIs and dynamic interfaces for IOS XE and NX-OS',
+        'Appropriate DevNet resources: Sandbox, Code Exchange, Learning Labs and API docs',
+        'Apply model-driven programmability (YANG, RESTCONF, NETCONF) in a Cisco environment',
+        'Write code for Meraki, Catalyst Center or Webex operations from API reference docs'
+      ],
+      'Application Deployment and Security': [
+        'Edge computing benefits and deployment models: private, public, hybrid cloud and edge',
+        'Deployment types: virtual machines, bare metal and containers',
+        'CI/CD pipeline components and the principles of DevOps practices',
+        'Construct a Python unit test',
+        'Interpret a Dockerfile and use Docker images in a local developer environment',
+        'App security: secrets, encryption, data handling and OWASP threats (XSS, SQLi, CSRF)',
+        'Role of firewalls, DNS, load balancers and reverse proxies in application deployment',
+        'Bash commands: file management, directory navigation and environment variables'
+      ],
+      'Infrastructure and Automation': [
+        'Model-driven programmability and controller-level vs. device-level management',
+        'Network simulation and test tools such as Cisco Modeling Labs and pyATS',
+        'CI/CD pipelines in infrastructure automation and principles of infrastructure as code',
+        'Automation tools such as Ansible, Terraform and Cisco NSO',
+        'Identify workflows automated by Python scripts using Cisco APIs and RESTCONF',
+        'Interpret workflows automated by Ansible playbooks and bash scripts',
+        'Interpret RESTCONF/NETCONF query results and basic YANG models',
+        'Interpret unified diffs, code review principles and sequence diagrams with API calls'
+      ],
+      'Network Fundamentals': [
+        'Purpose and usage of MAC addresses and VLANs',
+        'IP addresses, routes, subnet masks/prefixes and gateways',
+        'Common networking components: switches, routers, firewalls and load balancers',
+        'Interpret a basic network topology diagram',
+        'Management, data and control planes in a network device',
+        'IP services (DHCP, DNS, NAT, SNMP, NTP) and common protocol port values',
+        'Diagnose application connectivity issues: NAT, blocked ports, proxy and VPN',
+        'Impacts of network constraints on applications'
+      ]
+    }
   },
   'comptia-a-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/a/core-1-and-2-v15/',
@@ -648,7 +808,68 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Operating Systems', weight: 14 },
       { name: 'Security', weight: 14 },
       { name: 'Software and Operational Troubleshooting', weight: 22 }
-    ]
+    ],
+    topics: {
+      'Hardware': [
+        'Cable types and their connectors, features and purposes',
+        'Install the appropriate RAM and select and install storage devices',
+        'Install and configure motherboards, CPUs and add-on cards',
+        'Install or replace the appropriate power supply',
+        'Deploy and configure multifunction devices/printers and replace printer consumables',
+        'Apply the best practice methodology to resolve problems',
+        'Troubleshoot motherboards, RAM, CPU, power, storage drives and RAID arrays',
+        'Troubleshoot video, projector and display issues, and printer issues'
+      ],
+      'Networking': [
+        'TCP and UDP ports, protocols and their purposes',
+        'Common networking hardware',
+        'Protocols for wireless networking',
+        'Services provided by networked hosts',
+        'Install and configure basic wired/wireless SOHO networks',
+        'Network configuration concepts, Internet connection types and network types',
+        'Use networking tools',
+        'Troubleshoot problems with wired and wireless networks'
+      ],
+      'Mobile Devices and Virtualization': [
+        'Install and configure laptop hardware and components',
+        'Display components of mobile devices',
+        'Set up and configure accessories and ports of mobile devices',
+        'Configure mobile-device network connectivity and application support',
+        'Troubleshoot common issues with mobile devices',
+        'Cloud-computing concepts',
+        'Client-side virtualization'
+      ],
+      'Operating Systems': [
+        'Basic features of Microsoft Windows editions',
+        'Use the appropriate Microsoft command-line tools',
+        'Windows 10 features, tools, Control Panel utilities and settings',
+        'Configure Microsoft Windows networking features on a client/desktop',
+        'Application installation and configuration concepts',
+        'Common OS types and their purposes',
+        'Perform OS installations and upgrades in a diverse OS environment',
+        'Common features and tools of macOS and Linux client/desktop operating systems'
+      ],
+      'Security': [
+        'Security measures and their purposes',
+        'Wireless security protocols and authentication methods',
+        'Detect, remove and prevent malware using the appropriate tools and methods',
+        'Common social-engineering attacks, threats and vulnerabilities',
+        'Configure Windows OS security settings and workstation security best practices',
+        'Methods for securing mobile and embedded devices',
+        'Data destruction and disposal methods',
+        'Secure SOHO wired/wireless networks and configure browser security settings'
+      ],
+      'Software and Operational Troubleshooting': [
+        'Troubleshoot common Windows OS problems',
+        'Troubleshoot PC security issues and apply malware removal best practices',
+        'Troubleshoot mobile OS and application issues, including security issues',
+        'Documentation, support systems and change-management best practices',
+        'Workstation backup and recovery methods',
+        'Safety procedures, environmental impacts and local environmental controls',
+        'Prohibited content/activity, privacy, licensing, policy and professional communication',
+        'Scripting basics and remote access technologies'
+      ]
+    }
   },
   'comptia-cloud-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/cloud/',
@@ -659,7 +880,49 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Operations and Support', weight: 19 },
       { name: 'Security', weight: 21 },
       { name: 'Troubleshooting', weight: 13 }
-    ]
+    ],
+    topics: {
+      'Cloud Architecture and Design': [
+        'Use the appropriate cloud service model',
+        'Concepts related to service availability',
+        'Cloud networking concepts',
+        'Storage resources and technologies',
+        'Cloud-native design, containerization and virtualization concepts',
+        'Cost considerations of cloud usage and methods for optimizing workloads',
+        'Importance of database concepts',
+        'Evolving technologies in the cloud'
+      ],
+      'Deployment': [
+        'Compare and contrast cloud deployment models',
+        'Implement appropriate deployment strategies',
+        'Aspects of cloud migration',
+        'Use code to deploy and configure cloud resources',
+        'Provision the appropriate cloud resources for a set of requirements',
+        'Source control concepts',
+        'Continuous integration/continuous deployment (CI/CD) pipeline concepts'
+      ],
+      'Operations and Support': [
+        'Configure appropriate resources to achieve observability',
+        'Configure appropriate scaling approaches',
+        'Use appropriate backup and recovery methods',
+        'Manage the life cycle of cloud resources',
+        'Concepts related to integration of systems',
+        'Importance of tools used in DevOps environments'
+      ],
+      'Security': [
+        'Vulnerability management concepts',
+        'Aspects of compliance and regulation',
+        'Implement identity and access management',
+        'Apply security best practices',
+        'Apply security controls in the cloud',
+        'Monitor suspicious activities to identify common attacks'
+      ],
+      'Troubleshooting': [
+        'Troubleshoot deployment issues',
+        'Troubleshoot network issues',
+        'Troubleshoot security issues'
+      ]
+    }
   },
   'comptia-data-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/data/',
@@ -670,7 +933,38 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Data Analysis', weight: 24 },
       { name: 'Visualization', weight: 20 },
       { name: 'Data Governance, Quality, and Controls', weight: 14 }
-    ]
+    ],
+    topics: {
+      'Data Concepts and Environments': [
+        'Basic concepts of data schemas and dimensions',
+        'Compare and contrast different data types',
+        'Common data structures and file formats'
+      ],
+      'Data Mining': [
+        'Data acquisition concepts',
+        'Common reasons for cleansing and profiling datasets',
+        'Execute data manipulation techniques',
+        'Techniques for data manipulation and query optimization'
+      ],
+      'Data Analysis': [
+        'Apply the appropriate descriptive statistical methods',
+        'Purpose of inferential statistical methods',
+        'Types of analysis and key analysis techniques',
+        'Common data analytics tools'
+      ],
+      'Visualization': [
+        'Translate business requirements to form a report',
+        'Design components for reports and dashboards',
+        'Methods for dashboard development',
+        'Apply the appropriate type of visualization',
+        'Compare and contrast types of reports'
+      ],
+      'Data Governance, Quality, and Controls': [
+        'Important data governance concepts',
+        'Apply data quality control concepts',
+        'Master data management (MDM) concepts'
+      ]
+    }
   },
   'comptia-linux-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/linux/',
@@ -680,7 +974,39 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security', weight: 18 },
       { name: 'Scripting, Containers, and Automation', weight: 17 },
       { name: 'Troubleshooting', weight: 22 }
-    ]
+    ],
+    topics: {
+      'System Management': [
+        'Linux fundamentals',
+        'Manage files and directories',
+        'Configure and manage storage using the appropriate tools',
+        'Configure and use the appropriate processes and services',
+        'Use the appropriate networking tools or configuration files',
+        'Build and install software',
+        'Manage software configurations'
+      ],
+      'Security': [
+        'Security best practices in a Linux environment',
+        'Implement identity management',
+        'Implement and configure firewalls',
+        'Configure and execute remote connectivity for system management',
+        'Apply the appropriate access controls'
+      ],
+      'Scripting, Containers, and Automation': [
+        'Create simple shell scripts to automate common tasks',
+        'Perform basic container operations',
+        'Perform basic version control using Git',
+        'Common infrastructure as code technologies',
+        'Container, cloud and orchestration concepts'
+      ],
+      'Troubleshooting': [
+        'Analyze and troubleshoot storage issues',
+        'Analyze and troubleshoot network resource issues',
+        'Analyze and troubleshoot CPU and memory issues',
+        'Analyze and troubleshoot user access and file permissions',
+        'Use systemd to diagnose and resolve common problems with a Linux system'
+      ]
+    }
   },
   'comptia-network-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/network/',
@@ -691,7 +1017,52 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Network Operations', weight: 19 },
       { name: 'Network Security', weight: 14 },
       { name: 'Network Troubleshooting', weight: 24 }
-    ]
+    ],
+    topics: {
+      'Networking Concepts': [
+        'OSI model layers',
+        'Networking appliances: routers, switches, firewalls, IDS/IPS, load balancers and proxies',
+        'Cloud concepts: NFV, VPC, security groups, cloud gateways, deployment and service models',
+        'Ports and protocols such as SSH, DNS, DHCP, HTTPS, SNMP, LDAP and RDP',
+        'Traffic types: unicast, multicast, anycast and broadcast',
+        'Transmission media, transceivers and connectors',
+        'Network topologies: mesh, star, spine and leaf, three-tier and collapsed core',
+        'IPv4 addressing: public vs. private, APIPA, loopback and subnetting (VLSM, CIDR)'
+      ],
+      'Network Implementation': [
+        'Routing technologies: static and dynamic routing (BGP, EIGRP, OSPF), NAT, PAT and FHRP',
+        'Switching technologies: VLANs, interface configuration, spanning tree, MTU, jumbo frames',
+        'Wireless devices: channels, frequencies, SSIDs, encryption, authentication and APs',
+        'Physical installations: installation implications, power and environmental factors'
+      ],
+      'Network Operations': [
+        'Documentation: diagrams, asset inventory, IPAM, SLAs and wireless surveys',
+        'Life-cycle management: EOL, EOS, software management and decommissioning',
+        'Change management: request process tracking',
+        'Configuration management: production, backup and baseline configurations',
+        'Network monitoring: SNMP, flow data, packet capture, log aggregation, port mirroring',
+        'Disaster recovery: RPO, RTO, MTTR, MTBF, cold/warm/hot sites and testing',
+        'Network services: DHCP, SLAAC, DNS, NTP, PTP and NTS',
+        'Access and management: VPNs, SSH, GUI, API and console'
+      ],
+      'Network Security': [
+        'Logical security: encryption, PKI, IAM, MFA, SSO, RADIUS, TACACS+ and least privilege',
+        'Physical security: cameras and locks',
+        'Deception technologies: honeypot and honeynet',
+        'Security terminology: risk, vulnerability, exploit, threat and the CIA triad',
+        'Audits and compliance: data locality, PCI DSS and GDPR',
+        'Network segmentation: IoT, IIoT, SCADA, ICS, OT, guest and BYOD',
+        'Types of attacks: DoS/DDoS, VLAN hopping, ARP/DNS poisoning, evil twin, social engineering',
+        'Security features and defense: hardening, NAC, ACLs, content filtering, screened subnet'
+      ],
+      'Network Troubleshooting': [
+        'Troubleshooting methodology: identify, theorize, test, plan, implement, verify, document',
+        'Cabling and physical interface issues',
+        'Network services issues: STP, VLAN assignment, ACLs, routing and address pool exhaustion',
+        'Performance issues: congestion, latency, packet loss and wireless interference',
+        'Tools: protocol analyzers, command line tools, cable testers and Wi-Fi analyzers'
+      ]
+    }
   },
   'comptia-pentest-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/pentest/',
@@ -702,7 +1073,43 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Vulnerability Discovery and Analysis', weight: 17 },
       { name: 'Attacks and Exploits', weight: 35 },
       { name: 'Post-exploitation and Lateral Movement', weight: 14 }
-    ]
+    ],
+    topics: {
+      'Engagement Management': [
+        'Pre-engagement activities',
+        'Collaboration and communication activities',
+        'Compare and contrast testing frameworks and methodologies',
+        'Components of a penetration test report',
+        'Analyze findings and recommend appropriate remediation within a report'
+      ],
+      'Reconnaissance and Enumeration': [
+        'Apply information gathering techniques',
+        'Apply enumeration techniques',
+        'Modify scripts for reconnaissance and enumeration',
+        'Use the appropriate tools for reconnaissance and enumeration'
+      ],
+      'Vulnerability Discovery and Analysis': [
+        'Conduct vulnerability discovery using various techniques',
+        'Analyze output from reconnaissance, scanning and enumeration phases',
+        'Physical security concepts'
+      ],
+      'Attacks and Exploits': [
+        'Analyze output to prioritize and prepare attacks',
+        'Perform network attacks using the appropriate tools',
+        'Perform authentication attacks using the appropriate tools',
+        'Perform host-based attacks using the appropriate tools',
+        'Perform web application attacks using the appropriate tools',
+        'Perform cloud-based attacks using the appropriate tools',
+        'Perform wireless and social engineering attacks',
+        'Attacks against specialized systems and scripting to automate attacks'
+      ],
+      'Post-exploitation and Lateral Movement': [
+        'Establish and maintain persistence',
+        'Move laterally throughout the environment',
+        'Concepts related to staging and exfiltration',
+        'Cleanup and restoration activities'
+      ]
+    }
   },
   'comptia-project-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/project/',
@@ -712,7 +1119,38 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Project Life Cycle Phases', weight: 30 },
       { name: 'Tools and Documentation', weight: 19 },
       { name: 'Basics of IT and Governance', weight: 18 }
-    ]
+    ],
+    topics: {
+      'Project Management Concepts': [
+        'Project characteristics, methodologies and frameworks used in IT projects',
+        'Compare and contrast Agile vs. Waterfall concepts',
+        'Apply the change control process throughout the project life cycle',
+        'Perform risk management and issue management activities',
+        'Schedule development and management activities and techniques',
+        'Quality management and performance management concepts',
+        'Communication management concepts and effective meeting management techniques',
+        'Team and resource management, procurement and vendor selection'
+      ],
+      'Project Life Cycle Phases': [
+        'Value of artifacts in the discovery/concept preparation phase',
+        'Activities during the project initiation phase',
+        'Activities during the project planning phase',
+        'Activities during the project execution phase',
+        'Activities performed during the closing phase'
+      ],
+      'Tools and Documentation': [
+        'Use the appropriate tools throughout the project life cycle',
+        'Compare and contrast project management productivity tools',
+        'Analyze quality and performance charts to inform project decisions'
+      ],
+      'Basics of IT and Governance': [
+        'Environmental, social and governance (ESG) factors in project management',
+        'Information security concepts impacting project management',
+        'Compliance and privacy considerations impacting project management',
+        'Basic IT concepts relevant to IT project management',
+        'Operational change-control processes during an IT project'
+      ]
+    }
   },
   'comptia-security-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/security/v7/',
@@ -723,7 +1161,46 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security Architecture', weight: 18 },
       { name: 'Security Operations', weight: 28 },
       { name: 'Security Program Management and Oversight', weight: 20 }
-    ]
+    ],
+    topics: {
+      'General Security Concepts': [
+        'Compare and contrast various types of security controls',
+        'Fundamental security concepts',
+        'Importance of change management processes and the impact to security',
+        'Importance of using appropriate cryptographic solutions'
+      ],
+      'Threats, Vulnerabilities, and Mitigations': [
+        'Common threat actors and motivations',
+        'Common threat vectors and attack surfaces',
+        'Various types of vulnerabilities',
+        'Analyze indicators of malicious activity',
+        'Purpose of mitigation techniques used to secure the enterprise'
+      ],
+      'Security Architecture': [
+        'Security implications of different architecture models',
+        'Apply security principles to secure enterprise infrastructure',
+        'Concepts and strategies to protect data',
+        'Importance of resilience and recovery in security architecture'
+      ],
+      'Security Operations': [
+        'Apply common security techniques to computing resources',
+        'Security implications of hardware, software and data asset management',
+        'Activities associated with vulnerability management',
+        'Security alerting and monitoring concepts and tools',
+        'Modify enterprise capabilities to enhance security',
+        'Implement and maintain identity and access management',
+        'Importance of automation and orchestration in secure operations',
+        'Incident response activities and using data sources to support an investigation'
+      ],
+      'Security Program Management and Oversight': [
+        'Elements of effective security governance',
+        'Elements of the risk management process',
+        'Third-party risk assessment and management processes',
+        'Elements of effective security compliance',
+        'Types and purposes of audits and assessments',
+        'Implement security awareness practices'
+      ]
+    }
   },
   'comptia-securityx': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/securityx/',
@@ -733,7 +1210,40 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security Architecture', weight: 27 },
       { name: 'Security Engineering', weight: 31 },
       { name: 'Security Operations', weight: 22 }
-    ]
+    ],
+    topics: {
+      'Governance, Risk, and Compliance': [
+        'Implement the appropriate governance components for security requirements',
+        'Perform risk management activities',
+        'How compliance affects information security strategies',
+        'Perform threat-modeling activities',
+        'Information security challenges of artificial intelligence (AI) adoption'
+      ],
+      'Security Architecture': [
+        'Analyze requirements to design resilient systems',
+        'Implement security early in the systems life cycle and throughout later stages',
+        'Integrate appropriate controls in the design of a secure architecture',
+        'Apply security concepts to access, authentication and authorization system design',
+        'Securely implement cloud capabilities in an enterprise environment',
+        'Integrate Zero Trust concepts into system architecture design'
+      ],
+      'Security Engineering': [
+        'Troubleshoot common IAM component issues in an enterprise environment',
+        'Analyze requirements to enhance the security of endpoints and servers',
+        'Troubleshoot complex network infrastructure security issues',
+        'Implement hardware security technologies and techniques',
+        'Secure specialized and legacy systems against threats',
+        'Use automation to secure the enterprise',
+        'Importance of advanced cryptographic concepts',
+        'Apply the appropriate cryptographic use case and/or technique'
+      ],
+      'Security Operations': [
+        'Analyze data to enable monitoring and response activities',
+        'Analyze vulnerabilities and attacks, and recommend ways to reduce the attack surface',
+        'Apply threat-hunting and threat intelligence concepts',
+        'Analyze data and artifacts in support of incident response activities'
+      ]
+    }
   },
   'comptia-server-plus': {
     sourceUrl: 'https://www.comptia.org/en-us/certifications/server/',
@@ -743,7 +1253,42 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Server Administration', weight: 30 },
       { name: 'Security and Disaster Recovery', weight: 24 },
       { name: 'Troubleshooting', weight: 28 }
-    ]
+    ],
+    topics: {
+      'Server Hardware Installation and Management': [
+        'Install physical hardware',
+        'Deploy and manage storage',
+        'Perform server hardware maintenance'
+      ],
+      'Server Administration': [
+        'Install server operating systems',
+        'Configure servers to use network infrastructure services',
+        'Configure and maintain server functions and features',
+        'Key concepts of high availability for servers',
+        'Purpose and operation of virtualization',
+        'Scripting basics for server administration',
+        'Importance of asset management and documentation',
+        'Licensing concepts'
+      ],
+      'Security and Disaster Recovery': [
+        'Data security concepts',
+        'Physical security concepts',
+        'Identity and access management for server administration',
+        'Data security risks and mitigation strategies',
+        'Apply server hardening methods',
+        'Proper server decommissioning concepts',
+        'Importance of backups and restores',
+        'Importance of disaster recovery'
+      ],
+      'Troubleshooting': [
+        'Troubleshooting theory and methodology',
+        'Troubleshoot common hardware failures',
+        'Troubleshoot storage problems',
+        'Troubleshoot common OS and software problems',
+        'Troubleshoot network connectivity issues',
+        'Troubleshoot security problems'
+      ]
+    }
   },
   'docker-dca': {
     sourceUrl: 'https://training.mirantis.com/certification/dca-certification-exam/',
@@ -2523,7 +3068,37 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Describe the capabilities of Microsoft Entra', weight: 28 },
       { name: 'Describe the capabilities of Microsoft security solutions', weight: 38 },
       { name: 'Describe the capabilities of Microsoft compliance solutions', weight: 22 }
-    ]
+    ],
+    topics: {
+      'Describe the concepts of security, compliance, and identity': [
+        'Describe the shared responsibility model',
+        'Describe defense-in-depth',
+        'Describe the Zero Trust model',
+        'Describe encryption and hashing',
+        'Describe Governance, Risk, and Compliance (GRC) concepts',
+        'Define identity as the primary security perimeter',
+        'Define authentication and authorization',
+        'Describe identity providers, directory services, Active Directory and federation'
+      ],
+      'Describe the capabilities of Microsoft Entra': [
+        'Describe function and identity types of Microsoft Entra ID',
+        'Describe authentication capabilities of Microsoft Entra ID',
+        'Describe access management capabilities of Microsoft Entra ID',
+        'Describe identity protection and governance capabilities of Microsoft Entra'
+      ],
+      'Describe the capabilities of Microsoft security solutions': [
+        'Describe core infrastructure security services in Azure',
+        'Describe security management capabilities of Azure',
+        'Describe capabilities of Microsoft Sentinel',
+        'Describe threat protection with Microsoft Defender XDR'
+      ],
+      'Describe the capabilities of Microsoft compliance solutions': [
+        'Describe Microsoft Service Trust Portal and privacy principles',
+        'Describe compliance management capabilities of Microsoft Purview',
+        'Describe information protection, data lifecycle management and data governance in Purview',
+        'Describe insider risk, eDiscovery, and audit capabilities in Microsoft Purview'
+      ]
+    }
   },
   'pmi-acp': {
     sourceUrl: 'https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf',
@@ -2536,7 +3111,47 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Adaptive Planning', weight: 12 },
       { name: 'Problem Detection and Resolution', weight: 10 },
       { name: 'Continuous Improvement', weight: 9 }
-    ]
+    ],
+    topics: {
+      'Agile Principles and Mindset': [
+        'Experiment early: build increments to validate the solution and market need',
+        'Embrace an agile mindset: use agile values, principles and complexity models',
+        'Promote agile mindset principles and practices across the team',
+        'Embrace change: promote a growth mindset and adapt to changing requirements'
+      ],
+      'Value-Driven Delivery': [
+        'Manage increments aligned with business priorities and measure value delivered',
+        'Manage value delivery: define value and ensure targeted results are achieved',
+        'Optimize flow: limit work in progress and shield the team from interruptions'
+      ],
+      'Stakeholder Engagement': [
+        'Shorten feedback loops by including stakeholders from day one',
+        'Promote a shared vision and purpose with all stakeholders',
+        'Build transparency with information radiators and communication strategies',
+        'Seek early feedback and incorporate stakeholder input regularly',
+        'Actively engage customers and validate deliverables against acceptance criteria'
+      ],
+      'Team Performance': [
+        'Promote a collaborative team environment and working agreements',
+        'Empower teams through trust, coaching, mentoring and emotional intelligence',
+        'Facilitate conflict management with a collaborative approach'
+      ],
+      'Adaptive Planning': [
+        'Refine the product backlog: clarify, prioritize, decompose and size items',
+        'Visualize work and keep progress data continuously shared',
+        'Manage agile metrics and use their insights for decision making'
+      ],
+      'Problem Detection and Resolution': [
+        'Foster psychological safety and a no-blame culture',
+        'Facilitate problem resolution using root cause analysis',
+        'Manage impediments and risk proactively and prevent recurrence'
+      ],
+      'Continuous Improvement': [
+        'Perform continuous improvements driven by metrics and feedback',
+        'Promote knowledge sharing through lessons learned and communities of practice',
+        'Recognize and eliminate waste across the end-to-end value flow'
+      ]
+    }
   },
   'pmi-capm': {
     sourceUrl: 'https://www.pmi.org/certifications/certified-associate-capm',
@@ -2546,7 +3161,36 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Predictive, Plan-Based Methodologies', weight: 17 },
       { name: 'Agile Frameworks/Methodologies', weight: 20 },
       { name: 'Business Analysis Frameworks', weight: 27 }
-    ]
+    ],
+    topics: {
+      'Project Management Fundamentals and Core Concepts': [
+        'Demonstrate an understanding of the various project life cycles and processes',
+        'Demonstrate an understanding of project management planning',
+        'Demonstrate an understanding of project roles and responsibilities',
+        'Determine how to follow and execute planned strategies or frameworks',
+        'Demonstrate an understanding of common problem-solving tools and techniques'
+      ],
+      'Predictive, Plan-Based Methodologies': [
+        'Explain when it is appropriate to use a predictive, plan-based approach',
+        'Demonstrate an understanding of a project management plan schedule',
+        'Determine how to document project controls of predictive, plan-based projects'
+      ],
+      'Agile Frameworks/Methodologies': [
+        'Explain when it is appropriate to use an adaptive approach',
+        'Determine how to plan project iterations',
+        'Determine how to document project controls for an adaptive project',
+        'Explain the components of an adaptive plan',
+        'Determine how to prepare and execute task management steps'
+      ],
+      'Business Analysis Frameworks': [
+        'Demonstrate an understanding of business analysis (BA) roles and responsibilities',
+        'Determine how to conduct stakeholder communication',
+        'Determine how to gather requirements',
+        'Demonstrate an understanding of product roadmaps',
+        'Determine how project methodologies influence business analysis processes',
+        'Validate requirements through product delivery'
+      ]
+    }
   },
   'pmi-pmp': {
     sourceUrl: 'https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/new-pmp-examination-content-outline-2026.pdf',
@@ -2555,7 +3199,39 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'People', weight: 33 },
       { name: 'Process', weight: 41 },
       { name: 'Business Environment', weight: 26 }
-    ]
+    ],
+    topics: {
+      'People': [
+        'Develop a common vision',
+        'Manage conflicts',
+        'Lead the project team',
+        'Engage stakeholders',
+        'Align stakeholder expectations',
+        'Manage stakeholder expectations',
+        'Help ensure knowledge transfer',
+        'Plan and manage communication'
+      ],
+      'Process': [
+        'Develop an integrated project management plan and plan delivery',
+        'Develop and manage project scope',
+        'Help ensure value-based delivery',
+        'Plan and manage resources and procurement',
+        'Plan and manage finance and schedule',
+        'Plan and optimize quality of products/deliverables',
+        'Evaluate project status',
+        'Manage project closure'
+      ],
+      'Business Environment': [
+        'Define and establish project governance',
+        'Plan and manage project compliance',
+        'Manage and control changes',
+        'Remove impediments and manage issues',
+        'Plan and manage risk',
+        'Continuous improvement',
+        'Support organizational change',
+        'Evaluate external business environment changes'
+      ]
+    }
   },
   'pmi-rmp': {
     sourceUrl: 'https://www.pmi.org/certifications/risk-management-rmp',
@@ -2566,13 +3242,84 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Risk Analysis', weight: 23 },
       { name: 'Risk Response', weight: 13 },
       { name: 'Monitor and Close Risks', weight: 19 }
-    ]
+    ],
+    topics: {
+      'Risk Strategy and Planning': [
+        'Perform a preliminary document analysis',
+        'Assess project environment for threats and opportunities',
+        'Confirm risk thresholds based on risk appetites',
+        'Establish risk management strategy',
+        'Document the risk management plan',
+        'Plan and lead risk management activities with stakeholders'
+      ],
+      'Risk Identification': [
+        'Conduct risk identification exercises',
+        'Examine assumption and constraint analyses',
+        'Document risk triggers and thresholds based on context/environment',
+        'Develop risk register'
+      ],
+      'Risk Analysis': [
+        'Perform qualitative analysis',
+        'Perform quantitative analysis',
+        'Identify threats and opportunities'
+      ],
+      'Risk Response': [
+        'Determine the appropriate risk response strategy (avoid, accept, mitigate, enhance)',
+        'Decide time-bound risk response actions and identify action owners',
+        'Assess and communicate the effectiveness of risk response strategies',
+        'Execute the risk response and contingency plans',
+        'Encourage stakeholders to provide feedback on the risk response',
+        'Evaluate and react to secondary and residual risks from the response'
+      ],
+      'Monitor and Close Risks': [
+        'Gather and analyze performance data',
+        'Monitor residual and secondary risks',
+        'Provide information required to update relevant project documents',
+        'Monitor project risk levels'
+      ]
+    }
   },
   'scrum-org-psm-i': {
     aliases: {
       'Scrum Artifacts & Definition of Done': 'Scrum Artifacts',
       'Scrum Team & Accountabilities': 'Scrum Team',
       'Scrum Framework & Theory': 'Scrum Theory'
+    },
+    topics: {
+      'Scrum Theory': [
+        'Empiricism and lean thinking',
+        'Transparency',
+        'Inspection',
+        'Adaptation',
+        'Scrum Values: commitment, focus, openness, respect and courage'
+      ],
+      'Scrum Team': [
+        'A small, cross-functional, self-managing team with no sub-teams or hierarchy',
+        'Developers accountabilities',
+        'Product Owner accountabilities',
+        'Scrum Master accountabilities',
+        'Self-managing teams, facilitation and coaching'
+      ],
+      'Scrum Events': [
+        'The Sprint as the container for all other events',
+        'Sprint Planning',
+        'Daily Scrum',
+        'Sprint Review',
+        'Sprint Retrospective'
+      ],
+      'Scrum Artifacts': [
+        'Product Backlog and its commitment, the Product Goal',
+        'Sprint Backlog and its commitment, the Sprint Goal',
+        'Increment and its commitment, the Definition of Done'
+      ],
+      'Done': [
+        'The Definition of Done as the quality standard for the Increment',
+        'An Increment is born when a Product Backlog item meets the Definition of Done',
+        'Done creates transparency about the work completed',
+        'Work not meeting the Definition of Done cannot be released or shown at Sprint Review',
+        'Organizational Definition of Done standards versus team-created ones',
+        'Multiple Scrum Teams on one product share the same Definition of Done'
+      ]
     }
   },
   'tableau-desktop-specialist': {
@@ -2583,7 +3330,29 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Exploring and Analyzing Data', weight: 37 },
       { name: 'Sharing Insights', weight: 25 },
       { name: 'Understanding Tableau Concepts', weight: 15 }
-    ]
+    ],
+    topics: {
+      'Connecting to and Preparing Data': [
+        'Create live connections and extracts',
+        'Create and manage the data model',
+        'Manage data properties'
+      ],
+      'Exploring and Analyzing Data': [
+        'Create basic charts',
+        'Organize data and apply filters',
+        'Apply analytics to a worksheet'
+      ],
+      'Sharing Insights': [
+        'Format view for presentation',
+        'Create and modify a dashboard',
+        'View and share workbook data'
+      ],
+      'Understanding Tableau Concepts': [
+        'Understand dimensions and measures',
+        'Understand discrete and continuous fields',
+        'Understand aggregations'
+      ]
+    }
   },
   'tableau-tcda': {
     sourceUrl: 'https://help.salesforce.com/s/articleView?id=005298984&language=en_US&type=1',
@@ -2593,7 +3362,36 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Explore and Analyze Data', weight: 41 },
       { name: 'Create Content', weight: 26 },
       { name: 'Publish and Manage Content', weight: 9 }
-    ]
+    ],
+    topics: {
+      'Connect to and Transform Data': [
+        'Connect to data sources',
+        'Prepare data for analysis',
+        'Perform data transformation in Tableau Prep',
+        'Customize fields'
+      ],
+      'Explore and Analyze Data': [
+        'Create calculated fields',
+        'Create table calculations',
+        'Create and use filters',
+        'Create parameters to enable interactivity',
+        'Structure the data',
+        'Map data geographically',
+        'Summarize, model, and customize data by using the Analytics pane',
+        'Create Level of Detail calculations'
+      ],
+      'Create Content': [
+        'Create charts',
+        'Create dashboards and stories',
+        'Add interactivity to dashboards',
+        'Format workbooks, worksheets, and dashboards'
+      ],
+      'Publish and Manage Content': [
+        'Publish content',
+        'Schedule data updates',
+        'Manage published workbooks'
+      ]
+    }
   },
   'elastic-certified-engineer': {
     examPageUrl: 'https://www.elastic.co/training/elastic-certified-engineer-exam',
@@ -2797,6 +3595,222 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
         'Describe the uses of the transit secrets engine',
         'Encrypt and decrypt secrets',
         'Rotate the encryption key'
+      ]
+    }
+  },
+  'oracle-java-se-17-1z0-829': {
+    topics: {
+      'Handling Date, Time, Text, Numeric and Boolean Values': [
+        'Use primitives and wrapper classes, including the Math API, to evaluate expressions',
+        'Apply parentheses, type promotion and casting in arithmetic and boolean expressions',
+        'Manipulate text, including text blocks, using String and StringBuilder classes',
+        'Manipulate date, time, duration, period, instant and time-zone objects with Date-Time API'
+      ],
+      'Controlling Program Flow': [
+        'Create if/else program flow control constructs',
+        'Use switch statements and switch expressions',
+        'Create loops',
+        'Use break and continue statements'
+      ],
+      'Java Object-Oriented Approach': [
+        'Declare and instantiate objects, including nested classes, and explain the object life-cycle',
+        'Create classes and records with fields, methods, constructors and initializers',
+        'Implement overloading, including var-arg methods',
+        'Apply variable scope, local variable type inference, encapsulation and immutability',
+        'Implement inheritance, including abstract and sealed classes, and override methods',
+        'Implement polymorphism, type casting, instanceof and pattern matching',
+        'Create and use interfaces, functional interfaces, and private, static and default methods',
+        'Create and use enumerations with fields, methods and constructors'
+      ],
+      'Exception Handling': [
+        'Handle exceptions using try/catch/finally blocks',
+        'Use try-with-resources',
+        'Use multi-catch blocks',
+        'Create and use custom exceptions'
+      ],
+      'Working with Arrays and Collections': [
+        'Create Java arrays',
+        'Create List, Set, Map and Deque collections',
+        'Add, remove, update, retrieve and sort elements',
+        'Use generics, including wildcards'
+      ],
+      'Working with Streams and Lambda Expressions': [
+        'Use object and primitive streams to supply, filter, map, consume and sort data',
+        'Use lambda expressions implementing functional interfaces',
+        'Perform decomposition, concatenation and reduction on streams',
+        'Perform grouping and partitioning on sequential and parallel streams'
+      ],
+      'Java Platform Module System': [
+        'Define modules and their dependencies',
+        'Expose module content, including for reflection',
+        'Define services, producers and consumers',
+        'Compile Java code and produce modular and non-modular JARs',
+        'Create runtime images',
+        'Implement migration using unnamed and automatic modules'
+      ],
+      'Concurrency': [
+        'Create worker threads using Runnable and Callable and manage the thread lifecycle',
+        'Use Executor services and the concurrent API',
+        'Develop thread-safe code using locking mechanisms and the concurrent API',
+        'Process Java collections concurrently, including with parallel streams'
+      ],
+      'Database Applications with JDBC': [
+        'Create database connections using the JDBC API',
+        'Create and execute basic, prepared and callable statements',
+        'Process query results',
+        'Control transactions'
+      ],
+      'Localization': [
+        'Implement localization using locales',
+        'Use resource bundles',
+        'Parse and format messages, dates, times and numbers',
+        'Format currency and percentage values'
+      ]
+    }
+  },
+  'oracle-oci-foundations': {
+    topics: {
+      'OCI Introduction': [
+        'Explore OCI Distributed Cloud',
+        'Understand OCI Regions and Availability Domains',
+        'Learn OCI basics and architecture',
+        'Discuss OCI pricing model',
+        'Outline OCI cost management tools',
+        'Use tagging and understand support rewards'
+      ],
+      'OCI Identity and Access Management': [
+        'Describe OCI Identity and Access Management services',
+        'Understand compartments',
+        'Understand authentication and authorization',
+        'Set up a tenancy'
+      ],
+      'Networking': [
+        'Explain OCI Networking services',
+        'Understand Virtual Cloud Network (VCN) basics',
+        'Understand VCN routing',
+        'Understand VCN security',
+        'Implement load balancers'
+      ],
+      'Compute': [
+        'Explain OCI Compute services',
+        'Understand compute instance basics',
+        'Understand scaling strategies',
+        'Explore container workloads with OKE',
+        'Explore serverless functions using Oracle Functions'
+      ],
+      'Storage': [
+        'Explain OCI Storage services',
+        'Understand Object Storage',
+        'Understand Block Volume',
+        'Understand File Storage'
+      ],
+      'Security and Observability': [
+        'Understand OCI Shared Security model',
+        'Explain OCI Security services',
+        'Understand Cloud Guard',
+        'Understand Security Zones',
+        'Understand encryption and Vault services'
+      ]
+    }
+  },
+  'redhat-rhcsa-ex200': {
+    topics: {
+      'Understand and Use Essential Tools': [
+        'Access a shell prompt and issue commands with correct syntax',
+        'Use input-output redirection, grep and regular expressions to analyze text',
+        'Access remote systems using SSH and switch users in multi-user targets',
+        'Archive, compress, unpack and uncompress files using tar, gzip and bzip2',
+        'Create, edit, copy, move and delete files and directories; create hard and soft links',
+        'List, set and change standard ugo/rwx permissions',
+        'Locate, read and use system documentation including man, info and /usr/share/doc',
+        'Create simple shell scripts using conditionals, loops and script inputs'
+      ],
+      'Operate Running Systems': [
+        'Boot, reboot and shut down a system normally',
+        'Boot systems into different targets manually',
+        'Interrupt the boot process in order to gain access to a system',
+        'Identify CPU/memory intensive processes and kill processes',
+        'Adjust process scheduling and manage tuning profiles',
+        'Locate and interpret system log files and journals, and preserve journals',
+        'Start, stop and check the status of network services',
+        'Securely transfer files between systems'
+      ],
+      'Configure Local Storage': [
+        'List, create and delete partitions on GPT disks',
+        'Create and remove physical volumes',
+        'Assign physical volumes to volume groups',
+        'Create and delete logical volumes',
+        'Configure systems to mount file systems at boot by UUID or label',
+        'Add new partitions, logical volumes and swap to a system non-destructively'
+      ],
+      'Create and Configure File Systems': [
+        'Create, mount, unmount and use VFAT, ext4 and XFS file systems',
+        'Mount and unmount network file systems using NFS',
+        'Configure autofs',
+        'Extend existing logical volumes',
+        'Diagnose and correct file permission problems'
+      ],
+      'Deploy, Configure, and Maintain Systems': [
+        'Schedule tasks using at, cron and systemd timer units',
+        'Start and stop services and configure services to start automatically at boot',
+        'Configure systems to boot into a specific target automatically',
+        'Configure time service clients',
+        'Install and update software packages from Red Hat CDN, a remote repository or local files',
+        'Configure RPM and Flatpak repositories and install or remove packages',
+        'Modify the system bootloader',
+        'Configure IPv4/IPv6 addresses and hostname resolution'
+      ],
+      'Manage Users and Groups': [
+        'Create, delete and modify local user accounts',
+        'Change passwords and adjust password aging for local user accounts',
+        'Create, delete and modify local groups and group memberships',
+        'Configure privileged access'
+      ],
+      'Manage Security': [
+        'Configure firewall settings using firewall-cmd/firewalld',
+        'Manage default file permissions',
+        'Configure key-based authentication for SSH',
+        'Set enforcing and permissive modes for SELinux',
+        'List and identify SELinux file and process context',
+        'Restore default file contexts',
+        'Manage SELinux port labels',
+        'Use Boolean settings to modify system SELinux settings'
+      ]
+    }
+  },
+  'scrum-org-pspo-i': {
+    topics: {
+      'Scrum Framework': [
+        'Scrum Team accountabilities, including the Product Owner',
+        'Scrum Events and their purpose',
+        'Scrum Artifacts and their commitments',
+        'Definition of Done',
+        'Self-managing teams'
+      ],
+      'Product Value and Vision': [
+        'Product Vision: the value the product delivers and to whom',
+        'Product Value: meeting customer needs and value-based decisions',
+        'Aligning the Product Vision with the organization\'s Business Strategy',
+        'Inspecting and adapting business strategy from Increment feedback'
+      ],
+      'Product Backlog Management': [
+        'Ordering and adjusting Product Backlog items to maximize value',
+        'Continuous Product Backlog refinement',
+        'The Product Goal as the Product Backlog commitment',
+        'Forecasting and release planning',
+        'Small, incremental and frequent releases rather than big-bang launches'
+      ],
+      'Stakeholders and Customers': [
+        'Collaborating with stakeholders and customers on the Product Backlog',
+        'Understanding the challenges key stakeholders face',
+        'Providing transparency suited to stakeholder needs',
+        'Inspecting outcomes with stakeholders at the Sprint Review'
+      ],
+      'Empiricism and Agility': [
+        'Empiricism and lean thinking',
+        'Transparency, inspection and adaptation',
+        'Flexibility to respond to change',
+        'Delivering valuable product Increments within 30 days or less'
       ]
     }
   }
