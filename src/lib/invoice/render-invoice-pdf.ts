@@ -26,6 +26,9 @@ export type RenderInvoiceInput = {
   reason?: string | null;
 };
 
+// Invoice dates are Singapore dates, not UTC (a 1am SGT payment is still that day).
+const sgDate = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' });
+
 export async function renderInvoicePdf({ invoice, lines, orderNumber, original, reason }: RenderInvoiceInput): Promise<Buffer> {
   const { doc, page, fonts } = await newA4Doc();
 
@@ -46,10 +49,10 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber, original, 
   drawText(page, fonts, invoice.number, A4.width - 200, y - 14, { size: 13, bold: true });
   y -= 36;
   drawLabel(page, fonts, 'ISSUE DATE', A4.width - 200, y);
-  drawText(page, fonts, invoice.issueDate.toISOString().slice(0, 10), A4.width - 200, y - 14, { size: 11 });
+  drawText(page, fonts, sgDate(invoice.issueDate), A4.width - 200, y - 14, { size: 11 });
   y -= 36;
   drawLabel(page, fonts, 'STATUS', A4.width - 200, y);
-  drawText(page, fonts, isPaid ? 'PAID' : invoice.status, A4.width - 200, y - 14, {
+  drawText(page, fonts, isPaid ? 'PAID' : invoice.status.replace('_', ' '), A4.width - 200, y - 14, {
     size: 11,
     bold: true,
     color: isCredit ? COLORS.amber : isVoid ? COLORS.red : COLORS.green
@@ -62,7 +65,7 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber, original, 
   if (isCredit && original) {
     y -= 36;
     drawLabel(page, fonts, 'ORIGINAL INVOICE', A4.width - 200, y);
-    drawText(page, fonts, `${original.number} (${original.issueDate.toISOString().slice(0, 10)})`, A4.width - 200, y - 14, {
+    drawText(page, fonts, `${original.number} (${sgDate(original.issueDate)})`, A4.width - 200, y - 14, {
       size: 11
     });
   }
@@ -162,7 +165,7 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber, original, 
     drawText(
       page,
       fonts,
-      `Paid in full on ${invoice.issueDate.toISOString().slice(0, 10)}. Thank you for your purchase.`,
+      `Paid in full on ${sgDate(invoice.issueDate)}. Thank you for your purchase.`,
       36,
       footerY,
       { size: 9, color: COLORS.muted }

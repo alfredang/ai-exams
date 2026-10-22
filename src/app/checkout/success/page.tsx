@@ -50,7 +50,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Sear
           <div className="mt-6 rounded-lg border border-slate-200 p-4 text-left text-sm dark:border-slate-700">
             <div className="grid grid-cols-2 gap-y-2">
               <div className="text-slate-500 dark:text-slate-400">Order</div>
-              <div className="text-right font-mono text-xs">{order.id}</div>
+              <div className="text-right font-mono text-xs">{order.number ?? order.id}</div>
               {productName && (
                 <>
                   <div className="text-slate-500 dark:text-slate-400">Product</div>
