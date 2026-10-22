@@ -613,6 +613,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security', weight: 20 },
       { name: 'Automation', weight: 15 }
     ],
+    examPageUrl: 'https://www.cisco.com/site/us/en/learn/training-certifications/exams/encor.html',
+    studyGuideUrl: 'https://learningcontent.cisco.com/documents/marketing/exam-topics/350-401-ENCORE-v1.2.pdf',
     topics: {
       'Architecture': [
         'Enterprise network design principles: 2-tier, 3-tier, fabric, cloud and high availability',
@@ -666,6 +668,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Endpoint Protection and Detection', weight: 15 },
       { name: 'Secure Network Access, Visibility, and Enforcement', weight: 15 }
     ],
+    examPageUrl: 'https://www.cisco.com/site/us/en/learn/training-certifications/exams/scor.html',
+    studyGuideUrl: 'https://learningcontent.cisco.com/documents/marketing/exam-topics/350-701-SCOR-v2.0.pdf',
     topics: {
       'Security Concepts': [
         'Attack threats against on-premises, hybrid and cloud environments',
@@ -735,6 +739,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Infrastructure and Automation', weight: 20 },
       { name: 'Network Fundamentals', weight: 15 }
     ],
+    examPageUrl: 'https://www.cisco.com/site/us/en/learn/training-certifications/exams/ccnaauto.html',
+    studyGuideUrl: 'https://learningcontent.cisco.com/documents/marketing/exam-topics/200-901-CCNAAUTO_v.1.1.pdf',
     topics: {
       'Software Development and Design': [
         'Compare data formats: XML, JSON and YAML',
@@ -809,6 +815,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security', weight: 14 },
       { name: 'Software and Operational Troubleshooting', weight: 22 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/a/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-a-220-1101-exam-objectives-(7-0).pdf',
     topics: {
       'Hardware': [
         'Cable types and their connectors, features and purposes',
@@ -881,6 +889,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security', weight: 21 },
       { name: 'Troubleshooting', weight: 13 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/cloud/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-cloud-cv0-004-exam-objectives-(2-0).pdf',
     topics: {
       'Cloud Architecture and Design': [
         'Use the appropriate cloud service model',
@@ -934,6 +944,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Visualization', weight: 20 },
       { name: 'Data Governance, Quality, and Controls', weight: 14 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/data/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-data-da0-001-exam-objectives-(4-0).pdf',
     topics: {
       'Data Concepts and Environments': [
         'Basic concepts of data schemas and dimensions',
@@ -975,6 +987,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Scripting, Containers, and Automation', weight: 17 },
       { name: 'Troubleshooting', weight: 22 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/linux/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-linux-xk0-005-exam-objectives-(3-0).pdf',
     topics: {
       'System Management': [
         'Linux fundamentals',
@@ -1018,49 +1032,43 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Network Security', weight: 14 },
       { name: 'Network Troubleshooting', weight: 24 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/network/',
+    studyGuideUrl: 'https://lecbyo.files.cmp.optimizely.com/download/35a7403ab73211ef9dcda6f347fbf652',
     topics: {
       'Networking Concepts': [
-        'OSI model layers',
-        'Networking appliances: routers, switches, firewalls, IDS/IPS, load balancers and proxies',
-        'Cloud concepts: NFV, VPC, security groups, cloud gateways, deployment and service models',
-        'Ports and protocols such as SSH, DNS, DHCP, HTTPS, SNMP, LDAP and RDP',
-        'Traffic types: unicast, multicast, anycast and broadcast',
-        'Transmission media, transceivers and connectors',
-        'Network topologies: mesh, star, spine and leaf, three-tier and collapsed core',
-        'IPv4 addressing: public vs. private, APIPA, loopback and subnetting (VLSM, CIDR)'
+        'Concepts related to the OSI reference model',
+        'Compare and contrast networking appliances, applications and functions',
+        'Cloud concepts and connectivity options',
+        'Common networking ports, protocols, services and traffic types',
+        'Compare and contrast transmission media and transceivers',
+        'Network topologies, architectures and types',
+        'Use appropriate IPv4 network addressing',
+        'Evolving use cases for modern network environments'
       ],
       'Network Implementation': [
-        'Routing technologies: static and dynamic routing (BGP, EIGRP, OSPF), NAT, PAT and FHRP',
-        'Switching technologies: VLANs, interface configuration, spanning tree, MTU, jumbo frames',
-        'Wireless devices: channels, frequencies, SSIDs, encryption, authentication and APs',
-        'Physical installations: installation implications, power and environmental factors'
+        'Characteristics of routing technologies',
+        'Configure switching technologies and features',
+        'Select and configure wireless devices and technologies',
+        'Important factors of physical installations'
       ],
       'Network Operations': [
-        'Documentation: diagrams, asset inventory, IPAM, SLAs and wireless surveys',
-        'Life-cycle management: EOL, EOS, software management and decommissioning',
-        'Change management: request process tracking',
-        'Configuration management: production, backup and baseline configurations',
-        'Network monitoring: SNMP, flow data, packet capture, log aggregation, port mirroring',
-        'Disaster recovery: RPO, RTO, MTTR, MTBF, cold/warm/hot sites and testing',
-        'Network services: DHCP, SLAAC, DNS, NTP, PTP and NTS',
-        'Access and management: VPNs, SSH, GUI, API and console'
+        'Purpose of organizational processes and procedures',
+        'Use network monitoring technologies',
+        'Disaster recovery (DR) concepts',
+        'Implement IPv4 and IPv6 network services',
+        'Compare and contrast network access and management methods'
       ],
       'Network Security': [
-        'Logical security: encryption, PKI, IAM, MFA, SSO, RADIUS, TACACS+ and least privilege',
-        'Physical security: cameras and locks',
-        'Deception technologies: honeypot and honeynet',
-        'Security terminology: risk, vulnerability, exploit, threat and the CIA triad',
-        'Audits and compliance: data locality, PCI DSS and GDPR',
-        'Network segmentation: IoT, IIoT, SCADA, ICS, OT, guest and BYOD',
-        'Types of attacks: DoS/DDoS, VLAN hopping, ARP/DNS poisoning, evil twin, social engineering',
-        'Security features and defense: hardening, NAC, ACLs, content filtering, screened subnet'
+        'Importance of basic network security concepts',
+        'Types of attacks and their impact to the network',
+        'Apply network security features, defense techniques and solutions'
       ],
       'Network Troubleshooting': [
-        'Troubleshooting methodology: identify, theorize, test, plan, implement, verify, document',
-        'Cabling and physical interface issues',
-        'Network services issues: STP, VLAN assignment, ACLs, routing and address pool exhaustion',
-        'Performance issues: congestion, latency, packet loss and wireless interference',
-        'Tools: protocol analyzers, command line tools, cable testers and Wi-Fi analyzers'
+        'The troubleshooting methodology',
+        'Troubleshoot common cabling and physical interface issues',
+        'Troubleshoot common issues with network services',
+        'Troubleshoot common performance issues',
+        'Use the appropriate tool or protocol to solve networking issues'
       ]
     }
   },
@@ -1074,6 +1082,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Attacks and Exploits', weight: 35 },
       { name: 'Post-exploitation and Lateral Movement', weight: 14 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/pentest/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-pentest-pt0-003-exam-objectives-(3-0).pdf',
     topics: {
       'Engagement Management': [
         'Pre-engagement activities',
@@ -1120,6 +1130,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Tools and Documentation', weight: 19 },
       { name: 'Basics of IT and Governance', weight: 18 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/project/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-project-pk0-005-exam-objectives-(6-0).pdf',
     topics: {
       'Project Management Concepts': [
         'Project characteristics, methodologies and frameworks used in IT projects',
@@ -1162,6 +1174,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security Operations', weight: 28 },
       { name: 'Security Program Management and Oversight', weight: 20 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/security/v7/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-security-sy0-701-exam-objectives-(6-0).pdf',
     topics: {
       'General Security Concepts': [
         'Compare and contrast various types of security controls',
@@ -1211,6 +1225,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security Engineering', weight: 31 },
       { name: 'Security Operations', weight: 22 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/securityx/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-securityx-cas-005-exam-objectives-(3-0).pdf',
     topics: {
       'Governance, Risk, and Compliance': [
         'Implement the appropriate governance components for security requirements',
@@ -1254,6 +1270,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Security and Disaster Recovery', weight: 24 },
       { name: 'Troubleshooting', weight: 28 }
     ],
+    examPageUrl: 'https://www.comptia.org/en-us/certifications/server/',
+    studyGuideUrl: 'https://comptiacdn.azureedge.net/webcontent/docs/default-source/exam-objectives/comptia-server-sk0-005-exam-objectives-(5-0).pdf',
     topics: {
       'Server Hardware Installation and Management': [
         'Install physical hardware',
@@ -3069,6 +3087,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Describe the capabilities of Microsoft security solutions', weight: 38 },
       { name: 'Describe the capabilities of Microsoft compliance solutions', weight: 22 }
     ],
+    examPageUrl: 'https://learn.microsoft.com/en-us/credentials/certifications/security-compliance-and-identity-fundamentals/',
+    studyGuideUrl: 'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-900',
     topics: {
       'Describe the concepts of security, compliance, and identity': [
         'Describe the shared responsibility model',
@@ -3112,6 +3132,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Problem Detection and Resolution', weight: 10 },
       { name: 'Continuous Improvement', weight: 9 }
     ],
+    examPageUrl: 'https://www.pmi.org/certifications/agile-acp',
+    studyGuideUrl: 'https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf',
     topics: {
       'Agile Principles and Mindset': [
         'Experiment early: build increments to validate the solution and market need',
@@ -3162,6 +3184,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Agile Frameworks/Methodologies', weight: 20 },
       { name: 'Business Analysis Frameworks', weight: 27 }
     ],
+    examPageUrl: 'https://www.pmi.org/certifications/certified-associate-capm',
+    studyGuideUrl: 'https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/capm-exam-content-outline-english.pdf',
     topics: {
       'Project Management Fundamentals and Core Concepts': [
         'Demonstrate an understanding of the various project life cycles and processes',
@@ -3200,6 +3224,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Process', weight: 41 },
       { name: 'Business Environment', weight: 26 }
     ],
+    examPageUrl: 'https://www.pmi.org/certifications/project-management-pmp',
+    studyGuideUrl: 'https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/new-pmp-examination-content-outline-2026.pdf',
     topics: {
       'People': [
         'Develop a common vision',
@@ -3243,6 +3269,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Risk Response', weight: 13 },
       { name: 'Monitor and Close Risks', weight: 19 }
     ],
+    examPageUrl: 'https://www.pmi.org/certifications/risk-management-rmp',
+    studyGuideUrl: 'https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/risk-management-exam-outline2.pdf',
     topics: {
       'Risk Strategy and Planning': [
         'Perform a preliminary document analysis',
@@ -3285,6 +3313,7 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       'Scrum Team & Accountabilities': 'Scrum Team',
       'Scrum Framework & Theory': 'Scrum Theory'
     },
+    examPageUrl: 'https://www.scrum.org/assessments/professional-scrum-master-i-certification',
     topics: {
       'Scrum Theory': [
         'Empiricism and lean thinking',
@@ -3331,6 +3360,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Sharing Insights', weight: 25 },
       { name: 'Understanding Tableau Concepts', weight: 15 }
     ],
+    examPageUrl: 'https://trailhead.salesforce.com/credentials/tableaudesktopfoundations',
+    studyGuideUrl: 'https://help.salesforce.com/s/articleView?id=005298988&type=1',
     topics: {
       'Connecting to and Preparing Data': [
         'Create live connections and extracts',
@@ -3363,6 +3394,8 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
       { name: 'Create Content', weight: 26 },
       { name: 'Publish and Manage Content', weight: 9 }
     ],
+    examPageUrl: 'https://trailhead.salesforce.com/credentials/tableaudataanalyst',
+    studyGuideUrl: 'https://help.salesforce.com/s/articleView?id=005298984&type=1',
     topics: {
       'Connect to and Transform Data': [
         'Connect to data sources',
@@ -3599,6 +3632,7 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
     }
   },
   'oracle-java-se-17-1z0-829': {
+    examPageUrl: 'https://mylearn.oracle.com/ou/exam/java-se-17-developer-1z0-829/105037/110649/170355',
     topics: {
       'Handling Date, Time, Text, Numeric and Boolean Values': [
         'Use primitives and wrapper classes, including the Math API, to evaluate expressions',
@@ -3669,6 +3703,7 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
     }
   },
   'oracle-oci-foundations': {
+    examPageUrl: 'https://mylearn.oracle.com/ou/learning-path/become-an-oci-foundations-associate/163541',
     topics: {
       'OCI Introduction': [
         'Explore OCI Distributed Cloud',
@@ -3714,6 +3749,7 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
     }
   },
   'redhat-rhcsa-ex200': {
+    examPageUrl: 'https://www.redhat.com/en/services/training/ex200-red-hat-certified-system-administrator-rhcsa-exam',
     topics: {
       'Understand and Use Essential Tools': [
         'Access a shell prompt and issue commands with correct syntax',
@@ -3779,6 +3815,7 @@ export const EXAM_BLUEPRINTS: Record<string, ExamBlueprint> = {
     }
   },
   'scrum-org-pspo-i': {
+    examPageUrl: 'https://www.scrum.org/assessments/professional-scrum-product-owner-i-certification',
     topics: {
       'Scrum Framework': [
         'Scrum Team accountabilities, including the Product Owner',
