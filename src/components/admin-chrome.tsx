@@ -56,7 +56,7 @@ const SECTIONS: NavSection[] = [
     items: [
       { href: '/admin-dashboard/exams', label: 'View Exams', icon: BookOpen, exact: true },
       { href: '/admin-dashboard/exams/new', label: 'Create Exam', icon: Sparkles },
-      { href: '/admin-dashboard/bundles', label: 'View Bundled Exams', icon: FileText },
+      { href: '/admin-dashboard/bundles', label: 'Products & Pricing', icon: FileText },
       { href: '/admin-dashboard/vendors', label: 'Vendors', icon: Building2 }
     ]
   },

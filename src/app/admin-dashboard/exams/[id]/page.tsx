@@ -7,6 +7,7 @@ import { Sparkles } from 'lucide-react';
 import { SubmitBusyButton } from '@/components/admin/submit-busy-button';
 import { SeoSavedFlash } from '@/components/admin/seo-saved-flash';
 import { ConfirmButton } from '@/components/admin/confirm-button';
+import { parseDomains, poolStats } from '@/lib/question-pool';
 
 async function requireAdmin() {
   const session = await auth();
@@ -89,6 +90,33 @@ async function updateExam(formData: FormData) {
   });
   revalidatePath(`/admin-dashboard/exams/${id}`);
   revalidatePath('/admin-dashboard/exams');
+}
+
+// Domain weights drive every attempt's draw from the pool. Saving stamps
+// domainsVerifiedAt, so a deploy only overwrites this with a newer official
+// check from src/lib/exam-blueprints.ts.
+async function updateDomainWeights(formData: FormData) {
+  'use server';
+  const session = await auth();
+  const user = session?.user as any;
+  if (user?.role !== 'ADMIN') throw new Error('forbidden');
+  const id = String(formData.get('id'));
+  const exam = await db.exam.findUnique({ where: { id }, select: { domains: true } });
+  if (!exam) return;
+  const before = parseDomains(exam.domains);
+  const domains = before.map((d, i) => ({
+    name: d.name,
+    weight: Math.max(0, Math.round(Number(formData.get(`weight${i}`)) || 0))
+  }));
+  const sourceRaw = String(formData.get('domainsSourceUrl') || '').trim();
+  await db.exam.update({
+    where: { id },
+    data: { domains, domainsSourceUrl: sourceRaw || null, domainsVerifiedAt: new Date() }
+  });
+  await db.adminLog.create({
+    data: { adminId: user.id, action: 'exam.domain_weights', targetType: 'Exam', targetId: id, metadata: { before, after: domains, sourceUrl: sourceRaw } }
+  });
+  revalidatePath(`/admin-dashboard/exams/${id}`);
 }
 
 async function runSeoAssist(formData: FormData) {
@@ -283,9 +311,11 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const exam = await db.exam.findUnique({
     where: { id },
-    include: { vendor: true, questions: { orderBy: { createdAt: 'asc' } } }
+    include: { vendor: true, poolExam: { select: { id: true, code: true } }, questions: { orderBy: { createdAt: 'asc' } } }
   });
   if (!exam) notFound();
+  const pool = await poolStats(db, exam);
+  const weightTotal = pool.rows.reduce((s, r) => s + r.weight, 0);
 
   return (
     <div className="space-y-6">
@@ -372,6 +402,79 @@ export default async function EditExamPage({ params }: { params: Promise<{ id: s
           <button className="btn-primary">Save exam</button>
         </div>
       </form>
+
+      <section id="pool" className="card p-4">
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="text-[13px] font-semibold text-slate-800 dark:text-slate-100">Question pool by exam domain</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Every attempt (practice, exam mode, teaser, retakes) draws {Math.min(exam.questionCount, pool.total)} of the {pool.total} published questions in these proportions.
+              {exam.domainsVerifiedAt && <> Weights checked {exam.domainsVerifiedAt.toISOString().slice(0, 10)}.</>}
+            </p>
+          </div>
+          {exam.domainsSourceUrl && (
+            <a href={exam.domainsSourceUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Official source ↗</a>
+          )}
+        </div>
+        {exam.poolExam && (
+          <p className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+            This is a retired practice-exam variant. Its questions now live in the pool of{' '}
+            <Link href={`/admin-dashboard/exams/${exam.poolExam.id}#pool`} className="font-semibold underline">{exam.poolExam.code}</Link>.
+          </p>
+        )}
+        {pool.rows.length === 0 ? (
+          <p className="text-xs text-slate-500">No domain blueprint set — attempts draw uniformly at random.</p>
+        ) : (
+          <form action={updateDomainWeights}>
+            <input type="hidden" name="id" value={exam.id} />
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-700">
+                    <th className="py-1.5 pr-3 font-medium">Domain</th>
+                    <th className="w-28 py-1.5 pr-3 font-medium">Exam %</th>
+                    <th className="w-24 py-1.5 pr-3 text-right font-medium">In pool</th>
+                    <th className="w-28 py-1.5 text-right font-medium">Per attempt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pool.rows.map((r, i) => (
+                    <tr key={r.name} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+                      <td className="py-1.5 pr-3">{r.name}</td>
+                      <td className="py-1.5 pr-3">
+                        <input name={`weight${i}`} type="number" min={0} max={100} defaultValue={r.weight} className="input-sm w-20" aria-label={`${r.name} weight`} />
+                      </td>
+                      <td className={`py-1.5 pr-3 text-right tabular-nums ${r.pool < r.perAttempt || r.pool === 0 ? 'font-semibold text-red-600' : ''}`}>{r.pool}</td>
+                      <td className="py-1.5 text-right tabular-nums">{r.perAttempt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="text-[12px] font-semibold">
+                    <td className="py-1.5 pr-3">Total</td>
+                    <td className={`py-1.5 pr-3 ${weightTotal === 100 ? '' : 'text-red-600'}`}>{weightTotal}%</td>
+                    <td className="py-1.5 pr-3 text-right tabular-nums">{pool.rows.reduce((s, r) => s + r.pool, 0)}</td>
+                    <td className="py-1.5 text-right tabular-nums">{pool.rows.reduce((s, r) => s + r.perAttempt, 0)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            {pool.unmatched.length > 0 && (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                Not in the blueprint (used only to fill a short domain):{' '}
+                {pool.unmatched.map((u) => `${u.domain} (${u.count})`).join(' · ')}
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap items-end gap-2">
+              <label className="flex flex-1 flex-col text-[10px] uppercase tracking-wider text-slate-500">
+                Official source URL
+                <input name="domainsSourceUrl" type="url" defaultValue={exam.domainsSourceUrl ?? exam.infoUrl ?? ''} className="input-sm mt-0.5 w-full" />
+              </label>
+              <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">Save weights</button>
+            </div>
+          </form>
+        )}
+      </section>
 
       <section id="seo" className="card p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

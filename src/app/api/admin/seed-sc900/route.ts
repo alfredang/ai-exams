@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { refoldProductPools } from '@/lib/pool-consolidation';
 import { seedSc900 } from '@/lib/seed/sc900-questions';
 
 export const runtime = 'nodejs';
@@ -22,6 +23,8 @@ export async function POST() {
   }
 
   const result = await seedSc900(db);
+  // Legacy seed modules write multi-variant products — fold back to one practice exam.
+  await refoldProductPools(db);
 
   await db.adminLog.create({
     data: {

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Check, Timer, BookOpen, Award, BookOpenCheck, Hourglass } from 'lucide-react';
 import { BundleBuyForm } from './bundle-buy-form';
-import { practiceItems, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { StartButton } from './start-attempt-button';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 import { STORE_CURRENCY } from '@/lib/currency';
 
@@ -20,6 +20,7 @@ type BundleItem = {
     passingScore: number;
     domains: any;
     vendor: { slug: string; name: string };
+    _count?: { questions: number };
   };
 };
 
@@ -33,31 +34,27 @@ type Bundle = {
   items: BundleItem[];
 };
 
-export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: string }) {
-  // PRACTICE items only. The VOUCHER item points back at the same -p1 exam, so
-  // counting raw items claimed an extra practice exam and double-counted its
-  // questions — while the copy below says "unique questions". See bundle-contents.ts.
-  const practice = practiceItems(bundle.items);
-  const totalQuestions = practiceQuestionTotal(bundle.items);
-  // All items in a bundle share the same underlying cert (e.g. AI-900), so we
-  // derive vendor/code/level/stats from the first one. Prefer the first PRACTICE
-  // item: `items` has no guaranteed order here, so items[0] could be the VOUCHER
-  // row. It points at the same exam today, but relying on that is a trap.
-  const first = (practice[0] ?? bundle.items[0])?.exam;
+// The product page for one certification: ONE practice exam (the pool exam,
+// i.e. the PRACTICE item) sold as practice-only or with the real exam voucher.
+export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bundle; userId?: string; owned?: boolean }) {
+  // Prefer the PRACTICE item: `items` has no guaranteed order, and the
+  // VOUCHER row points at the same exam.
+  const first = (bundle.items.find((i) => i.tier === 'PRACTICE') ?? bundle.items[0])?.exam;
   if (!first) return null;
+  const poolSize = first._count?.questions ?? first.questionCount;
+  const perAttempt = Math.min(first.questionCount, poolSize);
   const vendor = first.vendor;
   const domains = (first.domains as any[]) || [];
   // Display code without per-exam suffix, e.g. "AI-900-P1" -> "AI-900"
   const displayCode = first.code.replace(/-P\d+$/, '');
 
-  // Practice tier sells all PRACTICE items; Voucher tier adds the bundle's
-  // VOUCHER item (real exam voucher). Only show Voucher option when the
-  // bundle is configured with a voucher price.
+  // Practice exam only, or the real exam voucher with the practice exam
+  // included. The voucher option shows only when a voucher price is set.
   const tierOptions: { tier: 'PRACTICE' | 'VOUCHER'; label: string; price: number }[] = [
     { tier: 'PRACTICE', label: 'Practice Exam', price: bundle.price }
   ];
   if (bundle.priceVoucher != null) {
-    tierOptions.push({ tier: 'VOUCHER', label: 'Exam Voucher (practice exams included)', price: bundle.priceVoucher });
+    tierOptions.push({ tier: 'VOUCHER', label: 'Exam Voucher (practice exam included)', price: bundle.priceVoucher });
   }
   const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${vendor.slug}/${bundle.slug}`;
   const productJsonLd = {
@@ -66,7 +63,7 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
     name: bundle.title,
     description: bundle.description,
     sku: displayCode,
-    category: 'Certification practice exam bundle',
+    category: 'Certification practice exam',
     url: productUrl,
     brand: { '@type': 'Brand', name: 'Tertiary Exams' },
     manufacturer: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' },
@@ -100,7 +97,7 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
           <p className="mt-2 text-slate-600 dark:text-slate-100">{bundle.description}</p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <Stat icon={BookOpen} label="Questions" value={`${first.questionCount}`} />
+            <Stat icon={BookOpen} label="Questions per attempt" value={`${perAttempt}`} />
             <Stat icon={Timer} label="Duration" value={`${first.durationMinutes} min`} />
             <Stat icon={Award} label="Pass score" value={`${first.passingScore}%`} />
           </div>
@@ -120,7 +117,8 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
 
           {domains.length > 0 && (
             <div className="mt-8 card p-6">
-              <h2 className="font-semibold">Domains covered</h2>
+              <h2 className="font-semibold">Exam domains</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Each attempt follows these official weightings.</p>
               <ul className="mt-3 space-y-2 text-sm">
                 {domains.map((d, i) => (
                   <li key={i} className="flex items-center justify-between">
@@ -136,11 +134,12 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
             <h2 className="font-semibold">What you get</h2>
             <ul className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-100">
               {[
-                `Includes ${practice.length} full practice exam${practice.length === 1 ? '' : 's'} (${totalQuestions} unique questions${practice.length === 1 ? '' : ' across all sets'})`,
+                `A ${poolSize}-question pool — every attempt draws ${perAttempt} fresh questions weighted by the official exam domains`,
+                'Unlimited retakes',
+                'Results broken down by exam domain, with the domain shown on every answer',
                 'Practice mode with immediate explanations',
                 'Timed Exam mode that simulates the real test',
                 'Mark questions for review and filter by status',
-                'Per-domain breakdown after each attempt',
                 'Original questions — never real exam dumps'
               ].map((f, i) => (
                 <li key={i} className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 text-blue-600" /> {f}</li>
@@ -148,22 +147,6 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
             </ul>
           </div>
 
-          <div className="mt-6 card p-6">
-            <h2 className="font-semibold">Practice exams included</h2>
-            <ul className="mt-3 space-y-2 text-sm">
-              {practice.map((item, i) => (
-                <li key={item.id} className="flex items-center justify-between gap-3 border-b border-slate-200 pb-2 last:border-0 last:pb-0 dark:border-slate-800">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                      {i + 1}
-                    </span>
-                    <span className="text-slate-700 dark:text-slate-100">Practice Exam {i + 1}</span>
-                  </div>
-                  <span className="text-slate-500 dark:text-slate-300">{item.exam.questionCount} questions · {item.exam.durationMinutes} min</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
           <p className="mt-6 text-xs text-slate-500 dark:text-slate-400">
             This platform provides original practice questions for learning. We are not affiliated with {vendor.name}, and we do not provide real exam dumps.
@@ -198,13 +181,25 @@ export function BundleAsExamView({ bundle, userId }: { bundle: Bundle; userId?: 
             </button>
           </form>
 
-          <BundleBuyForm
+          {owned && (
+            <div className="card p-5">
+              <div className="mb-1 text-xs font-semibold uppercase text-emerald-700 dark:text-emerald-300">You have access</div>
+              <div className="font-semibold">Start a new attempt</div>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">Every attempt is a fresh draw from the pool.</p>
+              <div className="mt-3 flex flex-col gap-2">
+                <StartButton examId={first.id} mode="PRACTICE" />
+                <StartButton examId={first.id} mode="EXAM" />
+              </div>
+            </div>
+          )}
+
+          {!owned && <BundleBuyForm
             bundleId={bundle.id}
             bundleSlug={bundle.slug}
             vendorSlug={vendor.slug}
             options={tierOptions}
             isSignedIn={!!userId}
-          />
+          />}
         </aside>
       </div>
     </div>

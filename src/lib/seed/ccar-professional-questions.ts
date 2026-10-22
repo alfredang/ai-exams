@@ -995,7 +995,7 @@ const CCAR_P_BUNDLE = {
   slug: 'anthropic-ccar-professional',
   title: 'Claude Certified Architect — Professional (CCAR-P)',
   description:
-    'Practice bundle for the Claude Certified Architect — Professional (CCAR-P) credential. 63 questions matching the official exam blueprint — solution design and architecture, model selection and context engineering, integration and RAG, evaluation and optimization, governance and risk, stakeholder communication, and developer enablement. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
+    'Practice exam for the Claude Certified Architect — Professional (CCAR-P) credential, with unlimited retakes drawn from a question pool weighted by the official exam domains — solution design and architecture, model selection and context engineering, integration and RAG, evaluation and optimization, governance and risk, stakeholder communication, and developer enablement. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
   // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
   // through Partner Academy (credit card, then schedule with Pearson VUE), and
   // its partner voucher storefront is still "in progress" as of July 2026 —

@@ -5,7 +5,7 @@ import { DotPattern } from '@/components/dot-pattern';
 import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
 import { HeroExamVisual } from '@/components/hero-exam-visual';
-import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
 import { serializeJsonLd } from '@/lib/structured-data';
 
 // ISR: refetch vendor + popular-bundle counts at most once every 5 minutes.
@@ -37,7 +37,7 @@ export default async function HomePage() {
   const recentBundles = await db.bundle.findMany({
     where: { published: true },
     include: {
-      items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true } } } }
+      items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true, ...PUBLISHED_QUESTION_COUNT } } } }
     },
     take: 6,
     orderBy: { createdAt: 'desc' }
@@ -142,16 +142,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Popular bundles — the only thing the app sells. */}
+      {/* Popular practice exams — one per certification, the only thing the app sells. */}
       <section className="border-y border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
         <div className="container-app py-5">
-          <div className="eyebrow">Newest bundles</div>
-          <h2 className="mb-3 mt-1 text-2xl font-extrabold tracking-tight">Popular bundled exams</h2>
+          <div className="eyebrow">Newest practice exams</div>
+          <h2 className="mb-3 mt-1 text-2xl font-extrabold tracking-tight">Popular practice exams</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {recentBundles.map((b) => {
               const first = b.items[0]?.exam;
-              const totalQs = practiceQuestionTotal(b.items);
-              const examCount = practiceExamCount(b.items);
               // Strip the per-variant suffix from the code chip — the cards
               // represent the whole bundle, not the first variant, so showing
               // e.g. "SOA-C03-P1" misleads users into thinking they're
@@ -175,13 +173,13 @@ export default async function HomePage() {
                   <h3 className="text-lg font-bold leading-snug">{b.title}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{b.description}</p>
                   <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {practiceExamLabel(examCount)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{poolCardLabel(b.items)}</span>
                     <span className="font-display font-bold text-brand dark:text-blue-400">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
                   </div>
                 </Link>
               );
             })}
-            {recentBundles.length === 0 && <p className="text-sm text-slate-500">No bundled exams published yet.</p>}
+            {recentBundles.length === 0 && <p className="text-sm text-slate-500">No practice exams published yet.</p>}
           </div>
         </div>
       </section>

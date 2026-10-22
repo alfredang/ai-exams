@@ -172,7 +172,14 @@ model Exam {
   questionCount   Int        // questions per practice exam attempt
   infoUrl         String?    // vendor's exam info page or PDF link
   label           String?    // free-form admin label, e.g. "Practice Exam 1"
-  domains         Json       // [{name: string, weight: number}]
+  domains         Json       // [{name: string, weight: number}] — official blueprint %, drives the per-attempt draw
+  domainsSourceUrl  String?  // official page the domain weights were taken from
+  domainsVerifiedAt DateTime? // when the weights were last checked (seed or admin edit)
+  // A retired "Practice Exam N" variant points at the single practice exam
+  // that now owns its question pool. Null on the pool exam itself.
+  poolExamId      String?
+  poolExam        Exam?      @relation("ExamPool", fields: [poolExamId], references: [id], onDelete: SetNull)
+  poolVariants    Exam[]     @relation("ExamPool")
   published       Boolean    @default(false)
   // SEO fields for the public catalog page
   metaTitle       String?
@@ -198,6 +205,7 @@ model Exam {
   reviews         Review[]
   testimonials    Testimonial[]
   @@index([vendorId])
+  @@index([poolExamId])
 }
 
 // A curated multi-exam product. Distinct from the existing per-exam

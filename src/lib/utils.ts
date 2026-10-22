@@ -29,7 +29,7 @@ export function tierLabel(t: Tier) {
   return ({
     PRACTICE: 'Practice Exam',
     BUNDLE: 'Practice + Exam Voucher',  // legacy orders only
-    VOUCHER: 'Exam Voucher (practice exams included)',
+    VOUCHER: 'Exam Voucher (practice exam included)',
     ADMIN_GRANT: 'Admin Grant'
   } as const)[t];
 }

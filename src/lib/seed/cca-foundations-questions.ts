@@ -944,7 +944,7 @@ const CCA_BUNDLE = {
   slug: 'anthropic-cca-foundations',
   title: 'Claude Certified Architect — Foundations (CCAR-F)',
   description:
-    'Practice bundle for the Claude Certified Architect — Foundations (CCAR-F) credential. 180 scenario-based questions across 3 practice exams covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
+    'Practice exam for the Claude Certified Architect — Foundations (CCAR-F) credential, with unlimited retakes drawn fresh from a 180-question scenario-based pool weighted by the official exam domains — covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
   // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
   // through Partner Academy (credit card, then schedule with Pearson VUE), and
   // its partner voucher storefront is still "in progress" as of July 2026 —

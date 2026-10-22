@@ -20,7 +20,7 @@
 
 </div>
 
-Tertiary Exams is a full-stack certification practice-exam platform designed for commercial training and certification-preparation providers. It allows users to browse certification bundles, take free teaser attempts, purchase practice exams and real-exam vouchers, and take timed or practice-mode exams with detailed result breakdowns. The platform includes a robust admin backend with AI-assisted question generation, dynamic e-commerce features (Stripe, PayPal, HitPay, PayNow), invoicing, and voucher fulfillment.
+Tertiary Exams is a full-stack certification practice-exam platform designed for commercial training and certification-preparation providers. It allows users to browse certifications, take free teaser attempts, buy a certification's practice exam on its own or with a real-exam voucher, and take timed or practice-mode exams — every attempt drawn fresh from a question pool weighted by the official exam domains — with per-domain result breakdowns. The platform includes a robust admin backend with AI-assisted question generation, dynamic e-commerce features (Stripe, PayPal, HitPay, PayNow), invoicing, and voucher fulfillment.
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ Tertiary Exams is a full-stack certification practice-exam platform designed for
 
 ## Overview
 
-Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking experience. It solves the problem of managing certification preparation platforms by bundling practice exams and optional real-exam vouchers into unified e-commerce products. The platform is designed for scalable content generation using Claude AI and Firecrawl, enabling administrators to quickly author and maintain a large library of high-quality, blueprint-aligned practice questions.
+Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking experience. It solves the problem of managing certification preparation platforms by selling one practice exam per certification — as practice-only or with a real-exam voucher included — backed by a question pool grouped by exam domain. The platform is designed for scalable content generation using Claude AI and Firecrawl, enabling administrators to quickly author and maintain a large library of high-quality, blueprint-aligned practice questions.
 
 **Current Status:** The core application features, checkout flows, exam runners, and admin dashboards are implemented and functioning.
 
@@ -60,22 +60,24 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 
 ## Features
 
-- **Public Catalog:** Browse certification vendors, levels, and exam bundles with search and pagination.
-- **Bundle-based Commerce:** Purchase multi-variant practice exams and optional real-exam vouchers as a single product.
+- **Public Catalog:** Browse certification vendors and levels with search and pagination — one card per certification showing its question-pool size and questions per attempt.
+- **One Practice Exam per Certification:** Buy the **Practice Exam**, or the **Exam Voucher (practice exam included)**. Unlimited retakes.
+- **Domain-Weighted Question Pool:** Each certification's questions form a pool grouped by exam domain. Every attempt (Practice, Exam mode, teaser, retake) is a fresh random draw in proportion to the official domain percentages, verified against each vendor's exam guide (`src/lib/exam-blueprints.ts`); a short domain's seats are re-apportioned to the others.
 - **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with promo codes, billing addresses, and an integrated tax (GST) engine. An in-admin **Payment Setup Guide** documents provider configuration step by step with live status checks.
 - **Test-Centre Exam Runner:** A full-screen, test-centre style session for both timed Exam mode and Practice mode — navy title bar with Time Remaining and "N of M", a question card with **Mark for review** at its top-right and full-size Previous / Next / End exam buttons, an answer-sheet panel, and a **Review Screen** with Review All / Incomplete / Flagged walks before **End Exam**. Per-answer autosave, auto-submit at zero, Save & exit to resume later, right-click strike-out of ruled-out options, and keyboard navigation.
-- **Score Report:** Results show `correct / total`, a four-band readiness scale, a weakest-first domain breakdown that marks study targets, and a **Review your answers** section (All / Missed or blank / Flagged) that lists every option with the correct one and your pick marked, plus a Why box with the explanation and references. **Take it again** starts a fresh attempt in the same mode.
+- **Score Report:** Results show `correct / total`, a four-band readiness scale, a weakest-first exam-domain breakdown that marks study targets, and a **Review your answers** section (All / Missed or blank / Flagged) that lists every option with the correct one and your pick marked, plus a Why box naming the exam domain with the explanation and references. **Take it again** starts a fresh draw from the pool in the same mode.
 - **Light-Blue & Premium Navy Themes:** A compact, chip-free layout with a light-blue light theme by default and an opt-in premium deep-navy dark theme with blue glow accents, Archivo / IBM Plex typography, and an animated hero that previews the exam experience. The exam runner stays a light test-centre screen in both.
 - **WhatsApp Support Avatar:** A friendly animated support avatar (bottom-right on public pages) opens a quick-question panel that links straight to WhatsApp, with a once-per-visit greeting bubble. Hidden on the exam runner, checkout, and admin pages.
-- **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per exam.
+- **Free Teasers:** Guest and authenticated users can take 10 free teaser questions per certification, drawn by exam domain.
 - **AI-Assisted Question Authoring:** Generate blueprint-aligned questions using Claude AI and Firecrawl via manual input, blueprints, PDFs, or web scraping.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
+- **Question Pool Admin:** Each exam's admin page shows the exam % per domain, questions in the pool, and questions drawn per attempt, with editable weights and the official source link.
 - **Comprehensive Admin Dashboard:** Manage catalog, orders, users (RBAC), refunds, coupons, API tokens, dynamic settings, and CMS content (FAQ, Banners).
 - **Social Login:** Authenticate via Password, OTP, Google, GitHub, Microsoft, and LinkedIn (configurable in settings).
 
 ## Certification Catalog
 
-Tertiary Exams covers **12 vendors** and **195+ practice exams** across cloud, security, networking, data, DevOps, AI, and project-management certifications. Each certification ships with one or more numbered practice exams (P1, P2, …) plus optional real-exam voucher bundles.
+Tertiary Exams covers **12 vendors** and **195+ practice exams** across cloud, security, networking, data, DevOps, AI, and project-management certifications. Each certification ships with one practice exam drawn from a domain-weighted question pool, sold on its own or with the real-exam voucher.
 
 ### Amazon Web Services (AWS)
 
@@ -133,7 +135,7 @@ Tertiary Exams covers **12 vendors** and **195+ practice exams** across cloud, s
 | PT0-003 | CompTIA PenTest+ | Advanced |
 | CAS-005 | CompTIA SecurityX | Expert |
 
-CompTIA voucher-tier bundle prices track CompTIA's official exam-voucher list price (USD, before GST) — e.g. Security+ / CySA+ / PenTest+ 439, SecurityX 544, Network+/Cloud+/Linux+/Server+/Project+ 399, A+ 274 (per core), Data+ 264.
+CompTIA voucher-tier prices track CompTIA's official exam-voucher list price (USD, before GST) — e.g. Security+ / CySA+ / PenTest+ 439, SecurityX 544, Network+/Cloud+/Linux+/Server+/Project+ 399, A+ 274 (per core), Data+ 264.
 
 ### Google Cloud
 
@@ -296,7 +298,7 @@ flowchart TD
 - `npm run typecheck`: Runs TypeScript compiler check without emitting files. (`npm run lint` is currently broken — the installed Next.js version removed `next lint`; rely on typecheck + build.)
 - `npm run db:migrate`: Creates and applies development database migrations.
 - `npm run db:deploy`: Applies pending database migrations (for production).
-- `npm run db:seed`: Seeds the database with default vendors, exams, bundles, and admin users.
+- `npm run db:seed`: Seeds the database with default vendors, exams, products (with their question pools), and admin users.
 - `npm run db:studio`: Opens Prisma Studio to visually inspect the database.
 - `npm run generate:exam`: CLI question generation (`scripts/generate-questions.ts`) — bulk-author blueprint-aligned questions with Claude outside the admin UI.
 - `npm run seed:prod -- <bundle> [expected-exam-slug ...]`: Runs a bundle's idempotent seed endpoint (`POST /api/admin/seed-<bundle>`) on production via `scripts/seed-prod.sh`. Reads `PROD_ADMIN_EMAIL` / `PROD_ADMIN_PASSWORD` from the git-ignored `.env` (never the local `ADMIN_PASSWORD`), verifies the admin session before seeding, and fails if the expected exam slugs are missing (deploy not live yet). See CLAUDE.md → *Seeding a new exam bundle to production*.
@@ -305,9 +307,9 @@ flowchart TD
 
 ### User Flow
 1. Visit the homepage and browse the `/practice-exams` catalog.
-2. Select a bundle and try a free teaser attempt.
-3. Sign up, proceed to `/checkout/bundle/[bundleId]`, and complete the payment using Stripe, PayPal, or HitPay.
-4. Navigate to `/user-dashboard` to view purchased exams, vouchers, and start practice attempts.
+2. Open a certification and try a free teaser attempt.
+3. Choose **Practice Exam** or **Exam Voucher (practice exam included)**, sign up, proceed to `/checkout/bundle/[bundleId]?tier=PRACTICE|VOUCHER`, and pay with Stripe, PayPal, or HitPay.
+4. Navigate to `/user-dashboard` to view purchased exams and vouchers, or start Practice / Exam mode from the certification page — each attempt is a new domain-weighted draw.
 5. Take an attempt at `/exam/[attemptId]` (test-centre style runner), end it from the Review Screen, and read the score report at `/results/[attemptId]` (`?view=missed` / `?view=flagged` filter the answer review; **Take it again** starts a new attempt).
 
 ### Admin Flow
@@ -315,13 +317,14 @@ flowchart TD
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
 4. Go to `/admin-dashboard/exams/[id]/author` to generate new exam questions using the AI integration.
+5. Check `/admin-dashboard/exams/[id]#pool` for the question pool by exam domain (exam %, pool size, per-attempt draw) and adjust weights if needed.
 
 ## Database
 
 The project uses PostgreSQL with Prisma ORM.
 
 - **Schema:** Defined in `prisma/schema.prisma`.
-- **Seeding:** The `prisma/seed.ts` file populates the database with initial vendor data, multi-variant exam bundles, and admin user credentials.
+- **Seeding:** The `prisma/seed.ts` file (run on every deploy) populates vendors, exams, products and admin users, then folds legacy "Practice Exam N" variants into each certification's single question pool and applies the official domain weights (`src/lib/pool-consolidation.ts`). Idempotent.
 - **Migration:** Run `npm run db:migrate` or `npx prisma db push` to apply schema changes.
 
 ## Testing

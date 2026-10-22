@@ -36,7 +36,7 @@ export function ClaimFreeBundleButton({ bundleId }: { bundleId: string }) {
         disabled={busy}
         className="btn-primary-grad mt-4 block w-full text-center disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {busy ? 'Claiming…' : 'Claim free bundle'}
+        {busy ? 'Claiming…' : 'Claim free practice exam'}
       </button>
       {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
     </>

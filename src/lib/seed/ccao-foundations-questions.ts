@@ -987,7 +987,7 @@ const CCAO_BUNDLE = {
   slug: 'anthropic-ccao-foundations',
   title: 'Claude Certified Associate — Foundations (CCAO-F)',
   description:
-    'Practice bundle for the Claude Certified Associate — Foundations (CCAO-F) credential. 4 practice exams and 105 questions — a 60-question full-length exam matching the official exam blueprint plus three 15-question timed mock exams — covering prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
+    'Practice exam for the Claude Certified Associate — Foundations (CCAO-F) credential: a full-length 60-question exam with unlimited retakes, each drawn fresh from a 105-question pool weighted by the official exam domains — covering prompting and task execution, output evaluation, product and model selection, workflow integration, Projects and knowledge configuration, responsible use, and troubleshooting. Written for professionals who use Claude as a productivity tool. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com and docs.claude.com.',
   // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
   // through Partner Academy (credit card, then schedule with Pearson VUE), and
   // its partner voucher storefront is still "in progress" as of July 2026 —

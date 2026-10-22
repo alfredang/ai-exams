@@ -10,6 +10,7 @@ import { ReviewFormModal } from '@/components/review-form-modal';
 import { ResultsSignupPrompt } from '@/components/results-signup-prompt';
 import { canUserReview } from '@/lib/reviews';
 import { shuffleSeeded } from '@/lib/shuffle';
+import { drawAttemptQuestions, hasPracticeAccess, resolvePoolExam } from '@/lib/question-pool';
 
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -51,22 +52,14 @@ function TakeAgainButton({ examId, mode, teaser, examHref }: {
       'use server';
       const s = await auth();
       const uid = (s?.user as any)?.id as string | undefined;
-      const exam = await db.exam.findUnique({ where: { id: examId } });
-      const ent = uid && exam
-        ? await db.entitlement.findFirst({
-            where: { userId: uid, examId, tier: { in: ['PRACTICE', 'BUNDLE', 'ADMIN_GRANT'] } }
-          })
-        : null;
-      if (!exam || !ent) redirect(examHref);
-      const qs = await db.question.findMany({ where: { examId, status: 'PUBLISHED' }, select: { id: true } });
-      const ids = qs.map(q => q.id);
-      for (let i = ids.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [ids[i], ids[j]] = [ids[j], ids[i]];
-      }
+      // A retake is a fresh domain-weighted draw from the pool — old
+      // attempts on a retired variant retake the certification's pool exam.
+      const exam = await resolvePoolExam(db, examId);
+      if (!exam || !uid || !(await hasPracticeAccess(db, uid, exam.id))) redirect(examHref);
+      const ids = await drawAttemptQuestions(db, exam);
       const att = await db.attempt.create({
         data: {
-          userId: uid, examId, mode, questionIds: ids.slice(0, exam.questionCount),
+          userId: uid, examId: exam.id, mode, questionIds: ids,
           durationSec: mode === 'EXAM' ? exam.durationMinutes * 60 : 0,
           expiresAt: mode === 'EXAM' ? new Date(Date.now() + exam.durationMinutes * 60_000) : null,
           responses: {}
@@ -338,7 +331,7 @@ export default async function ResultsPage({
                     </div>
                   )}
                   <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
-                    <div className="eyebrow mb-1">Why</div>
+                    <div className="eyebrow mb-1 [overflow-wrap:anywhere]">Why · Exam domain: {q.domain}</div>
                     <ExplanationView
                       text={q.explanation}
                       options={displayOptions}

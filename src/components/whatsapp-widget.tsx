@@ -20,7 +20,7 @@ const HIDDEN_PREFIXES = [
 /** Pre-canned questions shown when the user opens the widget. */
 const SUGGESTIONS = [
   'Hi! I’d like to know more about your practice exams.',
-  'Which bundle is right for my certification?',
+  'Should I buy the practice exam or the exam voucher?',
   'Do you offer real-exam vouchers?',
   'I need help with a purchase or my account.'
 ];

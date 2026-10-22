@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
-import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
 import { Search } from 'lucide-react';
 import { bundleSearchAliases, matchesCatalogSearch } from '@/lib/catalog-search';
 
@@ -39,7 +39,7 @@ export default async function VendorCatalogPage({
         published: true,
         items: { some: { exam: { vendor: { slug } } } }
       },
-      include: { items: { include: { exam: { include: { vendor: true } } } } }
+      include: { items: { include: { exam: { include: { vendor: true, ...PUBLISHED_QUESTION_COUNT } } } } }
     })
   ]);
   if (!vendor) notFound();
@@ -100,8 +100,6 @@ export default async function VendorCatalogPage({
           const first = b.items[0]?.exam;
           // PRACTICE items only — the VOUCHER item points back at the same -p1
           // exam, so counting raw items double-counts it. See bundle-contents.ts.
-          const totalQs = practiceQuestionTotal(b.items);
-          const examCount = practiceExamCount(b.items);
           return (
             <Link key={`b-${b.id}`} href={first ? `/practice-exams/${first.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
               {first && (
@@ -112,7 +110,7 @@ export default async function VendorCatalogPage({
               <h3 className="font-semibold">{b.title}</h3>
               <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400">{totalQs} questions · {practiceExamLabel(examCount)}</span>
+                <span className="text-slate-500 dark:text-slate-400">{poolCardLabel(b.items)}</span>
                 <span className="font-semibold text-blue-700 dark:text-blue-300">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
               </div>
             </Link>
@@ -120,7 +118,7 @@ export default async function VendorCatalogPage({
         })}
         {cards.length === 0 && (
           <p className="text-slate-500">
-            {query ? `No ${vendor.name} exams match “${query}”.` : 'No bundles yet for this vendor.'}
+            {query ? `No ${vendor.name} exams match “${query}”.` : 'No practice exams yet for this vendor.'}
           </p>
         )}
       </div>

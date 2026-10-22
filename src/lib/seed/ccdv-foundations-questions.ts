@@ -887,7 +887,7 @@ const CCDV_BUNDLE = {
   slug: 'anthropic-ccdv-foundations',
   title: 'Claude Certified Developer — Foundations (CCDV-F)',
   description:
-    'Practice bundle for the Claude Certified Developer — Foundations (CCDV-F) credential. 53 questions matching the official exam blueprint — agents and workflows, applications and integration, Claude Code, evals and debugging, model selection, prompt and context engineering, security, and tools and MCP servers. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
+    'Practice exam for the Claude Certified Developer — Foundations (CCDV-F) credential, with unlimited retakes drawn from a question pool weighted by the official exam domains — agents and workflows, applications and integration, Claude Code, evals and debugging, model selection, prompt and context engineering, security, and tools and MCP servers. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
   // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
   // through Partner Academy (credit card, then schedule with Pearson VUE), and
   // its partner voucher storefront is still "in progress" as of July 2026 —

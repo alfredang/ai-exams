@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { drawAttemptQuestions } from '@/lib/question-pool';
 
 async function startTestAttempt(formData: FormData) {
   'use server';
@@ -12,15 +13,8 @@ async function startTestAttempt(formData: FormData) {
   const mode = (String(formData.get('mode')) as 'PRACTICE' | 'EXAM') || 'PRACTICE';
   const exam = await db.exam.findUnique({ where: { id: examId } });
   if (!exam) return;
-  const qs = await db.question.findMany({
-    where: { examId, status: 'PUBLISHED' },
-    select: { id: true }
-  });
-  if (qs.length === 0) return;
-  const ids = qs
-    .map((q) => q.id)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, Math.min(exam.questionCount, qs.length));
+  const ids = await drawAttemptQuestions(db, exam);
+  if (ids.length === 0) return;
   const att = await db.attempt.create({
     data: {
       userId: me.id,

@@ -130,8 +130,8 @@ export async function Footer() {
             No brain dumps.
           </p>
           <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            Bundle multiple full-length practice exams with an optional discounted real-exam voucher — one purchase, full
-            prep to test day.
+            One practice exam per certification, drawn fresh by official exam domain on every retake — buy it on its own
+            or with a discounted real-exam voucher.
           </p>
         </div>
 

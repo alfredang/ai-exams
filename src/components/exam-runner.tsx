@@ -599,7 +599,7 @@ export function ExamRunner(props: ExamRunnerProps) {
                 {a.submitted && a.explanation && (
                   <div className={`mt-5 rounded-md border border-l-[5px] p-4 text-sm ${a.isCorrect ? 'border-emerald-600 bg-emerald-50/60' : 'border-red-600 bg-red-50/60'}`}>
                     <div className={`mb-2 font-semibold ${a.isCorrect ? 'text-emerald-800' : 'text-red-800'}`}>{a.isCorrect ? 'Correct' : 'Incorrect'}</div>
-                    <div className="eyebrow mb-2">Suggested answer</div>
+                    <div className="eyebrow mb-2">Suggested answer{q.domain ? ` · Exam domain: ${q.domain}` : ''}</div>
                     <ExplanationView text={a.explanation} options={q.options} correctIds={a.correct ?? []} />
                     {!!a.references?.length && (
                       <div className="mt-3 border-t border-line pt-3 text-xs">

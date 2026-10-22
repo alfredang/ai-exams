@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { refoldProductPools } from '@/lib/pool-consolidation';
 import { seedSapC02 } from '@/lib/seed/sap-c02-questions';
 
 export const runtime = 'nodejs';
@@ -22,6 +23,8 @@ export async function POST() {
   }
 
   const result = await seedSapC02(db);
+  // Legacy seed modules write multi-variant products — fold back to one practice exam.
+  await refoldProductPools(db);
 
   await db.adminLog.create({
     data: {

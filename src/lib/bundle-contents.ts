@@ -18,7 +18,7 @@
  * catalog the same behaviour.
  */
 
-type ItemLike = { tier: string; exam: { id: string; questionCount: number } };
+type ItemLike = { tier: string; exam: { id: string; questionCount: number; _count?: { questions: number } } };
 
 /**
  * The bundle's practice exams, in item order, deduped by exam.
@@ -42,10 +42,24 @@ export function practiceExamCount(items: ItemLike[]): number {
   return practiceItems(items).length;
 }
 
-/** Total questions across the distinct practice exams — no double counting. */
+/**
+ * Questions in the practice exam's pool (published questions, when the query
+ * selected `_count.questions`; otherwise the per-attempt count).
+ */
 export function practiceQuestionTotal(items: ItemLike[]): number {
-  return practiceItems(items).reduce((sum, i) => sum + i.exam.questionCount, 0);
+  return practiceItems(items).reduce((sum, i) => sum + (i.exam._count?.questions ?? i.exam.questionCount), 0);
 }
+
+/** Catalog card line, e.g. "390-question pool · 65 per attempt". */
+export function poolCardLabel(items: ItemLike[]): string {
+  const exam = practiceItems(items)[0]?.exam;
+  if (!exam) return '';
+  const pool = practiceQuestionTotal(items);
+  return `${pool}-question pool · ${Math.min(exam.questionCount, pool)} per attempt`;
+}
+
+/** Prisma include for a product's items with each exam's published-question count. */
+export const PUBLISHED_QUESTION_COUNT = { _count: { select: { questions: { where: { status: 'PUBLISHED' as const } } } } };
 
 /** "1 practice exam" / "6 practice exams" — the plural was hardcoded in the catalog. */
 export function practiceExamLabel(count: number): string {

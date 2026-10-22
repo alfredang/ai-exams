@@ -32,8 +32,8 @@ export default async function MyOrdersPage() {
 
       <div className="card mt-4 divide-y divide-slate-200 dark:divide-slate-800">
         {orders.map((o) => {
-          const product = o.bundle ? `${o.bundle.title} (bundle)` : o.exam?.title ?? '(unknown)';
-          const tier = o.bundle ? 'Bundle' : o.tier ? tierLabel(o.tier) : '—';
+          const product = o.bundle ? o.bundle.title : o.exam?.title ?? '(unknown)';
+          const tier = o.tier ? tierLabel(o.tier) : '—';
           const voucher = o.examId ? voucherByExam.get(o.examId) : undefined;
           return (
             <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 p-4">

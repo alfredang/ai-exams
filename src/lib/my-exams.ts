@@ -77,7 +77,7 @@ export async function getGroupedExams(userId: string): Promise<GroupedExams> {
   const [entitlements, bundles] = await Promise.all([
     db.entitlement.findMany({
       where: { userId },
-      include: { exam: { include: { vendor: true } } },
+      include: { exam: { include: { vendor: true, poolExam: { include: { vendor: true } } } } },
       orderBy: { grantedAt: 'desc' }
     }),
     db.bundle.findMany({
@@ -101,22 +101,30 @@ export async function getGroupedExams(userId: string): Promise<GroupedExams> {
   const bundleBuckets = new Map<string, BundleGroup>();
   const standalone: ExamRow[] = [];
 
+  // An entitlement on a retired "Practice Exam N" variant unlocks the
+  // certification's pool exam, so show (and dedupe) it as that exam.
+  const seenPractice = new Set<string>();
   for (const e of entitlements) {
+    const exam = e.exam.poolExam ?? e.exam;
+    if (e.tier !== 'VOUCHER') {
+      if (seenPractice.has(exam.id)) continue;
+      seenPractice.add(exam.id);
+    }
     const row: ExamRow = {
       entitlementId: e.id,
-      examId: e.examId,
-      examSlug: e.exam.slug,
-      examTitle: e.exam.title,
-      examCode: e.exam.code,
-      questionCount: e.exam.questionCount,
-      durationMinutes: e.exam.durationMinutes,
-      vendorName: e.exam.vendor.name,
-      vendorSlug: e.exam.vendor.slug,
+      examId: exam.id,
+      examSlug: exam.slug,
+      examTitle: exam.title,
+      examCode: exam.code,
+      questionCount: exam.questionCount,
+      durationMinutes: exam.durationMinutes,
+      vendorName: exam.vendor.name,
+      vendorSlug: exam.vendor.slug,
       tier: e.tier,
       grantedAt: e.grantedAt
     };
 
-    const bundleId = examToBundle.get(e.examId);
+    const bundleId = examToBundle.get(exam.id);
     if (!bundleId) {
       standalone.push(row);
       continue;
@@ -128,7 +136,7 @@ export async function getGroupedExams(userId: string): Promise<GroupedExams> {
       const firstItem = b.items[0];
       // Look up the first item's exam from the entitlements we already loaded.
       // Fallback to row.* when the user only owns one item.
-      const firstExam = entitlements.find(en => en.examId === firstItem.examId)?.exam ?? e.exam;
+      const firstExam = entitlements.find(en => en.examId === firstItem.examId)?.exam ?? exam;
       group = {
         bundleId: b.id,
         bundleSlug: b.slug,

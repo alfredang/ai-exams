@@ -28,11 +28,11 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ s
       <div className="mb-2 text-sm">
         <Link href="/practice-exams" className="text-blue-600 hover:underline">All exams</Link>
         <span className="text-slate-400"> / </span>
-        <span>Bundle</span>
+        <span>Practice exam</span>
       </div>
       <div className="mb-1 inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
         <Package className="h-3.5 w-3.5" />
-        Bundle
+        Practice exam
       </div>
       <h1 className="mt-2 text-3xl font-bold tracking-tight">{bundle.title}</h1>
       <p className="mt-2 max-w-2xl text-slate-600">{bundle.description}</p>
@@ -73,7 +73,7 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ s
         <aside className="space-y-4">
           <div className="card p-5">
             <div className="text-xs font-semibold uppercase text-purple-700 dark:text-purple-300">
-              {isFree ? 'Free for a limited time' : 'Bundle price'}
+              {isFree ? 'Free for a limited time' : 'Price'}
             </div>
             <div className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {isFree ? 'Free' : formatPrice(bundle.price)}
@@ -100,7 +100,7 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ s
             <ul className="mt-2 space-y-1">
               <li>• Each practice access is granted instantly to your account.</li>
               <li>• Voucher codes (if any) are emailed and visible under My Content → Vouchers.</li>
-              <li>• Bundle items are non-transferable.</li>
+              <li>• Purchases are non-transferable.</li>
             </ul>
           </div>
         </aside>

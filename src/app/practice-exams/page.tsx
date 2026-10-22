@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
-import { practiceExamCount, practiceExamLabel, practiceQuestionTotal } from '@/lib/bundle-contents';
+import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
 import { bundleSearchAliases, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
 
@@ -31,7 +31,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
   const allBundlesRaw = await db.bundle.findMany({
     where: { published: true },
-    include: { items: { include: { exam: { include: { vendor: true } } } } },
+    include: { items: { include: { exam: { include: { vendor: true, ...PUBLISHED_QUESTION_COUNT } } } } },
     orderBy: { createdAt: 'desc' }
   });
   // Filter bundles in memory for vendor/level (they're derived from item[0]).
@@ -94,8 +94,6 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           const firstItem = b.items[0]?.exam;
           // PRACTICE items only — the VOUCHER item points back at the same -p1
           // exam, so counting raw items double-counts it. See bundle-contents.ts.
-          const totalQuestions = practiceQuestionTotal(b.items);
-          const examCount = practiceExamCount(b.items);
           return (
             <Link key={`b-${b.id}`} href={firstItem ? `/practice-exams/${firstItem.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
               {firstItem && (
@@ -111,7 +109,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
               ))}
               <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
               <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400">{totalQuestions} questions · {practiceExamLabel(examCount)}</span>
+                <span className="text-slate-500 dark:text-slate-400">{poolCardLabel(b.items)}</span>
                 <span className="font-semibold text-blue-700 dark:text-blue-300">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
               </div>
             </Link>
@@ -119,7 +117,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         })}
         {totalCount === 0 && (
           <div className="md:col-span-2 lg:col-span-3 rounded-lg border border-slate-200 p-5 text-sm dark:border-slate-800">
-            <p className="font-medium">No practice-exam bundles found.</p>
+            <p className="font-medium">No practice exams found.</p>
             <p className="mt-1 text-slate-500 dark:text-slate-400">Try an exam name, certification code, vendor, or verified TGS/course code. Some training courses do not yet have a practice exam in this database.</p>
             {suggestions.length > 0 && (
               <p className="mt-3">Did you mean?{' '}{suggestions.map((suggestion, index) => (

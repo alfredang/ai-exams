@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { Check, Timer, BookOpen, Award, BookOpenCheck, Hourglass } from 'lucide-react';
@@ -10,6 +10,8 @@ import { ShareExam } from '@/components/share-exam';
 import { ExamBundleCTA } from '@/components/exam-bundle-cta';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 import { STORE_CURRENCY } from '@/lib/currency';
+import { hasPracticeAccess } from '@/lib/question-pool';
+import { StartButton } from './start-attempt-button';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { slug } = await params;
@@ -43,6 +45,18 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
     }
   });
 
+  // Retired "Practice Exam N" variants live on as rows only — their questions
+  // are in the certification's single pool exam. Send old links to the product.
+  if (exam?.poolExamId) {
+    const product = await db.bundle.findFirst({
+      where: { published: true, items: { some: { examId: exam.poolExamId } } },
+      select: { slug: true }
+    });
+    // The product can share this slug (a folded base exam) — then fall
+    // through and render the product view below instead of looping.
+    if (product && product.slug !== slug) permanentRedirect(`/practice-exams/${vendorSlug}/${product.slug}`);
+  }
+
   // We need session info early to decide whether unpublished exams are
   // viewable (entitled users can see exams they own even when those
   // exams are hidden from the public catalog because they're sold via
@@ -65,10 +79,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   // they can launch attempts.
   let userIsEntitled = false;
   if (exam && !exam.published && userId) {
-    const ent = await db.entitlement.findFirst({
-      where: { userId, examId: exam.id, tier: { in: ['PRACTICE', 'BUNDLE', 'VOUCHER', 'ADMIN_GRANT'] } }
-    });
-    userIsEntitled = !!ent;
+    userIsEntitled = await hasPracticeAccess(db, userId, exam.id);
   }
 
   // Routing rules:
@@ -77,14 +88,14 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   //     unpublished base shell shares its slug, e.g. aws-saa-c03,
   //     aws-soa-c03, aws-sap-c02)
   //   - Otherwise 404
-  const examIsViewable = !!exam && (exam.published || userIsEntitled);
+  const examIsViewable = !!exam && !exam.poolExamId && (exam.published || userIsEntitled);
   if (!examIsViewable) {
     const bundle = await db.bundle.findUnique({
       where: { slug },
       include: {
         items: {
           orderBy: { position: 'asc' },
-          include: { exam: { include: { vendor: true } } }
+          include: { exam: { include: { vendor: true, _count: { select: { questions: { where: { status: 'PUBLISHED' } } } } } } }
         }
       }
     });
@@ -92,7 +103,9 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
     if (!bundle || !bundle.published || bundleVendor?.slug !== vendorSlug) {
       notFound();
     }
-    return <BundleAsExamView bundle={bundle} userId={userId} />;
+    const poolExamId = bundle.items.find((i) => i.tier === 'PRACTICE')?.examId;
+    const owned = !!userId && !!poolExamId && await hasPracticeAccess(db, userId, poolExamId);
+    return <BundleAsExamView bundle={bundle} userId={userId} owned={owned} />;
   }
 
   if (!exam) notFound(); // narrowing for TS — examIsViewable ⇒ exam !== null
@@ -149,7 +162,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
     if (bundle.priceVoucher != null) {
       values.push({
         '@type': 'Offer',
-        name: 'Exam Voucher with practice exams',
+        name: 'Exam Voucher (practice exam included)',
         url: `${checkoutUrl}?tier=VOUCHER`,
         priceCurrency: STORE_CURRENCY,
         price: (bundle.priceVoucher / 100).toFixed(2),
@@ -180,11 +193,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   // Entitlement check for showing "You have access — Start your attempt"
   // sidebar. userIsEntitled was already computed above for unpublished
   // exams; re-use it for published exams too.
-  const entitled = userIsEntitled || (userId
-    ? !!(await db.entitlement.findFirst({
-        where: { userId, examId: exam.id, tier: { in: ['PRACTICE', 'BUNDLE', 'VOUCHER', 'ADMIN_GRANT'] } }
-      }))
-    : false);
+  const entitled = userIsEntitled || (userId ? await hasPracticeAccess(db, userId, exam.id) : false);
 
   return (
     <div className="container-app py-10">
@@ -211,7 +220,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
           <p className="mt-2 text-slate-600 dark:text-slate-100">{exam.description}</p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <Stat icon={BookOpen} label="Questions" value={`${exam._count.questions}`} />
+            <Stat icon={BookOpen} label="Questions per attempt" value={`${Math.min(exam.questionCount, exam._count.questions)}`} />
             <Stat icon={Timer} label="Duration" value={`${exam.durationMinutes} min`} />
             <Stat icon={Award} label="Pass score" value={`${exam.passingScore}%`} />
           </div>
@@ -231,7 +240,8 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
 
           {domains.length > 0 && (
             <div className="mt-8 card p-6">
-              <h2 className="font-semibold">Domains covered</h2>
+              <h2 className="font-semibold">Exam domains</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Each attempt follows these official weightings.</p>
               <ul className="mt-3 space-y-2 text-sm">
                 {domains.map((d, i) => (
                   <li key={i} className="flex items-center justify-between">
@@ -247,6 +257,8 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
             <h2 className="font-semibold">What you get</h2>
             <ul className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-100">
               {[
+                `A ${exam._count.questions}-question pool — every attempt draws ${Math.min(exam.questionCount, exam._count.questions)} fresh questions weighted by the official exam domains`,
+                'Unlimited retakes',
                 'Practice mode with immediate explanations',
                 'Timed Exam mode that simulates the real test',
                 'Mark questions for review and filter by status',
@@ -321,38 +333,4 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
 
 function Row({ k, v }: { k: string; v: string }) {
   return <div className="flex justify-between"><dt className="text-slate-500 dark:text-slate-300">{k}</dt><dd className="font-medium">{v}</dd></div>;
-}
-
-function StartButton({ examId, mode }: { examId: string; mode: 'PRACTICE' | 'EXAM' }) {
-  return (
-    <form action={async () => {
-      'use server';
-      const { db } = await import('@/lib/db');
-      const { auth } = await import('@/lib/auth');
-      const { redirect } = await import('next/navigation');
-      const s = await auth();
-      const uid = (s?.user as any)?.id;
-      const exam = await db.exam.findUnique({ where: { id: examId } });
-      if (!exam || !uid) return;
-      const ent = await db.entitlement.findFirst({
-        where: { userId: uid, examId, tier: { in: ['PRACTICE', 'BUNDLE', 'ADMIN_GRANT'] } }
-      });
-      if (!ent) return;
-      const qs = await db.question.findMany({ where: { examId, status: 'PUBLISHED' }, select: { id: true } });
-      const ids = qs.map(q => q.id).sort(() => Math.random() - 0.5).slice(0, exam.questionCount);
-      const att = await db.attempt.create({
-        data: {
-          userId: uid, examId, mode, questionIds: ids,
-          durationSec: mode === 'EXAM' ? exam.durationMinutes * 60 : 0,
-          expiresAt: mode === 'EXAM' ? new Date(Date.now() + exam.durationMinutes * 60_000) : null,
-          responses: {}
-        }
-      });
-      redirect(`/exam/${att.id}`);
-    }}>
-      <button className={mode === 'EXAM' ? 'btn-primary-grad w-full' : 'btn-secondary w-full'}>
-        {mode === 'EXAM' ? 'Exam Mode' : 'Practice Mode'}
-      </button>
-    </form>
-  );
 }
