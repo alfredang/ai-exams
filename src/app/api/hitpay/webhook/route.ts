@@ -58,8 +58,8 @@ export async function POST(req: Request) {
         data: { providerCaptureId: paymentId, providerPayload: verified }
       });
     } else if (status === 'failed' || status === 'cancelled') {
-      await db.order.update({
-        where: { id: order.id },
+      await db.order.updateMany({
+        where: { id: order.id, status: 'PENDING' },
         data: { status: 'FAILED', providerPayload: verified }
       });
     }

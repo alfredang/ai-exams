@@ -4,8 +4,7 @@ import { sendOrderAlertEmail, sendPurchaseEmail } from './mail';
 import { formatPrice, tierLabel } from './utils';
 import { getDelayDays } from './scheduling/voucher-delivery';
 import { issueInvoiceForOrder } from './invoice/issue';
-import { renderInvoicePdf } from './invoice/render-invoice-pdf';
-import { buildInvoiceLines } from './invoice/build-lines';
+import { renderPdfForInvoice } from './invoice/pdf-for-invoice';
 
 function providerLabel(p: PaymentProvider): string {
   switch (p) {
@@ -164,15 +163,8 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
   const { order, emailSpec } = result;
   if (emailSpec) {
     try {
-      const invoice = await db.invoice.findUnique({
-        where: { id: emailSpec.invoiceId },
-        include: { order: { select: { number: true } } }
-      });
-      let invoicePdf: Buffer | undefined;
-      if (invoice) {
-        const lines = await buildInvoiceLines(invoice);
-        invoicePdf = await renderInvoicePdf({ invoice, lines, orderNumber: invoice.order.number });
-      }
+      const invoice = await db.invoice.findUnique({ where: { id: emailSpec.invoiceId } });
+      const invoicePdf = invoice ? await renderPdfForInvoice(invoice) : undefined;
       await sendPurchaseEmail(
         emailSpec.to,
         emailSpec.productName,

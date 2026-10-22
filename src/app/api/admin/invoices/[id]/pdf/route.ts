@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { renderInvoicePdf } from '@/lib/invoice/render-invoice-pdf';
-import { buildInvoiceLines } from '@/lib/invoice/build-lines';
+import { renderPdfForInvoice } from '@/lib/invoice/pdf-for-invoice';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,11 +11,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const invoice = await db.invoice.findUnique({
     where: { id },
-    include: { order: { select: { number: true } } }
   });
   if (!invoice) return NextResponse.json({ error: 'not_found' }, { status: 404 });
-  const lines = await buildInvoiceLines(invoice);
-  const pdf = await renderInvoicePdf({ invoice, lines, orderNumber: invoice.order.number });
+  const pdf = await renderPdfForInvoice(invoice);
   return new NextResponse(pdf as any, {
     headers: {
       'Content-Type': 'application/pdf',

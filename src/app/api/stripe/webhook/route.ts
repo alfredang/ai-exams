@@ -65,8 +65,8 @@ export async function POST(req: Request) {
           data: { providerCaptureId: session.payment_intent as string, providerPayload: session as any }
         });
       } else {
-        await db.order.update({
-          where: { id: order.id },
+        await db.order.updateMany({
+          where: { id: order.id, status: 'PENDING' },
           data: { status: 'FAILED', providerPayload: session as any }
         });
       }

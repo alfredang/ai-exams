@@ -2,15 +2,22 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import argon2 from 'argon2';
 import { db } from '@/lib/db';
-import { verifyOtp } from '@/lib/otp';
+import { issueOtp, markInboxVerified, verifyOtp } from '@/lib/otp';
 import { rateLimit } from '@/lib/ratelimit';
+import { clientIp } from '@/lib/client-ip';
+import { rateLimitEmailKey } from '@/lib/email-guard';
 
 const Body = z.object({
   email: z.string().email(),
   code: z.string().length(6),
   purpose: z.enum(['REGISTER', 'RESET', 'TEASER_GATE']),
   newPassword: z.string().min(8).optional(),
-  name: z.string().optional()
+  name: z.string().max(120).optional(),
+  // Signup-without-password and the teaser gate finish with an email-code
+  // sign-in. The follow-up LOGIN code is issued here rather than by a second
+  // /api/otp/request call: that endpoint needs a fresh CAPTCHA, and this
+  // caller has just proven they own the inbox.
+  sendLoginCode: z.boolean().optional()
 });
 
 export async function POST(req: Request) {
@@ -31,8 +38,8 @@ export async function POST(req: Request) {
   // Rate-limit verification — caps 6-digit OTP brute-force and argon2 CPU abuse
   // on this unauthenticated endpoint, and bounds unsolicited user-row creation
   // via the TEASER_GATE / REGISTER upserts. Keyed on IP and on the target email.
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-  const rlEmail = data.email.toLowerCase().trim();
+  const ip = clientIp(req.headers);
+  const rlEmail = rateLimitEmailKey(data.email);
   if (!rateLimit(`otp-verify:ip:${ip}`, 20, 3_600_000).ok ||
       !rateLimit(`otp-verify:email:${rlEmail}`, 10, 3_600_000).ok) {
     return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
@@ -45,9 +52,17 @@ export async function POST(req: Request) {
 
   if (data.purpose === 'REGISTER') {
     const passwordHash = data.newPassword ? await argon2.hash(data.newPassword) : null;
+    // A password stored on a still-unverified account (mobile register) was
+    // never proven to belong to this inbox's owner: replace it or drop it.
+    const prior = await db.user.findUnique({ where: { email }, select: { emailVerified: true } });
+    const dropPassword = !!prior && !prior.emailVerified && !passwordHash;
     const user = await db.user.upsert({
       where: { email },
-      update: { emailVerified: new Date(), name: data.name?.trim() || undefined, ...(passwordHash ? { passwordHash, passwordSetupRequired: false } : {}) },
+      update: {
+        emailVerified: new Date(),
+        name: data.name?.trim() || undefined,
+        ...(passwordHash ? { passwordHash, passwordSetupRequired: false } : dropPassword ? { passwordHash: null } : {})
+      },
       create: { email, emailVerified: new Date(), name: data.name?.trim() || undefined, passwordHash }
     });
 
@@ -57,6 +72,10 @@ export async function POST(req: Request) {
     if (gt) {
       await db.attempt.updateMany({ where: { guestToken: gt, userId: null }, data: { userId: user.id, guestToken: null } });
     }
+    if (data.sendLoginCode) {
+      const sent = await sendFollowUpLoginCode(email, ip);
+      if (sent) return sent;
+    }
     return NextResponse.json({ ok: true });
   }
 
@@ -64,21 +83,44 @@ export async function POST(req: Request) {
     if (!data.newPassword) return NextResponse.json({ error: 'newPassword required' }, { status: 400 });
     const user = await db.user.findUnique({ where: { email } });
     if (!user) return NextResponse.json({ error: 'No such user' }, { status: 400 });
-    await db.user.update({ where: { id: user.id }, data: { passwordHash: await argon2.hash(data.newPassword), passwordSetupRequired: false } });
+    // The reset code proves the inbox, so an unverified account is verified too.
+    await db.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await argon2.hash(data.newPassword), passwordSetupRequired: false, emailVerified: user.emailVerified ?? new Date() }
+    });
     return NextResponse.json({ ok: true });
   }
 
   if (data.purpose === 'TEASER_GATE') {
     // Just create or attach the user; teaser gate flow follows up with sign-in via OTP separately
-    await db.user.upsert({ where: { email }, update: { emailVerified: new Date() }, create: { email, emailVerified: new Date() } });
+    const existing = await db.user.findUnique({ where: { email }, select: { id: true } });
+    const user = existing ?? (await db.user.create({ data: { email, emailVerified: new Date() }, select: { id: true } }));
+    if (existing) await markInboxVerified(existing.id);
     const cookieHeader = req.headers.get('cookie') || '';
     const gt = /(?:^|; )gt=([^;]+)/.exec(cookieHeader)?.[1];
     if (gt) {
-      const user = await db.user.findUnique({ where: { email } });
-      if (user) await db.attempt.updateMany({ where: { guestToken: gt, userId: null }, data: { userId: user.id, guestToken: null } });
+      await db.attempt.updateMany({ where: { guestToken: gt, userId: null }, data: { userId: user.id, guestToken: null } });
+    }
+    if (data.sendLoginCode) {
+      const sent = await sendFollowUpLoginCode(email, ip);
+      if (sent) return sent;
     }
     return NextResponse.json({ ok: true });
   }
 
   return NextResponse.json({ error: 'Unsupported purpose' }, { status: 400 });
+}
+
+// The account is verified by now, so a failure here must not read as a
+// plain error — the code just used is consumed and retrying it can't work.
+async function sendFollowUpLoginCode(email: string, ip: string) {
+  const r = await issueOtp(email, 'LOGIN', ip, { inboxProven: true });
+  if (r.ok) return null;
+  return NextResponse.json(
+    {
+      error: `Your email is verified, but we couldn't send your sign-in code (${r.error}). Please sign in from the login page.`,
+      verified: true
+    },
+    { status: 'deliveryFailed' in r ? 503 : 429 }
+  );
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
+import { useCaptcha } from '@/components/captcha';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,11 +15,13 @@ export default function SignupPage() {
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const captcha = useCaptcha();
 
   async function startSignup(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErr('');
-    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'REGISTER' }) });
+    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'REGISTER', ...captcha.fields() }) });
     setBusy(false);
+    captcha.reset();
     if (!r.ok) { setErr((await r.json()).error || 'Could not send code'); return; }
     setStep('otp');
   }
@@ -28,7 +31,7 @@ export default function SignupPage() {
     const r = await fetch('/api/otp/verify', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, code, purpose: 'REGISTER', name, newPassword: password || undefined })
+      body: JSON.stringify({ email, code, purpose: 'REGISTER', name, newPassword: password || undefined, sendLoginCode: !password })
     });
     if (!r.ok) { setBusy(false); setErr((await r.json()).error || 'Verification failed'); return; }
     if (password) {
@@ -37,8 +40,7 @@ export default function SignupPage() {
       if (!res?.error) router.push('/post-login');
       else router.push('/login');
     } else {
-      // OTP-only user — sign in via OTP using a fresh login code
-      await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'LOGIN' }) });
+      // OTP-only user — the verify call above already emailed a login code
       router.push(`/verify-otp?email=${encodeURIComponent(email)}&purpose=LOGIN`);
       setBusy(false);
     }
@@ -55,8 +57,9 @@ export default function SignupPage() {
             <div><label className="label">Name</label><input className="input" value={name} onChange={e => setName(e.target.value)} /></div>
             <div><label className="label">Email</label><input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} /></div>
             <div><label className="label">Password <span className="text-xs text-slate-500">(optional — you can sign in with email codes)</span></label><input className="input" type="password" minLength={8} value={password} onChange={e => setPassword(e.target.value)} /></div>
+            {captcha.widget}
             {err && <p className="text-sm text-red-600">{err}</p>}
-            <button className="btn-primary w-full" disabled={busy}>{busy ? 'Sending code…' : 'Continue'}</button>
+            <button className="btn-primary w-full" disabled={busy || !captcha.ready}>{busy ? 'Sending code…' : 'Continue'}</button>
           </form>
         ) : (
           <form onSubmit={verify} className="mt-6 space-y-4">

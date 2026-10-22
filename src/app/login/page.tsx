@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
+import { useCaptcha } from '@/components/captcha';
 
 export default function LoginPage() {
   return <Suspense><LoginInner /></Suspense>;
@@ -22,6 +23,7 @@ function LoginInner() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const captcha = useCaptcha();
 
   async function loginPassword(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErr('');
@@ -33,8 +35,9 @@ function LoginInner() {
 
   async function sendOtp() {
     setBusy(true); setErr('');
-    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'LOGIN' }) });
+    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'LOGIN', ...captcha.fields() }) });
     setBusy(false);
+    captcha.reset();
     if (!r.ok) { setErr((await r.json()).error || 'Could not send code'); return; }
     setOtpSent(true);
   }
@@ -78,7 +81,10 @@ function LoginInner() {
           <form onSubmit={loginOtp} className="mt-6 space-y-4">
             <div><label className="label">Email</label><input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} /></div>
             {!otpSent ? (
-              <button type="button" onClick={sendOtp} className="btn-outline w-full" disabled={busy || !email}>{busy ? 'Sending…' : 'Send 6-digit code'}</button>
+              <>
+                {captcha.widget}
+                <button type="button" onClick={sendOtp} className="btn-outline w-full" disabled={busy || !email || !captcha.ready}>{busy ? 'Sending…' : 'Send 6-digit code'}</button>
+              </>
             ) : (
               <>
                 <div><label className="label">Code</label><input className="input tracking-[0.4em] text-center" maxLength={6} required value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ''))} /></div>

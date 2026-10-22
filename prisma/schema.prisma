@@ -81,6 +81,7 @@ enum EmailTemplateKey {
   OTP_RESET
   OTP_TEASER_GATE
   PASSWORD_RESET
+  REFUND_ISSUED
 }
 
 // =========== Models ===========
@@ -680,8 +681,11 @@ model CouponRedemption {
 model Invoice {
   id              String        @id @default(cuid())
   number          String        @unique         // e.g. INV-2026-00042
-  orderId         String        @unique
-  order           Order         @relation(fields: [orderId], references: [id])
+  // Set on the order's tax invoice only. Credit notes leave it null and point
+  // at the invoice they adjust via creditNoteOfId (an order has one invoice
+  // but may have several credit notes for partial refunds).
+  orderId         String?       @unique
+  order           Order?        @relation(fields: [orderId], references: [id])
   userId          String
   user            User          @relation(fields: [userId], references: [id])
   issueDate       DateTime      @default(now())
@@ -705,14 +709,15 @@ model Invoice {
   status          InvoiceStatus @default(ISSUED)
   voidedAt        DateTime?
   voidReason      String?
-  creditNoteOfId  String?       @unique         // points back to the original invoice this credit-notes
+  creditNoteOfId  String?                       // points back to the original invoice this credit-notes
   creditNoteOf    Invoice?      @relation("CreditNote", fields: [creditNoteOfId], references: [id])
-  creditNoteFor   Invoice?      @relation("CreditNote")
+  creditNotes     Invoice[]     @relation("CreditNote")
   pdfPath         String?       // optional cached PDF path; otherwise render on demand
   createdAt       DateTime      @default(now())
   refund          Refund?
   @@index([userId])
   @@index([issueDate])
+  @@index([creditNoteOfId])
   @@index([status])
 }
 
@@ -804,6 +809,7 @@ model OtpCode {
   purpose   String   // "LOGIN" | "REGISTER" | "RESET" | "TEASER_GATE"
   expiresAt DateTime
   consumed  Boolean  @default(false)
+  attempts  Int      @default(0) // failed guesses; the code is burned after 5
   createdAt DateTime @default(now())
   @@index([email, purpose])
 }

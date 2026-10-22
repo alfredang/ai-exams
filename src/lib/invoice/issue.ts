@@ -120,53 +120,58 @@ export async function issueInvoiceForOrder(orderId: string, dbc?: DbClient) {
 }
 
 /**
- * Issue a CREDIT_NOTE invoice that offsets the original `Invoice.id`.
- * Used by the refund flow in Phase 1.2.
+ * Issue a CREDIT_NOTE that offsets `amountCents` of the original invoice.
+ * Credit notes carry their own CN- sequence, leave orderId null (the order
+ * keeps exactly one tax invoice) and point back via creditNoteOfId, so an
+ * invoice can carry several credit notes for partial refunds. The number and
+ * the row are written in one transaction so a failure never burns a number.
  */
-export async function issueCreditNoteForInvoice(
-  invoiceId: string,
-  amountCents: number,
-  dbc?: DbClient
-) {
-  const client: DbClient = dbc ?? db;
-  const orig = await client.invoice.findUnique({ where: { id: invoiceId } });
-  if (!orig) throw new Error(`Invoice ${invoiceId} not found`);
+export async function issueCreditNoteForInvoice(invoiceId: string, amountCents: number, dbc?: DbClient) {
+  const run = async (client: DbClient) => {
+    const orig = await client.invoice.findUnique({ where: { id: invoiceId } });
+    if (!orig) throw new Error(`Invoice ${invoiceId} not found`);
+    if (orig.status === 'CREDIT_NOTE') throw new Error('Cannot credit a credit note');
 
-  const settings = await getAllSettings();
-  const prefix = settings.INVOICE_PREFIX || 'INV';
-  const number = await nextNumber('INVOICE', prefix, client);
+    // Mirror the original tax split; the total is exactly the refunded amount.
+    const total = amountCents;
+    const taxAmount = Math.round((total * orig.taxAmount) / Math.max(1, orig.total));
+    const subtotal = total - taxAmount;
+    const number = await nextNumber('CREDIT_NOTE', 'CN', client);
 
-  // Mirror the tax split from the original so the credit note is a clean
-  // negative of the same shape.
-  const ratio = amountCents / Math.max(1, orig.total);
-  const subtotal = Math.round(orig.subtotal * ratio);
-  const taxAmount = Math.round(orig.taxAmount * ratio);
-  const total = subtotal + taxAmount;
+    return client.invoice.create({
+      data: {
+        number,
+        orderId: null,
+        userId: orig.userId,
+        issueDate: new Date(),
+        billingName: orig.billingName,
+        billingEmail: orig.billingEmail,
+        billingAddress: orig.billingAddress,
+        billingUEN: orig.billingUEN,
+        companyName: orig.companyName,
+        companyAddress: orig.companyAddress,
+        companyUEN: orig.companyUEN,
+        companyGstReg: orig.companyGstReg,
+        currency: orig.currency,
+        subtotal: -subtotal,
+        taxRate: orig.taxRate,
+        taxLabel: orig.taxLabel,
+        taxAmount: -taxAmount,
+        total: -total,
+        fxRateBpsToSgd: orig.fxRateBpsToSgd,
+        totalSgd: orig.fxRateBpsToSgd ? -Math.round((total * orig.fxRateBpsToSgd) / 10000) : null,
+        status: 'CREDIT_NOTE',
+        creditNoteOfId: orig.id
+      }
+    });
+  };
+  return dbc ? run(dbc) : db.$transaction((tx) => run(tx));
+}
 
-  return client.invoice.create({
-    data: {
-      number,
-      orderId: orig.orderId,
-      userId: orig.userId,
-      issueDate: new Date(),
-      billingName: orig.billingName,
-      billingEmail: orig.billingEmail,
-      billingAddress: orig.billingAddress,
-      billingUEN: orig.billingUEN,
-      companyName: orig.companyName,
-      companyAddress: orig.companyAddress,
-      companyUEN: orig.companyUEN,
-      companyGstReg: orig.companyGstReg,
-      currency: orig.currency,
-      subtotal: -subtotal,
-      taxRate: orig.taxRate,
-      taxLabel: orig.taxLabel,
-      taxAmount: -taxAmount,
-      total: -total,
-      fxRateBpsToSgd: orig.fxRateBpsToSgd,
-      totalSgd: orig.fxRateBpsToSgd ? -Math.round((total * orig.fxRateBpsToSgd) / 10000) : null,
-      status: 'CREDIT_NOTE',
-      creditNoteOfId: orig.id
-    }
-  });
+/** The order an invoice belongs to; a credit note reaches it through the invoice it adjusts. */
+export async function orderIdForInvoice(invoice: { orderId: string | null; creditNoteOfId: string | null }, dbc?: DbClient) {
+  if (invoice.orderId) return invoice.orderId;
+  if (!invoice.creditNoteOfId) return null;
+  const orig = await (dbc ?? db).invoice.findUnique({ where: { id: invoice.creditNoteOfId }, select: { orderId: true } });
+  return orig?.orderId ?? null;
 }

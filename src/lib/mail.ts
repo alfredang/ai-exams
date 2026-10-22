@@ -416,6 +416,31 @@ ${alert.voucherPending ? '<p><b>Action needed:</b> this order includes an exam v
   );
 }
 
+export async function sendRefundEmail(orderId: string, creditNoteId: string, amountCents: number, fullyRefunded: boolean) {
+  const [order, creditNote] = await Promise.all([
+    db.order.findUnique({ where: { id: orderId }, include: { user: true, bundle: true, exam: true, invoice: true } }),
+    db.invoice.findUnique({ where: { id: creditNoteId } })
+  ]);
+  if (!order || !creditNote) return;
+  const { renderPdfForInvoice } = await import('./invoice/pdf-for-invoice');
+  const { sendTemplated } = await import('./email/templates');
+  const pdf = await renderPdfForInvoice(creditNote);
+  return sendTemplated(
+    'REFUND_ISSUED',
+    order.user.email,
+    {
+      productName: order.bundle?.title ?? order.exam?.title ?? 'your order',
+      fullyRefunded,
+      orderNumber: order.number ?? order.id,
+      invoiceNumber: order.invoice?.number ?? '',
+      creditNoteNumber: creditNote.number,
+      user: { name: order.user.name ?? '', email: order.user.email },
+      refund: { amount: amountCents, currency: order.currency }
+    },
+    [{ filename: `credit-note-${creditNote.number}.pdf`, content: pdf, contentType: 'application/pdf' }]
+  );
+}
+
 export async function sendVoucherDeliveredEmail(
   to: string,
   examName: string,

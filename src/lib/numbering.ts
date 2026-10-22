@@ -3,7 +3,7 @@ import type { Prisma, PrismaClient } from '@prisma/client';
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
-export type CounterKind = 'INVOICE' | 'ORDER';
+export type CounterKind = 'INVOICE' | 'ORDER' | 'CREDIT_NOTE';
 
 /**
  * Atomically increment the global NumberCounter for `kind` and return the

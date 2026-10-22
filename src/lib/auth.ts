@@ -7,7 +7,10 @@ import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import argon2 from 'argon2';
 import { db } from './db';
-import { verifyOtp } from './otp';
+import { markInboxVerified, verifyOtp } from './otp';
+import { isRateLimited, rateLimit } from './ratelimit';
+import { clientIp } from './client-ip';
+import { rateLimitEmailKey } from './email-guard';
 import { authConfig } from './auth.config';
 import { getAllSettings } from './settings';
 
@@ -68,23 +71,46 @@ export function clearSocialEnvCache() {
 // is supported in Next.js server runtime).
 const initialEnv = await ensureSocialEnv();
 
+/**
+ * Sign-in guessing cap, per network and per mailbox. Only failed attempts
+ * count, so a user who mistypes once isn't penalised for later successes;
+ * the coarse all-attempts IP cap bounds parallel bursts that would all
+ * pass the failure check before any of them fails.
+ */
+async function guardFailures<T>(scope: string, ip: string, email: string, attempt: () => Promise<T | null | false>) {
+  const ipKey = `${scope}:ip:${ip}`;
+  const emailKey = `${scope}:email:${rateLimitEmailKey(email)}`;
+  if (isRateLimited(ipKey, 20) || isRateLimited(emailKey, 10)) return null;
+  if (!rateLimit(`${scope}:burst:${ip}`, 60, 15 * 60_000).ok) return null;
+  const result = await attempt();
+  if (!result) {
+    rateLimit(ipKey, 20, 15 * 60_000);
+    rateLimit(emailKey, 10, 15 * 60_000);
+    return null;
+  }
+  return result;
+}
+
 const providers: NextAuthConfig['providers'] = [
   Credentials({
     id: 'password',
     name: 'Email + Password',
     credentials: { email: {}, password: {} },
-    async authorize(creds) {
+    async authorize(creds, req) {
       try {
         const email = String(creds?.email || '').toLowerCase().trim();
         const password = String(creds?.password || '');
         if (!email || !password) return null;
-        const user = await db.user.findUnique({ where: { email } });
+        const user = await guardFailures('pw-login', clientIp(req.headers), email, async () => {
+          const user = await db.user.findUnique({ where: { email } });
+          if (!user) return null;
+          if (!user.emailVerified) return null;
+          if (!user.passwordHash) return null;
+          if (!user.active) return null;
+          const ok = await argon2.verify(user.passwordHash, password);
+          return ok ? user : null;
+        });
         if (!user) return null;
-        if (!user.emailVerified) return null;
-        if (!user.passwordHash) return null;
-        if (!user.active) return null;
-        const ok = await argon2.verify(user.passwordHash, password);
-        if (!ok) return null;
         return { id: user.id, email: user.email, name: user.name ?? undefined, role: user.role } as any;
       } catch (err) {
         // Authorize must never throw — return null and log the unexpected
@@ -99,16 +125,16 @@ const providers: NextAuthConfig['providers'] = [
     id: 'otp',
     name: 'Email + OTP',
     credentials: { email: {}, code: {} },
-    async authorize(creds) {
+    async authorize(creds, req) {
       const email = String(creds?.email || '').toLowerCase().trim();
       const code = String(creds?.code || '');
       if (!email || !code) return null;
-      const ok = await verifyOtp(email, code, 'LOGIN');
+      const ok = await guardFailures('otp-login', clientIp(req.headers), email, () => verifyOtp(email, code, 'LOGIN'));
       if (!ok) return null;
       const user = await db.user.findUnique({ where: { email } });
       if (!user) return null;
       if (!user.active) return null;
-      if (!user.emailVerified) await db.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } });
+      if (!user.emailVerified) await markInboxVerified(user.id);
       return { id: user.id, email: user.email, name: user.name ?? undefined, role: user.role } as any;
     }
   })
@@ -210,21 +236,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }
   },
   events: {
-    async signIn({ user, account, isNewUser }) {
-      // First-time OAuth sign-in: mark email verified (the upstream provider
-      // already did) so the user can use the password OTP fallback later
-      // without re-verifying.
+    async signIn({ user, account }) {
+      // OAuth sign-in: mark the email verified (the upstream provider already
+      // did) so the user can use the password OTP fallback later without
+      // re-verifying. Not only for new users: an admin-created account that
+      // later links Google/GitHub by email was left "EMAIL UNVERIFIED" forever.
+      // Linking by email into a never-verified account also drops any
+      // password on it, so a pre-registered attacker password can't survive.
       if (
-        isNewUser &&
         account &&
         (account.provider === 'google' ||
           account.provider === 'github' ||
           account.provider === 'linkedin' ||
           account.provider === 'microsoft-entra-id')
       ) {
-        await db.user
-          .update({ where: { id: user.id! }, data: { emailVerified: new Date() } })
-          .catch(() => {});
+        await markInboxVerified(user.id!).catch(() => {});
       }
     }
   }

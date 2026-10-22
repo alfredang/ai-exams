@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCaptcha } from '@/components/captcha';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -10,11 +11,17 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const captcha = useCaptcha();
 
   async function send(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setErr('');
-    await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'RESET' }) });
-    setBusy(false); setStep('reset');
+    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'RESET', ...captcha.fields() }) });
+    setBusy(false);
+    captcha.reset();
+    // Rate-limit and CAPTCHA failures are shown; everything else moves on so
+    // the page never reveals whether the email has an account.
+    if (!r.ok && r.status !== 503) { setErr((await r.json()).error || 'Could not send code'); return; }
+    setStep('reset');
   }
 
   async function reset(e: React.FormEvent) {
@@ -31,7 +38,9 @@ export default function ForgotPasswordPage() {
       {step === 'email' ? (
         <form onSubmit={send} className="mt-6 space-y-4">
           <div><label className="label">Email</label><input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} /></div>
-          <button className="btn-primary w-full" disabled={busy}>{busy ? 'Sending…' : 'Send code'}</button>
+          {captcha.widget}
+          {err && <p className="text-sm text-red-600">{err}</p>}
+          <button className="btn-primary w-full" disabled={busy || !captcha.ready}>{busy ? 'Sending…' : 'Send code'}</button>
         </form>
       ) : (
         <form onSubmit={reset} className="mt-6 space-y-4">

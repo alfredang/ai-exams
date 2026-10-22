@@ -56,6 +56,31 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       order: { id: 'ord_abc123', amount: 9900, currency: STORE_CURRENCY }
     }
   },
+  REFUND_ISSUED: {
+    displayName: 'Refund Issued',
+    description: 'Sent to the customer when an order is refunded, with the credit note attached.',
+    subject: 'Refund processed — {{productName}}',
+    bodyHtml: wrap(`  <h2 style="margin:0 0 12px">Your refund has been processed</h2>
+  <p>Hi {{user.name}},</p>
+  <p>We have refunded <b>{{money refund.amount refund.currency}}</b> for <b>{{productName}}</b>{{#if fullyRefunded}}. Access to this purchase has ended{{/if}}.</p>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0">
+    <tr><td style="padding:6px 0;color:#64748b">Order</td><td style="padding:6px 0;text-align:right"><code>{{orderNumber}}</code></td></tr>
+    <tr><td style="padding:6px 0;color:#64748b">Credit note</td><td style="padding:6px 0;text-align:right"><code>{{creditNoteNumber}}</code></td></tr>
+    <tr><td style="padding:6px 0;color:#64748b">Original invoice</td><td style="padding:6px 0;text-align:right"><code>{{invoiceNumber}}</code></td></tr>
+  </table>
+  <p style="color:#64748b;font-size:13px">Your credit note is attached. Depending on your bank, the refund may take 5–10 business days to appear on your statement.</p>`),
+    sampleVars: {
+      brand: sampleBrand,
+      appUrl: 'https://example.com',
+      productName: 'CompTIA Security+ (SY0-701)',
+      fullyRefunded: true,
+      orderNumber: 'ORD-000003',
+      invoiceNumber: 'INV-000002',
+      creditNoteNumber: 'CN-000001',
+      user: { name: 'Alex', email: 'alex@example.com' },
+      refund: { amount: 43900, currency: 'SGD' }
+    }
+  },
   VOUCHER_DELIVERY: {
     displayName: 'Voucher Delivery',
     description: 'Sent when a voucher code is delivered (5 days after purchase).',

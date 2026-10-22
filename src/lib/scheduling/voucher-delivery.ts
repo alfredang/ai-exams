@@ -76,6 +76,17 @@ export async function runDueDeliveries(limit = 50): Promise<DeliveryResult> {
         result.errors.push({ id, error: 'delivery row vanished' });
         continue;
       }
+      if (delivery.orderId) {
+        const order = await db.order.findUnique({ where: { id: delivery.orderId }, select: { status: true } });
+        if (order && order.status !== 'PAID') {
+          // Refunded/failed orders must never receive a voucher.
+          await db.voucherDelivery.update({
+            where: { id },
+            data: { status: 'CANCELED', lastError: `order ${order.status.toLowerCase()}` }
+          });
+          continue;
+        }
+      }
       const ent = delivery.entitlement;
       const voucherCode = delivery.voucherCode || ent.voucher;
       if (!voucherCode) {

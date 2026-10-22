@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCaptcha } from '@/components/captcha';
 
 type Props = {
   count: number;
@@ -38,6 +39,7 @@ export function TeaserGate({
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const captcha = useCaptcha();
 
   const resolvedTitle = title ?? `You've completed ${count} questions`;
   const resolvedNext = nextUrl ?? `/practice-exams/${vendorSlug}/${examSlug}`;
@@ -46,8 +48,9 @@ export function TeaserGate({
     e.preventDefault();
     if (busy) return; // guard against rapid double-submit before React re-renders the disabled button (Teaser-audit L3)
     setBusy(true); setErr('');
-    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'TEASER_GATE' }) });
+    const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'TEASER_GATE', ...captcha.fields() }) });
     setBusy(false);
+    captcha.reset();
     if (!r.ok) { setErr((await r.json()).error || 'Could not send code'); return; }
     setStep('otp');
   }
@@ -55,10 +58,10 @@ export function TeaserGate({
     e.preventDefault();
     if (busy) return; // guard against rapid double-submit before React re-renders the disabled button (Teaser-audit L3)
     setBusy(true); setErr('');
-    const r = await fetch('/api/otp/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, code, purpose: 'TEASER_GATE' }) });
+    // sendLoginCode: the server emails a LOGIN code on success, then we ship
+    // the user to /verify-otp to complete sign-in
+    const r = await fetch('/api/otp/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, code, purpose: 'TEASER_GATE', sendLoginCode: true }) });
     if (!r.ok) { setBusy(false); setErr((await r.json()).error || 'Verification failed'); return; }
-    // Now send a LOGIN OTP and ship the user to /verify-otp to complete sign-in
-    await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'LOGIN' }) });
     router.push(`/verify-otp?email=${encodeURIComponent(email)}&purpose=LOGIN&next=${encodeURIComponent(resolvedNext)}`);
   }
 
@@ -74,8 +77,9 @@ export function TeaserGate({
         {step === 'email' && (
           <form onSubmit={send} className="mt-5 space-y-3">
             <input className="input" type="email" required placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+            {captcha.widget}
             {err && <p className="text-sm text-red-600">{err}</p>}
-            <button className="btn-primary-grad w-full" disabled={busy}>{busy ? 'Sending…' : primaryLabel}</button>
+            <button className="btn-primary-grad w-full" disabled={busy || !captcha.ready}>{busy ? 'Sending…' : primaryLabel}</button>
             <button type="button" onClick={onClose} className="btn-ghost w-full text-sm">Continue without saving</button>
           </form>
         )}

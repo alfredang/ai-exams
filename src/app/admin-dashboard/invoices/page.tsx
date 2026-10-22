@@ -29,7 +29,8 @@ async function loadInvoices(where: Prisma.InvoiceWhereInput, skip: number, take:
     where,
     include: {
       user: { select: { email: true, name: true } },
-      order: { include: { exam: { select: { code: true, title: true, vendor: { select: { name: true } } } }, bundle: { select: { title: true } } } }
+      order: { include: { exam: { select: { code: true, title: true, vendor: { select: { name: true } } } }, bundle: { select: { title: true } } } },
+      creditNoteOf: { select: { order: { include: { exam: { select: { code: true, title: true, vendor: { select: { name: true } } } }, bundle: { select: { title: true } } } } } }
     },
     orderBy: { issueDate: 'desc' },
     skip,
@@ -115,10 +116,11 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
       key: 'product',
       header: 'Product',
       cell: (i) => {
-        const label = i.order.bundle
-          ? `${i.order.bundle.title} (bundle)`
-          : i.order.exam
-            ? `${i.order.exam.title} (${i.order.exam.code})`
+        const o = i.order ?? i.creditNoteOf?.order;
+        const label = o?.bundle
+          ? `${o.bundle.title} (bundle)`
+          : o?.exam
+            ? `${o.exam.title} (${o.exam.code})`
             : 'Order';
         return <span className="text-[12px] text-slate-700 dark:text-slate-200">{label}</span>;
       }

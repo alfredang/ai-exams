@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { refundCapture as paypalRefundCapture } from '@/lib/paypal';
 import { refundPayment as hitpayRefundPayment } from '@/lib/payments/hitpay';
 import { issueCreditNoteForInvoice } from '@/lib/invoice/issue';
-import type { PaymentProvider } from '@prisma/client';
+import type { PaymentProvider, Tier } from '@prisma/client';
 
 export type RefundInput = {
   orderId: string;
@@ -71,7 +71,7 @@ export async function refundOrder(input: RefundInput): Promise<RefundOutcome> {
     const result = await callProviderRefund(
       order.provider as PaymentProvider,
       {
-        captureId: order.paypalCaptureId || order.providerCaptureId || null,
+        captureId: order.providerCaptureId || order.paypalCaptureId || null,
         providerOrderId: order.providerOrderId || order.paypalOrderId || null,
         amountCents,
         currency: order.currency,
@@ -134,6 +134,8 @@ export async function refundOrder(input: RefundInput): Promise<RefundOutcome> {
     }
   });
 
+  if (fully) await revokeOrderAccess(order.id);
+
   // 4. Mint credit-note Invoice linked to this refund
   let creditNoteInvoiceId: string | undefined;
   if (order.invoice) {
@@ -177,6 +179,15 @@ export async function refundOrder(input: RefundInput): Promise<RefundOutcome> {
     }
   });
 
+  if (creditNoteInvoiceId) {
+    try {
+      const { sendRefundEmail } = await import('@/lib/mail');
+      await sendRefundEmail(order.id, creditNoteInvoiceId, amountCents, fully);
+    } catch {
+      /* never break refund flow; sendMail logs failures to EmailLog */
+    }
+  }
+
   try {
     const { notify } = await import('@/lib/admin-notifications');
     await notify({
@@ -217,9 +228,10 @@ async function callProviderRefund(
       return { providerRefundId: result.id, status };
     }
     case 'HITPAY': {
-      // HitPay uses the payment request id we stored as providerOrderId.
-      if (!input.providerOrderId) throw new Error('Order has no HitPay payment id to refund.');
-      const result = await hitpayRefundPayment(input.providerOrderId, input.amountCents);
+      // /v1/refund takes the payment id the webhook stored as the capture id,
+      // not the payment request id kept in providerOrderId.
+      if (!input.captureId) throw new Error('Order has no HitPay payment id to refund.');
+      const result = await hitpayRefundPayment(input.captureId, input.amountCents);
       const status = result.status === 'succeeded' || result.status === 'completed' ? 'SUCCEEDED' : 'PENDING';
       return { providerRefundId: result.id, status };
     }
@@ -232,5 +244,50 @@ async function callProviderRefund(
     }
     default:
       throw new Error(`Unsupported provider: ${provider}`);
+  }
+}
+
+/**
+ * Take back what a fully refunded order granted: cancel undelivered vouchers
+ * and remove entitlements no other paid order of the same user still covers.
+ */
+async function revokeOrderAccess(orderId: string) {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    include: { bundle: { include: { items: true } } }
+  });
+  if (!order) return;
+  await db.voucherDelivery.updateMany({
+    where: { orderId, status: { in: ['SCHEDULED', 'FAILED'] } },
+    data: { status: 'CANCELED' }
+  });
+
+  const grantAll = !order.tier || order.tier === 'VOUCHER';
+  const granted: { examId: string; tier: Tier }[] = order.bundle
+    ? order.bundle.items.filter((i) => grantAll || i.tier === order.tier).map((i) => ({ examId: i.examId, tier: i.tier }))
+    : order.examId && order.tier
+      ? (order.tier === 'BUNDLE' || order.tier === 'VOUCHER' ? (['PRACTICE', 'VOUCHER'] as const) : [order.tier]).map((tier) => ({
+          examId: order.examId!,
+          tier
+        }))
+      : [];
+
+  const otherPaid = await db.order.findMany({
+    where: { userId: order.userId, status: 'PAID', id: { not: orderId } },
+    include: { bundle: { include: { items: true } } }
+  });
+  const stillCovered = (examId: string, tier: string) =>
+    otherPaid.some((o) =>
+      o.bundle
+        ? o.bundle.items.some((i) => i.examId === examId && i.tier === tier && (!o.tier || o.tier === 'VOUCHER' || o.tier === i.tier))
+        : o.examId === examId && (o.tier === tier || (tier !== 'BUNDLE' && (o.tier === 'BUNDLE' || o.tier === 'VOUCHER')))
+    );
+
+  for (const g of granted) {
+    if (stillCovered(g.examId, g.tier)) continue;
+    // A voucher code already sent can't be recalled; keep that entitlement as the record.
+    await db.entitlement.deleteMany({
+      where: { userId: order.userId, examId: g.examId, tier: g.tier, voucher: null }
+    });
   }
 }

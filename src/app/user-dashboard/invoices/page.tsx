@@ -14,7 +14,10 @@ export default async function MyInvoicesPage() {
 
   const invoices = await db.invoice.findMany({
     where: { userId },
-    include: { order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true } } } } },
+    include: {
+      order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true } } } },
+      creditNoteOf: { select: { order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true } } } } } }
+    },
     orderBy: { issueDate: 'desc' }
   });
 
@@ -32,10 +35,11 @@ export default async function MyInvoicesPage() {
       ) : (
         <div className="card mt-6 divide-y divide-slate-200 dark:divide-slate-800">
           {invoices.map((inv) => {
-            const product = inv.order.bundle
-              ? `${inv.order.bundle.title} (bundle)`
-              : inv.order.exam
-                ? `${inv.order.exam.title} (${inv.order.exam.code})`
+            const o = inv.order ?? inv.creditNoteOf?.order;
+            const product = o?.bundle
+              ? `${o.bundle.title} (bundle)`
+              : o?.exam
+                ? `${o.exam.title} (${o.exam.code})`
                 : 'Order';
             const isCredit = inv.status === 'CREDIT_NOTE';
             const isVoid = inv.status === 'VOID';

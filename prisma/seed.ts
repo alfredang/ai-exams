@@ -2406,15 +2406,27 @@ async function main() {
       title: 'Terms of Service',
       excerpt: 'How Tertiary Exams works, what we promise, what we ask of you.',
       bodyHtml: [
-        '<p><em>This page is a placeholder while the full Terms of Service are drafted. The summary below covers the practical commitments today.</em></p>',
-        '<h2>Use of the service</h2>',
-        '<p>Tertiary Exams provides original practice questions for IT certification preparation. Questions are not from the vendor exams themselves and we are not affiliated with the cert issuers (AWS, Microsoft, Cisco, etc.).</p>',
-        '<h2>Purchases &amp; refunds</h2>',
-        '<p>All purchases are covered by our <a href="/p/refund-policy">Refund Policy</a> — within 7 days you can request a full refund through your purchase email.</p>',
-        '<h2>Privacy</h2>',
-        '<p>Your data is handled per our <a href="/p/privacy-policy">Privacy Policy</a>.</p>',
-        '<h2>Contact</h2>',
-        '<p>Questions about these terms? <a href="/p/contact">Get in touch</a>.</p>'
+        '<p>These terms govern your use of Tertiary Exams (exams.tertiaryinfotech.com), operated by Tertiary Infotech Academy Pte Ltd (UEN 201200696W), 12 Woodlands Square #07-85/86/87 Woods Square Tower 1, Singapore 737715. By creating an account or making a purchase you agree to them.</p>',
+        '<h2>1. The service</h2>',
+        '<p>We provide original practice questions and timed mock exams for IT certification preparation, and resell official exam vouchers for some certifications. Our questions are written by us; they are not copies of any vendor exam, and we are not affiliated with or endorsed by the certification bodies (AWS, Microsoft, CompTIA, Cisco and others). Passing a practice exam does not guarantee passing the real exam.</p>',
+        '<h2>2. Accounts</h2>',
+        '<p>You must give a valid email address and keep your sign-in details secure. Accounts are personal: do not share them or resell access. We may suspend accounts used for fraud, automated scraping, or redistribution of our content.</p>',
+        '<h2>3. Prices and payment</h2>',
+        '<p>Prices are shown in SGD or USD as you select, and include 9% Singapore GST. The amount shown at checkout is the amount charged. Payments are processed by our payment partners (HitPay, PayPal, Stripe); we never see or store your full card number. A tax invoice is emailed to you once payment succeeds and is always available under Invoices in your dashboard.</p>',
+        '<h2>4. Delivery</h2>',
+        '<p>Practice exams are available in your dashboard as soon as payment is confirmed. Exam vouchers are digital codes emailed to you, normally within 3–5 business days. Vouchers are subject to the certification vendor&#39;s own rules, including expiry dates and one exam attempt per voucher.</p>',
+        '<h2>5. Refunds</h2>',
+        '<p>Refunds follow our <a href="/p/refund-policy">Refund Policy</a>. In short: practice exams can be refunded within 7 days if barely used, and the voucher portion is non-refundable once the code has been delivered. When we refund an order we issue a credit note and the related access ends.</p>',
+        '<h2>6. Your use of the content</h2>',
+        '<p>All questions, explanations and materials are our copyright. You may use them for your own study only. Copying, publishing, sharing or reselling them, or using automated tools to extract them, is not allowed.</p>',
+        '<h2>7. Liability</h2>',
+        '<p>We work hard to keep questions accurate and current, but the service is provided as is. To the extent the law allows, our total liability for any claim is limited to the amount you paid for the purchase concerned. Nothing in these terms limits rights you have as a consumer under Singapore law.</p>',
+        '<h2>8. Privacy</h2>',
+        '<p>We handle your personal data according to our <a href="/p/privacy-policy">Privacy Policy</a> and the Personal Data Protection Act 2012.</p>',
+        '<h2>9. Changes and governing law</h2>',
+        '<p>We may update these terms; the version shown here applies from the date it is posted. These terms are governed by the laws of Singapore.</p>',
+        '<h2>10. Contact</h2>',
+        '<p>Questions about these terms or your order: <a href="mailto:sales@tertiarycourses.com.sg">sales@tertiarycourses.com.sg</a>, tel +65 6100 0613.</p>'
       ].join('\n'),
       showInFooter: true,
       footerGroup: 'legal',
@@ -2460,16 +2472,13 @@ async function main() {
     }
   ];
   for (const p of stubPages) {
+    // Page text is admin-authoritative once edited: only refresh a row that
+    // still holds the original placeholder body, so admin edits survive boots.
+    const existing = await db.page.findUnique({ where: { slug: p.slug }, select: { bodyHtml: true } });
+    const isPlaceholder = !existing || existing.bodyHtml.includes('This page is a placeholder');
     await db.page.upsert({
       where: { slug: p.slug },
-      // Catalog-content fields only — `published`, `showInFooter`,
-      // `footerGroup`, `position` are admin-authoritative once the row
-      // exists. Matches the rule applied to exam + bundle upserts.
-      update: {
-        title: p.title,
-        excerpt: p.excerpt,
-        bodyHtml: p.bodyHtml
-      },
+      update: isPlaceholder ? { title: p.title, excerpt: p.excerpt, bodyHtml: p.bodyHtml } : {},
       create: {
         slug: p.slug,
         title: p.title,

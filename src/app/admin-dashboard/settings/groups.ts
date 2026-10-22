@@ -196,6 +196,16 @@ export const GROUPS: SettingsGroup[] = [
     ]
   },
   {
+    slug: 'security',
+    title: 'Security',
+    description:
+      'Bot protection for signup, login, password reset and the teaser gate. Create a free Cloudflare Turnstile widget (dash.cloudflare.com → Turnstile) for this domain and paste both keys. The CAPTCHA switches on only when both keys are set.',
+    fields: [
+      { key: 'TURNSTILE_SITE_KEY', label: 'Cloudflare Turnstile — Site Key', placeholder: '0x4AAAAAAA…' },
+      { key: 'TURNSTILE_SECRET_KEY', label: 'Cloudflare Turnstile — Secret Key', secret: true }
+    ]
+  },
+  {
     slug: 'credentials',
     title: 'Credentials',
     description: 'Non-payment API keys and worker secrets. Payment provider credentials live under Payment Setting.',

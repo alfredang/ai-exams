@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 // 'payment' has a dedicated route at /settings/payment with collapsible
 // provider sub-sections, so it's intentionally excluded here.
-const VALID_SLUGS = ['company', 'branding', 'credentials', 'tax-invoice', 'site-seo'];
+const VALID_SLUGS = ['company', 'branding', 'credentials', 'tax-invoice', 'site-seo', 'security'];
 
 export default async function SettingsSectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const session = await auth();

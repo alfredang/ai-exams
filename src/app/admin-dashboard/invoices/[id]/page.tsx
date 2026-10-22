@@ -7,9 +7,10 @@ import { formatPrice } from '@/lib/utils';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatusBadge } from '@/components/admin/badge';
 import { FileText, Download, RefreshCw } from 'lucide-react';
-import { sendPurchaseEmail } from '@/lib/mail';
-import { renderInvoicePdf } from '@/lib/invoice/render-invoice-pdf';
+import { sendPurchaseEmail, sendRefundEmail } from '@/lib/mail';
 import { buildInvoiceLines } from '@/lib/invoice/build-lines';
+import { orderIdForInvoice } from '@/lib/invoice/issue';
+import { renderPdfForInvoice } from '@/lib/invoice/pdf-for-invoice';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,11 +69,20 @@ async function resendInvoice(formData: FormData) {
   const id = String(formData.get('id'));
   const inv = await db.invoice.findUnique({
     where: { id },
-    include: { order: { include: { exam: true, bundle: true } }, user: true }
+    include: { order: { include: { exam: true, bundle: true } }, user: true, refund: true }
   });
   if (!inv) return;
-  const lines = await buildInvoiceLines(inv);
-  const pdf = await renderInvoicePdf({ invoice: inv, lines, orderNumber: inv.order.number });
+  if (inv.status === 'CREDIT_NOTE') {
+    const orderId = await orderIdForInvoice(inv);
+    if (orderId) await sendRefundEmail(orderId, inv.id, -inv.total, false).catch(() => {});
+  }
+  if (!inv.order) {
+    await db.adminLog.create({
+      data: { adminId: user.id, action: 'invoice.resend', targetType: 'Invoice', targetId: id, metadata: { to: inv.billingEmail } }
+    });
+    return;
+  }
+  const pdf = await renderPdfForInvoice(inv);
   // Use the purchase email shape with the invoice attached. Even for a
   // resend we reuse the template so the recipient gets a familiar email.
   const product = inv.order.bundle
@@ -87,7 +97,7 @@ async function resendInvoice(formData: FormData) {
     undefined,
     false,
     {
-      order: { id: inv.order.id, amount: inv.total, currency: inv.currency },
+      order: { id: inv.order.number ?? inv.order.id, amount: inv.total, currency: inv.currency },
       user: { name: inv.user.name, email: inv.billingEmail },
       paymentMethod: inv.order.provider
     },
@@ -106,11 +116,12 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     include: {
       user: true,
       order: { include: { exam: { include: { vendor: true } }, bundle: true } },
-      creditNoteFor: true,
-      creditNoteOf: true
+      creditNotes: { orderBy: { issueDate: 'asc' } },
+      creditNoteOf: { include: { order: true } }
     }
   });
   if (!invoice) notFound();
+  const order = invoice.order ?? invoice.creditNoteOf?.order ?? null;
 
   const lines = await buildInvoiceLines(invoice);
 
@@ -202,17 +213,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          {(invoice.creditNoteFor || invoice.creditNoteOf) && (
+          {(invoice.creditNotes.length > 0 || invoice.creditNoteOf) && (
             <div className="card p-4">
               <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Related</h2>
-              {invoice.creditNoteFor && (
-                <div className="mt-2 text-[12px]">
+              {invoice.creditNotes.map((cn) => (
+                <div key={cn.id} className="mt-2 text-[12px]">
                   Credit-noted by{' '}
-                  <Link href={`/admin-dashboard/invoices/${invoice.creditNoteFor.id}`} className="text-blue-600 hover:underline">
-                    {invoice.creditNoteFor.number}
-                  </Link>
+                  <Link href={`/admin-dashboard/invoices/${cn.id}`} className="text-blue-600 hover:underline">
+                    {cn.number}
+                  </Link>{' '}
+                  ({formatPrice(cn.total, cn.currency)})
                 </div>
-              )}
+              ))}
               {invoice.creditNoteOf && (
                 <div className="mt-2 text-[12px]">
                   Credit-note for{' '}
@@ -226,16 +238,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         </div>
 
         <div className="space-y-3">
-          <div className="card p-4">
-            <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Order</h2>
-            <Link
-              href={`/admin-dashboard/orders/${invoice.order.id}`}
-              className="mt-1 block font-mono text-[12px] text-blue-600 hover:underline dark:text-blue-400"
-            >
-              {invoice.order.number ?? invoice.order.id}
-            </Link>
-            <div className="mt-1 text-[12px] text-slate-500">{invoice.order.provider} · {invoice.order.status}</div>
-          </div>
+          {order && (
+            <div className="card p-4">
+              <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Order</h2>
+              <Link
+                href={`/admin-dashboard/orders/${order.id}`}
+                className="mt-1 block font-mono text-[12px] text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {order.number ?? order.id}
+              </Link>
+              <div className="mt-1 text-[12px] text-slate-500">{order.provider} · {order.status}</div>
+            </div>
+          )}
 
           <div className="card p-4">
             <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Issuer</h2>

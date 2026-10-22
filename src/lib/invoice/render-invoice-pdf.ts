@@ -21,9 +21,12 @@ export type RenderInvoiceInput = {
   invoice: Invoice;
   lines: InvoiceLine[];
   orderNumber?: string | null;
+  /** For a credit note: the tax invoice it adjusts, and why. */
+  original?: { number: string; issueDate: Date } | null;
+  reason?: string | null;
 };
 
-export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderInvoiceInput): Promise<Buffer> {
+export async function renderInvoicePdf({ invoice, lines, orderNumber, original, reason }: RenderInvoiceInput): Promise<Buffer> {
   const { doc, page, fonts } = await newA4Doc();
 
   const isCredit = invoice.status === 'CREDIT_NOTE';
@@ -39,7 +42,7 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
 
   // Right-aligned invoice meta box
   let y = A4.height - 70;
-  drawLabel(page, fonts, 'INVOICE NO.', A4.width - 200, y);
+  drawLabel(page, fonts, isCredit ? 'CREDIT NOTE NO.' : 'INVOICE NO.', A4.width - 200, y);
   drawText(page, fonts, invoice.number, A4.width - 200, y - 14, { size: 13, bold: true });
   y -= 36;
   drawLabel(page, fonts, 'ISSUE DATE', A4.width - 200, y);
@@ -55,6 +58,13 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
     y -= 36;
     drawLabel(page, fonts, 'ORDER NO.', A4.width - 200, y);
     drawText(page, fonts, orderNumber, A4.width - 200, y - 14, { size: 11 });
+  }
+  if (isCredit && original) {
+    y -= 36;
+    drawLabel(page, fonts, 'ORIGINAL INVOICE', A4.width - 200, y);
+    drawText(page, fonts, `${original.number} (${original.issueDate.toISOString().slice(0, 10)})`, A4.width - 200, y - 14, {
+      size: 11
+    });
   }
 
   // From (company)
@@ -121,8 +131,11 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
     thickness: 1
   });
   totalRow('Total', moneyLine(invoice.total, invoice.currency), true);
-  if (invoice.totalSgd != null && invoice.currency.toUpperCase() !== 'SGD') {
-    drawText(page, fonts, `≈ ${moneyLine(invoice.totalSgd, 'SGD')} (FX ${(invoice.fxRateBpsToSgd ?? 10000) / 10000})`, 380, rowY, {
+  if (invoice.fxRateBpsToSgd && invoice.currency.toUpperCase() !== 'SGD') {
+    // IRAS: a foreign-currency tax invoice must show the GST and total in SGD.
+    const fx = invoice.fxRateBpsToSgd;
+    const sgd = (cents: number) => moneyLine(Math.round((cents * fx) / 10000), 'SGD');
+    drawText(page, fonts, `In SGD at ${fx / 10000}: ${invoice.taxLabel} ${sgd(invoice.taxAmount)}, total ${sgd(invoice.total)}`, 300, rowY, {
       size: 9,
       color: COLORS.muted
     });
@@ -135,7 +148,7 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber }: RenderIn
     drawText(
       page,
       fonts,
-      'This credit note offsets a prior invoice. Keep both for your records.',
+      `${reason ? `Reason: ${reason}. ` : ''}This credit note offsets ${original ? `invoice ${original.number}` : 'a prior invoice'}. Keep both for your records.`,
       36,
       footerY,
       { size: 9, color: COLORS.muted }
