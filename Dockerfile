@@ -23,6 +23,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts ./scripts
+# prisma/seed.ts runs on boot and imports ../src/lib/* (pool consolidation);
+# without these sources the seed crashes and the new container never starts.
+COPY --from=builder /app/src/lib ./src/lib
 COPY --from=builder /app/node_modules ./node_modules
 USER nextjs
 EXPOSE 3000
