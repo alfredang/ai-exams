@@ -10,6 +10,12 @@ RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
+# `next build` pre-renders ISR pages (the homepage, catalog) against the live
+# database, so the schema must be migrated BEFORE the build — otherwise a new
+# column makes the build fail and the boot-time migrate below never runs.
+# Coolify passes DATABASE_URL as a build arg. Migrations must stay backward
+# compatible: the old container keeps serving until the new one is healthy.
+RUN npx prisma migrate deploy
 RUN npm run build
 
 FROM node:24-alpine AS runner

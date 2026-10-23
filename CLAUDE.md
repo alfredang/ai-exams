@@ -142,6 +142,8 @@ Single Next.js App Router app — server logic (payment webhooks for PayPal/Stri
 
 Coolify-ready via [Dockerfile](Dockerfile) (multi-stage, Next standalone). Container runs `prisma migrate deploy` before `node server.js` on boot. Coolify auto-deploys on push to `main` (~1–2 min); there is no SSH/exec into the container. See [README.md](README.md) for the env var checklist.
 
+**Migrations run in the Docker build, before `next build`** — the build pre-renders ISR pages (homepage, catalog) against the production database, so a new column would otherwise fail the build (`column … does not exist`, a `digest` in the Coolify log) and the boot-time migrate would never run. This blocked every deploy from 22 Oct 23:14 to 23 Oct. Keep migrations backward compatible: the old container serves until the new one is healthy.
+
 **Boot runs `prisma/seed.ts` before the server** (Dockerfile CMD), so anything the seed imports must exist in the runner image — `src/lib` is copied in for that. If a deploy "succeeds" in GitHub but the site never changes, suspect the boot seed crashing (it once failed on a missing `../src/lib` import and blocked every deploy for a day). Page text the seed creates is only refreshed while it is still the original placeholder; admin edits win after that.
 
 Env vars are only for infrastructure: `DATABASE_URL`, `NEXTAUTH_URL`/`NEXTAUTH_SECRET`, `SETTINGS_KEY` (settings encryption — rotating it orphans stored secrets), `APP_URL` (used to build payment redirect/webhook URLs). Payment/email/OAuth credentials are NOT env vars — they're managed in-app under `/admin-dashboard/settings/*`. Keep `NEXT_PUBLIC_TEST_PAYMENTS` unset in production.
