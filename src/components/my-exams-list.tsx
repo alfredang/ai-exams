@@ -107,16 +107,16 @@ function StartActions({ examId, detailsHref }: { examId: string; detailsHref: st
 
 function StartButtons() {
   const { pending, data } = useFormStatus();
-  const pendingMode = pending ? (data?.get('mode') === 'EXAM' ? 'EXAM' : 'PRACTICE') : null;
+  const pendingMode = pending ? (data?.get('mode') === 'PRACTICE' ? 'PRACTICE' : 'EXAM') : null;
   return (
     <div className="flex gap-2">
-      <button name="mode" value="PRACTICE" disabled={pending} className="btn-primary-grad flex-1 gap-1.5 text-sm disabled:cursor-wait">
-        {pendingMode === 'PRACTICE' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-        {pendingMode === 'PRACTICE' ? 'Starting…' : 'Start practice'}
-      </button>
-      <button name="mode" value="EXAM" disabled={pending} className="btn-secondary flex-1 gap-1.5 text-sm disabled:cursor-wait">
+      <button name="mode" value="EXAM" disabled={pending} className="btn-primary-grad flex-1 gap-1.5 text-sm disabled:cursor-wait">
         {pendingMode === 'EXAM' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Timer className="h-4 w-4" />}
-        {pendingMode === 'EXAM' ? 'Starting…' : 'Start timed exam'}
+        {pendingMode === 'EXAM' ? 'Starting…' : 'Exam mode (timed)'}
+      </button>
+      <button name="mode" value="PRACTICE" disabled={pending} className="btn-secondary flex-1 gap-1.5 text-sm disabled:cursor-wait">
+        {pendingMode === 'PRACTICE' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+        {pendingMode === 'PRACTICE' ? 'Starting…' : 'Practice mode'}
       </button>
     </div>
   );

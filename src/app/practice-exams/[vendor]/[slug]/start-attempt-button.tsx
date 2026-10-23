@@ -14,7 +14,7 @@ export function StartButton({ examId, mode }: { examId: string; mode: 'PRACTICE'
       if (id) redirect(`/exam/${id}`);
     }}>
       <button className={mode === 'EXAM' ? 'btn-primary-grad w-full' : 'btn-secondary w-full'}>
-        {mode === 'EXAM' ? 'Exam Mode' : 'Practice Mode'}
+        {mode === 'EXAM' ? 'Start Exam Mode (timed)' : 'Start Practice Mode'}
       </button>
     </form>
   );

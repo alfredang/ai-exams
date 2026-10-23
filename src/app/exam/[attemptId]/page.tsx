@@ -82,6 +82,9 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
       remainingSec={remaining}
       initialResponses={responses}
       isGuest={!attempt.userId}
+      examModeSwitch={attempt.mode === 'PRACTICE' && attempt.userId && !attempt.isTeaser
+        ? { examId: attempt.examId, durationMinutes: attempt.exam.durationMinutes }
+        : undefined}
     />
   );
 }

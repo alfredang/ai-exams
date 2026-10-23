@@ -13,6 +13,7 @@ export function ExamShell(props: {
   remainingSec: number;
   initialResponses: Record<string, RunnerResponse>;
   isGuest: boolean;
+  examModeSwitch?: { examId: string; durationMinutes: number };
 }) {
   // No in-attempt teaser gate and no auto-submit: the user clicks the
   // "Submit exam" button in the header when they're ready. Per user
@@ -31,6 +32,7 @@ export function ExamShell(props: {
       remainingSec={props.remainingSec}
       initialResponses={props.initialResponses}
       exitHref={props.isGuest ? `/practice-exams/${props.vendorSlug}` : '/user-dashboard'}
+      examModeSwitch={props.examModeSwitch}
     />
   );
 }

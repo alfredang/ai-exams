@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Flag, LayoutGrid, ListChecks, Loader2, LogOut, X } from 'lucide-react';
 import { ExplanationView } from '@/components/explanation-view';
 import { shuffleSeeded } from '@/lib/shuffle';
+import { startFromDashboard } from '@/app/user-dashboard/actions';
 
 export type RunnerQuestion = {
   id: string;
@@ -35,6 +36,9 @@ export type ExamRunnerProps = {
   initialResponses: Record<string, RunnerResponse>;
   // Where "Save & exit" lands. Defaults to the signed-in attempts list.
   exitHref?: string;
+  // Signed-in Practice attempts: lets the taker jump to a timed Exam-mode
+  // attempt on the same certification (this practice attempt stays resumable).
+  examModeSwitch?: { examId: string; durationMinutes: number };
 };
 
 const TYPE_HINT: Record<RunnerQuestion['type'], string> = {
@@ -288,7 +292,14 @@ export function ExamRunner(props: ExamRunnerProps) {
   // Review Screen when the walk ends. End Exam always asks for confirmation.
   const [view, setView] = useState<'question' | 'review'>('question');
   const [reviewSeq, setReviewSeq] = useState<{ label: string; items: number[] } | null>(null);
-  const [navOpen, setNavOpen] = useState(true);
+  const isExam = props.mode === 'EXAM';
+  // Exam mode runs like the live test: no answer sheet, and the Review Screen
+  // only opens once the candidate has worked through to the last question
+  // (or comes back to an attempt that is already fully answered).
+  const [reachedEnd, setReachedEnd] = useState(
+    () => !isExam || props.questions.every(qq => props.initialResponses?.[qq.id]?.answer?.length)
+  );
+  const [navOpen, setNavOpen] = useState(!isExam);
   const [showExit, setShowExit] = useState(false);
   // Right-click strike-out of options the candidate has ruled out. Visual aid
   // only — never persisted or scored.
@@ -301,7 +312,7 @@ export function ExamRunner(props: ExamRunnerProps) {
       else { setReviewSeq(null); setView('review'); }
       return;
     }
-    if (idx >= props.questions.length - 1) setView('review');
+    if (idx >= props.questions.length - 1) { setReachedEnd(true); setView('review'); }
     else goto(idx + 1);
   }
   function prev() {
@@ -313,6 +324,7 @@ export function ExamRunner(props: ExamRunnerProps) {
     goto(idx - 1);
   }
   function startReview(kind: 'all' | 'incomplete' | 'flagged' | 'incorrect') {
+    // Review All walks every question and comes back to the Review Screen.
     const items = props.questions.map((_, i) => i).filter(i => {
       const r = answers[props.questions[i].id];
       if (kind === 'incomplete') return !r?.answer?.length;
@@ -322,7 +334,7 @@ export function ExamRunner(props: ExamRunnerProps) {
     });
     if (!items.length) return;
     const label = kind === 'all' ? 'all questions' : `${kind} questions`;
-    setReviewSeq(kind === 'all' ? null : { label, items });
+    setReviewSeq({ label, items });
     setIdx(items[0]);
     setView('question');
   }
@@ -336,6 +348,18 @@ export function ExamRunner(props: ExamRunnerProps) {
       const cur = prev[q.id] || [];
       return { ...prev, [q.id]: cur.includes(optId) ? cur.filter(x => x !== optId) : [...cur, optId] };
     });
+  }
+  const [switching, setSwitching] = useState(false);
+  async function switchToExamMode() {
+    if (!props.examModeSwitch) return;
+    setSwitching(true);
+    const payload = Object.fromEntries(Object.entries(answers).map(([qid, r]) => [qid, { answer: r.answer || [], flagged: r.flagged }]));
+    await fetch('/api/attempts/autosave', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: props.attemptId, responses: payload }) }).catch(() => {});
+    dirty.current = false;
+    const fd = new FormData();
+    fd.set('examId', props.examModeSwitch.examId);
+    fd.set('mode', 'EXAM');
+    await startFromDashboard(fd).catch(() => setSwitching(false));
   }
   async function saveAndExit() {
     const payload = Object.fromEntries(Object.entries(answers).map(([qid, r]) => [qid, { answer: r.answer || [], flagged: r.flagged }]));
@@ -389,6 +413,7 @@ export function ExamRunner(props: ExamRunnerProps) {
   const struckHere = struck[q.id] || [];
   const seqPos = reviewSeq ? reviewSeq.items.indexOf(idx) : -1;
   const atFirst = reviewSeq ? seqPos <= 0 : idx === 0;
+  const atLast = reviewSeq ? seqPos === reviewSeq.items.length - 1 : idx === total - 1;
 
   // Fixed light buttons: the shared .btn-* classes carry dark-theme variants,
   // and the runner stays a light test-centre screen in both themes.
@@ -412,6 +437,19 @@ export function ExamRunner(props: ExamRunnerProps) {
               {props.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}{props.isTeaser ? ' · Free teaser' : ''}
             </div>
           </div>
+          {props.examModeSwitch && (
+            <button
+              type="button"
+              onClick={switchToExamMode}
+              disabled={switching}
+              title={`Start a timed ${props.examModeSwitch.durationMinutes}-minute exam. This practice session is saved.`}
+              className="flex items-center gap-1.5 rounded border border-white/35 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/15 disabled:cursor-wait disabled:opacity-60 sm:text-sm"
+            >
+              {switching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}
+              <span className="hidden sm:inline">Switch to Exam mode · {props.examModeSwitch.durationMinutes} min</span>
+              <span className="sm:hidden">Exam mode</span>
+            </button>
+          )}
           {timed && (
             <div className={`flex items-center gap-2 rounded px-2.5 py-1 ${timerTone}`} role="timer" aria-label="Time remaining">
               <Clock className="h-4 w-4" />
@@ -440,7 +478,7 @@ export function ExamRunner(props: ExamRunnerProps) {
             </span>
           )}
         </div>
-        {view === 'question' && (
+        {view === 'question' && !isExam && (
           <button type="button" onClick={() => setNavOpen(o => !o)} className="hidden text-xs font-medium text-muted underline-offset-2 hover:text-ink hover:underline lg:inline">
             {navOpen ? 'Hide answer sheet' : 'Show answer sheet'}
           </button>
@@ -453,7 +491,7 @@ export function ExamRunner(props: ExamRunnerProps) {
       {/* Workspace */}
       <div className="flex-1 overflow-y-auto bg-canvas">
         {view === 'question' ? (
-          <div className={`mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 ${navOpen ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'max-w-4xl'}`}>
+          <div className={`mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 ${navOpen && !isExam ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'max-w-4xl'}`}>
             <div className="min-w-0">
               {timed && remaining < 300 && remaining > 0 && (
                 <div className={`mb-4 flex items-center gap-2 rounded-md border p-3 text-sm ${remaining < 60 ? 'border-red-300 bg-red-50 text-red-800' : 'border-amber-300 bg-amber-50 text-amber-900'}`}>
@@ -617,7 +655,13 @@ export function ExamRunner(props: ExamRunnerProps) {
                 {a.submitted && a.explanation && (
                   <div className={`mt-5 rounded-md border border-l-[5px] p-4 text-sm ${a.isCorrect ? 'border-emerald-600 bg-emerald-50/60' : 'border-red-600 bg-red-50/60'}`}>
                     <div className={`mb-2 font-semibold ${a.isCorrect ? 'text-emerald-800' : 'text-red-800'}`}>{a.isCorrect ? 'Correct' : 'Incorrect'}</div>
-                    <div className="eyebrow mb-2">Suggested answer{q.domain ? ` · Exam domain: ${q.domain}` : ''}</div>
+                    {q.domain && (
+                      <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                        <span className="eyebrow">Exam domain</span>
+                        <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700">{q.domain}</span>
+                      </div>
+                    )}
+                    <div className="eyebrow mb-2">Suggested answer</div>
                     <ExplanationView text={a.explanation} options={q.options} correctIds={a.correct ?? []} />
                     {!!a.references?.length && (
                       <div className="mt-3 border-t border-line pt-3 text-xs">
@@ -646,20 +690,26 @@ export function ExamRunner(props: ExamRunnerProps) {
                     <ChevronLeft className="h-5 w-5" /> Previous
                   </button>
                   <button type="button" onClick={next} className={navGhost}>
-                    Next <ChevronRight className="h-5 w-5" />
+                    {atLast ? 'Review Screen' : 'Next'} <ChevronRight className="h-5 w-5" />
                   </button>
-                  <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
-                    {props.mode === 'EXAM' ? 'Submit exam' : 'Submit'}
-                  </button>
+                  {/* Exam mode submits from the Review Screen at the end, like the live test. */}
+                  {(!isExam || reachedEnd) && (
+                    <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
+                      {isExam ? 'Submit exam' : 'Submit'}
+                    </button>
+                  )}
                 </div>
               </section>
-              <p className="mt-3 hidden text-center text-[11px] text-muted lg:block">
-                <kbd className="rounded border border-line bg-white px-1">←</kbd> <kbd className="rounded border border-line bg-white px-1">→</kbd> navigate ·{' '}
-                <kbd className="rounded border border-line bg-white px-1">F</kbd> flag for review · right-click an option to strike it out
+              <p className="mt-3 hidden text-center text-xs text-muted lg:block">
+                <span className="font-semibold">Keyboard shortcuts:</span>{' '}
+                <kbd className="rounded border border-line bg-white px-1">←</kbd> Previous question ·{' '}
+                <kbd className="rounded border border-line bg-white px-1">→</kbd> Next question ·{' '}
+                <kbd className="rounded border border-line bg-white px-1">F</kbd> Flag for review ·{' '}
+                Right-click an answer to cross it out (a note for yourself, not saved)
               </p>
             </div>
 
-            {navOpen && (
+            {navOpen && !isExam && (
               <aside className="hidden h-fit rounded-md border border-line bg-white p-4 shadow-card lg:sticky lg:top-0 lg:block" aria-label="Answer sheet">
                 <div className="eyebrow">Answer sheet</div>
                 <div className="mb-3 mt-2.5 grid grid-cols-5 gap-1.5">
@@ -704,23 +754,25 @@ export function ExamRunner(props: ExamRunnerProps) {
             <div className="rounded-md border border-line bg-white p-5 shadow-card sm:p-7">
               <h2 className="text-2xl font-extrabold">Review Screen</h2>
               <p className="mt-2 max-w-3xl text-sm text-muted">
-                Below is the summary of your reviews and completed questions. Select a question to return to it, or use the buttons at the bottom of the screen to show all reviews, only incomplete questions, or only questions flagged for review.
-                {props.mode === 'EXAM' ? ' Every question must be completed before you can submit the exam.' : ''} When you are finished, select Submit {props.mode === 'EXAM' ? 'Exam' : ''}.
+                Below is the summary of your completed questions and the questions you flagged for review. Select a question to return to it, or use Review All or Review Flagged at the bottom of the screen.
+                {isExam ? ' Every question must be completed before you can submit the exam.' : ''} When you are finished, select Submit {isExam ? 'Exam' : ''}.
               </p>
               <div className="eyebrow mt-5">Summary of reviews and completed</div>
-              <div className="mt-2 grid grid-cols-3 gap-3 sm:max-w-md">
+              <div className={`mt-2 grid gap-3 sm:max-w-md ${unansweredIdx.length ? 'grid-cols-3' : 'grid-cols-2'}`}>
                 <div className="rounded-md border border-line bg-canvas px-3 py-2">
-                  <div className="font-display text-2xl font-extrabold">{answeredCount}</div>
+                  <div className="font-display text-2xl font-extrabold">{answeredCount}<span className="text-base font-bold text-muted"> / {total}</span></div>
                   <div className="text-xs text-muted">Completed</div>
-                </div>
-                <div className={`rounded-md border px-3 py-2 ${unansweredIdx.length ? 'border-amber-400 bg-amber-50' : 'border-line bg-canvas'}`}>
-                  <div className="font-display text-2xl font-extrabold">{unansweredIdx.length}</div>
-                  <div className="text-xs text-muted">Incomplete</div>
                 </div>
                 <div className="rounded-md border border-line bg-canvas px-3 py-2">
                   <div className="font-display text-2xl font-extrabold">{flaggedCount}</div>
-                  <div className="text-xs text-muted">Flagged for review</div>
+                  <div className="flex items-center gap-1 text-xs text-muted"><Flag className="h-3 w-3 fill-amber-400 text-amber-600" aria-hidden /> Flagged for review</div>
                 </div>
+                {unansweredIdx.length > 0 && (
+                  <div className="rounded-md border border-amber-400 bg-amber-50 px-3 py-2">
+                    <div className="font-display text-2xl font-extrabold">{unansweredIdx.length}</div>
+                    <div className="text-xs text-muted">Incomplete</div>
+                  </div>
+                )}
               </div>
               <div className="mt-6 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
                 {props.questions.map((qq, i) => {
@@ -733,12 +785,16 @@ export function ExamRunner(props: ExamRunnerProps) {
                       onClick={() => jumpTo(i)}
                       className="flex items-center gap-3 border-b border-line px-1 py-2 text-left text-sm hover:bg-brand-50"
                     >
-                      <span className="w-4 shrink-0">{r?.flagged && <Flag className="h-4 w-4 fill-amber-400 text-amber-600" aria-label="Flagged for review" />}</span>
                       <span className="flex-1 font-medium">Question {i + 1}</span>
-                      {props.mode === 'PRACTICE' && r?.submitted ? (
+                      {r?.flagged && (
+                        <span className="inline-flex items-center gap-1 font-mono text-xs font-medium text-amber-700">
+                          <Flag className="h-3.5 w-3.5 fill-amber-400 text-amber-600" aria-hidden /> Flagged for review
+                        </span>
+                      )}
+                      {!isExam && r?.submitted ? (
                         <span className={`font-mono text-xs font-medium ${r.isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>{r.isCorrect ? 'Correct' : 'Incorrect'}</span>
                       ) : (
-                        <span className={`font-mono text-xs font-medium ${done ? 'text-muted' : 'text-amber-700'}`}>{done ? 'Completed' : 'Incomplete'}</span>
+                        <span className={`font-mono text-xs font-medium ${done ? 'text-emerald-700' : 'text-amber-700'}`}>{done ? 'Completed' : 'Incomplete'}</span>
                       )}
                     </button>
                   );
@@ -747,9 +803,6 @@ export function ExamRunner(props: ExamRunnerProps) {
               <div className="mt-6 flex flex-wrap gap-2.5">
                 <button type="button" onClick={() => jumpTo(idx)} className={navGhost}>
                   <ChevronLeft className="h-5 w-5" /> Back to question {idx + 1}
-                </button>
-                <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
-                  {props.mode === 'EXAM' ? 'Submit exam' : 'Submit'}
                 </button>
               </div>
             </div>
@@ -763,19 +816,26 @@ export function ExamRunner(props: ExamRunnerProps) {
           <LogOut className="h-4 w-4" /> Save &amp; exit
         </button>
         {view === 'question' ? (
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => { setReviewSeq(null); setView('review'); }} className={barBtn}>
-              <LayoutGrid className="h-4 w-4" /> <span className="hidden sm:inline">Review Screen</span><span className="sm:hidden">Review</span>
-            </button>
-          </div>
+          reachedEnd && (
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => { setReviewSeq(null); setView('review'); }} className={barBtn}>
+                <LayoutGrid className="h-4 w-4" /> <span className="hidden sm:inline">Review Screen</span><span className="sm:hidden">Review</span>
+              </button>
+            </div>
+          )
         ) : (
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => startReview('all')} className={barBtn}>Show all reviews</button>
-            <button type="button" onClick={() => startReview('incomplete')} disabled={!unansweredIdx.length} className={barBtn}>Review Incomplete</button>
+            <button type="button" onClick={() => startReview('all')} className={barBtn}>Review All</button>
             <button type="button" onClick={() => startReview('flagged')} disabled={!flaggedCount} className={barBtn}>Review Flagged</button>
-            {props.mode === 'PRACTICE' && (
+            {unansweredIdx.length > 0 && (
+              <button type="button" onClick={() => startReview('incomplete')} className={barBtn}>Review Incomplete</button>
+            )}
+            {!isExam && (
               <button type="button" onClick={() => startReview('incorrect')} disabled={!incorrectCount} className={barBtn}>Review Incorrect</button>
             )}
+            <button type="button" onClick={() => setShowReview(true)} className={`${barBase} border-white bg-white font-semibold text-navy hover:bg-white/90`}>
+              {isExam ? 'Submit Exam' : 'Submit'}
+            </button>
           </div>
         )}
       </footer>

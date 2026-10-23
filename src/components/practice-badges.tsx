@@ -1,13 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
-import { BookOpen, History, Loader2, Play, RotateCcw, Timer } from 'lucide-react';
+import { BookOpen, BookOpenCheck, History, Loader2, RotateCcw, Timer } from 'lucide-react';
 import { startFromDashboard } from '@/app/user-dashboard/actions';
 import type { PracticeBadge } from '@/lib/my-exams';
 
-// Dashboard grid of owned practice exams. Clicking a badge starts (or
-// resumes) Practice mode and lands straight in the exam runner — no
-// product page in between. Timed Exam mode is the small secondary button.
+// Dashboard grid of owned practice exams. Each badge offers the two modes
+// side by side — timed Exam mode (the default, like the real test) and
+// Practice mode — and either click lands straight in the exam runner,
+// resuming an unfinished attempt in that mode.
 export function PracticeBadges({ badges }: { badges: PracticeBadge[] }) {
   if (badges.length === 0) {
     return (
@@ -23,7 +24,7 @@ export function PracticeBadges({ badges }: { badges: PracticeBadge[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {badges.map((b) => (
-        <form key={b.examId} action={startFromDashboard} className="card-hover flex flex-col overflow-hidden">
+        <form key={b.examId} action={startFromDashboard} className="card flex flex-col overflow-hidden">
           <input type="hidden" name="examId" value={b.examId} />
           <BadgeBody badge={b} />
         </form>
@@ -33,20 +34,14 @@ export function PracticeBadges({ badges }: { badges: PracticeBadge[] }) {
 }
 
 const FOOT = 'flex items-center justify-center gap-1.5 py-2.5 hover:bg-slate-50 hover:text-brand-700 dark:hover:bg-slate-800/60 dark:hover:text-brand-300';
+const MODE_BTN = 'flex flex-col items-start rounded-lg border p-3 text-left transition disabled:cursor-wait';
 
 function BadgeBody({ badge: b }: { badge: PracticeBadge }) {
   const { pending, data } = useFormStatus();
-  const pendingMode = pending ? (data?.get('mode') === 'EXAM' ? 'EXAM' : 'PRACTICE') : null;
+  const pendingMode = pending ? (data?.get('mode') === 'PRACTICE' ? 'PRACTICE' : 'EXAM') : null;
   return (
     <>
-      <button
-        type="submit"
-        name="mode"
-        value="PRACTICE"
-        disabled={pending}
-        aria-label={`${b.inProgress ? 'Resume' : 'Start'} ${b.title} practice exam`}
-        className="group flex flex-1 flex-col p-5 text-left disabled:cursor-wait"
-      >
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start gap-3">
           <span className="flex h-14 min-w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-indigo-600 px-2 font-mono text-sm font-bold tracking-tight text-white shadow-sm dark:from-brand-500 dark:to-indigo-500">
             {b.code}
@@ -69,38 +64,50 @@ function BadgeBody({ badge: b }: { badge: PracticeBadge }) {
               </div>
             </>
           ) : (
-            <span>{b.questionCount} questions · instant explanations · unlimited retakes</span>
+            <span>{b.questionCount} questions · {b.durationMinutes} min · unlimited retakes</span>
           )}
         </div>
 
-        <span className="btn-primary-grad mt-4 w-full gap-2 text-sm">
-          {pendingMode === 'PRACTICE' ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Starting…</>
-          ) : b.inProgress ? (
-            <><RotateCcw className="h-4 w-4" /> Resume practice</>
-          ) : (
-            <><Play className="h-4 w-4" /> Start practice</>
-          )}
-        </span>
-      </button>
-
-      <div className="flex divide-x divide-line border-t border-line text-xs font-medium text-slate-600 dark:divide-slate-800 dark:border-slate-800 dark:text-slate-400">
-        <button
-          type="submit"
-          name="mode"
-          value="EXAM"
-          disabled={pending}
-          className={`${FOOT} flex-1 disabled:cursor-wait`}
-        >
-          {pendingMode === 'EXAM' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Timer className="h-3.5 w-3.5" />}
-          Timed exam · {b.durationMinutes} min
-        </button>
-        {(b.attemptsTaken > 0 || b.inProgress) && (
-          <Link href={`/user-dashboard/attempts?exam=${b.examId}`} className={`${FOOT} px-4`}>
-            <History className="h-3.5 w-3.5" /> History
-          </Link>
-        )}
+        <div className="eyebrow mt-4 text-[11px] text-slate-500 dark:text-slate-400">Choose a mode</div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="submit"
+            name="mode"
+            value="EXAM"
+            disabled={pending}
+            aria-label={`${b.examInProgress ? 'Resume' : 'Start'} ${b.title} in timed Exam mode`}
+            className={`${MODE_BTN} border-brand bg-brand text-white shadow-sm hover:bg-brand-700 dark:border-brand-500 dark:bg-brand-500 dark:hover:bg-brand-600`}
+          >
+            <span className="flex items-center gap-1.5 text-sm font-semibold">
+              {pendingMode === 'EXAM' ? <Loader2 className="h-4 w-4 animate-spin" /> : b.examInProgress ? <RotateCcw className="h-4 w-4" /> : <Timer className="h-4 w-4" />}
+              {pendingMode === 'EXAM' ? 'Starting…' : b.examInProgress ? 'Resume exam' : 'Exam mode'}
+            </span>
+            <span className="mt-1 text-[11px] leading-snug text-white/85">{b.durationMinutes}-min timer · answers revealed after you submit</span>
+          </button>
+          <button
+            type="submit"
+            name="mode"
+            value="PRACTICE"
+            disabled={pending}
+            aria-label={`${b.inProgress ? 'Resume' : 'Start'} ${b.title} in Practice mode`}
+            className={`${MODE_BTN} border-line bg-white text-ink hover:border-brand-300 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:border-brand-500 dark:hover:bg-slate-800`}
+          >
+            <span className="flex items-center gap-1.5 text-sm font-semibold">
+              {pendingMode === 'PRACTICE' ? <Loader2 className="h-4 w-4 animate-spin" /> : b.inProgress ? <RotateCcw className="h-4 w-4" /> : <BookOpenCheck className="h-4 w-4" />}
+              {pendingMode === 'PRACTICE' ? 'Starting…' : b.inProgress ? 'Resume practice' : 'Practice mode'}
+            </span>
+            <span className="mt-1 text-[11px] leading-snug text-slate-500 dark:text-slate-400">Untimed · answer and explanation after each question</span>
+          </button>
+        </div>
       </div>
+
+      {(b.attemptsTaken > 0 || b.inProgress || b.examInProgress) && (
+        <div className="flex border-t border-line text-xs font-medium text-slate-600 dark:border-slate-800 dark:text-slate-400">
+          <Link href={`/user-dashboard/attempts?exam=${b.examId}`} className={`${FOOT} flex-1`}>
+            <History className="h-3.5 w-3.5" /> Attempt history
+          </Link>
+        </div>
+      )}
     </>
   );
 }

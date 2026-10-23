@@ -11,6 +11,7 @@ export type HistoryAttempt = {
   isTeaser: boolean;
   startedAt: Date;
   inProgress: boolean;
+  expiresAt: Date | null; // Exam mode only — past it the attempt can no longer be resumed
   score: number | null;
   correct: number;
   total: number;
@@ -105,6 +106,7 @@ export async function getAttemptHistory(userId: string, take = 200) {
       isTeaser: a.isTeaser,
       startedAt: a.startedAt,
       inProgress: !a.submittedAt,
+      expiresAt: a.expiresAt,
       ...result
     };
     group.attempts.push(row);

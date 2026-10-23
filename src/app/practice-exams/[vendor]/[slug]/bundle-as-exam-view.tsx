@@ -105,14 +105,14 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="card p-5">
+              <Hourglass className="h-6 w-6 text-blue-600" />
+              <h3 className="mt-3 font-semibold">Exam mode <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Default</span></h3>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">{first.durationMinutes}-minute timer, no answer reveal until you submit. Auto-saves and auto-submits — like the real exam.</p>
+            </div>
+            <div className="card p-5">
               <BookOpenCheck className="h-6 w-6 text-blue-600" />
               <h3 className="mt-3 font-semibold">Practice mode</h3>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">See the correct answer and full explanation immediately after each question. Best for studying.</p>
-            </div>
-            <div className="card p-5">
-              <Hourglass className="h-6 w-6 text-blue-600" />
-              <h3 className="mt-3 font-semibold">Exam mode</h3>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">{first.durationMinutes}-minute timer, no answer reveal until you submit. Auto-saves and auto-submits — like the real exam.</p>
             </div>
           </div>
 
@@ -177,8 +177,8 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
               <div className="font-semibold">Start a new attempt</div>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-100">Every attempt is a fresh draw from the pool.</p>
               <div className="mt-3 flex flex-col gap-2">
-                <StartButton examId={first.id} mode="PRACTICE" />
                 <StartButton examId={first.id} mode="EXAM" />
+                <StartButton examId={first.id} mode="PRACTICE" />
               </div>
             </div>
           )}

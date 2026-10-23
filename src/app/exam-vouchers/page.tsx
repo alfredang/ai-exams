@@ -3,9 +3,9 @@ import { BadgeCheck, BookOpen, Mail, ReceiptText, ShoppingCart, CalendarCheck } 
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { serializeJsonLd } from '@/lib/structured-data';
-
-// ISR: voucher prices change rarely (admin edits), same cadence as /vendors.
-export const revalidate = 600;
+import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
+import { FeatureCards, type Feature } from '@/components/feature-cards';
+import { CatalogFilters } from '../practice-exams/filters';
 
 export const metadata = {
   title: 'Exam Vouchers | Tertiary Exams',
@@ -13,7 +13,7 @@ export const metadata = {
     'Buy official certification exam vouchers for CompTIA, Microsoft, AWS, Google Cloud and more — every voucher includes our full practice exam at no extra cost, with a GST tax invoice.'
 };
 
-const PROMISES = [
+const PROMISES: Feature[] = [
   { icon: BadgeCheck, t: 'Official vouchers', d: 'Genuine vendor-issued codes, redeemable for the real certification exam.' },
   { icon: BookOpen, t: 'Practice exam included', d: 'Unlimited timed practice for the same exam unlocks the moment you pay.' },
   { icon: Mail, t: 'Delivered by email', d: 'Your voucher code arrives within 3–5 business days.' },
@@ -49,7 +49,11 @@ const FAQS = [
   }
 ];
 
-export default async function ExamVouchersPage() {
+const LEVELS = ['Foundational', 'Associate', 'Professional', 'Specialty'];
+
+export default async function ExamVouchersPage({ searchParams }: { searchParams: Promise<{ q?: string; level?: string; vendor?: string }> }) {
+  const sp = await searchParams;
+  const q = (sp.q || '').trim();
   // A product sells a voucher when priceVoucher is set (see schema Bundle).
   const bundles = await db.bundle.findMany({
     where: { published: true, priceVoucher: { not: null } },
@@ -60,21 +64,27 @@ export default async function ExamVouchersPage() {
       description: true,
       price: true,
       priceVoucher: true,
-      items: { take: 1, select: { exam: { select: { code: true, level: true, vendor: { select: { name: true, slug: true } } } } } }
+      items: { take: 1, select: { exam: { select: { code: true, title: true, level: true, vendor: { select: { id: true, name: true, slug: true } } } } } }
     },
     orderBy: { title: 'asc' }
   });
 
-  // Group by vendor so the page reads like a price list.
-  const byVendor = new Map<string, { name: string; slug: string; bundles: typeof bundles }>();
-  for (const b of bundles) {
-    const vendor = b.items[0]?.exam.vendor;
-    if (!vendor) continue;
-    const group = byVendor.get(vendor.slug) ?? { name: vendor.name, slug: vendor.slug, bundles: [] };
-    group.bundles.push(b);
-    byVendor.set(vendor.slug, group);
+  // Same search/filters as /practice-exams; vendor then title reads like a price list.
+  const priced = bundles
+    .filter((b) => b.items[0]?.exam.vendor)
+    .sort((a, b) => a.items[0].exam.vendor.name.localeCompare(b.items[0].exam.vendor.name) || a.title.localeCompare(b.title));
+  const vendors = [...new Map(priced.map((b) => [b.items[0].exam.vendor.slug, b.items[0].exam.vendor])).values()];
+  const visible = priced.filter((b) => {
+    const exam = b.items[0].exam;
+    if (sp.vendor && exam.vendor.slug !== sp.vendor) return false;
+    if (sp.level && exam.level !== sp.level) return false;
+    if (q && !matchesCatalogSearch(q, [b.title, b.description, ...bundleSearchAliases(b.slug), exam.vendor.name, exam.vendor.slug, exam.code, exam.title, exam.level])) return false;
+    return true;
+  });
+  if (q) {
+    const rank = new Map(visible.map((b) => [b.id, catalogSearchRank(q, [b.title, ...bundleSearchAliases(b.slug), b.items[0].exam.code, b.items[0].exam.title])]));
+    visible.sort((a, b) => rank.get(b.id)! - rank.get(a.id)!);
   }
-  const groups = [...byVendor.values()].sort((a, b) => a.name.localeCompare(b.name));
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -92,76 +102,56 @@ export default async function ExamVouchersPage() {
         </p>
       </div>
 
-      <ul className="mb-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {PROMISES.map(({ icon: Icon, t, d }) => (
-          <li key={t} className="card flex gap-3 p-4">
-            <Icon className="mt-0.5 h-5 w-5 shrink-0 text-brand-600 dark:text-brand-300" aria-hidden="true" />
-            <div>
-              <div className="text-sm font-semibold">{t}</div>
-              <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{d}</div>
+      <FeatureCards items={PROMISES} />
+
+      <CatalogFilters
+        q={q}
+        vendor={sp.vendor || ''}
+        level={sp.level || ''}
+        vendors={vendors}
+        levels={LEVELS}
+        basePath="/exam-vouchers"
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {visible.map((b) => {
+          const exam = b.items[0].exam;
+          const productHref = `/practice-exams/${exam.vendor.slug}/${b.slug}`;
+          return (
+            <div key={b.id} className="card flex flex-col p-5">
+              <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
+                <span>{exam.vendor.name}</span>
+                <span aria-hidden="true">·</span><span>{exam.code}</span>
+                <span aria-hidden="true">·</span><span>{exam.level}</span>
+              </div>
+              <h3 className="font-semibold">
+                <Link href={productHref} className="hover:underline">{b.title}</Link>
+              </h3>
+              <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
+                <li className="flex gap-1.5"><BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Official exam voucher, emailed in 3–5 business days</li>
+                <li className="flex gap-1.5">
+                  <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+                  Practice exam included{b.price > 0 ? ` (worth ${formatPrice(b.price)})` : ''}
+                </li>
+              </ul>
+              <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">{formatPrice(b.priceVoucher!)}</span>
+                <div className="flex items-center gap-2">
+                  <Link href={productHref} className="btn-ghost text-sm">Details</Link>
+                  <Link href={`/checkout/bundle/${b.id}?tier=VOUCHER`} className="btn-primary text-sm">Buy voucher</Link>
+                </div>
+              </div>
             </div>
-          </li>
-        ))}
-      </ul>
-
-      {groups.length > 3 && (
-        <nav aria-label="Jump to vendor" className="mb-8 flex flex-wrap gap-2">
-          {groups.map((g) => (
-            <a key={g.slug} href={`#${g.slug}`} className="btn-outline px-3 py-1.5 text-xs">
-              {g.name}
-            </a>
-          ))}
-        </nav>
-      )}
-
-      {groups.length === 0 && (
-        <div className="rounded-lg border border-slate-200 p-5 text-sm dark:border-slate-800">
-          <p className="font-medium">No exam vouchers are available right now.</p>
-          <p className="mt-1 text-slate-500 dark:text-slate-400">
-            Browse our <Link href="/practice-exams" className="text-blue-700 hover:underline dark:text-blue-300">practice exams</Link> or <Link href="/p/support" className="text-blue-700 hover:underline dark:text-blue-300">contact support</Link>.
-          </p>
-        </div>
-      )}
-
-      <div className="space-y-10">
-        {groups.map(group => (
-          <section key={group.slug} id={group.slug} className="scroll-mt-24">
-            <h2 className="eyebrow mb-3">{group.name}</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {group.bundles.map(b => {
-                const exam = b.items[0]?.exam;
-                const productHref = `/practice-exams/${group.slug}/${b.slug}`;
-                return (
-                  <div key={b.id} className="card flex flex-col p-5">
-                    {exam && (
-                      <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
-                        <span>{exam.code}</span>
-                        <span aria-hidden="true">·</span><span>{exam.level}</span>
-                      </div>
-                    )}
-                    <h3 className="font-semibold">
-                      <Link href={productHref} className="hover:underline">{b.title}</Link>
-                    </h3>
-                    <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-                      <li className="flex gap-1.5"><BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />Official exam voucher, emailed in 3–5 business days</li>
-                      <li className="flex gap-1.5">
-                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                        Practice exam included{b.price > 0 ? ` (worth ${formatPrice(b.price)})` : ''}
-                      </li>
-                    </ul>
-                    <div className="mt-auto flex items-end justify-between gap-3 pt-4">
-                      <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">{formatPrice(b.priceVoucher!)}</span>
-                      <div className="flex items-center gap-2">
-                        <Link href={productHref} className="btn-ghost text-sm">Details</Link>
-                        <Link href={`/checkout/bundle/${b.id}?tier=VOUCHER`} className="btn-primary text-sm">Buy voucher</Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        ))}
+          );
+        })}
+        {visible.length === 0 && (
+          <div className="rounded-lg border border-slate-200 p-5 text-sm md:col-span-2 lg:col-span-3 dark:border-slate-800">
+            <p className="font-medium">{priced.length === 0 ? 'No exam vouchers are available right now.' : 'No exam vouchers match your search.'}</p>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">
+              Browse our <Link href="/practice-exams" className="text-blue-700 hover:underline dark:text-blue-300">practice exams</Link> or <Link href="/p/support" className="text-blue-700 hover:underline dark:text-blue-300">contact support</Link>.
+            </p>
+          </div>
+        )}
       </div>
 
       <section className="mt-14">

@@ -1,11 +1,20 @@
 import Link from 'next/link';
+import { BarChart3, Library, RefreshCw, Timer } from 'lucide-react';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
 import { CatalogFilters } from './filters';
+import { FeatureCards, type Feature } from '@/components/feature-cards';
 import { bundleSearchAliases, catalogSearchRank, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
 
 const PAGE_SIZE = 9;
+
+const FEATURES: Feature[] = [
+  { icon: Timer, t: 'Realistic exam mode', d: 'Timed, full-length exams in a test-centre screen that mirrors the real thing.' },
+  { icon: RefreshCw, t: 'Unlimited retakes', d: 'Every attempt is a fresh draw from the pool — retake as often as you like.' },
+  { icon: BarChart3, t: 'Performance review', d: 'Per-domain scores, answer review with explanations, and your score trend over time.' },
+  { icon: Library, t: 'Large question pool', d: 'Questions weighted to the official exam domains, so practice matches the blueprint.' }
+];
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ q?: string; level?: string; vendor?: string; page?: string }> }) {
   const sp = await searchParams;
@@ -85,10 +94,13 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="container-app py-10">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Practice exams</h1>
-        <p className="mt-1 text-slate-600">Browse certifications across leading vendors. Try our free practice teaser on every exam.</p>
+      <div className="mb-8 max-w-3xl">
+        <p className="eyebrow mb-2">Practice exams</p>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Practice exams for leading certifications</h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">Browse certifications across leading vendors. Try our free practice teaser on every exam.</p>
       </div>
+
+      <FeatureCards items={FEATURES} />
 
       <CatalogFilters
         q={q}

@@ -278,7 +278,14 @@ export default async function ResultsPage({
               return (
                 <article key={q.id} className="card min-w-0 p-5 sm:p-6">
                   <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="eyebrow [overflow-wrap:anywhere]">Question {i + 1} · {q.domain}</span>
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="eyebrow">Question {i + 1}</span>
+                      {q.domain && (
+                        <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700 [overflow-wrap:anywhere] dark:bg-brand-900/60 dark:text-brand-200">
+                          Exam domain: {q.domain}
+                        </span>
+                      )}
+                    </span>
                     <span className="flex gap-1.5">
                       {correct ? <Pill tone="ok">Correct</Pill> : skipped ? <Pill tone="muted">Unanswered</Pill> : <Pill tone="bad">Missed</Pill>}
                       {flagged && <Pill tone="flag">Flagged</Pill>}
@@ -339,7 +346,7 @@ export default async function ResultsPage({
                     </div>
                   )}
                   <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
-                    <div className="eyebrow mb-1 [overflow-wrap:anywhere]">Why · Exam domain: {q.domain}</div>
+                    <div className="eyebrow mb-1">Why</div>
                     <ExplanationView
                       text={q.explanation}
                       options={displayOptions}

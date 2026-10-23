@@ -10,13 +10,15 @@ export function CatalogFilters({
   vendor,
   level,
   vendors,
-  levels
+  levels,
+  basePath = '/practice-exams'
 }: {
   q: string;
   vendor: string;
   level: string;
   vendors: Vendor[];
   levels: string[];
+  basePath?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -29,7 +31,7 @@ export function CatalogFilters({
         if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) field.value = '';
       }
     }
-    router.push('/practice-exams');
+    router.push(basePath);
   };
 
   return (

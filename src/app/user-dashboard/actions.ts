@@ -9,7 +9,8 @@ export async function startFromDashboard(formData: FormData) {
   const userId = (session?.user as any)?.id as string | undefined;
   if (!userId) redirect('/login?next=/user-dashboard');
   const examId = String(formData.get('examId') || '');
-  const mode = formData.get('mode') === 'EXAM' ? 'EXAM' : 'PRACTICE';
+  // Exam mode is the default, like the real test; Practice must be asked for.
+  const mode = formData.get('mode') === 'PRACTICE' ? 'PRACTICE' : 'EXAM';
   const attemptId = examId ? await resumeOrCreateAttempt(userId, examId, mode) : null;
   redirect(attemptId ? `/exam/${attemptId}` : '/user-dashboard?start=failed');
 }

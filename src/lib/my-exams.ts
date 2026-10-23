@@ -196,6 +196,7 @@ export type PracticeBadge = {
   lastScore: number | null;
   bestScore: number | null;
   inProgress: boolean; // an unfinished practice attempt will be resumed
+  examInProgress: boolean; // an unfinished timed Exam-mode attempt will be resumed
 };
 
 /**
@@ -216,6 +217,7 @@ export async function getPracticeBadges(
       .map((r) => ({ row: r, title: r.examTitle, code: r.examCode.replace(/-P\d+$/, '') }))
   ];
 
+  const now = new Date();
   return rows
     .map(({ row, title, code }) => {
       const exam = h.exams.find((e) => e.examId === row.examId);
@@ -230,7 +232,8 @@ export async function getPracticeBadges(
         attemptsTaken: scored.length,
         lastScore: exam?.latest ?? null,
         bestScore: exam?.best ?? null,
-        inProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'PRACTICE' && !a.isTeaser)
+        inProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'PRACTICE' && !a.isTeaser),
+        examInProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'EXAM' && !a.isTeaser && (!a.expiresAt || a.expiresAt > now))
       };
     })
     .sort((a, b) => a.code.localeCompare(b.code));
