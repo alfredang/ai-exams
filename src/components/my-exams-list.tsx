@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
-import { BookOpen, Loader2, Play, Ticket } from 'lucide-react';
+import { BookOpen, Loader2, Play, Ticket, Timer } from 'lucide-react';
 import { startFromDashboard } from '@/app/user-dashboard/actions';
 import { tierLabel } from '@/lib/utils';
 import type { MyExamsListItem } from '@/lib/my-exams';
@@ -84,15 +84,7 @@ export function MyExamsList({ items, cols = 2 }: { items: MyExamsListItem[]; col
             <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {e.questionCount} questions · {e.durationMinutes} min
             </div>
-            {e.tier === 'VOUCHER' ? (
-              <div className="mt-auto pt-3">
-                <Link href={`/practice-exams/${e.vendorSlug}/${e.examSlug}`} className="btn-secondary w-full text-sm">
-                  Open exam
-                </Link>
-              </div>
-            ) : (
-              <StartActions examId={e.examId} detailsHref={`/practice-exams/${e.vendorSlug}/${e.examSlug}`} />
-            )}
+            <StartActions examId={e.examId} detailsHref={`/practice-exams/${e.vendorSlug}/${e.examSlug}`} />
           </div>
         );
       })}
@@ -100,26 +92,33 @@ export function MyExamsList({ items, cols = 2 }: { items: MyExamsListItem[]; col
   );
 }
 
-// One click into the runner (resumes an unfinished practice attempt).
+// One click into the runner in either mode (resumes an unfinished attempt in that mode).
 function StartActions({ examId, detailsHref }: { examId: string; detailsHref: string }) {
   return (
-    <form action={startFromDashboard} className="mt-auto flex gap-2 pt-3">
+    <form action={startFromDashboard} className="mt-auto pt-3">
       <input type="hidden" name="examId" value={examId} />
-      <StartSubmit />
-      <Link href={detailsHref} className="btn-secondary text-sm">
-        Details
+      <StartButtons />
+      <Link href={detailsHref} className="mt-2 block text-center text-xs text-slate-500 hover:underline dark:text-slate-400">
+        Exam details
       </Link>
     </form>
   );
 }
 
-function StartSubmit() {
-  const { pending } = useFormStatus();
+function StartButtons() {
+  const { pending, data } = useFormStatus();
+  const pendingMode = pending ? (data?.get('mode') === 'EXAM' ? 'EXAM' : 'PRACTICE') : null;
   return (
-    <button name="mode" value="PRACTICE" disabled={pending} className="btn-primary-grad flex-1 gap-1.5 text-sm disabled:cursor-wait">
-      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-      {pending ? 'Starting…' : 'Start practice'}
-    </button>
+    <div className="flex gap-2">
+      <button name="mode" value="PRACTICE" disabled={pending} className="btn-primary-grad flex-1 gap-1.5 text-sm disabled:cursor-wait">
+        {pendingMode === 'PRACTICE' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+        {pendingMode === 'PRACTICE' ? 'Starting…' : 'Start practice'}
+      </button>
+      <button name="mode" value="EXAM" disabled={pending} className="btn-secondary flex-1 gap-1.5 text-sm disabled:cursor-wait">
+        {pendingMode === 'EXAM' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Timer className="h-4 w-4" />}
+        {pendingMode === 'EXAM' ? 'Starting…' : 'Start timed exam'}
+      </button>
+    </div>
   );
 }
 
