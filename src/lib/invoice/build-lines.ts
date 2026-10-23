@@ -3,6 +3,7 @@ import { tierLabel } from '@/lib/utils';
 import type { InvoiceLine } from './render-invoice-pdf';
 import type { Invoice } from '@prisma/client';
 import { orderIdForInvoice } from './issue';
+import { productTitle } from '@/lib/products';
 
 /**
  * Reconstruct the single-line summary for an invoice from its linked Order.
@@ -22,11 +23,13 @@ export async function buildInvoiceLines(invoice: Invoice): Promise<InvoiceLine[]
   if (!order) return [{ description: 'Order', qty: 1, unitAmount: invoice.subtotal }];
 
   const product = order.bundle
-    ? `${order.bundle.title} (bundle)`
+    ? productTitle(order.bundle, order.tier)
     : order.exam
       ? `${order.exam.title} (${order.exam.code})`
       : 'Order';
-  const tier = order.bundle ? 'Bundle' : order.tier ? tierLabel(order.tier) : '';
+  const tier = order.bundle
+    ? (order.tier === 'VOUCHER' || order.tier === 'BUNDLE' ? 'practice exam included' : '')
+    : order.tier ? tierLabel(order.tier) : '';
   const base = tier ? `${product} — ${tier}` : product;
   const description = invoice.status === 'CREDIT_NOTE'
     ? `Refund: ${base}`

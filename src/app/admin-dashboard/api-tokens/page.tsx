@@ -64,18 +64,18 @@ export default async function ApiTokensPage({ searchParams }: { searchParams: Pr
 
       {newToken && (
         <div className="card mb-3 border-l-2 border-l-emerald-500 p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">New token (copy now — shown only once)</div>
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">New token (copy now — shown only once)</div>
           <code className="mt-1 block break-all rounded bg-slate-50 p-2 text-[12px] font-mono dark:bg-slate-800">{newToken}</code>
         </div>
       )}
 
       <form action={createToken} className="card mb-3 flex flex-wrap items-end gap-2 p-3">
         <label className="flex-1 min-w-[12rem]">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Name</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Name</span>
           <input name="name" required placeholder="LMS Integration v1" className="input-sm" />
         </label>
         <label className="flex-1 min-w-[14rem]">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Scopes (comma-separated, optional)</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Scopes (comma-separated, optional)</span>
           <input name="scopes" placeholder="read:orders, read:invoices" className="input-sm" />
         </label>
         <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
@@ -85,7 +85,7 @@ export default async function ApiTokensPage({ searchParams }: { searchParams: Pr
 
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-[12px]">
-          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[10px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
+          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
             <tr>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Prefix</th>
@@ -103,13 +103,13 @@ export default async function ApiTokensPage({ searchParams }: { searchParams: Pr
             {tokens.map((t) => (
               <tr key={t.id}>
                 <td className="px-3 py-1.5 font-medium">{t.name}</td>
-                <td className="px-3 py-1.5 font-mono text-[11px]">{t.prefix}…</td>
-                <td className="px-3 py-1.5 text-[11px] text-slate-500">{t.scopes.join(', ') || '*'}</td>
+                <td className="px-3 py-1.5 font-mono text-xs">{t.prefix}…</td>
+                <td className="px-3 py-1.5 text-xs text-slate-500">{t.scopes.join(', ') || '*'}</td>
                 <td className="px-3 py-1.5">
                   <Badge variant={t.revokedAt ? 'muted' : 'success'}>{t.revokedAt ? 'Revoked' : 'Active'}</Badge>
                 </td>
-                <td className="px-3 py-1.5 text-[11px]">{t.createdAt.toLocaleDateString()} · {t.createdBy.email}</td>
-                <td className="px-3 py-1.5 text-[11px]">{t.lastUsedAt ? t.lastUsedAt.toLocaleString() : '—'}</td>
+                <td className="px-3 py-1.5 text-xs">{t.createdAt.toLocaleDateString()} · {t.createdBy.email}</td>
+                <td className="px-3 py-1.5 text-xs">{t.lastUsedAt ? t.lastUsedAt.toLocaleString() : '—'}</td>
                 <td className="px-3 py-1.5 text-right">
                   {!t.revokedAt && (
                     <form action={revokeToken} className="inline-flex">

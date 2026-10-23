@@ -70,16 +70,16 @@ export function NotificationBell() {
       {open && (
         <div className="absolute right-0 z-40 mt-1 w-80 overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 dark:border-slate-700">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Notifications</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notifications</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={markAllRead}
                 disabled={unread === 0}
-                className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
               >
                 <CheckCheck className="h-3 w-3" /> Mark all read
               </button>
-              <Link href="/admin-dashboard/notifications" onClick={() => setOpen(false)} className="text-[10px] text-blue-600 hover:underline dark:text-blue-400">View all</Link>
+              <Link href="/admin-dashboard/notifications" onClick={() => setOpen(false)} className="text-[11px] text-blue-600 hover:underline dark:text-blue-400">View all</Link>
             </div>
           </div>
           <div className="max-h-80 overflow-y-auto">
@@ -96,8 +96,8 @@ export function NotificationBell() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="text-[12px] font-medium text-slate-900 dark:text-slate-100">{n.title}</div>
-                      {n.body && <div className="mt-0.5 text-[11px] text-slate-500">{n.body}</div>}
-                      <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+                      {n.body && <div className="mt-0.5 text-xs text-slate-500">{n.body}</div>}
+                      <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
                         <code>{n.kind}</code>
                         <span>·</span>
                         <span>{new Date(n.createdAt).toLocaleString()}</span>

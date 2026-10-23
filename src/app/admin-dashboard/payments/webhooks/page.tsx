@@ -100,15 +100,15 @@ export default async function WebhookEventsPage({ searchParams }: { searchParams
     {
       key: 'provider',
       header: 'Provider',
-      cell: (e) => <span className="font-mono text-[11px]">{e.provider}</span>
+      cell: (e) => <span className="font-mono text-xs">{e.provider}</span>
     },
     {
       key: 'eventType',
       header: 'Event',
       cell: (e) => (
         <div>
-          <div className="font-mono text-[11px] text-slate-800 dark:text-slate-200">{e.eventType}</div>
-          <div className="font-mono text-[10px] text-slate-500" title={e.eventId}>{e.eventId.slice(0, 18)}</div>
+          <div className="font-mono text-xs text-slate-800 dark:text-slate-200">{e.eventType}</div>
+          <div className="font-mono text-[11px] text-slate-500" title={e.eventId}>{e.eventId.slice(0, 18)}</div>
         </div>
       )
     },
@@ -124,7 +124,7 @@ export default async function WebhookEventsPage({ searchParams }: { searchParams
         e.order ? (
           <Link
             href={`/admin-dashboard/orders/${e.order.id}`}
-            className="font-mono text-[11px] text-blue-600 hover:underline dark:text-blue-400"
+            className="font-mono text-xs text-blue-600 hover:underline dark:text-blue-400"
           >
             {e.order.number ?? e.order.id.slice(0, 10)}
           </Link>
@@ -137,7 +137,7 @@ export default async function WebhookEventsPage({ searchParams }: { searchParams
       header: 'Error / Note',
       cell: (e) =>
         e.error ? (
-          <span className="text-[11px] text-red-600" title={e.error}>{e.error.slice(0, 60)}</span>
+          <span className="text-xs text-red-600" title={e.error}>{e.error.slice(0, 60)}</span>
         ) : (
           <span className="text-slate-400">—</span>
         )
@@ -149,8 +149,8 @@ export default async function WebhookEventsPage({ searchParams }: { searchParams
       headerClassName: 'w-20',
       cell: (e) => (
         <details className="text-right">
-          <summary className="cursor-pointer text-[11px] text-blue-600 hover:underline dark:text-blue-400">View</summary>
-          <pre className="mt-1 max-h-72 overflow-auto rounded bg-slate-100 p-2 text-left text-[10px] dark:bg-slate-800">
+          <summary className="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">View</summary>
+          <pre className="mt-1 max-h-72 overflow-auto rounded bg-slate-100 p-2 text-left text-[11px] dark:bg-slate-800">
 {JSON.stringify(e.payload, null, 2)}
           </pre>
         </details>

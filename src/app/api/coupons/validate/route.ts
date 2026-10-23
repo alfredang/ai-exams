@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { evaluateCoupon } from '@/lib/coupons';
+import { productSale } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,9 @@ export async function POST(req: Request) {
   });
   if (!bundle) return NextResponse.json({ ok: false, reason: 'invalid_product', message: 'Bundle not found.' }, { status: 400 });
 
-  const subtotal = body.tier === 'VOUCHER' && bundle.priceVoucher != null ? bundle.priceVoucher : bundle.price;
+  const sale = productSale(bundle, body.tier);
+  if (!sale) return NextResponse.json({ ok: false, reason: 'invalid_product', message: 'This product is not on sale.' }, { status: 400 });
+  const subtotal = sale.amount;
   const vendorIds = new Set(bundle.items.map((i) => i.exam.vendorId));
   const vendorId = vendorIds.size === 1 ? [...vendorIds][0] : null;
 

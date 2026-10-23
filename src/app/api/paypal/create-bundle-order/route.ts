@@ -6,6 +6,7 @@ import { createOrder } from '@/lib/paypal';
 import { nextNumber } from '@/lib/numbering';
 import { evaluateCoupon, recordCouponRedemption } from '@/lib/coupons';
 import { STORE_CURRENCY } from '@/lib/currency';
+import { productSale } from '@/lib/products';
 
 const Body = z.object({
   bundleId: z.string(),
@@ -30,17 +31,13 @@ export async function POST(req: Request) {
     where: { id: bundleId },
     include: { items: { include: { exam: { select: { vendorId: true } } } } }
   });
-  if (!bundle || !bundle.published) return NextResponse.json({ error: 'Bundle not found' }, { status: 404 });
+  const sale = bundle ? productSale(bundle, tier) : null;
+  if (!bundle || !sale) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
 
   let subtotal: number;
   let orderTier: 'PRACTICE' | 'VOUCHER' | null;
-  if (tier === 'VOUCHER' && bundle.priceVoucher != null) {
-    subtotal = bundle.priceVoucher;
-    orderTier = 'VOUCHER';
-  } else {
-    subtotal = bundle.price;
-    orderTier = tier === 'PRACTICE' ? 'PRACTICE' : null;
-  }
+  subtotal = sale.amount;
+  orderTier = sale.tier;
 
   // For a bundle, single-vendor coupons apply only when all items share a vendor.
   const vendorIds = new Set(bundle.items.map((i) => i.exam.vendorId));

@@ -160,9 +160,9 @@ export default async function NewCouponPage() {
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
       {children}
-      {hint && <span className="mt-0.5 block text-[10px] text-slate-400">{hint}</span>}
+      {hint && <span className="mt-0.5 block text-[11px] text-slate-400">{hint}</span>}
     </label>
   );
 }

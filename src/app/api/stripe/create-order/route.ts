@@ -7,6 +7,7 @@ import { evaluateCoupon, recordCouponRedemption } from '@/lib/coupons';
 import { getSetting } from '@/lib/settings';
 import Stripe from 'stripe';
 import { STORE_CURRENCY } from '@/lib/currency';
+import { productSale, productTitle } from '@/lib/products';
 
 export const runtime = 'nodejs';
 
@@ -47,15 +48,11 @@ export async function POST(req: Request) {
     where: { id: bundleId },
     include: { items: { take: 1, include: { exam: { select: { vendorId: true } } } } }
   });
-  if (!bundle || !bundle.published) return NextResponse.json({ error: 'not-found' }, { status: 404 });
-  if (tier === 'VOUCHER' && bundle.priceVoucher != null) {
-    amount = bundle.priceVoucher;
-    orderTier = 'VOUCHER';
-  } else {
-    amount = bundle.price;
-    orderTier = 'PRACTICE';
-  }
-  const purpose = bundle.title;
+  const sale = bundle ? productSale(bundle, tier) : null;
+  if (!bundle || !sale) return NextResponse.json({ error: 'not-found' }, { status: 404 });
+  amount = sale.amount;
+  orderTier = sale.tier;
+  const purpose = productTitle(bundle, orderTier);
   vendorIdForCoupon = bundle.items[0]?.exam.vendorId ?? null;
 
   // Server-side coupon evaluation

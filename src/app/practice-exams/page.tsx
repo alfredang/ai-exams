@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { BarChart3, Library, RefreshCw, Timer } from 'lucide-react';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
-import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
+import { PUBLISHED_QUESTION_COUNT } from '@/lib/bundle-contents';
+import { PRACTICE_PRICE_CENTS } from '@/lib/products';
+import { ProductCard } from '@/components/storefront/product-card';
+import { VoucherUpsellBanner } from '@/components/storefront/voucher-upsell-banner';
 import { CatalogFilters } from './filters';
 import { FeatureCards, type Feature } from '@/components/feature-cards';
 import { bundleSearchAliases, catalogSearchRank, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
@@ -95,12 +98,16 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   return (
     <div className="container-app py-10">
       <div className="mb-8 max-w-3xl">
-        <p className="eyebrow mb-2">Practice exams</p>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Practice exams for leading certifications</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">Browse certifications across leading vendors. Try our free practice teaser on every exam.</p>
+        <p className="eyebrow mb-2">Practice Exams</p>
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Practice Exams for leading Certifications</h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">
+          Every Practice Exam is <b className="text-ink dark:text-white">{formatPrice(PRACTICE_PRICE_CENTS)}</b> — timed Exam mode, Practice mode with explanations and unlimited retakes. Start with the free 10-question teaser on any Practice Exam.
+        </p>
       </div>
 
       <FeatureCards items={FEATURES} />
+
+      <VoucherUpsellBanner className="mb-8" />
 
       <CatalogFilters
         q={q}
@@ -110,37 +117,22 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         levels={levels}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {pageCards.map(card => {
           const b = card.data;
-          const firstItem = b.items[0]?.exam;
-          // PRACTICE items only — the VOUCHER item points back at the same -p1
-          // exam, so counting raw items double-counts it. See bundle-contents.ts.
           return (
-            <Link key={`b-${b.id}`} href={firstItem ? `/practice-exams/${firstItem.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
-              {firstItem && (
-                <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
-                  <span><HighlightedText text={firstItem.vendor.name} query={q} /></span>
-                  <span aria-hidden="true">·</span><span><HighlightedText text={firstItem.code} query={q} /></span>
-                  <span aria-hidden="true">·</span><span>{firstItem.level}</span>
-                </div>
-              )}
-              <h3 className="font-semibold"><HighlightedText text={b.title} query={q} /></h3>
-              {bundleSearchAliases(b.slug).filter(alias => matchesCatalogSearch(q, [alias])).map(alias => (
-                q && <p key={alias} className="mt-1 text-xs font-medium text-blue-700 dark:text-blue-300">Matched course code: <mark className="rounded bg-yellow-200 px-1 text-slate-950">{alias}</mark></p>
+            <div key={`b-${b.id}`} className="flex flex-col">
+              <ProductCard b={b} query={q} />
+              {q && bundleSearchAliases(b.slug).filter(alias => matchesCatalogSearch(q, [alias])).map(alias => (
+                <p key={alias} className="mt-1 px-1 text-xs font-medium text-blue-700 dark:text-blue-300">Matched course code: <mark className="rounded bg-yellow-200 px-1 text-slate-950">{alias}</mark></p>
               ))}
-              <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
-              <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400">{poolCardLabel(b.items)}</span>
-                <span className="font-semibold text-blue-700 dark:text-blue-300">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
-              </div>
-            </Link>
+            </div>
           );
         })}
         {totalCount === 0 && (
-          <div className="md:col-span-2 lg:col-span-3 rounded-lg border border-slate-200 p-5 text-sm dark:border-slate-800">
-            <p className="font-medium">No practice exams found.</p>
-            <p className="mt-1 text-slate-500 dark:text-slate-400">Try an exam name, certification code, vendor, or verified TGS/course code. Some training courses do not yet have a practice exam in this database.</p>
+          <div className="rounded-lg border border-line bg-white p-5 text-sm sm:col-span-2 lg:col-span-3 dark:border-slate-800 dark:bg-slate-900/80">
+            <p className="font-medium">No Practice Exams found.</p>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">Try an exam name, Certification code, Vendor, or verified TGS/course code. Some training courses do not yet have a Practice Exam in this database.</p>
             {suggestions.length > 0 && (
               <p className="mt-3">Did you mean?{' '}{suggestions.map((suggestion, index) => (
                 <span key={suggestion}>{index > 0 && ', '}<Link className="text-blue-700 hover:underline dark:text-blue-300" href={`/practice-exams?q=${encodeURIComponent(suggestion)}`}>{suggestion}</Link></span>
@@ -160,14 +152,6 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       )}
     </div>
   );
-}
-
-function HighlightedText({ text, query }: { text: string; query: string }) {
-  const trimmed = query.trim();
-  if (!trimmed) return text;
-  const index = text.toLocaleLowerCase().indexOf(trimmed.toLocaleLowerCase());
-  if (index < 0) return text;
-  return <>{text.slice(0, index)}<mark className="rounded bg-yellow-200 px-0.5 text-slate-950">{text.slice(index, index + trimmed.length)}</mark>{text.slice(index + trimmed.length)}</>;
 }
 
 function Pagination({ page, totalPages, totalCount, searchParams }: {
@@ -204,23 +188,23 @@ function Pagination({ page, totalPages, totalCount, searchParams }: {
       <p className="text-sm text-slate-500 dark:text-slate-400">
         Showing {start}–{end} of {totalCount} exam{totalCount === 1 ? '' : 's'}
       </p>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-center gap-1">
         {page > 1 ? (
-          <Link href={hrefFor(page - 1)} className="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">Previous</Link>
+          <Link href={hrefFor(page - 1)} className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md border border-line bg-white px-3 py-1.5 text-sm dark:bg-slate-900 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">Previous</Link>
         ) : (
-          <span className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">Previous</span>
+          <span className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md border border-line bg-white px-3 py-1.5 text-sm dark:bg-slate-900 text-slate-400 dark:border-slate-800 dark:text-slate-600">Previous</span>
         )}
         {pages.map((p, i) =>
           p === 'gap'
             ? <span key={`gap-${i}`} className="px-2 text-slate-400">…</span>
             : p === page
-              ? <span key={p} aria-current="page" className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white">{p}</span>
-              : <Link key={p} href={hrefFor(p)} className="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">{p}</Link>
+              ? <span key={p} aria-current="page" className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white">{p}</span>
+              : <Link key={p} href={hrefFor(p)} className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md border border-line bg-white px-3 py-1.5 text-sm dark:bg-slate-900 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">{p}</Link>
         )}
         {page < totalPages ? (
-          <Link href={hrefFor(page + 1)} className="rounded-md border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">Next</Link>
+          <Link href={hrefFor(page + 1)} className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md border border-line bg-white px-3 py-1.5 text-sm dark:bg-slate-900 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">Next</Link>
         ) : (
-          <span className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-400 dark:border-slate-800 dark:text-slate-600">Next</span>
+          <span className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md border border-line bg-white px-3 py-1.5 text-sm dark:bg-slate-900 text-slate-400 dark:border-slate-800 dark:text-slate-600">Next</span>
         )}
       </div>
     </nav>

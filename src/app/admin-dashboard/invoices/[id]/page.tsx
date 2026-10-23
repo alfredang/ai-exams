@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { formatPrice } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatusBadge } from '@/components/admin/badge';
 import { FileText, Download, RefreshCw } from 'lucide-react';
@@ -175,7 +175,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Items</h2>
             <table className="mt-2 w-full text-[13px]">
               <thead>
-                <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
+                <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                   <th className="py-1">Description</th>
                   <th className="py-1 text-right">Qty</th>
                   <th className="py-1 text-right">Unit</th>
@@ -187,27 +187,27 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <tr key={i}>
                     <td className="py-1.5">{ln.description}</td>
                     <td className="py-1.5 text-right">{ln.qty}</td>
-                    <td className="py-1.5 text-right">{formatPrice(ln.unitAmount, invoice.currency)}</td>
-                    <td className="py-1.5 text-right font-medium">{formatPrice(ln.qty * ln.unitAmount, invoice.currency)}</td>
+                    <td className="py-1.5 text-right">{formatMoney(ln.unitAmount, invoice.currency)}</td>
+                    <td className="py-1.5 text-right font-medium">{formatMoney(ln.qty * ln.unitAmount, invoice.currency)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <div className="mt-3 ml-auto max-w-xs text-[13px]">
-              <div className="flex justify-between py-0.5"><span className="text-slate-500">Subtotal</span><span>{formatPrice(invoice.subtotal, invoice.currency)}</span></div>
+              <div className="flex justify-between py-0.5"><span className="text-slate-500">Subtotal</span><span>{formatMoney(invoice.subtotal, invoice.currency)}</span></div>
               {invoice.taxAmount !== 0 && (
                 <div className="flex justify-between py-0.5">
                   <span className="text-slate-500">{invoice.taxLabel} ({(invoice.taxRate / 100).toFixed(2)}%)</span>
-                  <span>{formatPrice(invoice.taxAmount, invoice.currency)}</span>
+                  <span>{formatMoney(invoice.taxAmount, invoice.currency)}</span>
                 </div>
               )}
               <div className="mt-1 flex justify-between border-t border-slate-200 pt-1 font-semibold dark:border-slate-700">
                 <span>Total</span>
-                <span>{formatPrice(invoice.total, invoice.currency)}</span>
+                <span>{formatMoney(invoice.total, invoice.currency)}</span>
               </div>
               {invoice.totalSgd != null && invoice.currency.toUpperCase() !== 'SGD' && (
-                <div className="text-right text-[10px] text-slate-500">
-                  ≈ {formatPrice(invoice.totalSgd, 'SGD')} @ {(invoice.fxRateBpsToSgd ?? 10000) / 10000}
+                <div className="text-right text-[11px] text-slate-500">
+                  ≈ {formatMoney(invoice.totalSgd, 'SGD')} @ {(invoice.fxRateBpsToSgd ?? 10000) / 10000}
                 </div>
               )}
             </div>
@@ -222,7 +222,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                   <Link href={`/admin-dashboard/invoices/${cn.id}`} className="text-blue-600 hover:underline">
                     {cn.number}
                   </Link>{' '}
-                  ({formatPrice(cn.total, cn.currency)})
+                  ({formatMoney(cn.total, cn.currency)})
                 </div>
               ))}
               {invoice.creditNoteOf && (
@@ -254,8 +254,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           <div className="card p-4">
             <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Issuer</h2>
             <div className="mt-1 text-[12px]">{invoice.companyName}</div>
-            <div className="text-[11px] text-slate-500">UEN {invoice.companyUEN}</div>
-            {invoice.companyGstReg && <div className="text-[11px] text-slate-500">GST {invoice.companyGstReg}</div>}
+            <div className="text-xs text-slate-500">UEN {invoice.companyUEN}</div>
+            {invoice.companyGstReg && <div className="text-xs text-slate-500">GST {invoice.companyGstReg}</div>}
           </div>
 
           {invoice.status === 'ISSUED' && (
@@ -263,21 +263,21 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Actions</h2>
               <form action={resendInvoice}>
                 <input type="hidden" name="id" value={invoice.id} />
-                <button className="inline-flex h-7 items-center gap-1 rounded-md bg-emerald-600 px-2.5 text-[11px] font-medium text-white hover:bg-emerald-700">
+                <button className="inline-flex h-7 items-center gap-1 rounded-md bg-emerald-600 px-2.5 text-xs font-medium text-white hover:bg-emerald-700">
                   <RefreshCw className="h-3 w-3" /> Resend email
                 </button>
               </form>
               <form action={voidInvoice} className="space-y-1">
                 <input type="hidden" name="id" value={invoice.id} />
                 <input name="reason" placeholder="Void reason (optional)" className="input-sm" />
-                <button className="inline-flex h-7 items-center rounded-md bg-red-600 px-2.5 text-[11px] font-medium text-white hover:bg-red-700">
+                <button className="inline-flex h-7 items-center rounded-md bg-red-600 px-2.5 text-xs font-medium text-white hover:bg-red-700">
                   Mark void
                 </button>
               </form>
               <form action={issueCreditNote} className="space-y-1">
                 <input type="hidden" name="id" value={invoice.id} />
                 <input name="reason" placeholder="Credit note reason (optional)" className="input-sm" />
-                <button className="inline-flex h-7 items-center rounded-md bg-amber-600 px-2.5 text-[11px] font-medium text-white hover:bg-amber-700">
+                <button className="inline-flex h-7 items-center rounded-md bg-amber-600 px-2.5 text-xs font-medium text-white hover:bg-amber-700">
                   Issue credit note
                 </button>
               </form>
@@ -289,7 +289,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Void reason</h2>
               <div className="mt-1 text-[12px] text-slate-700 dark:text-slate-200">{invoice.voidReason}</div>
               {invoice.voidedAt && (
-                <div className="text-[10px] text-slate-500">{invoice.voidedAt.toLocaleString()}</div>
+                <div className="text-[11px] text-slate-500">{invoice.voidedAt.toLocaleString()}</div>
               )}
             </div>
           )}

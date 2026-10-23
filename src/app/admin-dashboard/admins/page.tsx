@@ -82,11 +82,11 @@ export default async function AdminAdminsPage() {
                   <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">{u.email}</td>
                   <td className="whitespace-nowrap px-4 py-3">
                     {isSuper ? (
-                      <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-800">
+                      <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[11px] font-semibold text-purple-800">
                         SUPER ADMIN
                       </span>
                     ) : (
-                      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
+                      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800">
                         ADMIN
                       </span>
                     )}

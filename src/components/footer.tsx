@@ -106,57 +106,64 @@ export async function Footer() {
   const [company, footerPages] = await Promise.all([safeCompany(), safeFooterPages()]);
 
   const pageBySlug = new Map(footerPages.map((p) => [p.slug, p]));
-  const usefulLinks = [
-    { href: '/practice-exams', label: 'Browse exams' },
-    { href: '/exam-vouchers', label: 'Exam vouchers' },
-    ...Object.entries(USEFUL_LINK_FALLBACKS).map(([slug, fallback]) => ({
-      href: `/p/${slug}`,
-      label: pageBySlug.get(slug)?.title ?? fallback
-    }))
+  const pageLink = (slug: string) => ({ href: `/p/${slug}`, label: pageBySlug.get(slug)?.title ?? USEFUL_LINK_FALLBACKS[slug] });
+  const columns: { title: string; links: { href: string; label: string }[] }[] = [
+    {
+      title: 'Shop',
+      links: [
+        { href: '/practice-exams', label: 'Practice Exams' },
+        { href: '/exam-vouchers', label: 'Exam Vouchers' },
+        { href: '/vendors', label: 'Vendors' }
+      ]
+    },
+    {
+      title: 'Help',
+      links: [pageLink('how-it-works'), { href: '/#faq', label: 'FAQ' }, pageLink('support'), pageLink('about-us')]
+    },
+    {
+      title: 'Legal',
+      links: [pageLink('privacy-policy'), pageLink('refund-policy'), pageLink('terms')]
+    }
   ];
 
   return (
-    <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="container-app grid grid-cols-1 gap-x-8 gap-y-5 py-5 sm:grid-cols-2 md:grid-cols-12">
+    <footer className="border-t border-line bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="container-app grid grid-cols-2 gap-x-6 gap-y-8 py-10 md:grid-cols-12">
         {/* Brand */}
-        <div className="sm:col-span-2 md:col-span-4">
+        <div className="col-span-2 md:col-span-4">
           <div className="mb-3 flex items-center gap-2">
             <Image src="/logo-mark.png" alt="Tertiary Exams" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" />
-            <span className="text-base font-semibold text-slate-900 dark:text-white">Tertiary Exams</span>
+            <span className="font-display text-lg font-extrabold text-slate-900 dark:text-white">Tertiary Exams</span>
           </div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Practice smarter for your next certification.
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Prepare with confidence. Get certified.</p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            Original, blueprint-aligned Practice Exams with explanations — and official Exam Vouchers that include the Practice Exam free. No brain dumps.
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            Original, blueprint-aligned practice questions — written by domain experts, with explanations and citations.
-            No brain dumps.
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            One practice exam per certification, drawn fresh by official exam domain on every retake — buy it on its own
-            or with a discounted real-exam voucher.
-          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/practice-exams" className="btn-outline min-h-[40px] text-xs">Practice Exams</Link>
+            <Link href="/exam-vouchers" className="btn-secondary min-h-[40px] text-xs">Exam Vouchers</Link>
+          </div>
         </div>
 
-        {/* Useful Links */}
-        <nav className="md:col-span-2" aria-label="Footer">
-          <FooterHeading>Useful Links</FooterHeading>
-          <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
-            {usefulLinks.map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} className={linkClass}>
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {columns.map((col) => (
+          <nav key={col.title} className="md:col-span-2" aria-label={`Footer ${col.title}`}>
+            <FooterHeading>{col.title}</FooterHeading>
+            <ul className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+              {col.links.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className={`inline-flex min-h-[32px] items-center ${linkClass}`}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
 
-        {/* Company */}
-        <div className="md:col-span-3">
-          <FooterHeading>Company</FooterHeading>
-          <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-400">
-            <li className="font-medium text-slate-700 dark:text-slate-300">{company.name}</li>
-            {company.address && <Contact icon={MapPin}>{company.address}</Contact>}
+        {/* Contact + app */}
+        <div className="col-span-2 md:col-span-2">
+          <FooterHeading>Contact</FooterHeading>
+          <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
             {company.email && (
               <Contact icon={Mail} href={`mailto:${company.email}`}>
                 {company.email}
@@ -171,26 +178,30 @@ export async function Footer() {
               {WHATSAPP_LABEL}
             </Contact>
           </ul>
-        </div>
-
-        {/* Legal + app */}
-        <div className="md:col-span-3">
-          <FooterHeading>Legal</FooterHeading>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Original practice questions for learning and exam preparation. Not affiliated with AWS, Microsoft, Cisco,
-            CompTIA, Google Cloud, or other certification owners unless explicitly stated. We do not provide real exam
-            dumps.
-          </p>
-          <FooterHeading className="mt-6">Get the app</FooterHeading>
           <a
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+            className="mt-4 inline-block rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
             aria-label="Download Tertiary AI Exams on the App Store"
           >
             <Image src={APP_STORE_BADGE} alt="Download on the App Store" width={120} height={40} unoptimized className="h-10 w-auto" />
           </a>
+        </div>
+      </div>
+
+      <div className="border-t border-line dark:border-slate-800">
+        <div className="container-app flex flex-col gap-2 py-4 text-xs leading-relaxed text-slate-500 md:flex-row md:items-start md:justify-between dark:text-slate-400">
+          <p className="flex items-start gap-1.5">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>
+              <span className="font-medium text-slate-600 dark:text-slate-300">{company.name}</span>
+              {company.address ? ` · ${company.address}` : ''}
+            </span>
+          </p>
+          <p className="max-w-xl md:text-right">
+            Original practice questions for learning and exam preparation. Not affiliated with AWS, Microsoft, Cisco, CompTIA, Google Cloud, or other Certification owners unless explicitly stated. We do not provide real exam dumps.
+          </p>
         </div>
       </div>
     </footer>

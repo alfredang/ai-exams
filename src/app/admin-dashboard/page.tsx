@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { formatPrice, tierLabel } from '@/lib/utils';
+import { formatMoney, tierLabel } from '@/lib/utils';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatusBadge } from '@/components/admin/badge';
 import { paidOrdersIn, signupsIn, activeLearnersIn, taxCollectedIn, Ranges } from '@/lib/analytics';
@@ -73,10 +73,10 @@ export default async function AdminOverview() {
 
       {/* Revenue KPI row */}
       <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Revenue today" value={formatPrice(todayStats.grossCents, 'USD')} sub={`${todayStats.ordersCount} order${todayStats.ordersCount === 1 ? '' : 's'}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=today" />
-        <Kpi label="Revenue · 7d" value={formatPrice(last7Stats.grossCents, 'USD')} sub={`AOV ${formatPrice(last7Stats.aovCents, 'USD')}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=7d" />
-        <Kpi label="Revenue · 30d" value={formatPrice(last30Stats.grossCents, 'USD')} sub={`Net ${formatPrice(last30Stats.netCents, 'USD')}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=30d" />
-        <Kpi label="Revenue · MTD" value={formatPrice(mtdStats.grossCents, 'USD')} sub={`${mtdStats.ordersCount} order${mtdStats.ordersCount === 1 ? '' : 's'}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=mtd" />
+        <Kpi label="Revenue today" value={formatMoney(todayStats.grossCents, 'USD')} sub={`${todayStats.ordersCount} order${todayStats.ordersCount === 1 ? '' : 's'}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=today" />
+        <Kpi label="Revenue · 7d" value={formatMoney(last7Stats.grossCents, 'USD')} sub={`AOV ${formatMoney(last7Stats.aovCents, 'USD')}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=7d" />
+        <Kpi label="Revenue · 30d" value={formatMoney(last30Stats.grossCents, 'USD')} sub={`Net ${formatMoney(last30Stats.netCents, 'USD')}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=30d" />
+        <Kpi label="Revenue · MTD" value={formatMoney(mtdStats.grossCents, 'USD')} sub={`${mtdStats.ordersCount} order${mtdStats.ordersCount === 1 ? '' : 's'}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=mtd" />
       </div>
 
       {/* Operational KPI row */}
@@ -91,9 +91,9 @@ export default async function AdminOverview() {
       <div className="card mb-4 p-3">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Tax collected · MTD</div>
-            <div className="mt-0.5 text-lg font-semibold">{formatPrice(taxMtd.taxSgdTotal, 'SGD')}</div>
-            <div className="text-[11px] text-slate-500">{taxMtd.invoiceCount} invoice{taxMtd.invoiceCount === 1 ? '' : 's'} · SGD-equivalent total {formatPrice(taxMtd.totalSgd, 'SGD')}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tax collected · MTD</div>
+            <div className="mt-0.5 text-lg font-semibold">{formatMoney(taxMtd.taxSgdTotal, 'SGD')}</div>
+            <div className="text-xs text-slate-500">{taxMtd.invoiceCount} invoice{taxMtd.invoiceCount === 1 ? '' : 's'} · SGD-equivalent total {formatMoney(taxMtd.totalSgd, 'SGD')}</div>
           </div>
           <Link href="/admin-dashboard/reports/tax" className="btn-sm bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200">
             GST report →
@@ -104,19 +104,19 @@ export default async function AdminOverview() {
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="card p-4">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Latest users</h2>
-            <Link href="/admin-dashboard/users" className="text-[11px] text-blue-600 hover:underline dark:text-blue-400">View all →</Link>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Latest users</h2>
+            <Link href="/admin-dashboard/users" className="text-xs text-blue-600 hover:underline dark:text-blue-400">View all →</Link>
           </div>
           <ul className="divide-y divide-slate-100 text-[12px] dark:divide-slate-800/70">
             {latestUsers.map((u) => (
               <li key={u.id} className="flex items-center justify-between py-1.5">
                 <div className="min-w-0">
                   <div className="truncate font-medium">{u.name || u.email}</div>
-                  <div className="truncate text-[11px] text-slate-500">{u.email}</div>
+                  <div className="truncate text-xs text-slate-500">{u.email}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!u.active && <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">OFF</span>}
-                  <span className="text-[10px] text-slate-500">{u.createdAt.toLocaleDateString()}</span>
+                  {!u.active && <span className="rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-semibold text-red-800">OFF</span>}
+                  <span className="text-[11px] text-slate-500">{u.createdAt.toLocaleDateString()}</span>
                 </div>
               </li>
             ))}
@@ -126,21 +126,21 @@ export default async function AdminOverview() {
 
         <section className="card p-4">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Latest orders</h2>
-            <Link href="/admin-dashboard/orders" className="text-[11px] text-blue-600 hover:underline dark:text-blue-400">View all →</Link>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Latest orders</h2>
+            <Link href="/admin-dashboard/orders" className="text-xs text-blue-600 hover:underline dark:text-blue-400">View all →</Link>
           </div>
           <ul className="divide-y divide-slate-100 text-[12px] dark:divide-slate-800/70">
             {latestOrders.map((o) => {
               const product = o.bundle ? `${o.bundle.title} (bundle)` : o.exam?.title ?? '—';
-              const tier = o.bundle ? 'Bundle' : o.tier ? tierLabel(o.tier) : '—';
+              const tier = o.tier ? tierLabel(o.tier) : o.bundle ? 'Practice Exam' : '—';
               return (
                 <li key={o.id} className="flex items-center justify-between gap-2 py-1.5">
                   <div className="min-w-0">
                     <div className="truncate font-medium">{product}</div>
-                    <div className="truncate text-[11px] text-slate-500">{o.user.email} · {tier}</div>
+                    <div className="truncate text-xs text-slate-500">{o.user.email} · {tier}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">{formatPrice(o.amount, o.currency)}</span>
+                    <span className="font-semibold">{formatMoney(o.amount, o.currency)}</span>
                     <StatusBadge status={o.status} />
                   </div>
                 </li>
@@ -153,8 +153,8 @@ export default async function AdminOverview() {
 
       <section className="mt-4 card p-4">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Popular practice exams (paid orders)</h2>
-          <Link href="/admin-dashboard/reports/exams" className="text-[11px] text-blue-600 hover:underline dark:text-blue-400">Full exam report →</Link>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Popular practice exams (paid orders)</h2>
+          <Link href="/admin-dashboard/reports/exams" className="text-xs text-blue-600 hover:underline dark:text-blue-400">Full exam report →</Link>
         </div>
         <ul className="divide-y divide-slate-100 text-[12px] dark:divide-slate-800/70">
           {popularOrders.map((p, i) => {
@@ -163,17 +163,17 @@ export default async function AdminOverview() {
             return (
               <li key={p.examId} className="flex items-center justify-between py-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                     {i + 1}
                   </span>
                   <div>
                     <Link href={`/admin-dashboard/exams/${exam.id}`} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
                       {exam.vendor.name} · {exam.code}
                     </Link>
-                    <div className="text-[11px] text-slate-500">{exam.title}</div>
+                    <div className="text-xs text-slate-500">{exam.title}</div>
                   </div>
                 </div>
-                <div className="text-[11px] text-slate-500">{p._count.examId} paid order{p._count.examId === 1 ? '' : 's'}</div>
+                <div className="text-xs text-slate-500">{p._count.examId} paid order{p._count.examId === 1 ? '' : 's'}</div>
               </li>
             );
           })}
@@ -206,9 +206,9 @@ function Kpi({
   };
   return (
     <Link href={href} className={`card flex flex-col gap-0.5 border-l-2 p-3 transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40 ${colors[accent]}`}>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</div>
       <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{value}</div>
-      {sub && <div className="text-[10px] text-slate-500">{sub}</div>}
+      {sub && <div className="text-[11px] text-slate-500">{sub}</div>}
     </Link>
   );
 }

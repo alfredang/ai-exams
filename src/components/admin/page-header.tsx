@@ -19,7 +19,7 @@ export function PageHeader({
         {back && (
           <Link
             href={back.href}
-            className="mb-1 inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            className="mb-1 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
           >
             <ChevronLeft className="h-3 w-3" />
             {back.label}

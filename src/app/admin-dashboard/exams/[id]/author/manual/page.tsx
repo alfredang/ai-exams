@@ -114,13 +114,13 @@ export default async function ManualBatchPage({ params }: { params: Promise<{ id
               <textarea name={`q${idx}_stem`} rows={3} className="w-full rounded-md border border-slate-200 bg-white p-2 text-[13px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" placeholder="Question text…" />
             </Field>
             <div className="mt-3">
-              <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">
+              <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-slate-500">
                 Options (leave blank to skip; min 2; tick correct ones)
               </div>
               <div className="space-y-1.5">
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex flex-col gap-1 md:flex-row md:items-start md:gap-2">
-                    <span className="w-5 pt-1 text-[11px] font-semibold text-slate-500">
+                    <span className="w-5 pt-1 text-xs font-semibold text-slate-500">
                       {String.fromCharCode(65 + i)}
                     </span>
                     <input
@@ -128,7 +128,7 @@ export default async function ManualBatchPage({ params }: { params: Promise<{ id
                       placeholder={`Option ${String.fromCharCode(65 + i)} text`}
                       className="input-sm md:flex-1"
                     />
-                    <label className="inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 md:pt-1.5">
+                    <label className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300 md:pt-1.5">
                       <input type="checkbox" name={`q${idx}_correct${i}`} /> correct
                     </label>
                     <input
@@ -162,7 +162,7 @@ export default async function ManualBatchPage({ params }: { params: Promise<{ id
 function Field({ label, className = '', children }: { label: string; className?: string; children: React.ReactNode }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
       {children}
     </label>
   );

@@ -1,17 +1,17 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { Download } from 'lucide-react';
+import { CheckCircle2, Download, XCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { isAnswerCorrect, scoreAttempt, type Responses } from '@/lib/attempts';
 import { ExplanationView } from '@/components/explanation-view';
-import { ShareScore } from '@/components/share-score';
 import { ReviewFormModal } from '@/components/review-form-modal';
 import { ResultsSignupPrompt } from '@/components/results-signup-prompt';
 import { canUserReview } from '@/lib/reviews';
 import { sequencingSteps, shuffleSeeded } from '@/lib/shuffle';
 import { createAttempt } from '@/lib/start-attempt';
+import { requireFullNameToStart } from '@/lib/full-name';
 
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -53,6 +53,7 @@ function TakeAgainButton({ examId, mode, teaser, examHref }: {
       'use server';
       const s = await auth();
       const uid = (s?.user as any)?.id as string | undefined;
+      await requireFullNameToStart(s, examId, mode);
       // A retake is a fresh domain-weighted draw from the pool — old
       // attempts on a retired variant retake the certification's pool exam.
       const id = uid ? await createAttempt(uid, examId, mode) : null;
@@ -158,14 +159,19 @@ export default async function ResultsPage({
             {correctCount}<small className="text-[0.38em] font-bold text-muted"> / {total}</small>
           </div>
           <div className="min-w-0">
-            <div className="eyebrow">
-              Your score · {score}% · pass mark {attempt.exam.passingScore}% · time used {fmtDuration(timeUsed)}
-            </div>
-            <h1 className="mt-1.5 text-[clamp(26px,5vw,36px)] font-extrabold">{band.name}</h1>
-            <p className="mt-1.5 text-lg">{band.text}</p>
-            <p className={`mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${passed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300'}`}>
-              {passed ? 'Above the pass mark' : 'Below the pass mark'}
-            </p>
+            {/* Pass / fail leads, like a real score report. */}
+            <h1 className="flex flex-wrap items-center gap-3">
+              <span className={`inline-flex items-center gap-2 rounded-lg px-4 py-1.5 font-display text-[clamp(28px,5vw,40px)] font-extrabold tracking-wide text-white ${passed ? 'bg-emerald-600 dark:bg-emerald-500' : 'bg-red-600 dark:bg-red-500'}`}>
+                {passed ? <CheckCircle2 className="h-8 w-8" aria-hidden /> : <XCircle className="h-8 w-8" aria-hidden />}
+                {passed ? 'PASS' : 'FAIL'}
+              </span>
+              <span className="text-lg font-semibold">
+                {score}% <span className="font-normal text-muted">· pass mark {attempt.exam.passingScore}%</span>
+              </span>
+            </h1>
+            <div className="eyebrow mt-3">Time used {fmtDuration(timeUsed)} · Readiness</div>
+            <h2 className="mt-1 text-[clamp(22px,4vw,28px)] font-extrabold">{band.name}</h2>
+            <p className="mt-1 text-lg">{band.text}</p>
           </div>
         </section>
 
@@ -186,8 +192,6 @@ export default async function ResultsPage({
             The scale is a study aid, not a predictor. The real exam is scored on its own scale and draws from a much larger item pool.
           </p>
         </div>
-
-        <ShareScore attemptId={attempt.id} examTitle={`${attempt.exam.vendor.name} ${attempt.exam.code}`} score={score} passed={passed} />
 
         <a
           href={`/api/results/${attempt.id}/pdf`}
@@ -278,14 +282,7 @@ export default async function ResultsPage({
               return (
                 <article key={q.id} className="card min-w-0 p-5 sm:p-6">
                   <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="flex min-w-0 flex-wrap items-center gap-2">
-                      <span className="eyebrow">Question {i + 1}</span>
-                      {q.domain && (
-                        <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700 [overflow-wrap:anywhere] dark:bg-brand-900/60 dark:text-brand-200">
-                          Exam domain: {q.domain}
-                        </span>
-                      )}
-                    </span>
+                    <span className="eyebrow">Question {i + 1}</span>
                     <span className="flex gap-1.5">
                       {correct ? <Pill tone="ok">Correct</Pill> : skipped ? <Pill tone="muted">Unanswered</Pill> : <Pill tone="bad">Missed</Pill>}
                       {flagged && <Pill tone="flag">Flagged</Pill>}
@@ -345,7 +342,14 @@ export default async function ResultsPage({
                       })}
                     </div>
                   )}
-                  <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
+                  {/* Answer key: the exam domain leads, then the explanation. */}
+                  <div className="mt-3 rounded-lg border border-brand-200 bg-brand-50/60 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/60">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="eyebrow">Exam domain</span>
+                      <span className="rounded-full bg-brand px-3 py-1 text-sm font-semibold text-white [overflow-wrap:anywhere] dark:bg-brand-500">
+                        {q.domain || 'Not tagged'}
+                      </span>
+                    </div>
                     <div className="eyebrow mb-1">Why</div>
                     <ExplanationView
                       text={q.explanation}

@@ -5,6 +5,7 @@ import { formatPrice, tierLabel } from './utils';
 import { getDelayDays } from './scheduling/voucher-delivery';
 import { issueInvoiceForOrder } from './invoice/issue';
 import { renderPdfForInvoice } from './invoice/pdf-for-invoice';
+import { productTitle } from './products';
 
 function providerLabel(p: PaymentProvider): string {
   switch (p) {
@@ -91,7 +92,7 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
           });
         }
       }
-      productName = order.bundle.title;
+      productName = productTitle(order.bundle, order.tier);
       // Customer-facing: "Practice Exam" or "Exam Voucher (practice exam included)".
       tierText = order.tier ? tierLabel(order.tier) : 'Practice Exam';
       examCodes = items.map((i) => i.exam.code);

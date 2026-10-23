@@ -29,7 +29,9 @@ import {
   Search,
   Sparkles,
   MessageSquare,
-  Quote
+  Quote,
+  Menu,
+  X,
 } from 'lucide-react';
 import { CmdK } from './admin/cmdk';
 import { NotificationBell } from './admin/notification-bell';
@@ -54,9 +56,11 @@ const SECTIONS: NavSection[] = [
   {
     title: 'Catalog',
     items: [
-      { href: '/admin-dashboard/exams', label: 'View Exams', icon: BookOpen, exact: true },
-      { href: '/admin-dashboard/exams/new', label: 'Create Exam', icon: Sparkles },
-      { href: '/admin-dashboard/bundles', label: 'Products & Pricing', icon: FileText },
+      // The two products customers buy, then the question banks behind them.
+      { href: '/admin-dashboard/bundles', label: 'Practice Exams', icon: BookOpen, exact: true },
+      { href: '/admin-dashboard/bundles/vouchers', label: 'Exam Vouchers', icon: Ticket },
+      { href: '/admin-dashboard/exams/new', label: 'Create Practice Exam', icon: Sparkles },
+      { href: '/admin-dashboard/exams', label: 'Question Banks', icon: FileText, exact: true },
       { href: '/admin-dashboard/vendors', label: 'Vendors', icon: Building2 }
     ]
   },
@@ -163,6 +167,10 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [cmdkOpen, setCmdkOpen] = useState(false);
+  // Below lg the sidebar is an off-canvas drawer opened from the Menu button.
+  const [mobileOpen, setMobileOpen] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMobileOpen(false), [pathname]);
 
   useEffect(() => {
     try {
@@ -221,28 +229,40 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
     });
   }
 
-  const width = collapsed ? 'w-14' : 'w-56';
+  // The open drawer always shows full labels; collapsing is a desktop preference.
+  const narrow = collapsed && !mobileOpen;
+  const width = narrow ? 'lg:w-14' : 'lg:w-56';
 
   return (
     <div className="flex min-h-[calc(100vh-6rem)] w-full">
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden" aria-hidden onClick={() => setMobileOpen(false)} />
+      )}
       <aside
-        className={`relative shrink-0 border-r border-slate-200 bg-white transition-all dark:border-slate-800 dark:bg-slate-900 ${width} ${
-          mounted ? '' : 'opacity-0'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white transition-all dark:border-slate-800 dark:bg-slate-900 lg:relative lg:inset-auto lg:z-auto lg:translate-x-0 lg:overflow-visible ${width} ${
+          mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        } ${mounted ? '' : 'opacity-0'}`}
       >
         <div className="flex items-center justify-between gap-1 px-2 py-2.5">
-          {!collapsed && (
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          {!narrow && (
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               Admin
             </span>
           )}
-          {!collapsed && <NotificationBell />}
+          {!narrow && <NotificationBell />}
+          <button
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close menu"
+            className="inline-flex h-8 w-8 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
           <button
             onClick={toggleCollapse}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="hidden h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:inline-flex"
           >
-            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+            {narrow ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
           </button>
         </div>
 
@@ -252,12 +272,12 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => setCmdkOpen(true)}
             title="Search (⌘K)"
-            className={`flex h-7 w-full items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 text-[11px] text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 ${
-              collapsed ? 'justify-center' : ''
+            className={`flex h-7 w-full items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 text-xs text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 ${
+              narrow ? 'justify-center' : ''
             }`}
           >
             <Search className="h-3 w-3 shrink-0" />
-            {!collapsed && (
+            {!narrow && (
               <>
                 <span className="flex-1 text-left">Search…</span>
                 <kbd className="rounded border border-slate-300 bg-white px-1 text-[9px] font-mono text-slate-500 dark:border-slate-600 dark:bg-slate-900">
@@ -273,17 +293,17 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
             const isSectionOpen = openSections[sec.title] ?? true;
             return (
             <div key={sec.title}>
-              {!collapsed && (
+              {!narrow && (
                 <button
                   type="button"
                   onClick={() => toggleSection(sec.title)}
-                  className="mb-1 flex w-full items-center justify-between px-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+                  className="mb-1 flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
                 >
                   <span>{sec.title}</span>
                   <ChevronDown className={`h-3 w-3 transition-transform ${isSectionOpen ? '' : '-rotate-90'}`} />
                 </button>
               )}
-              {(collapsed || isSectionOpen) && (
+              {(narrow || isSectionOpen) && (
               <div className="flex flex-col gap-0.5">
                 {sec.items.map((item) => {
                   const { href, label, icon: Icon, children: subs } = item;
@@ -306,13 +326,13 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
                         />
                         <Link
                           href={href}
-                          title={collapsed ? label : undefined}
+                          title={narrow ? label : undefined}
                           className="flex flex-1 items-center gap-2.5 rounded-md px-1.5 py-1.5"
                         >
                           <Icon className="h-3.5 w-3.5 shrink-0" />
-                          {!collapsed && <span className="truncate">{label}</span>}
+                          {!narrow && <span className="truncate">{label}</span>}
                         </Link>
-                        {!collapsed && hasChildren && (
+                        {!narrow && hasChildren && (
                           <button
                             type="button"
                             onClick={() => toggleGroup(href)}
@@ -324,7 +344,7 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
                           </button>
                         )}
                       </div>
-                      {!collapsed && hasChildren && isOpen && (
+                      {!narrow && hasChildren && isOpen && (
                         <div className="ml-5 mt-0.5 flex flex-col gap-0.5 border-l border-slate-200 pl-2 dark:border-slate-700">
                           {subs!.map((c) => {
                             const subActive = isPathActive(pathname, c.href, !!c.exact);
@@ -355,7 +375,18 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
           })}
         </nav>
       </aside>
-      <main className="min-w-0 flex-1 p-4 lg:p-6">{children}</main>
+      <main className="min-w-0 flex-1 p-4 lg:p-6">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open admin menu"
+          aria-expanded={mobileOpen}
+          className="mb-3 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 lg:hidden"
+        >
+          <Menu className="h-4 w-4" /> Menu
+        </button>
+        {children}
+      </main>
       <CmdK open={cmdkOpen} onClose={() => setCmdkOpen(false)} />
     </div>
   );

@@ -16,10 +16,15 @@ import { ExamDomains, ExamReferences } from '@/components/exam-domains';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { slug } = await params;
-  const exam = await db.exam.findUnique({
+  const select = { title: true, code: true, description: true, published: true, poolExamId: true, metaTitle: true, metaDescription: true, metaKeywords: true, ogImage: true, vendor: { select: { name: true } } } as const;
+  // The Practice Exam product wins its slug; its SEO meta lives on the
+  // product's practice (pool) exam. Mirror the page's routing here.
+  const product = await db.bundle.findUnique({
     where: { slug },
-    select: { title: true, code: true, description: true, metaTitle: true, metaDescription: true, metaKeywords: true, ogImage: true, vendor: { select: { name: true } } }
+    select: { published: true, title: true, description: true, items: { where: { tier: 'PRACTICE' }, take: 1, select: { exam: { select } } } }
   });
+  const pool = product?.published ? product.items[0]?.exam : null;
+  let exam = pool ? { ...pool, title: product!.title, description: product!.description } : await db.exam.findUnique({ where: { slug }, select });
   if (!exam) return {};
   const title = exam.metaTitle || `${exam.vendor.name} ${exam.code} — ${exam.title} | Tertiary Exams`;
   const description = exam.metaDescription || (exam.description ? exam.description.slice(0, 170) : `Practice questions and exam voucher for ${exam.code}.`);
@@ -38,6 +43,26 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   // a user who clicked "Try the free teaser" on an exam with 0 teaser
   // questions silently landed back here with no explanation. (Teaser-audit L4.)
   const teaserUnavailable = (await searchParams)?.teaser === 'unavailable';
+  const session = await auth();
+  const userId = (session?.user as any)?.id as string | undefined;
+
+  // The Practice Exam product owns its URL. Owners still reach it after the
+  // product is taken off sale so they can keep starting attempts.
+  const product = await db.bundle.findUnique({
+    where: { slug },
+    include: {
+      items: {
+        orderBy: { position: 'asc' },
+        include: { exam: { include: { vendor: true, _count: { select: { questions: { where: { status: 'PUBLISHED' } } } } } } }
+      }
+    }
+  });
+  const productPool = product?.items.find((i) => i.tier === 'PRACTICE') ?? product?.items[0];
+  if (product && productPool && productPool.exam.vendor.slug === vendorSlug) {
+    const owned = !!userId && await hasPracticeAccess(db, userId, productPool.examId);
+    if (product.published || owned) return <BundleAsExamView bundle={product} userId={userId} owned={owned} />;
+  }
+
   const exam = await db.exam.findUnique({
     where: { slug },
     include: {
@@ -47,15 +72,14 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   });
 
   // Retired "Practice Exam N" variants live on as rows only — their questions
-  // are in the certification's single pool exam. Send old links to the product.
-  if (exam?.poolExamId) {
-    const product = await db.bundle.findFirst({
-      where: { published: true, items: { some: { examId: exam.poolExamId } } },
+  // are in the certification's single pool exam — and a pool exam's own slug
+  // (e.g. aws-aif-c01-p1) is not a product URL. Send both to the product.
+  if (exam) {
+    const owner = await db.bundle.findFirst({
+      where: { published: true, items: { some: { examId: exam.poolExamId ?? exam.id, tier: 'PRACTICE' } } },
       select: { slug: true }
     });
-    // The product can share this slug (a folded base exam) — then fall
-    // through and render the product view below instead of looping.
-    if (product && product.slug !== slug) permanentRedirect(`/practice-exams/${vendorSlug}/${product.slug}`);
+    if (owner && owner.slug !== slug) permanentRedirect(`/practice-exams/${vendorSlug}/${owner.slug}`);
   }
 
   // We need session info early to decide whether unpublished exams are
@@ -72,9 +96,6 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   // unpublished exam's content, admins should use the admin dashboard
   // routes (`/admin-dashboard/exams/[id]` and `/test`) — that's the
   // right tool. The public URL should mirror the customer experience.
-  const session = await auth();
-  const userId = (session?.user as any)?.id as string | undefined;
-
   // Is the unpublished exam (if any) one this user is entitled to via a
   // bundle purchase? If yes, they should still see the exam detail page so
   // they can launch attempts.
@@ -90,24 +111,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   //     aws-soa-c03, aws-sap-c02)
   //   - Otherwise 404
   const examIsViewable = !!exam && !exam.poolExamId && (exam.published || userIsEntitled);
-  if (!examIsViewable) {
-    const bundle = await db.bundle.findUnique({
-      where: { slug },
-      include: {
-        items: {
-          orderBy: { position: 'asc' },
-          include: { exam: { include: { vendor: true, _count: { select: { questions: { where: { status: 'PUBLISHED' } } } } } } }
-        }
-      }
-    });
-    const bundleVendor = bundle?.items[0]?.exam.vendor;
-    if (!bundle || !bundle.published || bundleVendor?.slug !== vendorSlug) {
-      notFound();
-    }
-    const poolExamId = bundle.items.find((i) => i.tier === 'PRACTICE')?.examId;
-    const owned = !!userId && !!poolExamId && await hasPracticeAccess(db, userId, poolExamId);
-    return <BundleAsExamView bundle={bundle} userId={userId} owned={owned} />;
-  }
+  if (!examIsViewable) notFound();
 
   if (!exam) notFound(); // narrowing for TS — examIsViewable ⇒ exam !== null
   if (exam.vendor.slug !== vendorSlug) notFound();

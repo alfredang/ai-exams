@@ -167,7 +167,7 @@ export default async function VoucherInventoryPage({ searchParams }: { searchPar
       header: 'Expires',
       cell: (r) =>
         r.expiresAt ? (
-          <span className={`text-[11px] ${r.expiresAt < new Date() ? 'text-red-600' : 'text-slate-600 dark:text-slate-300'}`}>
+          <span className={`text-xs ${r.expiresAt < new Date() ? 'text-red-600' : 'text-slate-600 dark:text-slate-300'}`}>
             {r.expiresAt.toISOString().slice(0, 10)}
           </span>
         ) : (
@@ -179,7 +179,7 @@ export default async function VoucherInventoryPage({ searchParams }: { searchPar
       header: 'Assigned to',
       cell: (r) =>
         r.assignedEntitlement ? (
-          <span className="text-[11px]">{r.assignedEntitlement.user.email}</span>
+          <span className="text-xs">{r.assignedEntitlement.user.email}</span>
         ) : (
           <span className="text-slate-400">—</span>
         )
@@ -188,7 +188,7 @@ export default async function VoucherInventoryPage({ searchParams }: { searchPar
       key: 'imported',
       header: 'Imported',
       cell: (r) => (
-        <div className="text-[11px] text-slate-500">
+        <div className="text-xs text-slate-500">
           <div>{r.importedAt.toISOString().slice(0, 10)}</div>
           <div>{r.importedBy.email}</div>
         </div>
@@ -237,7 +237,7 @@ export default async function VoucherInventoryPage({ searchParams }: { searchPar
         <summary className="cursor-pointer text-[13px] font-semibold">Upload codes (CSV or one per line)</summary>
         <form action={uploadInventory} className="mt-3 grid gap-3 md:grid-cols-2" encType="multipart/form-data">
           <label className="block md:col-span-1">
-            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Vendor</span>
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Vendor</span>
             <select name="vendorId" required className="input-sm" defaultValue="">
               <option value="">Select a vendor…</option>
               {vendors.map((v) => (
@@ -246,19 +246,19 @@ export default async function VoucherInventoryPage({ searchParams }: { searchPar
             </select>
           </label>
           <label className="block md:col-span-1">
-            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Exam (optional — leave blank for vendor-wide)</span>
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Exam (optional — leave blank for vendor-wide)</span>
             <select name="examId" className="input-sm" defaultValue="">
               <option value="">All exams (vendor-wide)</option>
               {exams.map((e) => (<option key={e.id} value={e.id}>{e.vendor.name} · {e.code}</option>))}
             </select>
           </label>
           <label className="block md:col-span-1">
-            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">CSV file</span>
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">CSV file</span>
             <input type="file" name="file" accept=".csv,text/csv,text/plain" className="block w-full text-[12px]" />
-            <span className="mt-1 block text-[10px] text-slate-500">Columns: <code>code</code> (required), <code>expiresAt</code> (optional, ISO date). First row may be a header.</span>
+            <span className="mt-1 block text-[11px] text-slate-500">Columns: <code>code</code> (required), <code>expiresAt</code> (optional, ISO date). First row may be a header.</span>
           </label>
           <label className="block md:col-span-2">
-            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">…or paste codes (one per line)</span>
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">…or paste codes (one per line)</span>
             <textarea name="codes" rows={4} placeholder="VCH-ABC123&#10;VCH-DEF456" className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] font-mono outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
           </label>
           <div className="md:col-span-2">

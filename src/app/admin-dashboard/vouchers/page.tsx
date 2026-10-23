@@ -286,8 +286,8 @@ export default async function AdminVouchersPage({ searchParams }: { searchParams
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 font-medium">
                     {ent.user.email}
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${statusColor}`}>{d.status}</span>
-                    {due && d.status === 'SCHEDULED' && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">DUE</span>}
+                    <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium uppercase ${statusColor}`}>{d.status}</span>
+                    {due && d.status === 'SCHEDULED' && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">DUE</span>}
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400">
                     {ent.exam.vendor.name} · <b>{ent.exam.code}</b> — {ent.exam.title}

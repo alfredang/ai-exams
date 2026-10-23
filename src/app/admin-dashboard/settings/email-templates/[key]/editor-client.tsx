@@ -90,7 +90,7 @@ export default function EditorClient({ templateKey, initial, defaults, sampleVar
             className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
           />
           <label className="mt-3 block text-sm font-medium">Body</label>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-500">
             Toggle Source to edit Handlebars HTML directly, or use the toolbar for rich text. Click AI Assist to draft or rewrite the body.
           </p>
           <div className="mt-1">

@@ -222,7 +222,15 @@ model Bundle {
   priceVoucher Int?         // VOUCHER tier price (cents) — set when the bundle
                             // offers a Voucher upgrade (real exam voucher +
                             // practice access). null = practice-only bundle.
-  published    Boolean      @default(false)
+  published    Boolean      @default(false)  // Practice Exam on sale
+  // The Exam Voucher product for the same certification. It is sold at
+  // priceVoucher when voucherPublished, has its own page at
+  // /exam-vouchers/[vendor]/[voucherSlug], and always includes the practice
+  // exam (fulfilment grants every item for a VOUCHER order).
+  voucherSlug        String?  @unique
+  voucherTitle       String?
+  voucherDescription String?
+  voucherPublished   Boolean  @default(true)
   createdById  String?
   createdBy    User?        @relation("BundleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt    DateTime     @default(now())

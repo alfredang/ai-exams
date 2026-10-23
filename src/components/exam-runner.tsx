@@ -754,7 +754,7 @@ export function ExamRunner(props: ExamRunnerProps) {
             <div className="rounded-md border border-line bg-white p-5 shadow-card sm:p-7">
               <h2 className="text-2xl font-extrabold">Review Screen</h2>
               <p className="mt-2 max-w-3xl text-sm text-muted">
-                Below is the summary of your completed questions and the questions you flagged for review. Select a question to return to it, or use Review All or Review Flagged at the bottom of the screen.
+                Below is the summary of your completed questions and the questions you flagged for review. Select a question to return to it, or use Review flagged questions or Review all.
                 {isExam ? ' Every question must be completed before you can submit the exam.' : ''} When you are finished, select Submit {isExam ? 'Exam' : ''}.
               </p>
               <div className="eyebrow mt-5">Summary of reviews and completed</div>
@@ -774,28 +774,50 @@ export function ExamRunner(props: ExamRunnerProps) {
                   </div>
                 )}
               </div>
-              <div className="mt-6 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+              {/* The same walks as the bottom bar, where candidates look first. */}
+              <div className="mt-4 flex flex-wrap gap-2.5">
+                <button type="button" onClick={() => startReview('flagged')} disabled={!flaggedCount} className={`${navBase} border border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100`}>
+                  <Flag className="h-4 w-4 fill-amber-400 text-amber-600" /> {flaggedCount ? `Review flagged questions (${flaggedCount})` : 'No questions flagged'}
+                </button>
+                {unansweredIdx.length > 0 && (
+                  <button type="button" onClick={() => startReview('incomplete')} className={navGhost}>
+                    Review incomplete ({unansweredIdx.length})
+                  </button>
+                )}
+                <button type="button" onClick={() => startReview('all')} className={navGhost}>
+                  Review all {total}
+                </button>
+                <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} sm:ml-auto`}>
+                  {isExam ? 'Submit Exam' : 'Submit'}
+                </button>
+              </div>
+              {/* One row per question: number, status, flag — a single tidy column. */}
+              <div className="mt-6 max-w-2xl overflow-hidden rounded-md border border-line">
+                <div className="grid grid-cols-[minmax(0,1fr)_110px_150px] gap-3 border-b border-line bg-slate-100 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted sm:grid-cols-[minmax(0,1fr)_130px_170px]">
+                  <span>Question</span>
+                  <span>Status</span>
+                  <span>Flagged for review</span>
+                </div>
                 {props.questions.map((qq, i) => {
                   const r = answers[qq.id];
                   const done = !!r?.answer?.length;
+                  const showResult = !isExam && r?.submitted;
                   return (
                     <button
                       key={qq.id}
                       type="button"
                       onClick={() => jumpTo(i)}
-                      className="flex items-center gap-3 border-b border-line px-1 py-2 text-left text-sm hover:bg-brand-50"
+                      className={`grid w-full grid-cols-[minmax(0,1fr)_110px_150px] items-center gap-3 border-b border-line px-4 py-2.5 text-left text-sm last:border-b-0 hover:bg-brand-50 sm:grid-cols-[minmax(0,1fr)_130px_170px] ${done ? '' : 'bg-amber-50/60'}`}
                     >
-                      <span className="flex-1 font-medium">Question {i + 1}</span>
-                      {r?.flagged && (
-                        <span className="inline-flex items-center gap-1 font-mono text-xs font-medium text-amber-700">
-                          <Flag className="h-3.5 w-3.5 fill-amber-400 text-amber-600" aria-hidden /> Flagged for review
-                        </span>
-                      )}
-                      {!isExam && r?.submitted ? (
-                        <span className={`font-mono text-xs font-medium ${r.isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>{r.isCorrect ? 'Correct' : 'Incorrect'}</span>
-                      ) : (
-                        <span className={`font-mono text-xs font-medium ${done ? 'text-emerald-700' : 'text-amber-700'}`}>{done ? 'Completed' : 'Incomplete'}</span>
-                      )}
+                      <span className="font-medium">Question {i + 1}</span>
+                      <span className={`font-mono text-xs font-medium ${
+                        showResult ? (r!.isCorrect ? 'text-emerald-700' : 'text-red-700') : done ? 'text-emerald-700' : 'text-amber-700'
+                      }`}>
+                        {showResult ? (r!.isCorrect ? 'Correct' : 'Incorrect') : done ? 'Completed' : 'Incomplete'}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 font-mono text-xs font-medium text-amber-700">
+                        {r?.flagged && <><Flag className="h-3.5 w-3.5 fill-amber-400 text-amber-600" aria-hidden /> Flagged</>}
+                      </span>
                     </button>
                   );
                 })}
@@ -803,6 +825,9 @@ export function ExamRunner(props: ExamRunnerProps) {
               <div className="mt-6 flex flex-wrap gap-2.5">
                 <button type="button" onClick={() => jumpTo(idx)} className={navGhost}>
                   <ChevronLeft className="h-5 w-5" /> Back to question {idx + 1}
+                </button>
+                <button type="button" onClick={() => setShowReview(true)} className={`${navPrimary} ml-auto`}>
+                  {isExam ? 'Submit Exam' : 'Submit'}
                 </button>
               </div>
             </div>

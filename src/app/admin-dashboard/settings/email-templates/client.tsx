@@ -96,16 +96,16 @@ function RowBlock({
         <td className="px-4 py-3">
           {row.customized ? (
             row.enabled ? (
-              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                 CUSTOM
               </span>
             ) : (
-              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                 DISABLED
               </span>
             )
           ) : (
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
               DEFAULT
             </span>
           )}
@@ -243,7 +243,7 @@ function ExpandedEditor({
 
       <div className="block text-sm sm:col-span-2">
         <span className="mb-1 block text-slate-600 dark:text-slate-300">Body</span>
-        <span className="mb-1 block text-[11px] text-slate-500">
+        <span className="mb-1 block text-xs text-slate-500">
           Toggle Source to edit Handlebars HTML directly, or use the toolbar for rich text. Click AI Assist to draft.
         </span>
         <RichHtmlEditor

@@ -130,7 +130,7 @@ export async function renderAttemptReportPdf(r: AttemptReport): Promise<Uint8Arr
 
   flow.text(`${r.vendorName} · ${r.examCode} · ${r.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}`, { size: 9, bold: true, color: COLORS.muted });
   flow.text(r.examTitle, { size: 15, bold: true, gap: 4 });
-  flow.text(`Score: ${r.correctCount} / ${r.total} (${r.score}%)   ·   Pass mark: ${r.passingScore}%   ·   Result: ${r.passed ? 'Above the pass mark' : 'Below the pass mark'}`, { size: 11, bold: true, color: r.passed ? COLORS.green : COLORS.red });
+  flow.text(`Score: ${r.correctCount} / ${r.total} (${r.score}%)   ·   Pass mark: ${r.passingScore}%   ·   Result: ${r.passed ? 'PASS' : 'FAIL'}`, { size: 11, bold: true, color: r.passed ? COLORS.green : COLORS.red });
   flow.text(`Submitted ${r.submittedAt.toISOString().slice(0, 16).replace('T', ' ')} UTC   ·   Time used ${fmtDuration(r.timeUsedSec)}`, { size: 9, color: COLORS.muted, gap: 8 });
 
   // Per-domain breakdown, weakest first.

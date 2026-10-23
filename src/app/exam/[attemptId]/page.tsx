@@ -6,6 +6,7 @@ import { ExamShell } from './exam-shell';
 import type { Responses } from '@/lib/attempts';
 import { sequencingSteps } from '@/lib/shuffle';
 import { drawAttemptQuestions, resolvePoolExam } from '@/lib/question-pool';
+import { needsFullName } from '@/lib/full-name';
 
 export default async function ExamAttemptPage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params;
@@ -25,6 +26,11 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
     if (!gt || attempt.guestToken !== gt) redirect('/login');
   }
   if (attempt.submittedAt) redirect(`/results/${attempt.id}`);
+  // Full attempts need a real name on file (score reports, vouchers);
+  // the free teaser never does.
+  if (!attempt.isTeaser && userId && await needsFullName(userId, (session?.user as any)?.impersonatedBy)) {
+    redirect(`/complete-profile?next=${encodeURIComponent(`/exam/${attempt.id}`)}`);
+  }
 
   // Recompute remaining for Exam mode
   let remaining = 0;

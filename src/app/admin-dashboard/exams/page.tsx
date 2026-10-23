@@ -264,6 +264,8 @@ async function loadExams(where: any, skip: number, take: number) {
     include: {
       vendor: true,
       createdBy: { select: { id: true, name: true, email: true } },
+      // Published products selling this exam — what makes a hidden row Active.
+      bundleItems: { where: SOLD.bundleItems.some, select: { bundle: { select: { title: true } } } },
       _count: { select: { questions: true, attempts: true, orders: true } }
     },
     orderBy: [{ vendor: { name: 'asc' } }, { title: 'asc' }],
@@ -451,11 +453,12 @@ export default async function AdminExamsPage({
         return (
           <Link
             href={`/admin-dashboard/exams/${e.id}`}
+            title={e.title}
             className="font-medium text-slate-900 hover:underline dark:text-slate-100"
           >
             {baseTitle}
             {variantMatch && (
-              <span className="ml-1 text-[11px] font-normal text-slate-500 dark:text-slate-400">
+              <span className="ml-1 text-xs font-normal text-slate-500 dark:text-slate-400">
                 · P{variantMatch[1]}
               </span>
             )}
@@ -494,43 +497,54 @@ export default async function AdminExamsPage({
     },
     { key: 'code', header: 'Code', cell: (e) => <span className="font-mono text-[12px]">{e.code}</span> },
     {
-      key: 'label',
+      key: 'label', hideBelow: '2xl',
       header: 'Label',
       cell: (e) =>
         e.label ? (
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
             {e.label}
           </span>
         ) : (
           <span className="text-slate-400">—</span>
         )
     },
-    { key: 'level', header: 'Level', cell: (e) => e.level },
+    { key: 'level', hideBelow: '2xl', header: 'Level', cell: (e) => e.level },
     {
       key: 'status',
       header: 'Status',
       // On the "All" view archived and merely-inactive rows live side by
       // side — surface ARCHIVED explicitly so they are distinguishable
       // beyond just the Restore icon in the actions column.
-      cell: (e) =>
-        e.deletedAt
-          ? <StatusBadge status="ARCHIVED" />
-          : <StatusBadge status={e.published ? 'ACTIVE' : 'INACTIVE'} />
+      // A hidden practice exam sold by a published product is live for buyers
+      // (the product page is its customer surface), so it reads ACTIVE too —
+      // matching the Active tracker chip — with a "via product" note.
+      cell: (e) => {
+        if (e.deletedAt) return <StatusBadge status="ARCHIVED" />;
+        if (e.published) return <StatusBadge status="ACTIVE" />;
+        const products = e.bundleItems.map((bi) => bi.bundle.title);
+        if (products.length === 0) return <StatusBadge status="INACTIVE" />;
+        return (
+          <span className="inline-flex flex-col items-start gap-0.5" title={`On sale as Practice Exam: ${products.join(', ')}`}>
+            <StatusBadge status="ACTIVE" />
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">via Practice Exam</span>
+          </span>
+        );
+      }
     },
     { key: 'qPerExam', header: 'Q / Exam', cell: (e) => e.questionCount, align: 'right' },
-    { key: 'duration', header: 'Duration', cell: (e) => `${e.durationMinutes} min`, align: 'right' },
+    { key: 'duration', hideBelow: '2xl', header: 'Duration', cell: (e) => `${e.durationMinutes} min`, align: 'right' },
     {
-      key: 'createdAt',
+      key: 'createdAt', hideBelow: '2xl',
       header: 'Created',
       cell: (e) => <span className="whitespace-nowrap text-[12px] text-slate-600 dark:text-slate-300">{fmtDate(e.createdAt)}</span>
     },
     {
-      key: 'updatedAt',
+      key: 'updatedAt', hideBelow: '2xl',
       header: 'Edited',
       cell: (e) => <span className="whitespace-nowrap text-[12px] text-slate-600 dark:text-slate-300">{fmtDate(e.updatedAt)}</span>
     },
     {
-      key: 'createdBy',
+      key: 'createdBy', hideBelow: '2xl',
       header: 'Created by',
       cell: (e) =>
         e.createdBy ? (
@@ -540,7 +554,7 @@ export default async function AdminExamsPage({
         )
     },
     {
-      key: 'infoUrl',
+      key: 'infoUrl', hideBelow: '2xl',
       header: 'Info',
       cell: (e) =>
         e.infoUrl ? (
@@ -557,7 +571,7 @@ export default async function AdminExamsPage({
         )
     },
     {
-      key: 'actions',
+      key: 'actions', sticky: true,
       header: '',
       align: 'right',
       headerClassName: 'w-36',
@@ -619,11 +633,11 @@ export default async function AdminExamsPage({
   return (
     <div>
       <PageHeader
-        title="View Exams"
-        subtitle={`${totalCount} exam${totalCount === 1 ? '' : 's'}${totalPages > 1 ? ` · page ${page} of ${totalPages}` : ''}`}
+        title="Question Banks"
+        subtitle={`${totalCount} question bank${totalCount === 1 ? '' : 's'} — the questions, domains and timer behind each Practice Exam${totalPages > 1 ? ` · page ${page} of ${totalPages}` : ''}`}
         actions={
           <Link href="/admin-dashboard/exams/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
-            + Create Exam
+            + Create Practice Exam
           </Link>
         }
       />
@@ -681,7 +695,7 @@ export default async function AdminExamsPage({
             ))}
           </select>
         </FilterField>
-        <FilterField label="Search" className="min-w-[14rem] flex-1">
+        <FilterField label="Search" className="w-full min-w-0 flex-1 sm:w-auto sm:min-w-[14rem]">
           <input name="q" defaultValue={q} placeholder="Title, code, slug, vendor…" className="input-sm" />
         </FilterField>
         <FilterField label="View">

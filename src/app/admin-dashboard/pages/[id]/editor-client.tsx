@@ -77,7 +77,7 @@ export default function PageEditorClient({ id, initial }: Props) {
           <input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="mt-1 input" />
 
           <label className="mt-3 block text-sm font-medium">Body</label>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-500">
             Use the toolbar for rich text, or toggle Source to edit HTML. <code>{'{{TEASER_N}}'}</code> is substituted with the live teaser size at render time. Click AI Assist to draft.
           </p>
           <div className="mt-1">

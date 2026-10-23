@@ -2,54 +2,141 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { formatPrice } from '@/lib/utils';
+import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
-import { LifeBuoy } from 'lucide-react';
+import { BookOpenCheck, Building2, ChevronRight, HelpCircle, Info, LifeBuoy, ListChecks, Menu, Ticket, X } from 'lucide-react';
+
+const LINKS = [
+  { href: '/practice-exams', label: 'Practice Exams', icon: BookOpenCheck, desc: `Timed mock exams · ${formatPrice(PRACTICE_PRICE_CENTS)} each` },
+  { href: '/exam-vouchers', label: 'Exam Vouchers', icon: Ticket, desc: 'Official vouchers · Practice Exam free' },
+  { href: '/vendors', label: 'Vendors', icon: Building2, desc: 'Browse by Vendor' },
+  { href: '/#how', label: 'How it works', icon: ListChecks, desc: 'From first question to exam day' },
+  { href: '/#faq', label: 'FAQ', icon: HelpCircle, desc: 'Quick answers' },
+  { href: '/p/support', label: 'Support', icon: LifeBuoy, desc: 'We reply within one business day' }
+];
+
+// Desktop shows the first six; the mobile menu adds About Us.
+const MOBILE_EXTRA = [{ href: '/p/about-us', label: 'About Us', icon: Info, desc: 'Who we are' }];
 
 export function Nav() {
   const pathname = usePathname() || '/';
   const inBackend = pathname.startsWith('/admin-dashboard') || pathname.startsWith('/user-dashboard');
+  const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close on navigation.
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  // Escape closes and returns focus to the toggle; focus the first link on open;
+  // lock page scroll behind the open menu.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    panelRef.current?.querySelector<HTMLAnchorElement>('a')?.focus();
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  const isActive = (href: string) => !href.includes('#') && (pathname === href || pathname.startsWith(`${href}/`));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/70">
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-white/85 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/75">
       <div className="flex h-16 w-full items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold tracking-tight sm:gap-3" aria-label="Tertiary Exams home">
           <Logo />
         </Link>
         {!inBackend && (
-          <nav className="hidden items-center gap-1 md:flex">
-            <Link href="/practice-exams" className="btn-ghost">Practice Exams</Link>
-            <Link href="/exam-vouchers" className="btn-ghost">Exam Vouchers</Link>
-            <Link href="/vendors" className="btn-ghost">Vendors</Link>
-            <Link href="/p/about-us" className="btn-ghost">About Us</Link>
-            <Link href="/#faq" className="btn-ghost">FAQ</Link>
-            <Link href="/p/support" className="btn-ghost">Support</Link>
+          <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex">
+            {LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={isActive(l.href) ? 'page' : undefined}
+                className={`btn-ghost ${isActive(l.href) ? 'bg-brand-50 text-brand-700 dark:bg-slate-800/70 dark:text-white' : ''}`}
+              >
+                {l.label}
+              </Link>
+            ))}
           </nav>
         )}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {!inBackend && (
-            <Link
-              href="/p/support"
-              className="btn-ghost inline-flex h-10 w-10 items-center justify-center p-0 md:hidden"
-              aria-label="Contact support"
-              title="Support"
-            >
-              <LifeBuoy className="h-5 w-5" />
-            </Link>
-          )}
           <UserMenu />
-          <div className="border-l border-line pl-1 dark:border-slate-800 sm:ml-2 sm:pl-3">
+          <div className="border-l border-line pl-1 dark:border-slate-800 sm:ml-1 sm:pl-2">
             <ThemeToggle />
           </div>
+          {!inBackend && (
+            <button
+              ref={toggleRef}
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              className="btn-ghost inline-flex h-11 w-11 items-center justify-center p-0 lg:hidden"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          )}
         </div>
       </div>
-      {!inBackend && (
-        <nav aria-label="Main" className="flex gap-1 overflow-x-auto border-t border-line/60 px-2 py-1 text-sm md:hidden dark:border-slate-800/60">
-          <Link href="/practice-exams" className="btn-ghost shrink-0 px-3 py-1.5">Practice Exams</Link>
-          <Link href="/exam-vouchers" className="btn-ghost shrink-0 px-3 py-1.5">Exam Vouchers</Link>
-          <Link href="/vendors" className="btn-ghost shrink-0 px-3 py-1.5">Vendors</Link>
-          <Link href="/#faq" className="btn-ghost shrink-0 px-3 py-1.5">FAQ</Link>
-        </nav>
+
+      {!inBackend && open && (
+        <>
+          <button
+            type="button"
+            aria-hidden="true"
+            tabIndex={-1}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 top-16 z-40 bg-slate-950/30 backdrop-blur-[2px] lg:hidden"
+          />
+          <div
+            id="mobile-menu"
+            ref={panelRef}
+            className="absolute inset-x-0 top-16 z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-line bg-white shadow-lift lg:hidden dark:border-slate-800 dark:bg-slate-950"
+          >
+            <nav aria-label="Main" className="mx-auto max-w-xl px-4 py-3">
+              <ul className="divide-y divide-line dark:divide-slate-800">
+                {[...LINKS, ...MOBILE_EXTRA].map(({ href, label, icon: Icon, desc }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      onClick={() => setOpen(false)}
+                      aria-current={isActive(href) ? 'page' : undefined}
+                      className="flex min-h-[52px] items-center gap-3 rounded-md px-2 py-2.5 transition hover:bg-brand-50 dark:hover:bg-slate-800/70"
+                    >
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`block font-semibold ${isActive(href) ? 'text-brand-700 dark:text-brand-300' : 'text-ink dark:text-slate-100'}`}>{label}</span>
+                        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{desc}</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3 grid grid-cols-2 gap-2 pb-2">
+                <Link href="/practice-exams" onClick={() => setOpen(false)} className="btn-outline min-h-[44px]">Practice Exams</Link>
+                <Link href="/exam-vouchers" onClick={() => setOpen(false)} className="btn-primary-grad min-h-[44px]">Exam Vouchers</Link>
+              </div>
+            </nav>
+          </div>
+        </>
       )}
     </header>
   );

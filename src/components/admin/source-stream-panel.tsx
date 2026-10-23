@@ -68,7 +68,7 @@ export function SourceStreamPanel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500">
+                  <div className="text-[11px] uppercase tracking-wider text-slate-500">
                     Q{i + 1} · {q.type} · {q.domain} · D{q.difficulty}
                   </div>
                   <div className="mt-1 text-[13px] font-medium">{q.stem}</div>
@@ -80,14 +80,14 @@ export function SourceStreamPanel({
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-1 text-[11px] text-slate-500"><b>Why:</b> {q.explanation}</p>
+                  <p className="mt-1 text-xs text-slate-500"><b>Why:</b> {q.explanation}</p>
                 </div>
                 <div className="flex shrink-0 flex-col gap-1">
                   <button
                     type="button"
                     onClick={() => approve(q.id)}
                     disabled={done || st === 'approving'}
-                    className="inline-flex h-7 items-center gap-1 rounded-md bg-emerald-600 px-2 text-[11px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                    className="inline-flex h-7 items-center gap-1 rounded-md bg-emerald-600 px-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                   >
                     {st === 'approving' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                     {st === 'approved' ? 'Approved' : 'Approve'}
@@ -96,7 +96,7 @@ export function SourceStreamPanel({
                     type="button"
                     onClick={() => discard(q.id)}
                     disabled={done || st === 'discarding'}
-                    className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 px-2 text-[11px] font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                    className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 px-2 text-xs font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-red-950/30 dark:hover:text-red-300"
                   >
                     {st === 'discarding' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                     {st === 'discarded' ? 'Discarded' : 'Discard'}

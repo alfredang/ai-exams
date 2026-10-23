@@ -37,7 +37,7 @@ export function ConfirmButton({
   }
 
   const base =
-    'inline-flex h-6 items-center justify-center rounded px-2 text-[11px] font-medium transition';
+    'inline-flex h-6 items-center justify-center rounded px-2 text-xs font-medium transition';
   const variantCls =
     variant === 'danger'
       ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 disabled:text-slate-400 dark:disabled:text-slate-600'

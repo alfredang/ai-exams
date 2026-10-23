@@ -116,7 +116,7 @@ export function CmdK({ open, onClose }: { open: boolean; onClose: () => void }) 
           {q.trim() === '' && (
             <div className="px-4 py-6 text-center text-[12px] text-slate-500">
               Type to search.
-              <div className="mt-1 text-[11px] text-slate-400">
+              <div className="mt-1 text-xs text-slate-400">
                 Order IDs · emails · exam codes · voucher codes
               </div>
             </div>
@@ -139,7 +139,7 @@ export function CmdK({ open, onClose }: { open: boolean; onClose: () => void }) 
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
-              <span className="mt-0.5 inline-flex h-5 min-w-[3rem] items-center justify-center rounded bg-slate-100 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <span className="mt-0.5 inline-flex h-5 min-w-[3rem] items-center justify-center rounded bg-slate-100 px-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                 {h.kind}
               </span>
               <div className="min-w-0 flex-1">
@@ -147,13 +147,13 @@ export function CmdK({ open, onClose }: { open: boolean; onClose: () => void }) 
                   {h.title}
                 </div>
                 {h.subtitle && (
-                  <div className="truncate text-[11px] text-slate-500">{h.subtitle}</div>
+                  <div className="truncate text-xs text-slate-500">{h.subtitle}</div>
                 )}
               </div>
             </button>
           ))}
         </div>
-        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">
+        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">
           <span>
             <kbd className="mr-1 rounded border border-slate-300 bg-white px-1 font-mono dark:border-slate-600 dark:bg-slate-900">↑↓</kbd>
             navigate

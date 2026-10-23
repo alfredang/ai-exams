@@ -87,8 +87,8 @@ export default async function AdminCouponsPage({ searchParams }: { searchParams:
       cell: (c) => (
         <div>
           <Badge variant="muted">{c.scope}</Badge>
-          {c.scopeExam && <span className="ml-1 text-[11px] text-slate-500">{c.scopeExam.code}</span>}
-          {c.scopeVendor && <span className="ml-1 text-[11px] text-slate-500">{c.scopeVendor.name}</span>}
+          {c.scopeExam && <span className="ml-1 text-xs text-slate-500">{c.scopeExam.code}</span>}
+          {c.scopeVendor && <span className="ml-1 text-xs text-slate-500">{c.scopeVendor.name}</span>}
         </div>
       )
     },
@@ -96,7 +96,7 @@ export default async function AdminCouponsPage({ searchParams }: { searchParams:
       key: 'window',
       header: 'Window',
       cell: (c) => (
-        <span className="text-[11px] text-slate-500">
+        <span className="text-xs text-slate-500">
           {c.startsAt ? c.startsAt.toISOString().slice(0, 10) : '—'} → {c.endsAt ? c.endsAt.toISOString().slice(0, 10) : '∞'}
         </span>
       )

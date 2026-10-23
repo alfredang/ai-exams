@@ -35,12 +35,12 @@ export function FilterBar({
       </div>
       {activeFilters && activeFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-slate-500">Active</span>
+          <span className="text-[11px] uppercase tracking-wider text-slate-500">Active</span>
           {activeFilters.map((f) => (
             <Link
               key={f.key}
               href={f.clearHref}
-              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               title={`Clear ${f.key}`}
             >
               <span className="font-medium">{f.key}:</span>
@@ -66,7 +66,7 @@ export function FilterField({
   return (
     <label className={`flex flex-col gap-0.5 ${className}`}>
       {label && (
-        <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">{label}</span>
       )}
       {children}
     </label>

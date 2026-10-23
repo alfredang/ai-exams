@@ -65,16 +65,16 @@ export default async function AdminPagesPage() {
                 </td>
                 <td className="px-4 py-3 text-xs">
                   {p.showInFooter ? (
-                    <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                       {p.footerGroup || 'shown'}
                     </span>
                   ) : <span className="text-slate-400">—</span>}
                 </td>
                 <td className="px-4 py-3 text-xs">
                   {p.published ? (
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">PUBLISHED</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">PUBLISHED</span>
                   ) : (
-                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">DRAFT</span>
+                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">DRAFT</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-500">{new Date(p.updatedAt).toLocaleString()}</td>

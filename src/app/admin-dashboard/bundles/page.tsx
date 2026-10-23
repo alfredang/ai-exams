@@ -3,16 +3,16 @@ import { db } from '@/lib/db';
 import type { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
-import { Eye, Pencil, Copy, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { FilterBar, FilterField } from '@/components/admin/filter-bar';
 import { DataTable, type Column } from '@/components/admin/data-table';
 import { Pager } from '@/components/admin/pager';
-import { StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
 import { SelectAllCheckbox, SelectedCounter } from '@/components/admin/bulk-select';
 import { buildQS } from '@/components/admin/qs';
-import { formatPrice } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
+import { PRACTICE_PRICE_CENTS, practiceHref, voucherOnSale } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +34,7 @@ async function loadBundles(where: Prisma.BundleWhereInput, skip: number, take: n
           exam: {
             select: {
               id: true, code: true, questionCount: true, durationMinutes: true, level: true, passingScore: true,
-              vendor: { select: { name: true } },
+              vendor: { select: { name: true, slug: true } },
               _count: { select: { questions: { where: { status: 'PUBLISHED' } } } }
             }
           }
@@ -45,35 +45,6 @@ async function loadBundles(where: Prisma.BundleWhereInput, skip: number, take: n
     skip,
     take
   });
-}
-
-async function duplicateBundle(formData: FormData) {
-  'use server';
-  const session = await auth();
-  const user = session?.user as any;
-  if (user?.role !== 'ADMIN') return;
-  const id = String(formData.get('id'));
-  const orig = await db.bundle.findUnique({ where: { id }, include: { items: true } });
-  if (!orig) return;
-  const suffix = `-copy-${Date.now().toString(36).slice(-4)}`;
-  const cloned = await db.bundle.create({
-    data: {
-      slug: `${orig.slug}${suffix}`,
-      title: `${orig.title} (copy)`,
-      description: orig.description,
-      price: orig.price,
-      priceVoucher: orig.priceVoucher,
-      published: false,
-      createdById: user.id,
-      items: {
-        create: orig.items.map((i) => ({ examId: i.examId, tier: i.tier, position: i.position }))
-      }
-    }
-  });
-  await db.adminLog.create({
-    data: { adminId: user.id, action: 'bundle.duplicate', targetType: 'Bundle', targetId: id, metadata: { newBundleId: cloned.id } }
-  });
-  revalidatePath('/admin-dashboard/bundles');
 }
 
 async function bulkBundleAction(formData: FormData) {
@@ -242,13 +213,13 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
       )
     },
     {
-      key: 'vendor',
+      key: 'vendor', hideBelow: '2xl',
       header: 'Vendor',
       cell: (b) => <span className="text-slate-700 dark:text-slate-200">{b.items[0]?.exam.vendor.name ?? '—'}</span>
     },
     {
       key: 'title',
-      header: 'Product',
+      header: 'Practice exam',
       cell: (b) => (
         <Link
           href={`/admin-dashboard/bundles/${b.id}`}
@@ -261,27 +232,27 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
     },
     {
       key: 'code',
-      header: <span className="block w-20">Code</span>,
+      header: 'Code',
       cell: (b) => {
         const code = bundleBaseCode(b.items[0]?.exam.code);
         return code ? (
-          <span className="block w-20 truncate font-mono text-[11px]" title={code}>{code}</span>
+          <span className="block max-w-[9rem] break-all font-mono text-xs" title={code}>{code}</span>
         ) : (
           <span className="text-slate-400">—</span>
         );
       }
     },
     {
-      // One practice exam per product; its question pool is managed on the exam page.
-      key: 'practiceExam',
-      header: 'Practice exam',
+      // The question bank behind this practice exam (questions, domains, timer).
+      key: 'practiceExam', hideBelow: '2xl',
+      header: 'Question bank',
       cell: (b) => {
         const pe = b.items.find((it) => it.tier === 'PRACTICE')?.exam;
         return pe ? (
           <Link
             href={`/admin-dashboard/exams/${pe.id}#questions`}
-            className="inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-blue-700 hover:underline dark:bg-slate-800 dark:text-blue-300"
-            title="Open the question pool"
+            className="inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-blue-700 hover:underline dark:bg-slate-800 dark:text-blue-300"
+            title="Open the question bank"
           >
             {pe.code}
           </Link>
@@ -290,11 +261,16 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         );
       }
     },
-    { key: 'level', header: 'Level', cell: (b) => b.items[0]?.exam.level ?? '—' },
+    { key: 'level', hideBelow: '2xl', header: 'Level', cell: (b) => b.items[0]?.exam.level ?? '—' },
     {
       key: 'status',
       header: 'Status',
-      cell: (b) => <StatusBadge status={b.published ? 'PUBLISHED' : 'DRAFT'} />
+      cell: (b) => (
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[12px]">
+          <span className={`h-2 w-2 rounded-full ${b.published ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+          {b.published ? 'On sale' : 'Off sale'}
+        </span>
+      )
     },
     {
       key: 'pool',
@@ -302,44 +278,57 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
       align: 'right',
       cell: (b) => {
         const pe = b.items.find((it) => it.tier === 'PRACTICE')?.exam;
-        return pe ? <span className="font-mono text-[11px]" title="Published questions in the pool">{pe._count.questions}</span> : '—';
+        return pe ? <span className="font-mono text-xs" title="Published questions in the pool">{pe._count.questions}</span> : '—';
       }
     },
     {
-      key: 'qPerExam',
+      key: 'qPerExam', hideBelow: '2xl',
       header: 'Q / attempt',
       align: 'right',
       cell: (b) => b.items.find((it) => it.tier === 'PRACTICE')?.exam.questionCount ?? '—'
     },
     {
-      key: 'duration',
+      key: 'duration', hideBelow: '2xl',
       header: 'Duration',
       align: 'right',
       cell: (b) => (b.items[0] ? `${b.items[0].exam.durationMinutes} min` : '—')
     },
     {
       key: 'price',
-      header: 'Practice / Voucher',
+      header: 'Price',
       align: 'right',
+      cell: (b) => <span className="whitespace-nowrap font-semibold">{formatMoney(b.price)}</span>
+    },
+    {
+      // The linked Exam Voucher product (same row — linked automatically).
+      key: 'voucher',
+      header: 'Exam Voucher',
       cell: (b) => (
-        <span className="whitespace-nowrap font-semibold">
-          {formatPrice(b.price)}
-          <span className="font-normal text-slate-500"> / {b.priceVoucher != null ? formatPrice(b.priceVoucher) : '—'}</span>
-        </span>
+        <Link href={`/admin-dashboard/bundles/${b.id}/voucher`} className="inline-flex items-center gap-1.5 whitespace-nowrap text-[12px] hover:underline">
+          {b.priceVoucher == null ? (
+            <span className="text-blue-600 dark:text-blue-400">+ Add voucher</span>
+          ) : (
+            <>
+              <span className={`h-2 w-2 rounded-full ${voucherOnSale(b) ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              <span className="font-medium text-slate-800 dark:text-slate-100">{formatMoney(b.priceVoucher)}</span>
+              <span className="text-slate-500">{voucherOnSale(b) ? 'On sale' : 'Off sale'}</span>
+            </>
+          )}
+        </Link>
       )
     },
     {
-      key: 'createdAt',
+      key: 'createdAt', hideBelow: '2xl',
       header: 'Created',
       cell: (b) => <span className="whitespace-nowrap text-[12px] text-slate-600 dark:text-slate-300">{fmtDate(b.createdAt)}</span>
     },
     {
-      key: 'updatedAt',
+      key: 'updatedAt', hideBelow: '2xl',
       header: 'Edited',
       cell: (b) => <span className="whitespace-nowrap text-[12px] text-slate-600 dark:text-slate-300">{fmtDate(b.updatedAt)}</span>
     },
     {
-      key: 'createdBy',
+      key: 'createdBy', hideBelow: '2xl',
       header: 'Created by',
       cell: (b) =>
         b.createdBy ? (
@@ -349,31 +338,25 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         )
     },
     {
-      key: 'actions',
+      key: 'actions', sticky: true,
       header: '',
       align: 'right',
       headerClassName: 'w-36',
       cell: (b) => (
         <div className="flex items-center justify-end gap-0.5">
-          <Link href={`/bundles/${b.slug}`} target="_blank" rel="noreferrer" title="Preview as customer" className="icon-btn">
+          <Link href={b.items[0] ? practiceHref(b.items[0].exam.vendor.slug, b) : '/practice-exams'} target="_blank" rel="noreferrer" title="View on site" className="icon-btn">
             <Eye className="h-3.5 w-3.5" />
           </Link>
-          <Link href={`/admin-dashboard/bundles/${b.id}`} title="Edit (search & add exams)" className="icon-btn">
+          <Link href={`/admin-dashboard/bundles/${b.id}`} title="Edit practice exam" className="icon-btn">
             <Pencil className="h-3.5 w-3.5" />
           </Link>
-          <form action={duplicateBundle} className="inline-flex">
-            <input type="hidden" name="id" value={b.id} />
-            <button title="Duplicate product (copies as DRAFT)" className="icon-btn">
-              <Copy className="h-3.5 w-3.5" />
-            </button>
-          </form>
           <form action={deleteBundleFromList} className="inline-flex">
             <input type="hidden" name="id" value={b.id} />
             <ConfirmButton
               message={
                 b._count.orders > 0
-                  ? `Disable bundle "${b.title}"? It has ${b._count.orders} order(s) so it can't be hard-deleted.`
-                  : `Hard-delete bundle "${b.title}"? Permanent. Allowed only when there are no orders.`
+                  ? `Take "${b.title}" off sale? It has ${b._count.orders} order(s) so it can't be deleted.`
+                  : `Delete the practice exam product "${b.title}" (and its voucher)? Its question bank is kept. Allowed only when there are no orders.`
               }
               title={b._count.orders > 0 ? 'Disable (has orders)' : 'Hard delete'}
               className="h-6 w-6 p-0"
@@ -389,12 +372,17 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
   return (
     <div>
       <PageHeader
-        title="Products & Pricing"
-        subtitle={`${total} product${total === 1 ? '' : 's'} — one practice exam each, sold as Practice Exam or Exam Voucher (practice exam included)${pages > 1 ? ` · page ${page} of ${pages}` : ''}`}
+        title="Practice Exams"
+        subtitle={`${total} practice exam${total === 1 ? '' : 's'} — what customers buy to practise, always ${formatMoney(PRACTICE_PRICE_CENTS)}. Each one's Exam Voucher is linked automatically.${pages > 1 ? ` · page ${page} of ${pages}` : ''}`}
         actions={
-          <Link href="/admin-dashboard/bundles/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
-            + Create Product
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/admin-dashboard/bundles/vouchers" className="btn-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+              Exam Vouchers →
+            </Link>
+            <Link href="/admin-dashboard/exams/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
+              + Create Practice Exam
+            </Link>
+          </div>
         }
       />
 
@@ -404,8 +392,8 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Tracker:</span>
         {(
           [
-            { key: 'active', label: 'Published', count: trkPublished, href: trkHref('active'), on: view === 'active', dot: 'bg-emerald-500' },
-            { key: 'inactive', label: 'Draft', count: trkDraft, href: trkHref('inactive'), on: view === 'inactive', dot: 'bg-rose-500' }
+            { key: 'active', label: 'On sale', count: trkPublished, href: trkHref('active'), on: view === 'active', dot: 'bg-emerald-500' },
+            { key: 'inactive', label: 'Off sale', count: trkDraft, href: trkHref('inactive'), on: view === 'inactive', dot: 'bg-rose-500' }
           ] as const
         ).map((c) => (
           <Link
@@ -446,8 +434,8 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         </FilterField>
         <FilterField label="View">
           <select name="view" defaultValue={view} className="input-sm">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">On sale</option>
+            <option value="inactive">Off sale</option>
             <option value="all">All</option>
           </select>
         </FilterField>
@@ -486,7 +474,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         </button>
       </form>
 
-      <DataTable columns={columns} rows={bundles} rowKey={(b) => b.id} empty="No products yet. Click + Create Product to start one." />
+      <DataTable columns={columns} rows={bundles} rowKey={(b) => b.id} empty="No practice exams yet. Click + Create Practice Exam to start one." />
 
       <Pager page={page} pages={pages} buildHref={buildHref} />
     </div>

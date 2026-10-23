@@ -98,11 +98,11 @@ export default function BlueprintAuthorClient({
 
       <form onSubmit={submit} className="card grid gap-3 p-4 md:grid-cols-3">
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Total questions</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Total questions</span>
           <input type="number" min={10} max={120} value={totalCount} onChange={(e) => setTotalCount(Number(e.target.value) || 60)} className="input-sm" />
         </label>
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Type</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Type</span>
           <select value={type} onChange={(e) => setType(e.target.value as any)} className="input-sm">
             <option value="SINGLE">Single answer</option>
             <option value="MULTI">Multiple answers</option>
@@ -110,7 +110,7 @@ export default function BlueprintAuthorClient({
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Difficulty (1-5)</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Difficulty (1-5)</span>
           <input type="number" min={1} max={5} value={difficulty} onChange={(e) => setDifficulty(Math.max(1, Math.min(5, Number(e.target.value) || 3)) as any)} className="input-sm" />
         </label>
         <label className="md:col-span-3 inline-flex items-center gap-2 text-[12px] text-slate-700 dark:text-slate-200">
@@ -122,14 +122,14 @@ export default function BlueprintAuthorClient({
             className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {busy ? 'Generating…' : `Generate ${totalCount} questions across ${domains.length} domains`}
           </button>
-          {phase && <span className="ml-3 text-[11px] text-slate-500">{phase}</span>}
+          {phase && <span className="ml-3 text-xs text-slate-500">{phase}</span>}
         </div>
       </form>
 
       <div className="card p-3">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Domain quotas</h3>
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Domain quotas</h3>
         <table className="mt-2 w-full text-[12px]">
-          <thead><tr className="text-left text-[10px] uppercase tracking-wider text-slate-500"><th className="py-1">Domain</th><th className="py-1 text-right">Weight</th><th className="py-1 text-right">Target</th><th className="py-1 text-right">Generated</th></tr></thead>
+          <thead><tr className="text-left text-[11px] uppercase tracking-wider text-slate-500"><th className="py-1">Domain</th><th className="py-1 text-right">Weight</th><th className="py-1 text-right">Target</th><th className="py-1 text-right">Generated</th></tr></thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
             {quotas.map((q) => (
               <tr key={q.name}>

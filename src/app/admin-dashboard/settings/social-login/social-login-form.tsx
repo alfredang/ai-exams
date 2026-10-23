@@ -135,15 +135,15 @@ function ProviderCard({
           href={helpUrl}
           target="_blank"
           rel="noreferrer"
-          className="text-[11px] text-blue-600 hover:underline dark:text-blue-400"
+          className="text-xs text-blue-600 hover:underline dark:text-blue-400"
         >
           Open {title} developer console →
         </a>
       </div>
-      <p className="mt-1 text-[11px] text-slate-500">
+      <p className="mt-1 text-xs text-slate-500">
         Register this exact redirect URI in the {title} console:
       </p>
-      <code className="mt-1 block break-all rounded bg-slate-50 px-2 py-1 text-[11px] font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+      <code className="mt-1 block break-all rounded bg-slate-50 px-2 py-1 text-xs font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-200">
         {callbackUri}
       </code>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -167,7 +167,7 @@ function ProviderCard({
               <div className="mb-1 flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
                 <span>{f.label}</span>
                 {hasStored && (
-                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                     SET
                   </span>
                 )}

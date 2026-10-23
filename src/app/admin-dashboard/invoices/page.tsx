@@ -8,7 +8,7 @@ import { DataTable, type Column } from '@/components/admin/data-table';
 import { Pager } from '@/components/admin/pager';
 import { StatusBadge } from '@/components/admin/badge';
 import { buildQS } from '@/components/admin/qs';
-import { formatPrice } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -131,9 +131,9 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
       align: 'right',
       cell: (i) => (
         <div className="text-right">
-          <div className="font-semibold text-slate-900 dark:text-slate-100">{formatPrice(i.total, i.currency)}</div>
+          <div className="font-semibold text-slate-900 dark:text-slate-100">{formatMoney(i.total, i.currency)}</div>
           {i.totalSgd != null && i.currency.toUpperCase() !== 'SGD' && (
-            <div className="text-[10px] text-slate-500">≈ {formatPrice(i.totalSgd, 'SGD')}</div>
+            <div className="text-[11px] text-slate-500">≈ {formatMoney(i.totalSgd, 'SGD')}</div>
           )}
         </div>
       )
@@ -146,7 +146,7 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
         i.taxAmount === 0 ? (
           <span className="text-slate-400">—</span>
         ) : (
-          <span className="text-[12px]">{formatPrice(i.taxAmount, i.currency)}</span>
+          <span className="text-[12px]">{formatMoney(i.taxAmount, i.currency)}</span>
         )
     },
     {
@@ -177,8 +177,8 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
       <PageHeader
         title="Invoices"
         subtitle={`${total} invoice${total === 1 ? '' : 's'}${pages > 1 ? ` · page ${page} of ${pages}` : ''}${
-          agg._sum.totalSgd ? ` · SGD total ${formatPrice(agg._sum.totalSgd, 'SGD')}` : ''
-        }${agg._sum.taxAmount ? ` · tax ${formatPrice(agg._sum.taxAmount, 'SGD')}` : ''}`}
+          agg._sum.totalSgd ? ` · SGD total ${formatMoney(agg._sum.totalSgd, 'SGD')}` : ''
+        }${agg._sum.taxAmount ? ` · tax ${formatMoney(agg._sum.taxAmount, 'SGD')}` : ''}`}
       />
 
       <FilterBar resetHref={activeFilters.length > 0 ? '/admin-dashboard/invoices' : undefined} activeFilters={activeFilters}>

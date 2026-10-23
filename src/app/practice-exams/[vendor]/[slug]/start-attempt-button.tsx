@@ -7,9 +7,11 @@ export function StartButton({ examId, mode }: { examId: string; mode: 'PRACTICE'
       const { auth } = await import('@/lib/auth');
       const { redirect } = await import('next/navigation');
       const { createAttempt } = await import('@/lib/start-attempt');
+      const { requireFullNameToStart } = await import('@/lib/full-name');
       const s = await auth();
       const uid = (s?.user as any)?.id;
       if (!uid) return;
+      await requireFullNameToStart(s, examId, mode);
       const id = await createAttempt(uid, examId, mode);
       if (id) redirect(`/exam/${id}`);
     }}>

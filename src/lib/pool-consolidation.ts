@@ -11,12 +11,15 @@
  *   - legacy domain labels are relabelled to the blueprint's names;
  *   - the official blueprint weights are applied when they are newer than
  *     the exam's `domainsVerifiedAt` (so an admin edit survives until the
- *     next official re-check).
+ *     next official re-check);
+ *   - empty SEO meta (title / description / keywords) is filled from the
+ *     product (`buildExamSeo()`); admin-entered meta is never overwritten.
  *
  * Imported by prisma/seed.ts — keep imports relative and edge-free.
  */
 import type { PrismaClient } from '@prisma/client';
 import { EXAM_BLUEPRINTS } from './exam-blueprints';
+import { buildExamSeo } from './exam-seo';
 import { domainKey, matchDomain, parseDomains } from './question-pool';
 
 export type PoolPlan = {
@@ -34,9 +37,9 @@ const questionKey = (stem: string, options: unknown) =>
   [norm(stem), ...(Array.isArray(options) ? options.map((o: any) => norm(String(o?.text ?? ''))).sort() : [])].join('|');
 
 export async function consolidateExamPools(db: PrismaClient, plans: PoolPlan[]) {
-  const totals = { variants: 0, moved: 0, archived: 0, relabelled: 0, blueprints: 0 };
+  const totals = { variants: 0, moved: 0, archived: 0, relabelled: 0, blueprints: 0, seo: 0 };
   for (const plan of plans) {
-    const pool = await db.exam.findUnique({ where: { slug: plan.poolExamSlug } });
+    const pool = await db.exam.findUnique({ where: { slug: plan.poolExamSlug }, include: { vendor: { select: { name: true } } } });
     if (!pool) continue;
     if (pool.poolExamId) await db.exam.update({ where: { id: pool.id }, data: { poolExamId: null } });
 
@@ -121,6 +124,27 @@ export async function consolidateExamPools(db: PrismaClient, plans: PoolPlan[]) 
     if (pool.title !== plan.bundleTitle || pool.label !== 'Practice Exam' || pool.code !== code || pool.description !== plan.bundleDescription) {
       await db.exam.update({ where: { id: pool.id }, data: { title: plan.bundleTitle, label: 'Practice Exam', code, description: plan.bundleDescription } });
     }
+
+    // SEO meta for the product page — fill only what is still empty.
+    if (!pool.metaTitle || !pool.metaDescription || !pool.metaKeywords) {
+      const product = await db.bundle.findUnique({ where: { slug: plan.bundleSlug }, select: { priceVoucher: true } });
+      const seo = buildExamSeo({
+        title: plan.bundleTitle,
+        code,
+        vendor: pool.vendor.name,
+        domainCount: domains.length,
+        hasVoucher: product?.priceVoucher != null
+      });
+      await db.exam.update({
+        where: { id: pool.id },
+        data: {
+          metaTitle: pool.metaTitle || seo.metaTitle,
+          metaDescription: pool.metaDescription || seo.metaDescription,
+          metaKeywords: pool.metaKeywords || seo.metaKeywords
+        }
+      });
+      totals.seo++;
+    }
   }
   return totals;
 }
@@ -157,5 +181,8 @@ export async function refoldProductPools(db: PrismaClient) {
       variantSlugs: [...new Set([...practice.slice(1).map((i) => i.exam.slug), b.slug])].filter((s) => s !== pool.exam.slug)
     });
   }
-  return consolidateExamPools(db, plans);
+  const result = await consolidateExamPools(db, plans);
+  const { normalizeProducts } = await import('./products');
+  await normalizeProducts(db);
+  return result;
 }

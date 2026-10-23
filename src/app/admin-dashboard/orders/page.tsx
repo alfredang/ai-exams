@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { formatPrice, tierLabel, genVoucherCode } from '@/lib/utils';
+import { formatMoney, tierLabel, genVoucherCode } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
 import { fulfillOrder } from '@/lib/fulfill';
 import { auth } from '@/lib/auth';
@@ -277,11 +277,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       header: 'Exam Purchased',
       cell: (o) => {
         const productLabel = o.bundle ? `${o.bundle.title} (bundle)` : o.exam?.title ?? '(unknown)';
-        const tierLabelText = o.bundle ? 'Bundle' : (o.tier ? tierLabel(o.tier) : '—');
+        const tierLabelText = o.tier ? tierLabel(o.tier) : o.bundle ? 'Practice Exam' : '—';
         return (
           <div>
             <div className="font-medium text-slate-900 dark:text-slate-100">{productLabel}</div>
-            <div className="text-[11px] text-slate-500">{tierLabelText}</div>
+            <div className="text-xs text-slate-500">{tierLabelText}</div>
           </div>
         );
       }
@@ -292,7 +292,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       align: 'right',
       cell: (o) => (
         <span className="font-semibold text-slate-900 dark:text-slate-100">
-          {formatPrice(o.amount, o.currency)}
+          {formatMoney(o.amount, o.currency)}
         </span>
       )
     },
@@ -302,7 +302,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       cell: (o) => (
         <div>
           <StatusBadge status={o.status} />
-          <div className="mt-0.5 text-[10px] text-slate-500">{o.provider}</div>
+          <div className="mt-0.5 text-[11px] text-slate-500">{o.provider}</div>
         </div>
       )
     },
@@ -321,7 +321,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         if (!isVoucherTier || !o.userId || !o.examId) return <span className="text-slate-400">—</span>;
         if (existing) {
           return (
-            <span className="rounded bg-violet-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-violet-800 dark:bg-violet-950/40 dark:text-violet-200">
+            <span className="rounded bg-violet-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-violet-800 dark:bg-violet-950/40 dark:text-violet-200">
               {existing}
             </span>
           );
@@ -333,7 +333,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             <button
               type="submit"
               title="Generate and assign a voucher code"
-              className="inline-flex h-6 items-center gap-1 rounded bg-violet-600 px-2 text-[11px] font-medium text-white hover:bg-violet-700"
+              className="inline-flex h-6 items-center gap-1 rounded bg-violet-600 px-2 text-xs font-medium text-white hover:bg-violet-700"
             >
               <Ticket className="h-3 w-3" />
               Assign
@@ -367,11 +367,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                       type="text"
                       name="reference"
                       placeholder="Bank ref"
-                      className="h-7 w-24 rounded border border-slate-200 px-1 text-[11px] dark:border-slate-700 dark:bg-slate-900"
+                      className="h-7 w-24 rounded border border-slate-200 px-1 text-xs dark:border-slate-700 dark:bg-slate-900"
                     />
                     <button
                       type="submit"
-                      className="inline-flex h-7 items-center gap-1 rounded bg-emerald-600 px-2 text-[11px] font-medium text-white hover:bg-emerald-700"
+                      className="inline-flex h-7 items-center gap-1 rounded bg-emerald-600 px-2 text-xs font-medium text-white hover:bg-emerald-700"
                     >
                       <CheckCircle2 className="h-3 w-3" />
                       Paid

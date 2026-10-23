@@ -86,7 +86,7 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
     {
       key: 'sent',
       header: 'Sent',
-      cell: (r) => <span className="whitespace-nowrap text-[11px] text-slate-700 dark:text-slate-200">{r.sentAt.toLocaleString()}</span>
+      cell: (r) => <span className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-200">{r.sentAt.toLocaleString()}</span>
     },
     {
       key: 'to',
@@ -100,14 +100,14 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
           ) : (
             <span>{r.to}</span>
           )}
-          {r.cc && <div className="text-[10px] text-slate-500">cc: {r.cc}</div>}
+          {r.cc && <div className="text-[11px] text-slate-500">cc: {r.cc}</div>}
         </div>
       )
     },
     {
       key: 'template',
       header: 'Template',
-      cell: (r) => <span className="font-mono text-[11px]">{r.template ?? '—'}</span>
+      cell: (r) => <span className="font-mono text-xs">{r.template ?? '—'}</span>
     },
     {
       key: 'subject',
@@ -117,7 +117,7 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
     {
       key: 'transport',
       header: 'Via',
-      cell: (r) => <span className="text-[10px] text-slate-500">{r.transport}</span>
+      cell: (r) => <span className="text-[11px] text-slate-500">{r.transport}</span>
     },
     {
       key: 'status',
@@ -125,7 +125,7 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
       cell: (r) => (
         <div>
           <StatusBadge status={r.status} />
-          {r.error && <div className="mt-0.5 truncate text-[10px] text-red-600" title={r.error}>{r.error.slice(0, 40)}</div>}
+          {r.error && <div className="mt-0.5 truncate text-[11px] text-red-600" title={r.error}>{r.error.slice(0, 40)}</div>}
         </div>
       )
     },
@@ -137,8 +137,8 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
       cell: (r) =>
         r.payloadVars ? (
           <details className="text-right">
-            <summary className="cursor-pointer text-[11px] text-blue-600 hover:underline dark:text-blue-400">View</summary>
-            <pre className="mt-1 max-h-72 overflow-auto rounded bg-slate-100 p-2 text-left text-[10px] dark:bg-slate-800">
+            <summary className="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">View</summary>
+            <pre className="mt-1 max-h-72 overflow-auto rounded bg-slate-100 p-2 text-left text-[11px] dark:bg-slate-800">
 {JSON.stringify(r.payloadVars, null, 2)}
             </pre>
           </details>

@@ -57,7 +57,7 @@ export default async function NotificationsPage() {
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] font-medium text-slate-900 dark:text-slate-100">{n.title}</div>
                 {n.body && <div className="mt-0.5 text-[12px] text-slate-500">{n.body}</div>}
-                <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+                <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
                   <code>{n.kind}</code>
                   <span>·</span>
                   <span>{n.createdAt.toLocaleString()}</span>
@@ -67,7 +67,7 @@ export default async function NotificationsPage() {
                 </div>
               </div>
               {!n.readAt && (
-                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
                   NEW
                 </span>
               )}

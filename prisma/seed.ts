@@ -1,6 +1,7 @@
 import { PrismaClient, QStatus, Role, Tier } from '@prisma/client';
 import argon2 from 'argon2';
 import { consolidateExamPools, type PoolPlan } from '../src/lib/pool-consolidation';
+import { normalizeProducts } from '../src/lib/products';
 
 const db = new PrismaClient();
 
@@ -2153,10 +2154,11 @@ async function main() {
   // any historical Order.bundleId references).
   const examMap = Object.fromEntries((await db.exam.findMany()).map(e => [e.slug, e.id]));
   const seededSlugs = new Set(BUNDLES.map(b => b.slug));
-  // Unpublish bundles no longer in the seed list.
+  // Unpublish seed-made bundles no longer in the seed list. Products an
+  // admin created in the dashboard (createdById set) are theirs to manage.
   await db.bundle.updateMany({
-    where: { slug: { notIn: [...seededSlugs] }, published: true },
-    data: { published: false }
+    where: { slug: { notIn: [...seededSlugs] }, createdById: null, OR: [{ published: true }, { voucherPublished: true }] },
+    data: { published: false, voucherPublished: false }
   });
   // Auto-create variant exams (e.g. aws-aif-c01-p1, comptia-cloud-plus-practice-3)
   // when a Bundle references a slug that doesn't yet exist. Two paths:
@@ -2313,7 +2315,16 @@ async function main() {
     }
   }
 
+  // Copy and voucher price an admin has edited in the dashboard win over
+  // the seed; so does a question bank the admin re-linked.
+  const editedBy = async (action: string) => new Set((await db.adminLog.findMany({
+    where: { targetType: 'Bundle', action }, select: { targetId: true }, distinct: ['targetId']
+  })).map((l) => l.targetId));
+  const [copyEdited, voucherEdited, bankEdited] = await Promise.all([
+    editedBy('bundle.update'), editedBy('voucher.update'), editedBy('bundle.question_bank')
+  ]);
   for (const b of BUNDLES) {
+    const existingId = (await db.bundle.findUnique({ where: { slug: b.slug }, select: { id: true } }))?.id;
     const bundle = await db.bundle.upsert({
       where: { slug: b.slug },
       // Sync catalog-content fields only. `published` is DELIBERATELY
@@ -2325,13 +2336,12 @@ async function main() {
       // only `create` sets the initial value for brand-new bundles.
       // (Mirrors the same rule applied to exam.upsert above.)
       update: {
-        title: b.title,
-        description: b.description,
-        price: b.price,
-        priceVoucher: b.priceVoucher ?? null
+        ...(existingId && copyEdited.has(existingId) ? {} : { title: b.title, description: b.description }),
+        ...(existingId && voucherEdited.has(existingId) ? {} : { priceVoucher: b.priceVoucher ?? null })
       },
       create: { slug: b.slug, title: b.title, description: b.description, price: b.price, priceVoucher: b.priceVoucher ?? null, published: true }
     });
+    if (bankEdited.has(bundle.id)) continue;
     await db.bundleItem.deleteMany({ where: { bundleId: bundle.id } });
     for (const item of b.items) {
       const examId = examMap[item.examSlug];
@@ -2348,7 +2358,10 @@ async function main() {
   // Fold legacy "Practice Exam N" variants into each product's single pool
   // exam and apply the official domain weights. Idempotent.
   const pools = await consolidateExamPools(db, POOL_PLANS);
-  console.log(`✓ Question pools: ${pools.variants} variant(s) folded, ${pools.moved} question(s) moved, ${pools.archived} duplicate(s) archived, ${pools.relabelled} relabelled, ${pools.blueprints} blueprint(s) applied`);
+  // Practice Exam = USD 20, every product has a voucher slug, and every
+  // voucher is linked to its practice exam.
+  await normalizeProducts(db);
+  console.log(`✓ Question pools: ${pools.variants} variant(s) folded, ${pools.moved} question(s) moved, ${pools.archived} duplicate(s) archived, ${pools.relabelled} relabelled, ${pools.blueprints} blueprint(s) applied, ${pools.seo} SEO meta filled`);
 
   // Ensure every visible exam has up to 10 isTeaser questions so the
   // "Try 10 questions for free" teaser link always lands on a real

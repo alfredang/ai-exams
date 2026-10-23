@@ -42,11 +42,11 @@ export function AttemptRow({ a, showExam = true }: { a: HistoryAttempt; showExam
           </span>
         ) : a.passed ? (
           <span className="inline-flex rounded-full border border-emerald-700 bg-emerald-50 px-2.5 py-0.5 font-mono text-xs text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300">
-            ✓ Above pass
+            ✓ Pass
           </span>
         ) : (
           <span className="inline-flex rounded-full border border-red-600 bg-red-50 px-2.5 py-0.5 font-mono text-xs text-red-700 dark:border-red-500 dark:bg-red-950/50 dark:text-red-300">
-            ✗ Below pass
+            ✗ Fail
           </span>
         )}
       </div>

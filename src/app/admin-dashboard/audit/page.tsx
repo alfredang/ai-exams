@@ -105,7 +105,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Sea
       key: 'when',
       header: 'When',
       cell: (l) => (
-        <span className="whitespace-nowrap font-mono text-[11px] text-slate-700 dark:text-slate-200">
+        <span className="whitespace-nowrap font-mono text-xs text-slate-700 dark:text-slate-200">
           {l.createdAt.toLocaleString()}
         </span>
       )
@@ -118,7 +118,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Sea
           <div className="text-[12px] text-slate-900 dark:text-slate-100">
             {l.admin.name || l.admin.email}
           </div>
-          {l.admin.name && <div className="text-[10px] text-slate-500">{l.admin.email}</div>}
+          {l.admin.name && <div className="text-[11px] text-slate-500">{l.admin.email}</div>}
         </div>
       )
     },
@@ -136,7 +136,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Sea
           {l.targetId && (
             <Link
               href={targetHref(l.targetType, l.targetId)}
-              className="font-mono text-[10px] text-blue-600 hover:underline dark:text-blue-400"
+              className="font-mono text-[11px] text-blue-600 hover:underline dark:text-blue-400"
               title={l.targetId}
             >
               {l.targetId.slice(0, 14)}
@@ -221,7 +221,7 @@ function MetadataCell({ value }: { value: unknown }) {
   return (
     <code
       title={json}
-      className="block max-w-[24rem] truncate font-mono text-[11px] text-slate-600 dark:text-slate-400"
+      className="block max-w-[24rem] truncate font-mono text-xs text-slate-600 dark:text-slate-400"
     >
       {short}
     </code>

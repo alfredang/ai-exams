@@ -17,7 +17,7 @@ export function Pager({
     { p, label, disabled, active }: { p: number; label: string; disabled?: boolean; active?: boolean },
     key?: React.Key
   ) {
-    const cls = `inline-flex h-7 min-w-[28px] items-center justify-center rounded px-2 text-[11px] ${
+    const cls = `inline-flex h-7 min-w-[28px] items-center justify-center rounded px-2 text-xs ${
       active
         ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
         : disabled
@@ -38,7 +38,7 @@ export function Pager({
       {cell({ p: page - 1, label: '‹', disabled: page === 1 }, 'prev')}
       {win.map((w, i) =>
         w === 'ellipsis' ? (
-          <span key={`e${i}`} className="px-1 text-[11px] text-slate-400">…</span>
+          <span key={`e${i}`} className="px-1 text-xs text-slate-400">…</span>
         ) : (
           cell({ p: w, label: String(w), active: w === page }, `p${w}`)
         )

@@ -36,7 +36,7 @@ export default function TestimonialsAdminClient({ initial, exams }: { initial: R
       <div className="card flex flex-wrap items-center gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
         <div className="flex-1 min-w-[260px]">
           <div className="text-sm font-medium">Manage testimonials</div>
-          <div className="text-[11px] text-slate-500">Edit, publish, reorder. Promoted reviews appear here as drafts — set Published to show on the homepage.</div>
+          <div className="text-xs text-slate-500">Edit, publish, reorder. Promoted reviews appear here as drafts — set Published to show on the homepage.</div>
         </div>
         <button type="button" onClick={addBlank} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-blue-600 px-4 text-[13px] font-medium text-white hover:bg-blue-700">
           <Plus className="h-3.5 w-3.5" /> Add testimonial
@@ -129,7 +129,7 @@ function TestimonialEditor({
               <Star className={`h-4 w-4 ${rating >= n ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
             </button>
           ))}
-          <button type="button" onClick={() => setRating(0)} className="ml-1 text-[10px] text-slate-500 hover:underline">clear</button>
+          <button type="button" onClick={() => setRating(0)} className="ml-1 text-[11px] text-slate-500 hover:underline">clear</button>
         </div>
         <select value={examId} onChange={(e) => setExamId(e.target.value)} className="input-sm">
           <option value="">— no exam link —</option>
@@ -138,18 +138,18 @@ function TestimonialEditor({
           ))}
         </select>
         <input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value) || 0)} className="input-sm w-20" title="Sort order" />
-        <label className="inline-flex items-center gap-1 text-[11px]">
+        <label className="inline-flex items-center gap-1 text-xs">
           <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
           Published
         </label>
-        {row.sourceReviewId && <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[10px] text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">From review</span>}
-        <button type="button" onClick={save} disabled={saving} className="ml-auto inline-flex h-7 items-center rounded-md bg-emerald-600 px-3 text-[11px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
+        {row.sourceReviewId && <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[11px] text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">From review</span>}
+        <button type="button" onClick={save} disabled={saving} className="ml-auto inline-flex h-7 items-center rounded-md bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
           {saving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}{saving ? 'Saving…' : 'Save'}
         </button>
-        <button type="button" onClick={del} className="inline-flex h-7 items-center gap-1 rounded text-[11px] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40">
+        <button type="button" onClick={del} className="inline-flex h-7 items-center gap-1 rounded text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40">
           <Trash2 className="h-3 w-3" /> Delete
         </button>
-        {msg && <span className="text-[11px] text-slate-500">{msg}</span>}
+        {msg && <span className="text-xs text-slate-500">{msg}</span>}
       </div>
     </div>
   );

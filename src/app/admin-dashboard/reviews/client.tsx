@@ -122,7 +122,7 @@ function ReviewRow({
             <Link href={`/practice-exams/${row.exam.vendor.slug}/${row.exam.slug}`} className="font-medium text-blue-600 hover:underline">{row.exam.vendor.name} {row.exam.code}</Link>
             <span>·</span>
             <span>{row.user.name || row.user.email}</span>
-            {row.attemptId && <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-700">Verified</span>}
+            {row.attemptId && <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] text-emerald-700">Verified</span>}
             <span className="ml-auto">{new Date(row.createdAt).toLocaleDateString()}</span>
           </div>
           {row.title && <div className="mt-1 font-semibold">{row.title}</div>}

@@ -45,9 +45,9 @@ export default async function AdminTestExamPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/admin-dashboard/exams" className="text-xs text-slate-500 hover:underline">
-        ← Back to exams
+        ← Back to question banks
       </Link>
-      <h1 className="mt-2 text-2xl font-bold">Test Exam</h1>
+      <h1 className="mt-2 text-2xl font-bold">Test Question Bank</h1>
       <div className="mt-1 text-sm text-slate-500">
         {exam.vendor.name} · {exam.code} · {exam.title.split(' — ')[0]}
       </div>

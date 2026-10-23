@@ -66,7 +66,7 @@ export function ExamPicker({
       </div>
 
       {picked.size > 0 && (
-        <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
+        <div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-slate-500">
           <span className="font-medium text-slate-700 dark:text-slate-200">{picked.size} selected</span>
           <button
             type="button"
@@ -100,7 +100,7 @@ export function ExamPicker({
                   <span className="truncate text-slate-500">{o.vendor} · {o.title}</span>
                 </span>
                 {o.label && (
-                  <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                  <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                     {o.label}
                   </span>
                 )}

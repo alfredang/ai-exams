@@ -16,6 +16,7 @@ import { fulfillOrder } from '@/lib/fulfill';
 import { nextNumber } from '@/lib/numbering';
 import type { Tier } from '@prisma/client';
 import { STORE_CURRENCY } from '@/lib/currency';
+import { productSale } from '@/lib/products';
 
 const Body = z.object({
   kind: z.literal('bundle'),
@@ -36,11 +37,11 @@ export async function POST(req: Request) {
   const testId = `TEST_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 
   const bundle = await db.bundle.findUnique({ where: { id: body.bundleId } });
-  if (!bundle || !bundle.published) {
-    return NextResponse.json({ error: 'Bundle not found' }, { status: 404 });
+  const sale = bundle ? productSale(bundle, body.tier) : null;
+  if (!bundle || !sale) {
+    return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   }
-  const tier = body.tier === 'VOUCHER' && bundle.priceVoucher != null ? 'VOUCHER' : 'PRACTICE';
-  const amount = tier === 'VOUCHER' ? bundle.priceVoucher! : bundle.price;
+  const { tier, amount } = sale;
   const number = await nextNumber('ORDER', 'ORD');
   const order = await db.order.create({
     data: {

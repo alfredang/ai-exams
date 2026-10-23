@@ -2,8 +2,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
-import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
-import { Search } from 'lucide-react';
+import { PUBLISHED_QUESTION_COUNT } from '@/lib/bundle-contents';
+import { ChevronRight, Search } from 'lucide-react';
+import { PRACTICE_PRICE_CENTS } from '@/lib/products';
+import { ProductCard } from '@/components/storefront/product-card';
+import { VoucherUpsellBanner } from '@/components/storefront/voucher-upsell-banner';
 import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
 
 // ISR: vendor-page bundle listings cache for 5 min. New publishes appear
@@ -71,25 +74,31 @@ export default async function VendorCatalogPage({
 
   return (
     <div className="container-app py-10">
-      <div className="mb-2 text-sm">
-        <Link href="/practice-exams" className="text-blue-600 hover:underline">All exams</Link>
-        <span className="text-slate-400"> / </span>
-        <span>{vendor.name}</span>
+      <nav aria-label="Breadcrumb" className="mb-3 flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
+        <Link href="/practice-exams" className="hover:text-brand-700 hover:underline dark:hover:text-brand-300">Practice Exams</Link>
+        <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="text-ink dark:text-slate-200">{vendor.name}</span>
+      </nav>
+      <div className="max-w-3xl">
+        <p className="eyebrow mb-2">{bundles.length} Certification{bundles.length === 1 ? '' : 's'}</p>
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">{vendor.name} Practice Exams</h1>
+        {vendor.description && <p className="mt-2 text-slate-600 dark:text-slate-300">{vendor.description}</p>}
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          Every Practice Exam is {formatPrice(PRACTICE_PRICE_CENTS)}. Booking the real exam? The Exam Voucher includes the Practice Exam free.
+        </p>
       </div>
-      <h1 className="text-3xl font-bold tracking-tight">{vendor.name}</h1>
-      <p className="mt-1 text-slate-600 dark:text-slate-300">{vendor.description}</p>
 
-      <form action={`/practice-exams/${slug}`} method="get" className="mt-6 flex max-w-2xl items-center gap-2 rounded-full border border-slate-200 bg-white p-1.5 shadow-card dark:border-slate-700 dark:bg-slate-900">
-        <Search className="ml-3 h-5 w-5 text-slate-400" aria-hidden="true" />
+      <form action={`/practice-exams/${slug}`} method="get" className="mt-6 flex max-w-2xl items-center gap-2 rounded-full border border-line bg-white p-1.5 shadow-card dark:border-slate-700 dark:bg-slate-900">
+        <Search className="ml-3 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
         <input
           name="q"
           type="search"
           defaultValue={query}
-          aria-label={`Search ${vendor.name} certification exams`}
-          placeholder={`Search ${vendor.name} exams by code or title`}
+          aria-label={`Search ${vendor.name} Practice Exams`}
+          placeholder={`Search ${vendor.name} Practice Exams by code or title`}
           className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500"
         />
-        <button type="submit" className="btn-primary-grad rounded-full">Search</button>
+        <button type="submit" className="btn-primary-grad min-h-[40px] rounded-full">Search</button>
       </form>
 
       {query && (
@@ -99,34 +108,16 @@ export default async function VendorCatalogPage({
         </div>
       )}
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {cards.map(card => {
-          const b = card.data;
-          const first = b.items[0]?.exam;
-          // PRACTICE items only — the VOUCHER item points back at the same -p1
-          // exam, so counting raw items double-counts it. See bundle-contents.ts.
-          return (
-            <Link key={`b-${b.id}`} href={first ? `/practice-exams/${first.vendor.slug}/${b.slug}` : `/bundles/${b.slug}`} className="card-hover p-5">
-              {first && (
-                <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
-                  <span>{first.code}</span><span aria-hidden="true">·</span><span>{first.level}</span>
-                </div>
-              )}
-              <h3 className="font-semibold">{b.title}</h3>
-              <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{b.description}</p>
-              <div className="mt-4 flex items-center justify-between text-sm">
-                <span className="text-slate-500 dark:text-slate-400">{poolCardLabel(b.items)}</span>
-                <span className="font-semibold text-blue-700 dark:text-blue-300">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
-              </div>
-            </Link>
-          );
-        })}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map(card => <ProductCard key={`b-${card.data.id}`} b={card.data} query={query} showVendor={false} />)}
         {cards.length === 0 && (
-          <p className="text-slate-500">
-            {query ? `No ${vendor.name} exams match “${query}”.` : 'No practice exams yet for this vendor.'}
+          <p className="text-slate-500 dark:text-slate-400">
+            {query ? `No ${vendor.name} Practice Exams match “${query}”.` : 'No Practice Exams yet for this Vendor.'}
           </p>
         )}
       </div>
+
+      <VoucherUpsellBanner className="mt-10" />
     </div>
   );
 }

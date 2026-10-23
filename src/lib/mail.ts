@@ -3,6 +3,7 @@ import nodemailer, { type Transporter } from 'nodemailer';
 import { getAllSettings } from './settings';
 import { db } from './db';
 import { STORE_CURRENCY } from '@/lib/currency';
+import { productTitle } from './products';
 
 export type TransportKind = 'GMAIL_OAUTH' | 'GMAIL_SERVICE_ACCOUNT' | 'SMTP';
 
@@ -429,7 +430,7 @@ export async function sendRefundEmail(orderId: string, creditNoteId: string, amo
     'REFUND_ISSUED',
     order.user.email,
     {
-      productName: order.bundle?.title ?? order.exam?.title ?? 'your order',
+      productName: order.bundle ? productTitle(order.bundle, order.tier) : order.exam?.title ?? 'your order',
       fullyRefunded,
       orderNumber: order.number ?? order.id,
       invoiceNumber: order.invoice?.number ?? '',

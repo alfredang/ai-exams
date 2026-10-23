@@ -148,7 +148,7 @@ export default function EmailForm({
             />
             <KeyRound className="h-4 w-4" />
             <span className="font-medium">Gmail Service Account</span>
-            <span className="text-[11px] text-slate-500">Survives password changes</span>
+            <span className="text-xs text-slate-500">Survives password changes</span>
           </label>
           <label
             className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
@@ -166,7 +166,7 @@ export default function EmailForm({
             />
             <Send className="h-4 w-4" />
             <span className="font-medium">SMTP</span>
-            <span className="text-[11px] text-slate-500">MailHog in dev</span>
+            <span className="text-xs text-slate-500">MailHog in dev</span>
           </label>
         </div>
         <label className="mt-3 flex cursor-pointer items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
@@ -183,11 +183,11 @@ export default function EmailForm({
           <div className="flex items-center justify-between">
             <h3 className="text-[13px] font-semibold text-slate-800 dark:text-slate-100">Gmail OAuth credentials</h3>
             {gmailConnected ? (
-              <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
                 <Plug className="h-3 w-3" /> Connected{gmailSender ? ` · ${gmailSender}` : ''}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+              <span className="inline-flex items-center gap-1 rounded bg-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                 Not connected
               </span>
             )}
@@ -356,7 +356,7 @@ function FieldGrid({
             <div className="mb-1 flex items-center gap-2 text-[12px] text-slate-600 dark:text-slate-300">
               <span>{f.label}</span>
               {hasStored && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                   SET
                 </span>
               )}
@@ -366,7 +366,7 @@ function FieldGrid({
                 <textarea
                   rows={4}
                   autoComplete="off"
-                  className={`input-sm h-auto py-1.5 font-mono text-[11px] ${f.secret ? 'pr-9' : ''}`}
+                  className={`input-sm h-auto py-1.5 font-mono text-xs ${f.secret ? 'pr-9' : ''}`}
                   placeholder={placeholder || f.placeholder || ''}
                   value={displayValue}
                   onChange={(e) => setValues((s) => ({ ...s, [f.key]: e.target.value }))}

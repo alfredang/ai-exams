@@ -5,8 +5,14 @@ import { STORE_CURRENCY } from '@/lib/currency';
 
 export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
+// Storefront price: a zero price reads "Free".
 export function formatPrice(cents: number, currency = STORE_CURRENCY) {
   if (cents === 0) return 'Free';
+  return formatMoney(cents, currency);
+}
+
+// Accounting amount (admin KPIs, reports, invoices): zero is "$0.00", never "Free".
+export function formatMoney(cents: number, currency = STORE_CURRENCY) {
   if (currency.toUpperCase() === 'SGD') {
     const amount = new Intl.NumberFormat('en-SG', {
       minimumFractionDigits: 2,

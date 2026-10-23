@@ -5,11 +5,12 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { PageHeader } from '@/components/admin/page-header';
 import { ConfirmButton } from '@/components/admin/confirm-button';
-import { StatusBadge } from '@/components/admin/badge';
-import { Trash2, ArrowDown, ArrowUp } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
-import type { Tier } from '@prisma/client';
+import { ExternalLink, Library, Ticket, Trash2 } from 'lucide-react';
+import { formatMoney } from '@/lib/utils';
 import { ExamPicker } from '@/components/admin/exam-picker';
+import {
+  PRACTICE_PRICE_CENTS, displayExamCode, practiceHref, syncProductItems, voucherOnSale, voucherTitleFor
+} from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,34 +21,54 @@ async function requireAdmin() {
   return user as { id: string };
 }
 
-async function updateBundle(formData: FormData) {
+function slugify(s: string) {
+  return s.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+async function updatePracticeExam(formData: FormData) {
   'use server';
   const user = await requireAdmin();
   const id = String(formData.get('id'));
   const title = String(formData.get('title') || '').trim();
-  const slug = String(formData.get('slug') || '').trim().toLowerCase();
+  const slug = slugify(String(formData.get('slug') || ''));
   const description = String(formData.get('description') || '').trim();
-  const price = Math.round(Number(formData.get('price') || 0) * 100);
-  const priceVoucherStr = String(formData.get('priceVoucher') || '').trim();
-  const priceVoucher = priceVoucherStr ? Math.round(Number(priceVoucherStr) * 100) : null;
   const published = formData.get('published') === 'on';
-  await db.bundle.update({ where: { id }, data: { title, slug, description, price, priceVoucher, published } });
+  if (!title || !slug) redirect(`/admin-dashboard/bundles/${id}?error=required`);
+  const clash = await db.bundle.findFirst({ where: { slug, NOT: { id } }, select: { id: true } });
+  if (clash) redirect(`/admin-dashboard/bundles/${id}?error=slug`);
+  // The price is not editable: every Practice Exam is PRACTICE_PRICE_CENTS.
+  await db.bundle.update({ where: { id }, data: { title, slug, description, published, price: PRACTICE_PRICE_CENTS } });
   await db.adminLog.create({
-    data: { adminId: user.id, action: 'bundle.update', targetType: 'Bundle', targetId: id, metadata: {} }
+    data: { adminId: user.id, action: 'bundle.update', targetType: 'Bundle', targetId: id, metadata: { slug, published } }
   });
   revalidatePath(`/admin-dashboard/bundles/${id}`);
   revalidatePath('/admin-dashboard/bundles');
+  redirect(`/admin-dashboard/bundles/${id}?saved=1`);
 }
 
-async function deleteBundle(formData: FormData) {
+async function changeQuestionBank(formData: FormData) {
+  'use server';
+  const user = await requireAdmin();
+  const id = String(formData.get('id'));
+  const examId = formData.getAll('examId').map(String).find(Boolean);
+  if (!examId) return;
+  // Re-points the Practice Exam AND its Exam Voucher at the new question bank.
+  await syncProductItems(db, id, examId);
+  await db.adminLog.create({
+    data: { adminId: user.id, action: 'bundle.question_bank', targetType: 'Bundle', targetId: id, metadata: { examId } }
+  });
+  revalidatePath(`/admin-dashboard/bundles/${id}`);
+}
+
+async function deleteProduct(formData: FormData) {
   'use server';
   const user = await requireAdmin();
   const id = String(formData.get('id'));
   const b = await db.bundle.findUnique({ where: { id }, include: { _count: { select: { orders: true } } } });
   if (!b) return;
   if (b._count.orders > 0) {
-    // Soft-disable instead of delete to preserve order history.
-    await db.bundle.update({ where: { id }, data: { published: false } });
+    // Orders reference it: take both products off sale instead of deleting.
+    await db.bundle.update({ where: { id }, data: { published: false, voucherPublished: false } });
   } else {
     await db.bundle.delete({ where: { id } });
   }
@@ -64,234 +85,192 @@ async function deleteBundle(formData: FormData) {
   redirect('/admin-dashboard/bundles');
 }
 
-async function addItem(formData: FormData) {
-  'use server';
-  const user = await requireAdmin();
-  const bundleId = String(formData.get('bundleId'));
-  const examIds = formData.getAll('examId').map(String).filter(Boolean);
-  const tier = (formData.get('tier') as Tier) ?? 'PRACTICE';
-  if (!bundleId || examIds.length === 0) return;
-  const last = await db.bundleItem.findFirst({
-    where: { bundleId },
-    orderBy: { position: 'desc' },
-    select: { position: true }
-  });
-  let nextPosition = (last?.position ?? -1) + 1;
-  for (const examId of examIds) {
-    await db.bundleItem.upsert({
-      where: { bundleId_examId_tier: { bundleId, examId, tier } },
-      create: { bundleId, examId, tier, position: nextPosition },
-      update: {}
-    });
-    nextPosition += 1;
-  }
-  await db.adminLog.create({
-    data: { adminId: user.id, action: 'bundle.item.add', targetType: 'Bundle', targetId: bundleId, metadata: { examIds, tier } }
-  });
-  revalidatePath(`/admin-dashboard/bundles/${bundleId}`);
-}
-
-async function removeItem(formData: FormData) {
-  'use server';
-  const user = await requireAdmin();
-  const id = String(formData.get('id'));
-  const item = await db.bundleItem.findUnique({ where: { id }, select: { bundleId: true } });
-  if (!item) return;
-  await db.bundleItem.delete({ where: { id } });
-  await db.adminLog.create({
-    data: { adminId: user.id, action: 'bundle.item.remove', targetType: 'Bundle', targetId: item.bundleId, metadata: { itemId: id } }
-  });
-  revalidatePath(`/admin-dashboard/bundles/${item.bundleId}`);
-}
-
-async function moveItem(formData: FormData) {
-  'use server';
-  await requireAdmin();
-  const id = String(formData.get('id'));
-  const dir = String(formData.get('dir') || 'up') as 'up' | 'down';
-  const item = await db.bundleItem.findUnique({ where: { id } });
-  if (!item) return;
-  const neighbor = await db.bundleItem.findFirst({
-    where: {
-      bundleId: item.bundleId,
-      position: dir === 'up' ? { lt: item.position } : { gt: item.position }
-    },
-    orderBy: { position: dir === 'up' ? 'desc' : 'asc' }
-  });
-  if (!neighbor) return;
-  await db.$transaction([
-    db.bundleItem.update({ where: { id: item.id }, data: { position: neighbor.position } }),
-    db.bundleItem.update({ where: { id: neighbor.id }, data: { position: item.position } })
-  ]);
-  revalidatePath(`/admin-dashboard/bundles/${item.bundleId}`);
-}
-
-export default async function BundleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PracticeExamDetailPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
+}) {
   const session = await auth();
   if ((session?.user as any)?.role !== 'ADMIN') redirect('/');
   const { id } = await params;
+  const sp = await searchParams;
   const bundle = await db.bundle.findUnique({
     where: { id },
     include: {
       items: {
-        include: { exam: { include: { vendor: true } } },
+        include: { exam: { include: { vendor: true, _count: { select: { questions: { where: { status: 'PUBLISHED' } } } } } } },
         orderBy: { position: 'asc' }
-      },
-      _count: { select: { orders: true } }
+      }
     }
   });
   if (!bundle) notFound();
-  const examRows = await db.exam.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }],
-    select: { id: true, code: true, title: true, label: true, vendor: { select: { name: true } } }
-  });
-  const examOptions = examRows.map((e) => ({ id: e.id, code: e.code, title: e.title, vendor: e.vendor.name, label: e.label }));
-  const alreadyAddedIds = bundle.items.map((it) => it.examId);
+  const [practiceOrders, voucherOrders, examRows] = await Promise.all([
+    db.order.count({ where: { bundleId: id, status: 'PAID', tier: 'PRACTICE' } }),
+    db.order.count({ where: { bundleId: id, status: 'PAID', tier: 'VOUCHER' } }),
+    db.exam.findMany({
+      where: { deletedAt: null, poolExamId: null },
+      orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }],
+      select: { id: true, code: true, title: true, label: true, vendor: { select: { name: true } } }
+    })
+  ]);
+  const bank = (bundle.items.find((i) => i.tier === 'PRACTICE') ?? bundle.items[0])?.exam;
+  const vendorSlug = bank?.vendor.slug;
+  const totalOrders = practiceOrders + voucherOrders;
+  const hasVoucher = bundle.priceVoucher != null;
 
   return (
     <div>
       <PageHeader
         title={bundle.title}
         subtitle={
-          <span className="inline-flex items-center gap-2">
-            <StatusBadge status={bundle.published ? 'PUBLISHED' : 'DRAFT'} />
-            <span>· {bundle._count.orders} order{bundle._count.orders === 1 ? '' : 's'}</span>
-            <span>· {bundle.items.length} item{bundle.items.length === 1 ? '' : 's'}</span>
+          <span className="inline-flex flex-wrap items-center gap-2">
+            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">Practice Exam</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className={`h-2 w-2 rounded-full ${bundle.published ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+              {bundle.published ? 'On sale' : 'Off sale'}
+            </span>
+            <span>· {practiceOrders} sold</span>
           </span>
         }
-        back={{ href: '/admin-dashboard/bundles', label: 'Back to bundles' }}
+        back={{ href: '/admin-dashboard/bundles', label: 'Back to Practice Exams' }}
         actions={
-          <form action={deleteBundle}>
-            <input type="hidden" name="id" value={bundle.id} />
-            <ConfirmButton
-              message={
-                bundle._count.orders > 0
-                  ? `Disable bundle? It has ${bundle._count.orders} order(s) so it can't be deleted.`
-                  : `Delete bundle? This cannot be undone.`
-              }
-            >
-              <Trash2 className="mr-1 h-3 w-3" />
-              {bundle._count.orders > 0 ? 'Disable' : 'Delete'}
-            </ConfirmButton>
-          </form>
+          <div className="flex items-center gap-2">
+            {vendorSlug && bundle.published && (
+              <Link href={practiceHref(vendorSlug, bundle)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-md border border-slate-300 px-3 text-[12px] text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                <ExternalLink className="h-3 w-3" /> View on site
+              </Link>
+            )}
+            <form action={deleteProduct}>
+              <input type="hidden" name="id" value={bundle.id} />
+              <ConfirmButton
+                message={
+                  totalOrders > 0
+                    ? `Take this Practice Exam and its Exam Voucher off sale? They have ${totalOrders} order(s), so they can't be deleted.`
+                    : 'Delete this Practice Exam and its Exam Voucher? The question bank is kept. This cannot be undone.'
+                }
+              >
+                <Trash2 className="mr-1 h-3 w-3" />
+                {totalOrders > 0 ? 'Take off sale' : 'Delete'}
+              </ConfirmButton>
+            </form>
+          </div>
         }
       />
 
+      {sp.saved && <Notice tone="ok">Practice Exam saved.</Notice>}
+      {sp.error === 'slug' && <Notice tone="error">That URL slug is already used by another Practice Exam.</Notice>}
+      {sp.error === 'required' && <Notice tone="error">Title and URL slug are required.</Notice>}
+
       <div className="grid gap-4 lg:grid-cols-3">
-        <form action={updateBundle} className="card lg:col-span-2 space-y-3 p-4">
+        <form action={updatePracticeExam} className="card space-y-3 p-4 lg:col-span-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Practice Exam listing</h2>
           <input type="hidden" name="id" value={bundle.id} />
-          <Field label="Title"><input name="title" defaultValue={bundle.title} required className="input-sm" /></Field>
-          <Field label="Slug"><input name="slug" defaultValue={bundle.slug} required className="input-sm" /></Field>
-          <Field label="Description">
-            <textarea name="description" rows={3} defaultValue={bundle.description} className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+          <Field label="Title" hint="Shown on the catalog, the practice exam page, checkout and invoices.">
+            <input name="title" defaultValue={bundle.title} required className="input-sm" />
           </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Price ($)"><input name="price" type="number" step="0.01" defaultValue={(bundle.price / 100).toFixed(2)} required className="input-sm" /></Field>
-            <Field label="Voucher price ($)"><input name="priceVoucher" type="number" step="0.01" defaultValue={bundle.priceVoucher != null ? (bundle.priceVoucher / 100).toFixed(2) : ''} placeholder="Empty = practice-only" className="input-sm" /></Field>
-          </div>
+          <Field label="URL slug" hint={`Page address: /practice-exams/${vendorSlug ?? '<vendor>'}/${bundle.slug}`}>
+            <input name="slug" defaultValue={bundle.slug} required className="input-sm font-mono" />
+          </Field>
+          <Field label="Description">
+            <textarea name="description" rows={4} defaultValue={bundle.description} className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+          </Field>
+          <Field label="Price" hint="Every Practice Exam is the same price.">
+            <div className="flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-2 text-[12px] font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              {formatMoney(PRACTICE_PRICE_CENTS)} <span className="ml-2 font-normal text-slate-500">fixed</span>
+            </div>
+          </Field>
           <label className="flex items-center gap-2 text-[12px] text-slate-700 dark:text-slate-200">
             <input type="checkbox" name="published" defaultChecked={bundle.published} />
-            Published
+            On sale (shown in the Practice Exams catalog)
           </label>
           <div className="pt-2">
             <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
-              Save bundle
+              Save Practice Exam
             </button>
           </div>
         </form>
 
-        <section className="card p-4">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pricing recap</h2>
-          <div className="mt-2 space-y-1 text-[13px]">
-            <Row k="Practice price" v={formatPrice(bundle.price)} />
-            <Row k="Voucher price" v={bundle.priceVoucher != null ? formatPrice(bundle.priceVoucher) : '—'} />
-            <Row k="Items" v={String(bundle.items.length)} />
-            <Row k="Orders" v={String(bundle._count.orders)} />
-          </div>
-          <Link href={`/bundles/${bundle.slug}`} target="_blank" rel="noreferrer" className="mt-3 inline-block text-[11px] text-blue-600 hover:underline">
-            Preview as customer →
-          </Link>
-        </section>
+        <div className="space-y-4">
+          <section className="card p-4">
+            <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500"><Ticket className="h-3.5 w-3.5" /> Exam Voucher</h2>
+            {hasVoucher ? (
+              <>
+                <div className="mt-2 text-[13px] font-medium">{voucherTitleFor(bundle)}</div>
+                <div className="mt-2 space-y-1 text-[13px]">
+                  <Row k="Price" v={formatMoney(bundle.priceVoucher!)} />
+                  <Row k="Status" v={voucherOnSale(bundle) ? 'On sale' : 'Off sale'} />
+                  <Row k="Sold" v={String(voucherOrders)} />
+                </div>
+                <p className="mt-2 text-[11px] text-slate-500">Includes this Practice Exam automatically.</p>
+                <Link href={`/admin-dashboard/bundles/${bundle.id}/voucher`} className="mt-3 inline-flex h-8 w-full items-center justify-center rounded-md border border-slate-300 text-[12px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  Edit Exam Voucher
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="mt-2 text-[12px] text-slate-600 dark:text-slate-300">No Exam Voucher for this certification yet.</p>
+                <Link href={`/admin-dashboard/bundles/${bundle.id}/voucher`} className="mt-3 inline-flex h-8 w-full items-center justify-center rounded-md bg-emerald-600 text-[12px] font-medium text-white hover:bg-emerald-700">
+                  + Add Exam Voucher
+                </Link>
+              </>
+            )}
+          </section>
+
+          <section className="card p-4">
+            <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500"><Library className="h-3.5 w-3.5" /> Question bank</h2>
+            {bank ? (
+              <>
+                <Link href={`/admin-dashboard/exams/${bank.id}`} className="mt-2 block text-[13px] font-medium text-blue-600 hover:underline dark:text-blue-400">
+                  {bank.vendor.name} · {displayExamCode(bank.code)}
+                </Link>
+                <div className="mt-2 space-y-1 text-[13px]">
+                  <Row k="Questions in bank" v={String(bank._count.questions)} />
+                  <Row k="Per attempt" v={String(Math.min(bank.questionCount, bank._count.questions))} />
+                  <Row k="Exam mode timer" v={`${bank.durationMinutes} min`} />
+                  <Row k="Pass mark" v={`${bank.passingScore}%`} />
+                </div>
+                <Link href={`/admin-dashboard/exams/${bank.id}#questions`} className="mt-3 inline-flex h-8 w-full items-center justify-center rounded-md border border-slate-300 text-[12px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  Manage questions
+                </Link>
+              </>
+            ) : (
+              <p className="mt-2 text-[12px] text-amber-700 dark:text-amber-300">No question bank linked — pick one below.</p>
+            )}
+            <details className="mt-3 text-[12px]" open={!bank}>
+              <summary className="cursor-pointer text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">{bank ? 'Change question bank' : 'Link a question bank'}</summary>
+              <form action={changeQuestionBank} className="mt-2 space-y-2">
+                <input type="hidden" name="id" value={bundle.id} />
+                <ExamPicker
+                  name="examId"
+                  options={examRows.map((e) => ({ id: e.id, code: e.code, title: e.title, vendor: e.vendor.name, label: e.label }))}
+                  excludeIds={bank ? [bank.id] : []}
+                  placeholder="Search question banks…"
+                />
+                <button className="inline-flex h-8 items-center rounded-md bg-slate-800 px-3 text-[12px] font-medium text-white hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600">
+                  Use selected question bank
+                </button>
+              </form>
+            </details>
+          </section>
+        </div>
       </div>
-
-      <section className="card mt-4 p-4">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Items ({bundle.items.length})</h2>
-
-        <form action={addItem} className="mt-2 flex flex-wrap items-end gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
-          <input type="hidden" name="bundleId" value={bundle.id} />
-          <input type="hidden" name="tier" value="PRACTICE" />
-          <Field label="Add exam" className="min-w-[24rem] flex-1">
-            <ExamPicker name="examId" options={examOptions} excludeIds={alreadyAddedIds} placeholder="Search by code, title, or label…" />
-          </Field>
-          <button className="inline-flex h-8 items-center rounded-md bg-emerald-600 px-3 text-[12px] font-medium text-white hover:bg-emerald-700">
-            Add item
-          </button>
-        </form>
-
-        {bundle.items.length === 0 ? (
-          <p className="mt-3 text-[12px] text-slate-500">No items yet. Use the search above to add an exam to this bundle.</p>
-        ) : (
-          <table className="mt-3 w-full text-[12px]">
-            <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
-                <th className="py-1 w-10"></th>
-                <th className="py-1">Exam</th>
-                <th className="py-1">Tier</th>
-                <th className="py-1 text-right">Position</th>
-                <th className="py-1 text-right"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-              {bundle.items.map((it) => (
-                <tr key={it.id}>
-                  <td className="py-1.5">
-                    <div className="flex gap-0.5">
-                      <form action={moveItem} className="inline-flex">
-                        <input type="hidden" name="id" value={it.id} />
-                        <input type="hidden" name="dir" value="up" />
-                        <button title="Move up" className="icon-btn"><ArrowUp className="h-3 w-3" /></button>
-                      </form>
-                      <form action={moveItem} className="inline-flex">
-                        <input type="hidden" name="id" value={it.id} />
-                        <input type="hidden" name="dir" value="down" />
-                        <button title="Move down" className="icon-btn"><ArrowDown className="h-3 w-3" /></button>
-                      </form>
-                    </div>
-                  </td>
-                  <td className="py-1.5">
-                    <Link href={`/admin-dashboard/exams/${it.examId}`} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                      {it.exam.vendor.name} · {it.exam.code}
-                    </Link>
-                    <div className="text-[10px] text-slate-500">{it.exam.title}</div>
-                  </td>
-                  <td className="py-1.5">
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{it.tier}</span>
-                  </td>
-                  <td className="py-1.5 text-right text-slate-500">{it.position}</td>
-                  <td className="py-1.5 text-right">
-                    <form action={removeItem} className="inline-flex">
-                      <input type="hidden" name="id" value={it.id} />
-                      <ConfirmButton message={`Remove ${it.exam.code} (${it.tier}) from this bundle?`} className="h-6 w-6 p-0">
-                        <Trash2 className="h-3 w-3" />
-                      </ConfirmButton>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
     </div>
   );
 }
 
-function Field({ label, className = '', children }: { label: string; className?: string; children: React.ReactNode }) {
+function Notice({ tone, children }: { tone: 'ok' | 'error'; children: React.ReactNode }) {
   return (
-    <label className={`block ${className}`}>
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</span>
+    <div className={`mb-4 rounded-md border px-3 py-2 text-[12px] ${tone === 'ok' ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200' : 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-700 dark:bg-rose-950/30 dark:text-rose-200'}`}>
       {children}
+    </div>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
+      {children}
+      {hint && <span className="mt-1 block text-[11px] text-slate-500">{hint}</span>}
     </label>
   );
 }

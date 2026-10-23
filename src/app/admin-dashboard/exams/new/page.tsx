@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { CreateExamAiAssist } from './ai-assist';
+import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 
 async function createExam(formData: FormData) {
   'use server';
@@ -43,7 +44,24 @@ async function createExam(formData: FormData) {
       createdById
     }
   });
+  // Every practice exam is sold as a product: create its Practice Exam
+  // listing (draft, US$20) with the question bank linked, unless a product
+  // already uses this slug.
+  if (!(await db.bundle.findUnique({ where: { slug }, select: { id: true } }))) {
+    await db.bundle.create({
+      data: {
+        slug, title, description,
+        price: PRACTICE_PRICE_CENTS,
+        voucherSlug: `${slug}-exam-voucher`,
+        voucherPublished: false,
+        published: false,
+        createdById,
+        items: { create: [{ examId: created.id, tier: 'PRACTICE', position: 0 }] }
+      }
+    }).catch(() => undefined);
+  }
   revalidatePath('/admin-dashboard/exams');
+  revalidatePath('/admin-dashboard/bundles');
   redirect(`/admin-dashboard/exams/${created.id}/author`);
 }
 
@@ -54,9 +72,13 @@ export default async function NewExamPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Create Exam</h1>
-        <Link href="/admin-dashboard/exams" className="btn-ghost text-sm">← Back to list</Link>
+        <h1 className="text-2xl font-bold">Create Practice Exam</h1>
+        <Link href="/admin-dashboard/bundles" className="btn-ghost text-sm">← Back to practice exams</Link>
       </div>
+      <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+        This creates the question bank and its <b>Practice Exam</b> product (US$20, draft). Add questions, then publish it and,
+        if you sell one, switch on its <b>Exam Voucher</b> from the Practice Exams list.
+      </p>
 
       <form data-create-exam action={createExam} className="card grid gap-3 p-4 md:grid-cols-3">
         <CreateExamAiAssist vendorMap={vendorMap} />
@@ -108,7 +130,7 @@ export default async function NewExamPage() {
         </Field>
 
         <div className="md:col-span-3 flex gap-2">
-          <button className="btn-primary">Create exam</button>
+          <button className="btn-primary">Create practice exam</button>
           <Link href="/admin-dashboard/exams" className="btn-ghost">Cancel</Link>
         </div>
       </form>
@@ -127,7 +149,7 @@ function Field({
 }) {
   return (
     <label className={`block text-sm ${className || ''}`}>
-      <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
       {children}
     </label>
   );

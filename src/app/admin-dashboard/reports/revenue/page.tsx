@@ -4,7 +4,7 @@ import { paidOrdersIn, revenueBy } from '@/lib/analytics';
 import { rangeFromSearchParams, RANGE_OPTIONS } from '@/lib/reports/range-from-sp';
 import { PageHeader } from '@/components/admin/page-header';
 import { Download } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,21 +40,21 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
       {/* Range + dimension picker */}
       <form method="get" className="card mb-3 flex flex-wrap items-end gap-2 p-3">
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Range</span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Range</span>
           <select name="range" defaultValue={sp.range ?? '30d'} className="input-sm">
             {RANGE_OPTIONS.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
           </select>
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">From</span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">From</span>
           <input type="date" name="from" defaultValue={sp.from ?? ''} className="input-sm" />
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">To</span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">To</span>
           <input type="date" name="to" defaultValue={sp.to ?? ''} className="input-sm" />
         </label>
         <label className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Group by</span>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Group by</span>
           <select name="by" defaultValue={validBy} className="input-sm">
             <option value="exam">Exam</option>
             <option value="vendor">Vendor</option>
@@ -70,16 +70,16 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
 
       {/* Totals strip */}
       <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Gross" value={formatPrice(totals.grossCents, 'USD')} />
-        <Stat label="Discounts" value={`−${formatPrice(totals.discountCents, 'USD')}`} />
-        <Stat label="Refunds" value={`−${formatPrice(totals.refundedCents, 'USD')}`} />
-        <Stat label="Net" value={formatPrice(totals.netCents, 'USD')} accent="emerald" />
+        <Stat label="Gross" value={formatMoney(totals.grossCents, 'USD')} />
+        <Stat label="Discounts" value={`−${formatMoney(totals.discountCents, 'USD')}`} />
+        <Stat label="Refunds" value={`−${formatMoney(totals.refundedCents, 'USD')}`} />
+        <Stat label="Net" value={formatMoney(totals.netCents, 'USD')} accent="emerald" />
       </div>
 
       {/* Breakdown table */}
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-[13px]">
-          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[10px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
+          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
             <tr>
               <th className="px-3 py-2 font-medium">{validBy === 'day' ? 'Date' : validBy === 'month' ? 'Month' : validBy === 'tier' ? 'Tier' : validBy === 'vendor' ? 'Vendor' : 'Exam'}</th>
               <th className="px-3 py-2 text-right font-medium">Orders</th>
@@ -95,7 +95,7 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
               <tr key={b.key}>
                 <td className="px-3 py-1.5">{b.label}</td>
                 <td className="px-3 py-1.5 text-right">{b.count}</td>
-                <td className="px-3 py-1.5 text-right font-semibold">{formatPrice(b.amount, b.currency)}</td>
+                <td className="px-3 py-1.5 text-right font-semibold">{formatMoney(b.amount, b.currency)}</td>
                 <td className="px-3 py-1.5 text-right text-slate-500">
                   {totals.grossCents > 0 ? `${((b.amount / totals.grossCents) * 100).toFixed(1)}%` : '—'}
                 </td>
@@ -111,7 +111,7 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
 function Stat({ label, value, accent }: { label: string; value: string; accent?: 'emerald' }) {
   return (
     <div className={`card p-3 ${accent === 'emerald' ? 'border-l-2 border-l-emerald-500' : ''}`}>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</div>
       <div className="text-lg font-semibold tracking-tight">{value}</div>
     </div>
   );

@@ -7,6 +7,7 @@ import { Sparkles } from 'lucide-react';
 import { SubmitBusyButton } from '@/components/admin/submit-busy-button';
 import { SeoSavedFlash } from '@/components/admin/seo-saved-flash';
 import { ConfirmButton } from '@/components/admin/confirm-button';
+import { Pager } from '@/components/admin/pager';
 import { parseDomains, poolStats } from '@/lib/question-pool';
 
 async function requireAdmin() {
@@ -312,7 +313,7 @@ export default async function EditExamPage({
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string }>;
+  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string; qpage?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -322,6 +323,11 @@ export default async function EditExamPage({
   });
   if (!exam) notFound();
   const pool = await poolStats(db, exam);
+  // Published products that sell this exam (customers reach it through them).
+  const sellingProducts = (await db.bundleItem.findMany({
+    where: { examId: exam.id, tier: 'PRACTICE', bundle: { published: true } },
+    select: { bundle: { select: { title: true } } }
+  })).map((bi) => bi.bundle.title);
   const weightTotal = pool.rows.reduce((s, r) => s + r.weight, 0);
 
   // Question-pool browser filters (?domain=&qstatus=&qtype=), applied in memory
@@ -339,6 +345,12 @@ export default async function EditExamPage({
   const shownQuestions = exam.questions.filter(
     (q) => (!fDomain || q.domain === fDomain) && (!fStatus || q.status === fStatus) && (!fType || q.type === fType)
   );
+  // 30 questions per page (?qpage=); changing a filter drops back to page 1.
+  const Q_PAGE_SIZE = 30;
+  const qPages = Math.max(1, Math.ceil(shownQuestions.length / Q_PAGE_SIZE));
+  const qPage = Math.min(qPages, Math.max(1, Number(sp.qpage) || 1));
+  const pageStart = (qPage - 1) * Q_PAGE_SIZE;
+  const pageQuestions = shownQuestions.slice(pageStart, pageStart + Q_PAGE_SIZE);
   const filterHref = (patch: Record<string, string>) => {
     const next = { domain: fDomain, qstatus: fStatus, qtype: fType, ...patch };
     const qs = Object.entries(next).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
@@ -352,9 +364,9 @@ export default async function EditExamPage({
       <div className="flex items-center justify-between">
         <div>
           <Link href="/admin-dashboard/exams" className="text-xs text-slate-500 hover:underline">
-            ← Back to exams
+            ← Back to question banks
           </Link>
-          <h1 className="text-2xl font-bold">Edit Exam</h1>
+          <h1 className="text-2xl font-bold">Edit Question Bank</h1>
           <div className="text-sm text-slate-500">{exam.vendor.name} · {exam.code}</div>
         </div>
         <div className="flex items-center gap-2">
@@ -423,10 +435,17 @@ export default async function EditExamPage({
         <Field label="Description" className="md:col-span-3">
           <input name="description" defaultValue={exam.description ?? ''} className="input" />
         </Field>
-        <label className="md:col-span-2 flex items-center gap-2 text-sm">
-          <input type="checkbox" name="published" defaultChecked={exam.published} />
-          Active (visible to users)
-        </label>
+        <div className="md:col-span-2">
+          <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <input type="checkbox" name="published" defaultChecked={exam.published} />
+            Active (visible to users)
+          </label>
+          {sellingProducts.length > 0 && (
+            <p className="ml-6 mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {exam.published ? 'Also on sale' : 'On sale to buyers'} as Practice Exam: {sellingProducts.join(', ')}.
+            </p>
+          )}
+        </div>
         <div className="md:col-span-1 flex justify-end">
           <button className="btn-primary">Save exam</button>
         </div>
@@ -459,7 +478,7 @@ export default async function EditExamPage({
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="border-b border-slate-200 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-700">
+                  <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wider text-slate-500 dark:border-slate-700">
                     <th className="py-1.5 pr-3 font-medium">Domain</th>
                     <th className="w-28 py-1.5 pr-3 font-medium">Exam %</th>
                     <th className="w-24 py-1.5 pr-3 text-right font-medium">In pool</th>
@@ -495,7 +514,7 @@ export default async function EditExamPage({
               </p>
             )}
             <div className="mt-3 flex flex-wrap items-end gap-2">
-              <label className="flex flex-1 flex-col text-[10px] uppercase tracking-wider text-slate-500">
+              <label className="flex flex-1 flex-col text-[11px] uppercase tracking-wider text-slate-500">
                 Official source URL
                 <input name="domainsSourceUrl" type="url" defaultValue={exam.domainsSourceUrl ?? exam.infoUrl ?? ''} className="input-sm mt-0.5 w-full" />
               </label>
@@ -513,7 +532,7 @@ export default async function EditExamPage({
             <SubmitBusyButton
               idleLabel={<><Sparkles className="mr-1 h-3 w-3" /> AI Assist</>}
               busyLabel={<>Generating…</>}
-              className="inline-flex h-7 items-center rounded-md bg-violet-600 px-2.5 text-[11px] font-medium text-white hover:bg-violet-700 disabled:cursor-wait disabled:bg-violet-400"
+              className="inline-flex h-7 items-center rounded-md bg-violet-600 px-2.5 text-xs font-medium text-white hover:bg-violet-700 disabled:cursor-wait disabled:bg-violet-400"
             />
           </form>
         </div>
@@ -670,7 +689,12 @@ export default async function EditExamPage({
                 </a>
               ))}
             </div>
-            <div className="text-slate-500">Showing {shownQuestions.length} of {exam.questions.length}</div>
+            <div className="text-slate-500">
+              {shownQuestions.length === 0
+                ? `Showing 0 of ${exam.questions.length}`
+                : `Showing ${pageStart + 1}–${pageStart + pageQuestions.length} of ${shownQuestions.length}${shownQuestions.length < exam.questions.length ? ` (filtered from ${exam.questions.length})` : ''}`}
+              {qPages > 1 && ` · page ${qPage} of ${qPages}`}
+            </div>
           </div>
         )}
 
@@ -687,7 +711,8 @@ export default async function EditExamPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {shownQuestions.map((q, idx) => {
+              {pageQuestions.map((q, i) => {
+                const idx = pageStart + i;
                 const opts = (q.options as { id: string; text: string }[]) || [];
                 const correct = (q.correct as string[]) || [];
                 return (
@@ -718,15 +743,15 @@ export default async function EditExamPage({
                     <td className="whitespace-nowrap px-2 py-2 text-slate-500">{q.domain}</td>
                     <td className="whitespace-nowrap px-2 py-2">
                       {q.status === 'PUBLISHED' ? (
-                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800">
                           PUBLISHED
                         </span>
                       ) : q.status === 'ARCHIVED' ? (
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800">
                           ARCHIVED
                         </span>
                       ) : (
-                        <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                        <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                           DRAFT
                         </span>
                       )}
@@ -765,6 +790,7 @@ export default async function EditExamPage({
             </tbody>
           </table>
         </div>
+        <Pager page={qPage} pages={qPages} buildHref={(p) => filterHref({ qpage: p > 1 ? String(p) : '' })} />
       </section>
     </div>
   );
@@ -781,7 +807,7 @@ function Field({
 }) {
   return (
     <label className={`block text-sm ${className || ''}`}>
-      <span className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
       {children}
     </label>
   );

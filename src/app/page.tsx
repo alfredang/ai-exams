@@ -2,46 +2,52 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { DotPattern } from '@/components/dot-pattern';
-import { Search, ShieldCheck, Sparkles, BookOpen, BadgeCheck, Award, ChevronDown } from 'lucide-react';
+import { Search, ShieldCheck, Sparkles, Award, ChevronDown, ArrowRight, BookOpenCheck, Ticket, MousePointerClick, Trophy, ListChecks } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
 import { HeroExamVisual } from '@/components/hero-exam-visual';
-import { PUBLISHED_QUESTION_COUNT, poolCardLabel } from '@/lib/bundle-contents';
+import { PUBLISHED_QUESTION_COUNT } from '@/lib/bundle-contents';
 import { serializeJsonLd } from '@/lib/structured-data';
+import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT } from '@/lib/products';
+import { ProductCard } from '@/components/storefront/product-card';
+import { CategoryShowcase } from '@/components/storefront/category-showcase';
+import { StorefrontMotionStyles } from '@/components/storefront/motion-styles';
 
-// ISR: refetch vendor + popular-bundle counts at most once every 5 minutes.
+// ISR: refetch vendor + popular-product counts at most once every 5 minutes.
 // Avoids per-visit DB hits while keeping seed/publish changes visible quickly.
 export const revalidate = 300;
+
+const VOUCHER_ON_SALE = { priceVoucher: { not: null }, voucherPublished: true } as const;
 
 export default async function HomePage() {
   const { getTeaserSize } = await import('@/lib/settings');
   const TEASER_N = await getTeaserSize();
-  // Vendor card counts include BOTH standalone published exams AND bundles
-  // attributed to the vendor (via the first bundle item's exam vendor).
-  // That matches what users actually see on /practice-exams/[vendor].
-  const vendors = await db.vendor.findMany({
-    include: { _count: { select: { exams: { where: { published: true, deletedAt: null, questions: { some: { status: 'PUBLISHED' } } } } } } },
-    take: 12
-  });
-  const allBundlesForCounts = await db.bundle.findMany({
-    where: { published: true },
-    select: { id: true, items: { take: 1, select: { exam: { select: { vendor: { select: { slug: true } } } } } } }
-  });
-  const bundleCountByVendor = new Map<string, number>();
-  for (const b of allBundlesForCounts) {
-    const vs = b.items[0]?.exam.vendor.slug;
-    if (vs) bundleCountByVendor.set(vs, (bundleCountByVendor.get(vs) || 0) + 1);
-  }
 
-  // Popular section lists recent published bundles only — bundles are the
-  // sole purchase entry point in the app.
-  const recentBundles = await db.bundle.findMany({
-    where: { published: true },
-    include: {
-      items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true, ...PUBLISHED_QUESTION_COUNT } } } }
-    },
-    take: 6,
-    orderBy: { createdAt: 'desc' }
-  });
+  const [products, popular, voucherMin, vendors] = await Promise.all([
+    // Vendor counts come from published products (vendor = first item's exam vendor).
+    db.bundle.findMany({
+      where: { published: true },
+      select: { id: true, items: { take: 1, select: { exam: { select: { vendor: { select: { slug: true } } } } } } }
+    }),
+    db.bundle.findMany({
+      where: { published: true },
+      include: { items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true, ...PUBLISHED_QUESTION_COUNT } } } } },
+      take: 6,
+      orderBy: { createdAt: 'desc' }
+    }),
+    db.bundle.aggregate({ where: VOUCHER_ON_SALE, _min: { priceVoucher: true } }),
+    db.vendor.findMany({ orderBy: { name: 'asc' }, select: { id: true, slug: true, name: true } })
+  ]);
+  const countByVendor = new Map<string, number>();
+  for (const b of products) {
+    const vs = b.items[0]?.exam.vendor.slug;
+    if (vs) countByVendor.set(vs, (countByVendor.get(vs) || 0) + 1);
+  }
+  const vendorChips = vendors
+    .map((v) => ({ ...v, count: countByVendor.get(v.slug) || 0 }))
+    .filter((v) => v.count > 0);
+  const certCount = products.length;
+  const voucherFrom = voucherMin._min.priceVoucher ?? null;
+  const practicePrice = formatPrice(PRACTICE_PRICE_CENTS);
 
   // FAQ entries are managed in /admin-dashboard/faq. The homepage falls
   // back to a built-in list when no published entries exist yet so a fresh
@@ -56,9 +62,10 @@ export default async function HomePage() {
     ? faqRows.map((f) => ({ q: sub(f.question), a: sub(f.answer) }))
     : [
         { q: 'Are these real exam questions?', a: 'No — and that\'s intentional. Tertiary Exams provides original, hand-authored practice questions modelled on each certification\'s public exam blueprint. We do not sell or distribute real exam content ("dumps"), which would violate vendor terms and undermine the value of your certification.' },
-        { q: 'How does the free teaser work?', a: `Every exam includes a free ${TEASER_N}-question teaser so you can sample the question quality and format before you buy. After signing in, you can retake the teaser as often as you like — there's no per-attempt limit.` },
-        { q: 'What is the difference between Practice Mode and Exam Mode?', a: 'Practice Mode reveals the correct answer and full explanation after each question — ideal for studying and reinforcing concepts. Exam Mode is a timed simulation: no answer feedback until you submit, auto-save every 15 seconds, and auto-submit when time runs out — mirroring the real testing experience.' },
-        { q: 'How do exam vouchers work?', a: 'Purchasing the Exam Voucher tier includes a real, vendor-issued voucher code (delivered by email within 3–5 business days) PLUS lifetime practice access to the same certification at no additional cost. Use the code to register for your official exam at the vendor\'s testing partner.' }
+        { q: 'What is the difference between a Practice Exam and an Exam Voucher?', a: `A Practice Exam (${practicePrice}) gives you unlimited Exam mode and Practice mode attempts for one Certification. An Exam Voucher is an official, Vendor-issued code for one attempt at the real Certification exam — and it includes the same Practice Exam free, unlocked the moment you pay.` },
+        { q: `How does the free ${TEASER_N}-question teaser work?`, a: `Every Practice Exam includes a free ${TEASER_N}-question teaser so you can sample the question quality and format before you buy. After signing in, you can retake the teaser as often as you like.` },
+        { q: 'What is the difference between Practice mode and Exam mode?', a: 'Practice mode reveals the correct answer and full explanation after each question — ideal for studying. Exam mode is a timed simulation: no answer feedback until you submit, auto-save every 15 seconds, and auto-submit when time runs out — mirroring the real testing experience.' },
+        { q: 'How do Exam Vouchers work?', a: `Buy the Exam Voucher for your Certification and its Practice Exam unlocks immediately. The official voucher code is emailed within ${VOUCHER_DELIVERY_TEXT}; redeem it with the Vendor's testing partner to book your exam date.` }
       ];
   const faqJsonLd = {
     '@context': 'https://schema.org',
@@ -72,196 +79,186 @@ export default async function HomePage() {
 
   return (
     <>
+      <StorefrontMotionStyles />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
+
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line bg-gradient-to-br from-brand-100 via-sky-50 to-page dark:border-slate-800 dark:from-[#0a1838] dark:via-slate-950 dark:to-slate-950">
-        <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-brand-300/30 blur-3xl dark:bg-brand-500/20" />
+        <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-brand-300/30 blur-3xl motion-safe:animate-drift dark:bg-brand-500/20" />
+        <div className="pointer-events-none absolute -bottom-40 -left-32 h-[380px] w-[380px] rounded-full bg-emerald-200/30 blur-3xl motion-safe:animate-drift motion-safe:[animation-delay:-7s] dark:bg-emerald-500/10" />
         <div className="pointer-events-none absolute inset-0 text-brand-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-brand-400/20">
           <DotPattern className="h-full w-full" />
         </div>
-        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-4 pb-5 pt-4 md:pb-6 md:pt-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 py-10 md:py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
           <div className="min-w-0">
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight md:text-[3.25rem]">
-              Practice smarter <br className="hidden sm:block" />for your <span className="gradient-text">next certification</span>
-            </h1>
-            <p className="mt-3 max-w-xl text-base text-slate-600 dark:text-slate-300">
-              Timed exams that look and feel like test day: one question per screen, Mark for review, a review screen before you end, and a score report by domain. Try {TEASER_N} questions free on any exam.
+            <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1 text-xs font-semibold text-brand-700 shadow-card motion-safe:animate-fade-up dark:border-slate-700 dark:bg-slate-900/70 dark:text-brand-300">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              {certCount}+ Certifications · Practice Exams &amp; Exam Vouchers
             </p>
-            <form action="/practice-exams" className="mt-4 flex max-w-lg items-center gap-2 rounded-lg border border-brand-200 bg-white p-1.5 shadow-lift dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-glow">
-              <Search className="ml-3 h-5 w-5 text-slate-400" />
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight motion-safe:animate-fade-up motion-safe:[animation-delay:80ms] sm:text-5xl md:text-[3.5rem]">
+              Prepare with confidence.<br />
+              <span className="gradient-text">Get certified.</span>
+            </h1>
+            <p className="mt-4 max-w-xl text-base text-slate-600 motion-safe:animate-fade-up motion-safe:[animation-delay:160ms] dark:text-slate-300 sm:text-lg">
+              Realistic timed Practice Exams for just <b className="text-ink dark:text-white">{practicePrice}</b> — and official Exam Vouchers that include the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b>. Start with a free {TEASER_N}-question teaser — no card needed.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 motion-safe:animate-fade-up motion-safe:[animation-delay:240ms] sm:flex-row">
+              <Link href="/practice-exams" className="btn-primary group min-h-[48px] px-6 text-base">
+                <BookOpenCheck className="h-5 w-5" aria-hidden="true" /> Browse Practice Exams
+              </Link>
+              <Link
+                href="/exam-vouchers"
+                className="btn group min-h-[48px] bg-gradient-to-r from-emerald-600 to-teal-600 px-6 text-base text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 dark:from-emerald-500 dark:to-teal-500"
+              >
+                <Ticket className="h-5 w-5" aria-hidden="true" /> Get an Exam Voucher
+              </Link>
+            </div>
+            <form action="/practice-exams" className="mt-5 flex max-w-lg items-center gap-2 rounded-lg border border-brand-200 bg-white p-1.5 shadow-lift motion-safe:animate-fade-up motion-safe:[animation-delay:320ms] dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-glow">
+              <Search className="ml-3 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
               <input
                 name="q"
                 type="search"
-                aria-label="Search certification practice exams"
-                placeholder="Search exams (e.g. SAA-C03, AZ-900, CCAO-F)"
+                aria-label="Search Practice Exams"
+                placeholder="Search exams (e.g. SAA-C03, AZ-900)"
                 className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none dark:placeholder:text-slate-500"
               />
-              <button className="btn-primary">Search</button>
+              <button className="btn-primary min-h-[40px]">Search</button>
             </form>
-            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-              Ready to book the real exam?{' '}
-              <Link href="/exam-vouchers" className="font-semibold text-brand-700 hover:underline dark:text-brand-300">
-                Get an official exam voucher — practice exam included →
-              </Link>
-            </p>
-            <dl className="mt-4 grid max-w-lg grid-cols-3 gap-3">
-              {[
-                { k: '100+', v: 'certifications' },
-                { k: `${TEASER_N}`, v: 'free questions' },
-                { k: '24/7', v: 'timed mock exams' }
-              ].map((f) => (
-                <div key={f.v} className="rounded-lg border border-brand-200/80 bg-white/85 px-3 py-2.5 shadow-card dark:border-slate-700/80 dark:bg-slate-900/70">
-                  <dt className="font-display text-2xl font-extrabold text-brand-700 dark:text-brand-300">{f.k}</dt>
-                  <dd className="text-xs text-muted dark:text-slate-400">{f.v}</dd>
-                </div>
-              ))}
-            </dl>
-            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted dark:text-slate-400">
-              <span className="inline-flex items-center gap-1"><ShieldCheck className="h-4 w-4" /> Money-back guarantee</span>
-              <span className="inline-flex items-center gap-1"><Sparkles className="h-4 w-4" /> Exam Mode + Practice Mode</span>
-              <span className="inline-flex items-center gap-1"><Award className="h-4 w-4" /> Original, blueprint-aligned questions</span>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted motion-safe:animate-fade-up motion-safe:[animation-delay:400ms] dark:text-slate-400">
+              <span className="inline-flex items-center gap-1"><ShieldCheck className="h-4 w-4" aria-hidden="true" /> Money-back guarantee</span>
+              <span className="inline-flex items-center gap-1"><Sparkles className="h-4 w-4" aria-hidden="true" /> Exam mode + Practice mode</span>
+              <span className="inline-flex items-center gap-1"><Award className="h-4 w-4" aria-hidden="true" /> Original, blueprint-aligned questions</span>
             </div>
           </div>
-          <HeroExamVisual />
-        </div>
-      </section>
-
-      {/* Vendors */}
-      <section className="container-app py-5">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <div className="eyebrow">Catalog</div>
-            <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Browse by vendor</h2>
-          </div>
-          <Link href="/vendors" className="text-sm font-semibold text-brand hover:underline">View all →</Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-          {vendors.map(v => {
-            const total = v._count.exams + (bundleCountByVendor.get(v.slug) || 0);
-            return (
-              <Link key={v.id} href={`/practice-exams/${v.slug}`} className="card-hover group flex flex-col items-center justify-center px-4 py-4 text-center">
-                <div className="font-display text-base font-bold group-hover:text-brand">{v.name}</div>
-                <div className="mt-0.5 font-mono text-[11px] uppercase tracking-wider text-muted dark:text-slate-400">{total} exam{total === 1 ? '' : 's'}</div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Popular practice exams — one per certification, the only thing the app sells. */}
-      <section className="border-y border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-5">
-          <div className="eyebrow">Newest practice exams</div>
-          <h2 className="mb-3 mt-1 text-2xl font-extrabold tracking-tight">Popular practice exams</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {recentBundles.map((b) => {
-              const first = b.items[0]?.exam;
-              // Strip the per-variant suffix from the code chip — the cards
-              // represent the whole bundle, not the first variant, so showing
-              // e.g. "SOA-C03-P1" misleads users into thinking they're
-              // browsing a single variant. Mirrors the convention used in
-              // [bundle-as-exam-view](src/app/practice-exams/[vendor]/[slug]/bundle-as-exam-view.tsx).
-              const displayCode = first?.code.replace(/-P\d+$/i, '');
-              // Link to the unified `/practice-exams/[vendor]/[slug]` route
-              // (which renders BundleAsExamView with PICK A PRODUCT) instead of
-              // the legacy `/bundles/[slug]` page. Keeps the URL surface
-              // consistent with the catalog and the vendor pages.
-              const bundleHref = first
-                ? `/practice-exams/${first.vendor.slug}/${b.slug}`
-                : `/bundles/${b.slug}`;
-              return (
-                <Link key={b.id} href={bundleHref} className="card-hover p-4">
-                  <div className="eyebrow mb-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
-                    {first && <span>{first.vendor.name}</span>}
-                    {displayCode && <><span aria-hidden="true">·</span><span>{displayCode}</span></>}
-                    {first && <><span aria-hidden="true">·</span><span>{first.level}</span></>}
-                  </div>
-                  <h3 className="text-lg font-bold leading-snug">{b.title}</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{b.description}</p>
-                  <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="text-slate-500 dark:text-slate-400">{poolCardLabel(b.items)}</span>
-                    <span className="font-display font-bold text-brand dark:text-blue-400">{b.price === 0 ? 'Free' : `from ${formatPrice(b.price)}`}</span>
-                  </div>
-                </Link>
-              );
-            })}
-            {recentBundles.length === 0 && <p className="text-sm text-slate-500">No practice exams published yet.</p>}
+          <div className="min-w-0 motion-safe:animate-fade-up motion-safe:[animation-delay:200ms]">
+            <HeroExamVisual />
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how" className="container-app py-5">
-        <div className="text-center">
-          <div className="eyebrow">How it works</div>
-          <h2 className="mt-1 text-2xl font-extrabold tracking-tight">From first question to exam day</h2>
+      {/* Two product categories — the centrepiece */}
+      <section id="products" className="container-app py-14 md:py-20">
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <div className="eyebrow">Two ways to get certified</div>
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">Practise for it. Then go book it.</h2>
+          <p className="mt-3 text-slate-600 dark:text-slate-300">
+            Start with a Practice Exam, or go all in with the official Exam Voucher — your Practice Exam comes free with it.
+          </p>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {[
-            { icon: BookOpen, t: 'Choose an exam', d: 'Pick from 100+ vendors and certifications.' },
-            { icon: Sparkles, t: `Try ${TEASER_N} questions free`, d: 'Get a feel for our practice content before you buy.' },
-            { icon: BadgeCheck, t: 'Sit a realistic mock', d: 'Timed Exam Mode with Mark for review, a review screen and a domain score report.' }
-          ].map((s, i) => (
-            <div key={i} className="card relative p-4">
-              <span className="absolute right-5 top-5 font-mono text-xs text-muted">0{i + 1}</span>
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand dark:bg-blue-950/50 dark:text-blue-300">
-                <s.icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-3 text-lg font-bold">{s.t}</h3>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{s.d}</p>
+        <div className="mx-auto max-w-5xl">
+          <CategoryShowcase voucherFrom={voucherFrom} teaserN={TEASER_N} />
+        </div>
+      </section>
+
+      {/* Popular certifications — each card shows both options */}
+      <section className="border-y border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="container-app py-12 md:py-16">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <div className="eyebrow">Popular Certifications</div>
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl">Start with a top Certification</h2>
             </div>
-          ))}
+            <Link href="/practice-exams" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
+              View all <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {popular.map((b) => <ProductCard key={b.id} b={b} />)}
+            {popular.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400">No Practice Exams published yet.</p>}
+          </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-5">
-          <div className="text-center">
-            <div className="eyebrow">Products</div>
-            <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Three ways to prepare</h2>
+      {/* Vendors — gentle marquee; a static wrap under reduced motion */}
+      {vendorChips.length > 0 && (
+        <section className="container-app py-12 md:py-14">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <div className="eyebrow">Vendors</div>
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Certifications from the names you know</h2>
+            </div>
+            <Link href="/vendors" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
+              All Vendors <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            {[
-              { t: `Try ${TEASER_N} questions for free`, d: 'Free teaser on every exam — no credit card required. Get a feel for our content before you buy.', cta: 'Browse exams', href: '/practice-exams' },
-              { t: 'Practice Exam', d: 'Full access to the practice question bank with detailed explanations. Practice Mode and Exam Mode included.', cta: 'Browse', href: '/practice-exams' },
-              { t: 'Exam Voucher (practice included)', d: 'A real exam voucher PLUS full practice access for the same exam — no separate practice purchase needed.', cta: 'Browse vouchers', href: '/exam-vouchers' }
-            ].map((p, i) => (
-              <div key={i} className={`card flex flex-col p-4 ${i === 1 ? 'border-brand ring-1 ring-brand' : ''}`}>
-                <h3 className="text-lg font-bold">{p.t}</h3>
-                <p className="mb-4 mt-1 text-sm text-slate-600 dark:text-slate-400">{p.d}</p>
-                <Link href={p.href} className={`${i === 1 ? 'btn-primary' : 'btn-outline'} mt-auto w-full`}>{p.cta}</Link>
-              </div>
+          <div className="group relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)] motion-reduce:hidden">
+            <div className="flex w-max animate-marquee gap-3 py-1 group-hover:[animation-play-state:paused]">
+              {[0, 1].map((copy) =>
+                vendorChips.map((v) => (
+                  <Link
+                    key={`${copy}-${v.id}`}
+                    href={`/practice-exams/${v.slug}`}
+                    aria-hidden={copy === 1 ? true : undefined}
+                    tabIndex={copy === 1 ? -1 : undefined}
+                    className="card-hover flex min-h-[44px] shrink-0 items-center gap-2 px-4 py-2.5"
+                  >
+                    <span className="font-display font-bold">{v.name}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-muted dark:text-slate-400">{v.count}</span>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="hidden flex-wrap gap-2 motion-reduce:flex">
+            {vendorChips.map((v) => (
+              <Link key={v.id} href={`/practice-exams/${v.slug}`} className="card-hover flex min-h-[44px] items-center gap-2 px-4 py-2.5">
+                <span className="font-display font-bold">{v.name}</span>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-muted dark:text-slate-400">{v.count}</span>
+              </Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* How it works */}
+      <section id="how" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="container-app py-12 md:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="eyebrow">How it works</div>
+            <h2 className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl">From first question to exam day</h2>
+          </div>
+          <ol className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              { icon: MousePointerClick, t: 'Pick your Certification', d: `Search ${certCount}+ Certifications by Vendor, level or exam code.` },
+              { icon: ListChecks, t: `Take the free ${TEASER_N}-question teaser`, d: 'Sample the question quality and the real test-centre screen — no card needed.' },
+              { icon: Trophy, t: 'Practise, then book', d: `Buy the Practice Exam for ${practicePrice}, or the Exam Voucher with the Practice Exam included free.` }
+            ].map((s, i) => (
+              <li key={s.t} className="card relative p-6">
+                <span className="absolute right-5 top-5 font-mono text-xs text-muted">0{i + 1}</span>
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+                  <s.icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <h3 className="mt-4 text-lg font-bold">{s.t}</h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{s.d}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
       <LandingTestimonials />
 
       {/* FAQ */}
-      <section id="faq" className="border-t border-brand-100 bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-5">
+      <section id="faq" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="container-app py-12 md:py-16">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-extrabold tracking-tight">Frequently asked questions</h2>
-            <p className="mt-2 text-slate-600 dark:text-slate-400">
-              Quick answers to common questions about how Tertiary Exams works.
-            </p>
+            <div className="eyebrow">FAQ</div>
+            <h2 className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl">Frequently asked questions</h2>
           </div>
 
-          <div className="mx-auto mt-4 max-w-3xl space-y-2">
+          <div className="mx-auto mt-8 max-w-3xl space-y-2">
             {FAQS.map((f, i) => (
-              <details key={i} className="group rounded-xl border border-slate-200 bg-white px-5 py-3 transition hover:border-slate-300 hover:shadow-sm open:border-brand/50 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-base font-semibold text-slate-900 dark:text-slate-100">
+              <details key={i} className="group rounded-xl border border-line bg-white px-5 py-3 transition hover:border-brand-200 hover:shadow-sm open:border-brand/50 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-slate-900 dark:text-slate-100">
                   <span>{f.q}</span>
-                  <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 group-open:text-blue-600 dark:group-open:text-blue-400" />
+                  <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 group-open:text-blue-600 dark:group-open:text-blue-400" aria-hidden="true" />
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{f.a}</p>
+                <p className="mt-2 pb-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{f.a}</p>
               </details>
             ))}
           </div>
 
-          <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
+          <p className="mx-auto mt-6 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
             Still have questions? <Link href="/p/support" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Contact our support team</Link> — we typically reply within one business day.
           </p>
         </div>

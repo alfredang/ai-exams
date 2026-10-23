@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
 
 /**
- * AI Assist button for the Create Exam form. Reads vendor + code + title
+ * AI Assist button for the Create Practice Exam form. Reads vendor + code + title
  * from the form, calls /api/admin/exams/lookup, and writes the returned
  * fields back into the form inputs by `name=`. The form on the page is a
  * normal server-action <form>; we mutate the inputs in-place so the user
@@ -21,7 +21,7 @@ export function CreateExamAiAssist({ vendorMap }: { vendorMap: Record<string, st
     try {
       const form = document.querySelector('form[data-create-exam]') as HTMLFormElement | null;
       if (!form) {
-        setErr('Could not find the Create Exam form.');
+        setErr('Could not find the Create Practice Exam form.');
         return;
       }
       const vendorId = (form.querySelector('[name="vendorId"]') as HTMLSelectElement | null)?.value || '';
@@ -96,8 +96,8 @@ export function CreateExamAiAssist({ vendorMap }: { vendorMap: Record<string, st
           {busy ? 'Looking up…' : 'AI Assist'}
         </button>
       </div>
-      {ok && <p className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-300">{ok}</p>}
-      {err && <p className="mt-2 text-[11px] text-red-600">{err}</p>}
+      {ok && <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-300">{ok}</p>}
+      {err && <p className="mt-2 text-xs text-red-600">{err}</p>}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
-import { formatPrice } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
 import { CouponKind, CouponScope } from '@prisma/client';
 
@@ -233,15 +233,15 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
 
         <div className="space-y-3">
           <section className="card p-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Usage</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Usage</h2>
             <div className="mt-2 text-2xl font-semibold">{coupon._count.redemptions}</div>
             <div className="text-[12px] text-slate-500">
               {coupon.maxRedemptions != null ? `of ${coupon.maxRedemptions} total allowed` : 'no total cap'}
             </div>
           </section>
           <section className="card p-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Quick link</h2>
-            <div className="mt-2 text-[11px] text-slate-500">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Quick link</h2>
+            <div className="mt-2 text-xs text-slate-500">
               Customers redeem this on the checkout page by entering:
             </div>
             <code className="mt-1 block break-all rounded bg-slate-50 px-2 py-1 text-[12px] font-semibold dark:bg-slate-800">{coupon.code}</code>
@@ -250,13 +250,13 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
       </div>
 
       <section className="card mt-4 p-4">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Recent redemptions</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Recent redemptions</h2>
         {redemptions.length === 0 ? (
           <p className="mt-2 text-[12px] text-slate-500">None yet.</p>
         ) : (
           <table className="mt-2 w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                 <th className="py-1">When</th>
                 <th className="py-1">User</th>
                 <th className="py-1">Order</th>
@@ -275,9 +275,9 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
                       {r.order.number ?? r.order.id.slice(0, 10)}
                     </Link>
                   </td>
-                  <td className="py-1.5 text-right">{formatPrice(r.order.amount, r.order.currency)}</td>
+                  <td className="py-1.5 text-right">{formatMoney(r.order.amount, r.order.currency)}</td>
                   <td className="py-1.5 text-right font-medium text-emerald-700 dark:text-emerald-400">
-                    −{formatPrice(r.amount, r.order.currency)}
+                    −{formatMoney(r.amount, r.order.currency)}
                   </td>
                   <td className="py-1.5">
                     <Badge variant={r.order.status === 'PAID' ? 'success' : r.order.status === 'REFUNDED' ? 'warn' : 'muted'}>
@@ -297,7 +297,7 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
       {children}
     </label>
   );

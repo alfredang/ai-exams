@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { auth, isSuperAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { formatPrice, tierLabel } from '@/lib/utils';
+import { formatMoney, tierLabel } from '@/lib/utils';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
@@ -314,7 +314,7 @@ export default async function AdminUserDetailPage({
       <Badge variant={user.role === 'ADMIN' ? 'info' : 'muted'}>{user.role}</Badge>
       <span>· joined {user.createdAt.toLocaleDateString()}</span>
       <span>· {paidCount} paid order{paidCount === 1 ? '' : 's'}</span>
-      {ltv > 0 && <span>· LTV {formatPrice(ltv, orders[0]?.currency ?? 'USD')}</span>}
+      {ltv > 0 && <span>· LTV {formatMoney(ltv, orders[0]?.currency ?? 'USD')}</span>}
     </span>
   );
 
@@ -335,7 +335,7 @@ export default async function AdminUserDetailPage({
       {/* Tag chips + add */}
       <div className="card mb-4 flex flex-wrap items-center gap-2 p-3">
         <TagIcon className="h-3.5 w-3.5 text-slate-400" />
-        {user.tags.length === 0 && <span className="text-[11px] text-slate-500">No tags yet.</span>}
+        {user.tags.length === 0 && <span className="text-xs text-slate-500">No tags yet.</span>}
         {user.tags.map(({ tag }) => (
           <form key={tag.id} action={detachTag} className="inline-flex">
             <input type="hidden" name="userId" value={user.id} />
@@ -343,7 +343,7 @@ export default async function AdminUserDetailPage({
             <button
               type="submit"
               title="Click to remove"
-              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-red-100 hover:text-red-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 hover:bg-red-100 hover:text-red-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-red-950/40 dark:hover:text-red-300"
             >
               {tag.label}
               <span aria-hidden>×</span>
@@ -355,9 +355,9 @@ export default async function AdminUserDetailPage({
           <input
             name="tag"
             placeholder="Add tag…"
-            className="input-sm h-7 w-32 text-[11px]"
+            className="input-sm h-7 w-32 text-xs"
           />
-          <button className="inline-flex h-7 items-center rounded bg-blue-600 px-2 text-[11px] font-medium text-white hover:bg-blue-700">
+          <button className="inline-flex h-7 items-center rounded bg-blue-600 px-2 text-xs font-medium text-white hover:bg-blue-700">
             Add
           </button>
         </form>
@@ -430,7 +430,7 @@ export default async function AdminUserDetailPage({
                     {notes.filter((n) => n.pinned).map((n) => (
                       <li key={n.id} className="rounded-md border border-amber-200 bg-amber-50 p-2 dark:border-amber-900/40 dark:bg-amber-950/30">
                         <div className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">{n.body}</div>
-                        <div className="mt-1 text-[10px] text-slate-500">
+                        <div className="mt-1 text-[11px] text-slate-500">
                           {n.author.name ?? n.author.email} · {n.createdAt.toLocaleString()}
                         </div>
                       </li>
@@ -448,7 +448,7 @@ export default async function AdminUserDetailPage({
               ) : (
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
+                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                       <th className="py-1">No.</th>
                       <th className="py-1">When</th>
                       <th className="py-1">Product</th>
@@ -469,7 +469,7 @@ export default async function AdminUserDetailPage({
                         <td className="py-1.5">{o.bundle?.title ?? o.exam?.title ?? '—'}{o.tier && ` · ${tierLabel(o.tier)}`}</td>
                         <td className="py-1.5 text-slate-500">{o.provider}</td>
                         <td className="py-1.5"><StatusBadge status={o.status} /></td>
-                        <td className="py-1.5 text-right font-medium">{formatPrice(o.amount, o.currency)}</td>
+                        <td className="py-1.5 text-right font-medium">{formatMoney(o.amount, o.currency)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -485,7 +485,7 @@ export default async function AdminUserDetailPage({
               ) : (
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
+                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                       <th className="py-1">Number</th>
                       <th className="py-1">Date</th>
                       <th className="py-1 text-right">Amount</th>
@@ -503,11 +503,11 @@ export default async function AdminUserDetailPage({
                           </Link>
                         </td>
                         <td className="py-1.5">{inv.issueDate.toISOString().slice(0, 10)}</td>
-                        <td className="py-1.5 text-right">{formatPrice(inv.total, inv.currency)}</td>
-                        <td className="py-1.5 text-right">{inv.taxAmount === 0 ? '—' : formatPrice(inv.taxAmount, inv.currency)}</td>
+                        <td className="py-1.5 text-right">{formatMoney(inv.total, inv.currency)}</td>
+                        <td className="py-1.5 text-right">{inv.taxAmount === 0 ? '—' : formatMoney(inv.taxAmount, inv.currency)}</td>
                         <td className="py-1.5"><StatusBadge status={inv.status} /></td>
                         <td className="py-1.5 text-right">
-                          <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 hover:underline">PDF</a>
+                          <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">PDF</a>
                         </td>
                       </tr>
                     ))}
@@ -528,8 +528,8 @@ export default async function AdminUserDetailPage({
                       <div>
                         <span className="font-medium">{e.exam.vendor.name} · {e.exam.code}</span>
                         <span className="ml-2 text-slate-500">{e.exam.title}</span>
-                        <span className="ml-2 text-[10px] text-slate-400">{e.tier}</span>
-                        {e.voucher && <span className="ml-2 rounded bg-violet-100 px-1.5 py-0.5 font-mono text-[10px] text-violet-800 dark:bg-violet-950/40 dark:text-violet-200">{e.voucher}</span>}
+                        <span className="ml-2 text-[11px] text-slate-400">{e.tier}</span>
+                        {e.voucher && <span className="ml-2 rounded bg-violet-100 px-1.5 py-0.5 font-mono text-[11px] text-violet-800 dark:bg-violet-950/40 dark:text-violet-200">{e.voucher}</span>}
                       </div>
                       {e.delivery && <StatusBadge status={e.delivery.status} />}
                     </li>
@@ -538,7 +538,7 @@ export default async function AdminUserDetailPage({
               )}
               <form action={regrant} className="mt-3 flex flex-wrap items-end gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
                 <input type="hidden" name="userId" value={user.id} />
-                <label className="flex flex-col text-[10px] uppercase tracking-wider text-slate-500">
+                <label className="flex flex-col text-[11px] uppercase tracking-wider text-slate-500">
                   Grant ADMIN_GRANT for exam
                   <select name="examId" className="input-sm mt-0.5 w-72" defaultValue="">
                     <option value="">Select exam…</option>
@@ -566,7 +566,7 @@ export default async function AdminUserDetailPage({
                         <span className="font-mono font-semibold">{e.voucher}</span>
                         <span className="ml-2 text-slate-500">{e.exam.vendor.name} · {e.exam.code}</span>
                       </div>
-                      <a href={`/api/vouchers/${e.id}/pdf`} target="_blank" rel="noreferrer" className="text-[11px] text-blue-600 hover:underline">PDF</a>
+                      <a href={`/api/vouchers/${e.id}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">PDF</a>
                     </li>
                   ))}
                 </ul>
@@ -581,7 +581,7 @@ export default async function AdminUserDetailPage({
               ) : (
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
+                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                       <th className="py-1">Started</th>
                       <th className="py-1">Exam</th>
                       <th className="py-1">Mode</th>
@@ -616,7 +616,7 @@ export default async function AdminUserDetailPage({
               ) : (
                 <table className="w-full text-[12px]">
                   <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500">
+                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                       <th className="py-1">Sent</th>
                       <th className="py-1">Template</th>
                       <th className="py-1">Subject</th>
@@ -627,7 +627,7 @@ export default async function AdminUserDetailPage({
                     {emails.map((e) => (
                       <tr key={e.id}>
                         <td className="py-1.5">{e.sentAt.toLocaleString()}</td>
-                        <td className="py-1.5"><code className="text-[10px]">{e.template ?? '—'}</code></td>
+                        <td className="py-1.5"><code className="text-[11px]">{e.template ?? '—'}</code></td>
                         <td className="py-1.5 truncate">{e.subject}</td>
                         <td className="py-1.5"><StatusBadge status={e.status} /></td>
                       </tr>
@@ -650,11 +650,11 @@ export default async function AdminUserDetailPage({
                   required
                 />
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                  <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
                     <input type="checkbox" name="pinned" />
                     Pin to top of profile
                   </label>
-                  <button className="inline-flex h-7 items-center rounded-md bg-blue-600 px-3 text-[11px] font-medium text-white hover:bg-blue-700">
+                  <button className="inline-flex h-7 items-center rounded-md bg-blue-600 px-3 text-xs font-medium text-white hover:bg-blue-700">
                     Add note
                   </button>
                 </div>
@@ -673,7 +673,7 @@ export default async function AdminUserDetailPage({
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{n.body}</div>
-                      <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                      <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
                         <span>{n.author.name ?? n.author.email} · {n.createdAt.toLocaleString()}</span>
                         <span className="flex items-center gap-2">
                           <form action={togglePinNote} className="inline-flex">
@@ -706,12 +706,12 @@ export default async function AdminUserDetailPage({
                   {activity.map((l) => (
                     <li key={l.id} className="py-1.5">
                       <div className="flex items-center justify-between">
-                        <code className="text-[11px] font-medium">{l.action}</code>
-                        <span className="text-[10px] text-slate-500">{l.createdAt.toLocaleString()}</span>
+                        <code className="text-xs font-medium">{l.action}</code>
+                        <span className="text-[11px] text-slate-500">{l.createdAt.toLocaleString()}</span>
                       </div>
-                      <div className="text-[10px] text-slate-500">{l.admin.name ?? l.admin.email}</div>
+                      <div className="text-[11px] text-slate-500">{l.admin.name ?? l.admin.email}</div>
                       {l.metadata && Object.keys(l.metadata as any).length > 0 && (
-                        <code className="mt-0.5 block truncate text-[10px] text-slate-500">{JSON.stringify(l.metadata)}</code>
+                        <code className="mt-0.5 block truncate text-[11px] text-slate-500">{JSON.stringify(l.metadata)}</code>
                       )}
                     </li>
                   ))}
@@ -727,20 +727,20 @@ export default async function AdminUserDetailPage({
             <div className="space-y-1.5">
               <form action={toggleActive}>
                 <input type="hidden" name="id" value={user.id} />
-                <button className={`inline-flex h-7 w-full items-center justify-center gap-1 rounded-md text-[11px] font-medium ${user.active ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
+                <button className={`inline-flex h-7 w-full items-center justify-center gap-1 rounded-md text-xs font-medium ${user.active ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
                   {user.active ? <><Ban className="h-3 w-3" /> Suspend</> : <><CheckCircle2 className="h-3 w-3" /> Activate</>}
                 </button>
               </form>
               <form action={forceLogout}>
                 <input type="hidden" name="id" value={user.id} />
-                <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                   <LogOut className="h-3 w-3" /> Force logout
                 </button>
               </form>
               {user.active && !user.anonymizedAt && (
                 <form action={resendLoginOtp}>
                   <input type="hidden" name="id" value={user.id} />
-                  <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                     <Send className="h-3 w-3" /> Send login OTP
                   </button>
                 </form>
@@ -751,7 +751,7 @@ export default async function AdminUserDetailPage({
                   <ConfirmButton
                     message={`Impersonate ${user.email}? You'll appear logged in as them for 30 minutes.`}
                     variant="primary"
-                    className="h-7 w-full justify-center gap-1 rounded-md border border-blue-300 px-2 text-[11px] font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/30"
+                    className="h-7 w-full justify-center gap-1 rounded-md border border-blue-300 px-2 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/30"
                   >
                     <EyeIcon className="h-3 w-3" /> Impersonate
                   </ConfirmButton>
@@ -764,7 +764,7 @@ export default async function AdminUserDetailPage({
             <a
               href={`/api/admin/users/${user.id}/export-data`}
               download
-              className="inline-flex h-7 items-center justify-center gap-1 rounded-md border border-slate-300 px-2 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="inline-flex h-7 items-center justify-center gap-1 rounded-md border border-slate-300 px-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               Download data export (JSON)
             </a>
@@ -772,7 +772,7 @@ export default async function AdminUserDetailPage({
 
           {!user.anonymizedAt && (
             <Card title="Danger zone">
-              <p className="mb-2 text-[11px] text-slate-500">
+              <p className="mb-2 text-xs text-slate-500">
                 Anonymizing scrubs PII (email, name, password, nationality) and suspends the account.
                 Order, invoice and entitlement rows are kept so revenue history stays intact. <b>Cannot be undone.</b>
               </p>
@@ -780,7 +780,7 @@ export default async function AdminUserDetailPage({
                 <input type="hidden" name="id" value={user.id} />
                 <ConfirmButton
                   message={`Anonymize ${user.email}? This cannot be undone.`}
-                  className="h-7 w-full justify-center gap-1 rounded-md bg-red-600 px-2 text-[11px] font-medium text-white hover:bg-red-700"
+                  className="h-7 w-full justify-center gap-1 rounded-md bg-red-600 px-2 text-xs font-medium text-white hover:bg-red-700"
                 >
                   <ShieldOff className="h-3 w-3" /> Anonymize (GDPR)
                 </ConfirmButton>
@@ -796,7 +796,7 @@ export default async function AdminUserDetailPage({
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="card p-4">
-      <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{title}</h2>
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</h2>
       {children}
     </section>
   );

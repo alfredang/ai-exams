@@ -64,7 +64,7 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
     <div className="space-y-4">
       <form onSubmit={submit} className="card grid gap-3 p-4 md:grid-cols-2">
         <label className="md:col-span-2 block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">URLs (one per line, max 10)</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">URLs (one per line, max 10)</span>
           <textarea
             value={urls}
             onChange={(e) => setUrls(e.target.value)}
@@ -73,10 +73,10 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
             className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             required
           />
-          <span className="mt-1 block text-[11px] text-slate-500">Uses Firecrawl to scrape each URL to markdown. The Firecrawl API key must be set in Settings → Credentials.</span>
+          <span className="mt-1 block text-xs text-slate-500">Uses Firecrawl to scrape each URL to markdown. The Firecrawl API key must be set in Settings → Credentials.</span>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Domain</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Domain</span>
           {domains.length > 0 ? (
             <select value={domain} onChange={(e) => setDomain(e.target.value)} className="input-sm">
               {domains.map((d) => (<option key={d} value={d}>{d}</option>))}
@@ -86,7 +86,7 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
           )}
         </label>
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Question type</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Question type</span>
           <select value={type} onChange={(e) => setType(e.target.value as any)} className="input-sm">
             <option value="SINGLE">Single answer</option>
             <option value="MULTI">Multiple answers</option>
@@ -94,11 +94,11 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Count (1-25)</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Count (1-25)</span>
           <input type="number" min={1} max={25} value={count} onChange={(e) => setCount(Number(e.target.value) || 5)} className="input-sm" />
         </label>
         <label className="block">
-          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">Difficulty (1-5)</span>
+          <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Difficulty (1-5)</span>
           <input type="number" min={1} max={5} value={difficulty} onChange={(e) => setDifficulty(Math.max(1, Math.min(5, Number(e.target.value) || 3)) as any)} className="input-sm" />
         </label>
         <label className="md:col-span-2 inline-flex items-center gap-2 text-[12px] text-slate-700 dark:text-slate-200">
@@ -113,7 +113,7 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
           >
             {busy ? 'Scraping + generating…' : 'Scrape & generate'}
           </button>
-          {phase && <span className="ml-3 text-[11px] text-slate-500">{phase}</span>}
+          {phase && <span className="ml-3 text-xs text-slate-500">{phase}</span>}
         </div>
       </form>
       <SourceStreamPanel busy={busy} questions={questions} progress={progress} error={error} />

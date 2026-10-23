@@ -150,7 +150,7 @@ export default async function PaymentGuidePage() {
           </Step>
           <Step n={5} title="Verify">
             <p>
-              Open any bundle checkout — the PayPal buttons should render. With sandbox credentials, pay using a{' '}
+              Open any Practice Exam checkout — the PayPal buttons should render. With sandbox credentials, pay using a{' '}
               <Ext href="https://developer.paypal.com/dashboard/accounts">sandbox personal account</Ext>; confirm the order flips to PAID under{' '}
               <Link href="/admin-dashboard/orders" className="font-medium text-blue-700 underline hover:no-underline dark:text-blue-300">Orders</Link>{' '}
               and the entitlements appear for the buyer.

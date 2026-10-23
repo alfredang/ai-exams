@@ -7,6 +7,7 @@ import { PUBLISHED_QUESTION_COUNT } from '@/lib/bundle-contents';
 import { BundleCheckoutClient } from './bundle-checkout-client';
 import { TestPaymentButton } from '@/components/test-payment-button';
 import { Check, Ticket, Zap, ArrowLeft } from 'lucide-react';
+import { displayExamCode, practiceHref, productSale, productTitle, voucherDescriptionFor, voucherHref } from '@/lib/products';
 
 export default async function BundleCheckoutPage({
   params,
@@ -27,16 +28,17 @@ export default async function BundleCheckoutPage({
     where: { id: bundleId },
     include: { items: { orderBy: { position: 'asc' }, include: { exam: { include: { vendor: true, ...PUBLISHED_QUESTION_COUNT } } } } }
   });
-  if (!bundle || !bundle.published) notFound();
-
-  const tier: 'PRACTICE' | 'VOUCHER' =
-    sp.tier === 'VOUCHER' && bundle.priceVoucher != null ? 'VOUCHER' : 'PRACTICE';
-  const amount = tier === 'VOUCHER' ? bundle.priceVoucher! : bundle.price;
+  const sale = bundle ? productSale(bundle, sp.tier) : null;
+  if (!bundle || !sale) notFound();
+  const { tier, amount } = sale;
   // One practice exam per product; the voucher tier includes it.
   const practiceExam = (bundle.items.find(i => i.tier === 'PRACTICE') ?? bundle.items[0])?.exam;
   const hasVoucher = tier === 'VOUCHER';
   const vendor = practiceExam?.vendor;
-  const firstCode = practiceExam?.code.replace(/-P\d+$/, '');
+  const firstCode = displayExamCode(practiceExam?.code);
+  const productPage = vendor
+    ? hasVoucher ? voucherHref(vendor.slug, bundle) : practiceHref(vendor.slug, bundle)
+    : hasVoucher ? '/exam-vouchers' : '/practice-exams';
   const poolSize = practiceExam?._count.questions ?? 0;
   const perAttempt = practiceExam ? Math.min(practiceExam.questionCount, poolSize) : 0;
 
@@ -44,11 +46,11 @@ export default async function BundleCheckoutPage({
     <div className="container-app max-w-6xl py-10">
       {/* Back link */}
       <Link
-        href={vendor ? `/practice-exams/${vendor.slug}/${bundle.slug}` : '/practice-exams'}
+        href={productPage}
         className="mb-6 inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to exam details
+        Back to {hasVoucher ? 'voucher' : 'practice exam'} details
       </Link>
 
       <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
@@ -62,11 +64,13 @@ export default async function BundleCheckoutPage({
               {vendor && <span className="badge-brand">{vendor.name}</span>}
               {firstCode && <span className="badge">{firstCode}</span>}
               <span className={`badge ${hasVoucher ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'}`}>
-                {hasVoucher ? 'Exam Voucher tier' : 'Practice Exam tier'}
+                {hasVoucher ? 'Exam Voucher' : 'Practice Exam'}
               </span>
             </div>
-            <h2 className="text-xl font-bold tracking-tight">{bundle.title}</h2>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{bundle.description}</p>
+            <h2 className="text-xl font-bold tracking-tight">{productTitle(bundle, tier)}</h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              {hasVoucher ? voucherDescriptionFor(bundle, { vendorName: vendor?.name, code: firstCode }) : bundle.description}
+            </p>
           </div>
 
           <div className="card p-6">
@@ -76,7 +80,7 @@ export default async function BundleCheckoutPage({
                 <li className="flex items-start gap-3">
                   <Check className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
                   <div className="flex-1">
-                    <div className="font-medium text-slate-900 dark:text-slate-100">{firstCode} practice exam{hasVoucher ? ' (included)' : ''}</div>
+                    <div className="font-medium text-slate-900 dark:text-slate-100">{firstCode} Practice Exam{hasVoucher ? ' — included free' : ''}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{perAttempt} questions · {practiceExam.durationMinutes} min · Practice + Exam modes · unlimited retakes, each drawn fresh by exam domain</div>
                   </div>
                 </li>

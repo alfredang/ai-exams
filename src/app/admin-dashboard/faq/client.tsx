@@ -79,7 +79,7 @@ export default function FaqAdminClient({ initial }: { initial: FaqRow[] }) {
       <div className="card flex flex-wrap items-center gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
         <div className="flex-1 min-w-[260px]">
           <div className="text-sm font-medium">AI Assist — bulk generate FAQs</div>
-          <div className="text-[11px] text-slate-500">
+          <div className="text-xs text-slate-500">
             Claude drafts FAQ pairs about Tertiary Exams. Adds them as published rows; review and edit per row below.
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function FaqAdminClient({ initial }: { initial: FaqRow[] }) {
 
       {bulkOpen && (
         <div className="card border-violet-200 bg-violet-50 p-3 text-sm dark:border-violet-900 dark:bg-violet-950/30">
-          <label className="block text-[11px] font-medium text-violet-900 dark:text-violet-200">
+          <label className="block text-xs font-medium text-violet-900 dark:text-violet-200">
             Focus / topic for the new FAQs
           </label>
           <textarea
@@ -114,7 +114,7 @@ export default function FaqAdminClient({ initial }: { initial: FaqRow[] }) {
             className="mt-1 w-full rounded border border-violet-300 bg-white px-2 py-1.5 text-xs dark:border-violet-800 dark:bg-slate-900"
           />
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <label className="text-[11px] text-violet-900 dark:text-violet-200">
+            <label className="text-xs text-violet-900 dark:text-violet-200">
               Number of entries:
               <input
                 type="number"
@@ -135,7 +135,7 @@ export default function FaqAdminClient({ initial }: { initial: FaqRow[] }) {
               {bulkBusy ? 'Generating…' : 'Generate'}
             </button>
           </div>
-          {bulkErr && <p className="mt-1 text-[11px] text-rose-600">{bulkErr}</p>}
+          {bulkErr && <p className="mt-1 text-xs text-rose-600">{bulkErr}</p>}
         </div>
       )}
 
@@ -244,12 +244,12 @@ function FaqEditor({
               type="button"
               onClick={aiRewrite}
               disabled={aiBusy || !aiInstr.trim()}
-              className="inline-flex h-7 items-center gap-1 whitespace-nowrap rounded bg-violet-600 px-2 text-[11px] font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+              className="inline-flex h-7 items-center gap-1 whitespace-nowrap rounded bg-violet-600 px-2 text-xs font-medium text-white hover:bg-violet-700 disabled:opacity-50"
             >
               {aiBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
               {aiBusy ? 'Rewriting…' : 'Rewrite'}
             </button>
-            {aiErr && <span className="text-[11px] text-rose-600">{aiErr}</span>}
+            {aiErr && <span className="text-xs text-rose-600">{aiErr}</span>}
           </div>
         </div>
       )}
@@ -260,14 +260,14 @@ function FaqEditor({
           onChange={(e) => setPosition(Number(e.target.value) || 0)}
           className="input-sm w-20"
         />
-        <label className="inline-flex items-center gap-1 text-[11px]">
+        <label className="inline-flex items-center gap-1 text-xs">
           <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
           Published
         </label>
         <button
           type="button"
           onClick={() => setAiOpen((v) => !v)}
-          className="inline-flex h-7 items-center gap-1 whitespace-nowrap rounded bg-violet-600 px-2 text-[11px] font-medium text-white hover:bg-violet-700"
+          className="inline-flex h-7 items-center gap-1 whitespace-nowrap rounded bg-violet-600 px-2 text-xs font-medium text-white hover:bg-violet-700"
         >
           <Sparkles className="h-3 w-3" /> AI Assist
         </button>
@@ -275,19 +275,19 @@ function FaqEditor({
           type="button"
           onClick={save}
           disabled={saving}
-          className="ml-auto inline-flex h-7 items-center rounded-md bg-emerald-600 px-3 text-[11px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="ml-auto inline-flex h-7 items-center rounded-md bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
         <button
           type="button"
           onClick={del}
-          className="inline-flex h-7 items-center gap-1 rounded text-[11px] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+          className="inline-flex h-7 items-center gap-1 rounded text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
         >
           <Trash2 className="h-3 w-3" />
           Delete
         </button>
-        {msg && <span className="text-[11px] text-slate-500">{msg}</span>}
+        {msg && <span className="text-xs text-slate-500">{msg}</span>}
       </div>
     </div>
   );

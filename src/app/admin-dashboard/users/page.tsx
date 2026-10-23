@@ -133,7 +133,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
               <Link
                 key={tag.id}
                 href={`/admin-dashboard/users${buildQS({ ...baseParams, tag: tag.slug, page: undefined })}`}
-                className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-700 hover:bg-blue-100 hover:text-blue-700 dark:bg-slate-800 dark:text-slate-300"
+                className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-700 hover:bg-blue-100 hover:text-blue-700 dark:bg-slate-800 dark:text-slate-300"
               >
                 {tag.label}
               </Link>
@@ -157,33 +157,37 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
       key: 'orders',
       header: 'Orders',
       align: 'right',
-      cell: (u) => <span className="font-mono text-[11px]">{u._count.orders}</span>
+      cell: (u) => <span className="font-mono text-xs">{u._count.orders}</span>
     },
     {
       key: 'entitlements',
-      header: 'Ents',
+      header: 'Access',
       align: 'right',
-      cell: (u) => <span className="font-mono text-[11px]">{u._count.entitlements}</span>
+      cell: (u) => <span className="font-mono text-xs">{u._count.entitlements}</span>
     },
     {
       key: 'attempts',
       header: 'Attempts',
       align: 'right',
-      cell: (u) => <span className="font-mono text-[11px]">{u._count.attempts}</span>
+      cell: (u) => <span className="font-mono text-xs">{u._count.attempts}</span>
     },
     {
       key: 'joined',
       header: 'Joined',
-      cell: (u) => <span className="text-[11px] text-slate-500">{u.createdAt.toISOString().slice(0, 10)}</span>
+      cell: (u) => <span className="text-xs text-slate-500">{u.createdAt.toISOString().slice(0, 10)}</span>
     },
     {
       key: 'actions',
       header: '',
       align: 'right',
-      headerClassName: 'w-12',
+      sticky: true,
       cell: (u) => (
-        <Link href={`/admin-dashboard/users/${u.id}`} title="View" className="icon-btn">
-          <Eye className="h-3.5 w-3.5" />
+        <Link
+          href={`/admin-dashboard/users/${u.id}`}
+          aria-label={`Open ${u.email}`}
+          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-800"
+        >
+          <Eye className="h-3.5 w-3.5" /> Open
         </Link>
       )
     }
