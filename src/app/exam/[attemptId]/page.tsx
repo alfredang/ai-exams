@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth';
 import { ExamShell } from './exam-shell';
 import type { Responses } from '@/lib/attempts';
 import { sequencingSteps } from '@/lib/shuffle';
+import { drawAttemptQuestions, resolvePoolExam } from '@/lib/question-pool';
 
 export default async function ExamAttemptPage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params;
@@ -33,13 +34,27 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
     remaining = Math.max(0, Math.floor((attempt.expiresAt.getTime() - Date.now()) / 1000));
   }
 
-  const questions = await db.question.findMany({
-    where: { id: { in: attempt.questionIds } },
-    // `correct` is read only to number sequencing steps and count MULTI picks —
-    // it is never sent to the client.
-    select: { id: true, stem: true, type: true, options: true, domain: true, correct: true }
-  });
-  const ordered = attempt.questionIds.map(id => questions.find(q => q.id === id)!).filter(Boolean);
+  // `correct` is read only to number sequencing steps and count MULTI picks —
+  // it is never sent to the client.
+  const select = { id: true, stem: true, type: true, options: true, domain: true, correct: true } as const;
+  let questionIds = attempt.questionIds;
+  let responses = (attempt.responses as Responses) || {};
+  let questions = await db.question.findMany({ where: { id: { in: questionIds } }, select });
+  if (questions.length === 0 && questionIds.length > 0) {
+    // Every question this attempt drew has since been re-seeded (seeds delete
+    // and recreate by tag, minting new ids). Re-draw the same number from the
+    // current pool so the attempt can continue instead of crashing the runner.
+    const pool = await resolvePoolExam(db, attempt.examId);
+    const fresh = pool
+      ? await drawAttemptQuestions(db, pool, { teaser: attempt.isTeaser, count: questionIds.length })
+      : [];
+    if (fresh.length === 0) notFound();
+    await db.attempt.update({ where: { id: attempt.id }, data: { examId: pool!.id, questionIds: fresh, responses: {} } });
+    questionIds = fresh;
+    responses = {};
+    questions = await db.question.findMany({ where: { id: { in: questionIds } }, select });
+  }
+  const ordered = questionIds.map(id => questions.find(q => q.id === id)!).filter(Boolean);
 
   const runnerQuestions = ordered.map(q => {
     const options = (q.options as any[]).map(o => ({ id: String(o.id), text: String(o.text) }));
@@ -65,7 +80,7 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
       vendorSlug={attempt.exam.vendor.slug}
       questions={runnerQuestions}
       remainingSec={remaining}
-      initialResponses={(attempt.responses as Responses) || {}}
+      initialResponses={responses}
       isGuest={!attempt.userId}
     />
   );
