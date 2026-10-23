@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { refundCapture as paypalRefundCapture } from '@/lib/paypal';
 import { refundPayment as hitpayRefundPayment } from '@/lib/payments/hitpay';
 import { issueCreditNoteForInvoice } from '@/lib/invoice/issue';
+import { poolAccessExamIds, resolvePoolExam } from '@/lib/question-pool';
 import type { PaymentProvider, Tier } from '@prisma/client';
 
 export type RefundInput = {
@@ -247,11 +248,38 @@ async function callProviderRefund(
   }
 }
 
+type OrderWithItems = {
+  examId: string | null;
+  tier: Tier | null;
+  bundle: { items: { examId: string; tier: Tier }[] } | null;
+};
+
+/** The (exam, tier) pairs fulfillOrder() grants for an order. */
+function grantedBy(order: OrderWithItems): { examId: string; tier: Tier }[] {
+  if (order.bundle) {
+    const grantAll = !order.tier || order.tier === 'VOUCHER';
+    return order.bundle.items.filter((i) => grantAll || i.tier === order.tier).map((i) => ({ examId: i.examId, tier: i.tier }));
+  }
+  if (!order.examId || !order.tier) return [];
+  const tiers: Tier[] = order.tier === 'BUNDLE' || order.tier === 'VOUCHER' ? ['PRACTICE', 'VOUCHER'] : [order.tier];
+  return tiers.map((tier) => ({ examId: order.examId!, tier }));
+}
+
+/** Pool exam id for an exam (a retired variant resolves to its pool exam). */
+async function poolIdOf(examId: string, cache: Map<string, string>) {
+  if (!cache.has(examId)) cache.set(examId, (await resolvePoolExam(db, examId))?.id ?? examId);
+  return cache.get(examId)!;
+}
+
 /**
  * Take back what a fully refunded order granted: cancel undelivered vouchers
- * and remove entitlements no other paid order of the same user still covers.
+ * and remove the entitlements no other paid order of the same user still
+ * covers. Works per certification pool — the pool exam plus its retired
+ * variants — because older orders granted variants (e.g. SY0-701-P2) that a
+ * catalogue consolidation later folded into the pool, and those still unlock
+ * it. Safe to re-run (admin "Revoke remaining access").
  */
-async function revokeOrderAccess(orderId: string) {
+export async function revokeOrderAccess(orderId: string) {
   const order = await db.order.findUnique({
     where: { id: orderId },
     include: { bundle: { include: { items: true } } }
@@ -262,32 +290,23 @@ async function revokeOrderAccess(orderId: string) {
     data: { status: 'CANCELED' }
   });
 
-  const grantAll = !order.tier || order.tier === 'VOUCHER';
-  const granted: { examId: string; tier: Tier }[] = order.bundle
-    ? order.bundle.items.filter((i) => grantAll || i.tier === order.tier).map((i) => ({ examId: i.examId, tier: i.tier }))
-    : order.examId && order.tier
-      ? (order.tier === 'BUNDLE' || order.tier === 'VOUCHER' ? (['PRACTICE', 'VOUCHER'] as const) : [order.tier]).map((tier) => ({
-          examId: order.examId!,
-          tier
-        }))
-      : [];
-
+  const pools = new Map<string, string>();
   const otherPaid = await db.order.findMany({
     where: { userId: order.userId, status: 'PAID', id: { not: orderId } },
     include: { bundle: { include: { items: true } } }
   });
-  const stillCovered = (examId: string, tier: string) =>
-    otherPaid.some((o) =>
-      o.bundle
-        ? o.bundle.items.some((i) => i.examId === examId && i.tier === tier && (!o.tier || o.tier === 'VOUCHER' || o.tier === i.tier))
-        : o.examId === examId && (o.tier === tier || (tier !== 'BUNDLE' && (o.tier === 'BUNDLE' || o.tier === 'VOUCHER')))
-    );
+  const covered = new Set<string>();
+  for (const o of otherPaid) {
+    for (const g of grantedBy(o)) covered.add(`${await poolIdOf(g.examId, pools)}:${g.tier}`);
+  }
 
-  for (const g of granted) {
-    if (stillCovered(g.examId, g.tier)) continue;
+  for (const g of grantedBy(order)) {
+    const poolId = await poolIdOf(g.examId, pools);
+    if (covered.has(`${poolId}:${g.tier}`)) continue;
+    const family = await poolAccessExamIds(db, poolId);
     // A voucher code already sent can't be recalled; keep that entitlement as the record.
     await db.entitlement.deleteMany({
-      where: { userId: order.userId, examId: g.examId, tier: g.tier, voucher: null }
+      where: { userId: order.userId, examId: { in: family }, tier: g.tier, voucher: null }
     });
   }
 }

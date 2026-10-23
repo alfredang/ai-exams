@@ -55,6 +55,20 @@ async function issueRefund(formData: FormData) {
   revalidatePath('/admin-dashboard/orders');
 }
 
+async function revokeAccess(formData: FormData) {
+  'use server';
+  const user = await requireAdmin();
+  const id = String(formData.get('id'));
+  const order = await db.order.findUnique({ where: { id }, select: { status: true } });
+  if (!order || order.status !== 'REFUNDED') return;
+  const { revokeOrderAccess } = await import('@/lib/payments/refund');
+  await revokeOrderAccess(id);
+  await db.adminLog.create({
+    data: { adminId: user.id, action: 'order.revoke-access', targetType: 'Order', targetId: id, metadata: {} }
+  });
+  revalidatePath(`/admin-dashboard/orders/${id}`);
+}
+
 async function resendConfirmation(formData: FormData) {
   'use server';
   const user = await requireAdmin();
@@ -220,7 +234,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
           {/* Entitlements */}
           <section className="card p-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Entitlements</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Entitlements</h2>
+              {order.status === 'REFUNDED' && entitlements.length > 0 && (
+                <form action={revokeAccess}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <button className="inline-flex h-7 items-center rounded-md border border-red-200 px-2 text-[11px] font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40">
+                    Revoke remaining access
+                  </button>
+                </form>
+              )}
+            </div>
             {entitlements.length === 0 ? (
               <p className="mt-1 text-[12px] text-slate-500">None yet.</p>
             ) : (
