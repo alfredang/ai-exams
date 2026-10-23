@@ -62,6 +62,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 
 - **Public Catalog:** Browse certification vendors and levels with search and pagination — one card per certification showing its question-pool size and questions per attempt.
 - **One Practice Exam per Certification:** Buy the **Practice Exam**, or the **Exam Voucher (practice exam included)**. Unlimited retakes.
+- **Exam Vouchers Store:** `/exam-vouchers` (top menu, also on phones) lists every official voucher by vendor, each with the practice exam included, plus how it works and a voucher FAQ (with FAQ structured data for search).
 - **Exam Domains & References:** Each product page shows the official domain percentages as an accordion that expands to the subtopics covered, plus a References section linking the vendor's official exam page and study guide.
 - **Domain-Weighted Question Pool:** Each certification's questions form a pool grouped by exam domain. Every attempt (Practice, Exam mode, teaser, retake) is a fresh random draw in proportion to the official domain percentages, verified against each vendor's exam guide (`src/lib/exam-blueprints.ts`); a short domain's seats are re-apportioned to the others.
 - **Multiple Payment Gateways:** Checkout support for Stripe, PayPal, HitPay, and PayNow with promo codes, billing addresses, and an integrated tax (GST) engine. An in-admin **Payment Setup Guide** documents provider configuration step by step with live status checks.

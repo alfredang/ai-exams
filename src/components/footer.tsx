@@ -24,7 +24,8 @@ const USEFUL_LINK_FALLBACKS: Record<string, string> = {
   'about-us': 'About Us',
   'support': 'Support',
   'privacy-policy': 'Privacy',
-  'refund-policy': 'Refund Policy'
+  'refund-policy': 'Refund Policy',
+  'terms': 'Terms of Service'
 };
 
 const linkClass = 'hover:text-slate-900 hover:underline dark:hover:text-slate-100';
@@ -107,6 +108,7 @@ export async function Footer() {
   const pageBySlug = new Map(footerPages.map((p) => [p.slug, p]));
   const usefulLinks = [
     { href: '/practice-exams', label: 'Browse exams' },
+    { href: '/exam-vouchers', label: 'Exam vouchers' },
     ...Object.entries(USEFUL_LINK_FALLBACKS).map(([slug, fallback]) => ({
       href: `/p/${slug}`,
       label: pageBySlug.get(slug)?.title ?? fallback

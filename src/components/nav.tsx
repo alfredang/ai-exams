@@ -43,6 +43,14 @@ export function Nav() {
           </div>
         </div>
       </div>
+      {!inBackend && (
+        <nav aria-label="Main" className="flex gap-1 overflow-x-auto border-t border-line/60 px-2 py-1 text-sm md:hidden dark:border-slate-800/60">
+          <Link href="/practice-exams" className="btn-ghost shrink-0 px-3 py-1.5">Practice Exams</Link>
+          <Link href="/exam-vouchers" className="btn-ghost shrink-0 px-3 py-1.5">Exam Vouchers</Link>
+          <Link href="/vendors" className="btn-ghost shrink-0 px-3 py-1.5">Vendors</Link>
+          <Link href="/#faq" className="btn-ghost shrink-0 px-3 py-1.5">FAQ</Link>
+        </nav>
+      )}
     </header>
   );
 }

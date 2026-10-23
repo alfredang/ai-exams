@@ -98,6 +98,12 @@ export default async function HomePage() {
               />
               <button className="btn-primary">Search</button>
             </form>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+              Ready to book the real exam?{' '}
+              <Link href="/exam-vouchers" className="font-semibold text-brand-700 hover:underline dark:text-brand-300">
+                Get an official exam voucher — practice exam included →
+              </Link>
+            </p>
             <dl className="mt-4 grid max-w-lg grid-cols-3 gap-3">
               {[
                 { k: '100+', v: 'certifications' },
