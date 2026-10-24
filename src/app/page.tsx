@@ -89,7 +89,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute inset-0 text-brand-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-brand-400/20">
           <DotPattern className="h-full w-full" />
         </div>
-        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 py-10 md:py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 py-6 md:py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1 text-xs font-semibold text-brand-700 shadow-card motion-safe:animate-fade-up dark:border-slate-700 dark:bg-slate-900/70 dark:text-brand-300">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
