@@ -2115,8 +2115,10 @@ async function main() {
       });
     }
 
-    // Revoke any previously-seeded entitlements for this user that aren't in
-    // the curated list. Real purchases (PAID Orders, real or test-payment)
+    // Revoke legacy seeded entitlements outside the curated list. Explicit
+    // ADMIN_GRANT assignments belong to admins/API callers and must survive
+    // every boot, even when the exam is not in TEAM_GRANTS.
+    // Real purchases (PAID Orders, real or test-payment)
     // are preserved by deriving the (examId, tier) set from this user's PAID
     // orders and treating those as untouchable. Voucher codes also get a
     // pass — they're real fulfillment artefacts that the user may need.
@@ -2138,6 +2140,7 @@ async function main() {
     const stale = await db.entitlement.findMany({
       where: {
         userId: u.id,
+        tier: { not: Tier.ADMIN_GRANT },
         examId: { notIn: [...protectedExamIds] },
         voucher: null
       },
