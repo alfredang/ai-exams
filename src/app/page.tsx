@@ -137,10 +137,9 @@ export default async function HomePage() {
       </section>
 
       {/* Two product categories — the centrepiece */}
-      <section id="products" className="container-app py-14 md:py-20">
-        <div className="mx-auto mb-10 max-w-2xl text-center">
-          <div className="eyebrow">Two ways to get certified</div>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">Practise for it. Then go book it.</h2>
+      <section id="products" className="container-app py-6 md:py-8">
+        <div className="mx-auto mb-6 max-w-2xl text-center">
+          <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">Practise for it. Then go book it.</h2>
           <p className="mt-3 text-slate-600 dark:text-slate-300">
             Start with a Practice Exam, or go all in with the official Exam Voucher — your Practice Exam comes free with it.
           </p>
@@ -152,11 +151,10 @@ export default async function HomePage() {
 
       {/* Popular certifications — each card shows both options */}
       <section className="border-y border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-12 md:py-16">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div className="container-app py-6 md:py-8">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <div className="eyebrow">Popular Certifications</div>
-              <h2 className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl">Start with a top Certification</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">Start with a top Certification</h2>
             </div>
             <Link href="/practice-exams" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
               View all <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -171,11 +169,10 @@ export default async function HomePage() {
 
       {/* Vendors — gentle marquee; a static wrap under reduced motion */}
       {vendorChips.length > 0 && (
-        <section className="container-app py-12 md:py-14">
+        <section className="container-app py-5 md:py-6">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <div className="eyebrow">Vendors</div>
-              <h2 className="mt-1 text-2xl font-extrabold tracking-tight">Certifications from the names you know</h2>
+              <h2 className="text-2xl font-extrabold tracking-tight">Certifications from the names you know</h2>
             </div>
             <Link href="/vendors" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
               All Vendors <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -212,12 +209,11 @@ export default async function HomePage() {
 
       {/* How it works */}
       <section id="how" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-12 md:py-16">
+        <div className="container-app py-6 md:py-8">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="eyebrow">How it works</div>
-            <h2 className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl">From first question to exam day</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">From first question to exam day</h2>
           </div>
-          <ol className="mt-8 grid gap-4 md:grid-cols-3">
+          <ol className="mt-6 grid gap-4 md:grid-cols-3">
             {[
               { icon: MousePointerClick, t: 'Pick your Certification', d: `Search ${certCount}+ Certifications by Vendor, level or exam code.` },
               { icon: ListChecks, t: `Take the free ${TEASER_N}-question teaser`, d: 'Sample the question quality and the real test-centre screen — no card needed.' },
@@ -240,13 +236,12 @@ export default async function HomePage() {
 
       {/* FAQ */}
       <section id="faq" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-12 md:py-16">
+        <div className="container-app py-6 md:py-8">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="eyebrow">FAQ</div>
-            <h2 className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl">Frequently asked questions</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">Frequently asked questions</h2>
           </div>
 
-          <div className="mx-auto mt-8 max-w-3xl space-y-2">
+          <div className="mx-auto mt-6 max-w-3xl space-y-2">
             {FAQS.map((f, i) => (
               <details key={i} className="group rounded-xl border border-line bg-white px-5 py-3 transition hover:border-brand-200 hover:shadow-sm open:border-brand/50 open:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-600 dark:open:border-blue-500/60">
                 <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold text-slate-900 dark:text-slate-100">
