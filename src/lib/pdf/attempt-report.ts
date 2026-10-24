@@ -1,7 +1,7 @@
 import { PDFDocument, type PDFPage, type RGB } from 'pdf-lib';
 import { A4, COLORS, newA4Doc, type Fonts } from './layout';
 import { isAnswerCorrect, type Responses } from '../attempts';
-import { sequencingSteps, shuffleSeeded } from '../shuffle';
+import { sequencingSteps, optionsForAttempt } from '../shuffle';
 
 /**
  * Downloadable practice-exam summary: score, per-domain breakdown, then every
@@ -24,6 +24,7 @@ export type ReportQuestion = {
 
 export type AttemptReport = {
   attemptId: string;
+  optionShuffleVersion?: number;
   examTitle: string;
   examCode: string;
   vendorName: string;
@@ -173,7 +174,7 @@ export async function renderAttemptReportPdf(r: AttemptReport): Promise<Uint8Arr
       flow.text(`Your sequence: ${ans.length ? ans.map(stepNo).join(' -> ') : 'not answered'}`, { size: 10, bold: true, indent: 10, color: right ? COLORS.green : COLORS.red });
       flow.text(`Correct sequence: ${correctIds.map(stepNo).join(' -> ')}`, { size: 10, bold: true, indent: 10, color: COLORS.green });
     } else {
-      const shown = q.type === 'TRUE_FALSE' ? opts : shuffleSeeded(opts, `${r.attemptId}:${q.id}`);
+      const shown = optionsForAttempt(opts, q.type, correctIds, r.attemptId, q.id, r.optionShuffleVersion);
       shown.forEach((o, n) => {
         const isRight = correctIds.includes(o.id);
         const picked = ans.includes(o.id);

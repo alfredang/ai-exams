@@ -72,6 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ven
 
   const attempt = await db.attempt.create({
     data: {
+      optionShuffleVersion: 1,
       userId: userId ?? null,
       guestToken: !userId ? gt : null,
       examId: exam.id,

@@ -14,6 +14,7 @@ export async function createAttempt(userId: string, examId: string, mode: Mode):
   if (ids.length === 0) return null;
   const att = await db.attempt.create({
     data: {
+      optionShuffleVersion: 1,
       userId, examId: exam.id, mode, questionIds: ids,
       durationSec: mode === 'EXAM' ? exam.durationMinutes * 60 : 0,
       expiresAt: mode === 'EXAM' ? new Date(Date.now() + exam.durationMinutes * 60_000) : null,

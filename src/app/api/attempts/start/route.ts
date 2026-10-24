@@ -58,6 +58,7 @@ export async function POST(req: Request) {
 
   const attempt = await db.attempt.create({
     data: {
+      optionShuffleVersion: 1,
       userId: userId ?? null,
       guestToken: !userId ? guestToken : null,
       examId: exam.id,

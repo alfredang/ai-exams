@@ -494,6 +494,8 @@ model Attempt {
   score       Float?
   passed      Boolean?
   questionIds String[]
+  // 0 preserves historical option layouts; new attempts explicitly use 1.
+  optionShuffleVersion Int @default(0)
   // responses: Record<questionId, { answer: string[]; flagged?: boolean; timeSpent?: number }>
   responses   Json      @default("{}")
   lastSavedAt DateTime  @default(now())

@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { ExamShell } from './exam-shell';
 import type { Responses } from '@/lib/attempts';
-import { sequencingSteps } from '@/lib/shuffle';
+import { sequencingSteps, optionsForAttempt } from '@/lib/shuffle';
 import { drawAttemptQuestions, resolvePoolExam } from '@/lib/question-pool';
 import { needsFullName } from '@/lib/full-name';
 
@@ -70,6 +70,7 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
       stem: q.stem,
       type: q.type as 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING',
       options: q.type === 'ORDERING' ? sequencingSteps(options, correct, q.id) : options,
+      initialOptions: optionsForAttempt(options, q.type, correct, attempt.id, q.id, attempt.optionShuffleVersion),
       domain: q.domain ?? undefined,
       selectCount: q.type === 'MULTI' ? correct.length : undefined
     };

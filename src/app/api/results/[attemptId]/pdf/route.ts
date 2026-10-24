@@ -36,6 +36,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ attempt
 
   const pdf = await renderAttemptReportPdf({
     attemptId: attempt.id,
+    optionShuffleVersion: attempt.optionShuffleVersion,
     examTitle: attempt.exam.title,
     examCode: attempt.exam.code,
     vendorName: attempt.exam.vendor.name,

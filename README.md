@@ -335,6 +335,7 @@ The project uses PostgreSQL with Prisma ORM.
 - **Schema:** Defined in `prisma/schema.prisma`.
 - **Seeding:** The `prisma/seed.ts` file (run on every deploy) populates vendors, exams, products and admin users, then folds legacy "Practice Exam N" variants into each certification's single question pool and applies the official domain weights (`src/lib/pool-consolidation.ts`). Idempotent.
 - **Assigned access:** Team seed cleanup preserves all `ADMIN_GRANT` assignments, including exams outside the default team set, so admin/API assignments survive deployments.
+- **Answer order:** New web and mobile attempts shuffle every question's answer options using the attempt id. Retakes can move the same answer to a different position; resuming, reviewing and downloading a report preserve that attempt's order. Sequencing step labels remain fixed while the starting working order is shuffled. Existing attempts keep their historical layouts.
 - **Migration:** Run `npm run db:migrate` or `npx prisma db push` to apply schema changes.
 
 ## Testing

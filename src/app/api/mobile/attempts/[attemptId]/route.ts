@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireMobileUser } from '@/lib/mobile-auth';
 import { scoreAttempt, type Responses } from '@/lib/attempts';
+import { optionsForAttempt } from '@/lib/shuffle';
 
 export async function GET(req: Request, { params }: { params: Promise<{ attemptId: string }> }) {
   const auth = await requireMobileUser(req);
@@ -61,7 +62,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ attemptI
       stem: question!.stem,
       type: question!.type,
       domain: question!.domain,
-      options: question!.options,
+      options: attempt.optionShuffleVersion === 0 ? question!.options : optionsForAttempt(
+        question!.options as { id: string; text: string }[], question!.type,
+        question!.correct as string[], attempt.id, question!.id, attempt.optionShuffleVersion
+      ),
       ...(includeReview
         ? {
             correct: question!.correct,

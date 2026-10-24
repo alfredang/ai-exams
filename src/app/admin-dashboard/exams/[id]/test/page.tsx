@@ -17,6 +17,7 @@ async function startTestAttempt(formData: FormData) {
   if (ids.length === 0) return;
   const att = await db.attempt.create({
     data: {
+      optionShuffleVersion: 1,
       userId: me.id,
       examId,
       mode,

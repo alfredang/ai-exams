@@ -1,7 +1,7 @@
 /**
  * Deterministic Fisher-Yates shuffle, seeded from a string.
  *
- * Same seed → identical output. Different seed → different output. Used to
+ * Same seed → identical output. Different seeds can coincide by chance. Used to
  * randomise answer-option position per (attemptId, questionId) so the correct
  * answer's slot varies across users and attempts, but stays stable within one
  * attempt (so paging back/forth — and the post-submit results review — show
@@ -49,4 +49,24 @@ export function sequencingSteps<T extends { id: string }>(options: readonly T[],
   if (!solved(options)) return [...options];
   const out = shuffleSeeded(options, seed);
   return solved(out) ? [...out.slice(1), out[0]] : out;
+}
+
+/** Shared web/mobile/review layout. Retakes get a fresh attempt seed, while
+ * resumes keep their layout. Version 0 preserves already-started attempts.
+ * Sequencing keeps its canonical step labels, but starts in a fresh unsolved
+ * working order. Correct answers always remain option ids, never positions.
+ */
+export function optionsForAttempt<T extends { id: string }>(
+  options: readonly T[], type: string, correct: readonly string[],
+  attemptId: string, questionId: string, version = 0
+): T[] {
+  if (type === 'TRUE_FALSE' && version === 0) return [...options];
+  if (type === 'ORDERING') {
+    const steps = sequencingSteps(options, correct, questionId);
+    if (version === 0) return steps;
+    const out = shuffleSeeded(steps, `${attemptId}:${questionId}`);
+    const solved = out.length === correct.length && out.every((o, i) => o.id === correct[i]);
+    return solved && out.length > 1 ? [...out.slice(1), out[0]] : out;
+  }
+  return shuffleSeeded(options, `${attemptId}:${questionId}`);
 }

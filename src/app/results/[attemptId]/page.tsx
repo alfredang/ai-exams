@@ -9,7 +9,7 @@ import { ExplanationView } from '@/components/explanation-view';
 import { ReviewFormModal } from '@/components/review-form-modal';
 import { ResultsSignupPrompt } from '@/components/results-signup-prompt';
 import { canUserReview } from '@/lib/reviews';
-import { sequencingSteps, shuffleSeeded } from '@/lib/shuffle';
+import { sequencingSteps, optionsForAttempt } from '@/lib/shuffle';
 import { createAttempt } from '@/lib/start-attempt';
 import { requireFullNameToStart } from '@/lib/full-name';
 
@@ -273,12 +273,11 @@ export default async function ResultsPage({
               const skipped = ans.length === 0;
               const correctIds = (q.correct as unknown as string[]) || [];
               // Render options in the SAME per-attempt order the taker saw in the
-              // runner (TRUE_FALSE is never shuffled there). Seed format must match
-              // exam-runner.tsx: `${attemptId}:${questionId}`. Scoring is id-based,
-              // so this is display-only.
+              // runner, preserving layouts of historical attempts. Scoring is
+              // id-based, so this is display-only.
               const opts = (q.options as any[]) as { id: string; text: string }[];
               const displayOptions =
-                q.type === 'TRUE_FALSE' ? opts : shuffleSeeded(opts, `${attempt.id}:${q.id}`);
+                optionsForAttempt(opts, q.type, correctIds, attempt.id, q.id, attempt.optionShuffleVersion);
               return (
                 <article key={q.id} className="card min-w-0 p-5 sm:p-6">
                   <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">

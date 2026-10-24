@@ -15,6 +15,7 @@ export type RunnerQuestion = {
   stem: string;
   type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING';
   options: { id: string; text: string }[];
+  initialOptions?: { id: string; text: string }[];
   domain?: string;
   // MULTI only: how many options to pick ("Select TWO answers").
   selectCount?: number;
@@ -129,18 +130,13 @@ export function ExamRunner(props: ExamRunnerProps) {
   const stored = answers[q.id];
   const a: RunnerResponse = { ...stored, answer: stored?.answer ?? [] };
 
-  // Shuffle option positions per-attempt for SINGLE / MULTI questions so the
-  // correct answer isn't always in the same slot across users and attempts.
-  // Seed = (attemptId, questionId) → deterministic within the attempt, so
-  // Previous/Next navigation doesn't re-shuffle on each render. TRUE_FALSE
-  // is left untouched — convention is True before False, swapping is jarring
-  // with no anti-cheat benefit (only two options anyway).
+  // The server supplies the shared per-attempt layout, including True/False
+  // and sequencing. Keep legacy fallback for older serialized runner props.
   const shuffledOptions = useMemo(() => {
-    // ORDERING arrives in its fixed Step 1…N order (sequencingSteps() on the
-    // server) — the step numbers must not move between attempts.
+    if (q.initialOptions) return q.initialOptions;
     if (q.type === 'TRUE_FALSE' || q.type === 'ORDERING') return q.options;
     return shuffleSeeded(q.options, `${props.attemptId}:${q.id}`);
-  }, [q.options, q.type, q.id, props.attemptId]);
+  }, [q.initialOptions, q.options, q.type, q.id, props.attemptId]);
 
   // ORDERING renders as a working list the user rearranges, so the displayed
   // sequence IS the answer. Once they've moved anything we follow the stored
