@@ -72,7 +72,7 @@ Default to all `SINGLE`. If the admin overrides with a mix (e.g. 70% SINGLE / 30
 
 ## 6. Surface in the admin
 
-The mode is exposed as **"AI Assist (Blueprint)"** in the Create Exam chooser at `/admin-dashboard/exams/[id]/author`. The runtime endpoint is `POST /api/admin/generate-blueprint` taking `{ examId, totalCount, difficulty, type, publish }`. It streams SSE events the same shape as `/api/admin/generate-from-urls`.
+**Current runtime:** the admin mode is **"AI Assist — bulk generate"** in the exam page's Question pool (`/admin-dashboard/exams/[id]#questions`). It calls `POST /api/admin/exams/[id]/ai-generate` with `{ count, domains, type }`, which uses OpenAI (`OPENAI_MODEL`, default `gpt-6.1-sol`) — see `src/lib/ai-question-gen.ts`. The old `/author` blueprint page and `/api/admin/generate-blueprint` were removed; the Claude-based steps above describe the earlier design.
 
 ## 7. Failure modes to surface
 

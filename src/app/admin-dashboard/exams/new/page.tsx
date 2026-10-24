@@ -62,7 +62,7 @@ async function createExam(formData: FormData) {
   }
   revalidatePath('/admin-dashboard/exams');
   revalidatePath('/admin-dashboard/bundles');
-  redirect(`/admin-dashboard/exams/${created.id}/author`);
+  redirect(`/admin-dashboard/exams/${created.id}#questions`);
 }
 
 export default async function NewExamPage() {

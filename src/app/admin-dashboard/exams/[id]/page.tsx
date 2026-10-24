@@ -9,6 +9,12 @@ import { SeoSavedFlash } from '@/components/admin/seo-saved-flash';
 import { ConfirmButton } from '@/components/admin/confirm-button';
 import { Pager } from '@/components/admin/pager';
 import { parseDomains, poolStats } from '@/lib/question-pool';
+import { getSetting } from '@/lib/settings';
+import { DEFAULT_OPENAI_MODEL } from '@/lib/openai';
+import { AddQuestionsPanel } from '@/components/admin/add-questions-panel';
+import { QuestionForm } from '@/components/admin/question-form';
+import { AiQuestionGenerator } from '@/components/admin/ai-question-generator';
+import { createQuestion, deleteQuestion, toggleQuestionStatus } from './question-actions';
 
 async function requireAdmin() {
   const session = await auth();
@@ -152,72 +158,6 @@ async function runSeoAssist(formData: FormData) {
   revalidatePath(`/admin-dashboard/exams/${id}`);
 }
 
-async function addQuestion(formData: FormData) {
-  'use server';
-  await requireAdmin();
-  const examId = String(formData.get('examId'));
-  const stem = String(formData.get('stem') || '').trim();
-  const type = String(formData.get('type') || 'SINGLE') as 'SINGLE' | 'MULTI' | 'TRUE_FALSE';
-  const domain = String(formData.get('domain') || 'General').trim() || 'General';
-  const difficulty = Number(formData.get('difficulty') || 3);
-  const explanation = String(formData.get('explanation') || '').trim();
-
-  const optionTexts = [0, 1, 2, 3, 4, 5]
-    .map((i) => String(formData.get(`opt${i}`) || '').trim())
-    .filter(Boolean);
-  if (!examId || !stem || optionTexts.length < 2 || !explanation) return;
-
-  const letters = ['a', 'b', 'c', 'd', 'e', 'f'];
-  const options = optionTexts.map((text, i) => ({ id: letters[i], text }));
-  const correct: string[] = [];
-  for (let i = 0; i < optionTexts.length; i++) {
-    if (formData.get(`correct${i}`) === 'on') correct.push(letters[i]);
-  }
-  if (correct.length < 1) return;
-  if (type === 'SINGLE' && correct.length !== 1) return;
-
-  await db.question.create({
-    data: {
-      examId,
-      stem,
-      type,
-      domain,
-      difficulty,
-      explanation,
-      options,
-      correct,
-      status: 'PUBLISHED',
-      generatedBy: 'manual'
-    }
-  });
-  revalidatePath(`/admin-dashboard/exams/${examId}`);
-  revalidatePath('/admin-dashboard/exams');
-}
-
-async function deleteQuestion(formData: FormData) {
-  'use server';
-  await requireAdmin();
-  const id = String(formData.get('id'));
-  const examId = String(formData.get('examId'));
-  if (!id) return;
-  await db.question.delete({ where: { id } });
-  revalidatePath(`/admin-dashboard/exams/${examId}`);
-}
-
-async function toggleQuestionStatus(formData: FormData) {
-  'use server';
-  await requireAdmin();
-  const id = String(formData.get('id'));
-  const examId = String(formData.get('examId'));
-  const q = await db.question.findUnique({ where: { id } });
-  if (!q) return;
-  await db.question.update({
-    where: { id },
-    data: { status: q.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED' }
-  });
-  revalidatePath(`/admin-dashboard/exams/${examId}`);
-}
-
 async function publishAllDrafts(formData: FormData) {
   'use server';
   const session = await auth();
@@ -312,7 +252,7 @@ export default async function EditExamPage({
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string; qpage?: string }>;
+  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string; qpage?: string; edited?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -347,7 +287,9 @@ export default async function EditExamPage({
   // 30 questions per page (?qpage=); changing a filter drops back to page 1.
   const Q_PAGE_SIZE = 30;
   const qPages = Math.max(1, Math.ceil(shownQuestions.length / Q_PAGE_SIZE));
-  const qPage = Math.min(qPages, Math.max(1, Number(sp.qpage) || 1));
+  // After an edit, open the page that holds the edited question.
+  const editedIdx = sp.edited && !sp.qpage ? shownQuestions.findIndex((q) => q.id === sp.edited) : -1;
+  const qPage = Math.min(qPages, Math.max(1, editedIdx >= 0 ? Math.floor(editedIdx / Q_PAGE_SIZE) + 1 : Number(sp.qpage) || 1));
   const pageStart = (qPage - 1) * Q_PAGE_SIZE;
   const pageQuestions = shownQuestions.slice(pageStart, pageStart + Q_PAGE_SIZE);
   const filterHref = (patch: Record<string, string>) => {
@@ -355,6 +297,7 @@ export default async function EditExamPage({
     const qs = Object.entries(next).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
     return `/admin-dashboard/exams/${exam.id}${qs ? `?${qs}` : ''}#questions`;
   };
+  const [openaiKey, openaiModel] = await Promise.all([getSetting('OPENAI_API_KEY'), getSetting('OPENAI_MODEL')]);
   const TYPE_NAMES: Record<string, string> = { SINGLE: 'MCQ', MULTI: 'Multiple select', ORDERING: 'Sequencing', TRUE_FALSE: 'True/False', HOTSPOT: 'Hotspot' };
 
   return (
@@ -375,12 +318,6 @@ export default async function EditExamPage({
           >
             Export CSV
           </a>
-          <Link
-            href={`/admin-dashboard/exams/${exam.id}/author`}
-            className="btn-outline text-sm"
-          >
-            Author questions →
-          </Link>
         </div>
       </div>
 
@@ -389,8 +326,8 @@ export default async function EditExamPage({
         <div className="flex-1 min-w-[260px]">
           <div className="font-medium">AI Assist — auto-fill from official vendor page</div>
           <div className="text-xs text-slate-500">
-            Tavily/Firecrawl find the canonical vendor page (with a Claude Agent fallback that uses WebSearch);
-            Firecrawl scrapes it and Claude returns the metadata. Overwrites <span className="font-medium">Exam Info URL</span> and <span className="font-medium"># of Exams</span>.
+            Tavily/Firecrawl find the canonical vendor page (with an OpenAI web-search fallback);
+            Firecrawl scrapes it and OpenAI returns the metadata. Overwrites <span className="font-medium">Exam Info URL</span> and <span className="font-medium"># of Exams</span>.
           </div>
         </div>
         <SubmitBusyButton
@@ -559,64 +496,6 @@ export default async function EditExamPage({
         </form>
       </section>
 
-      <section className="card p-4">
-        <h2 className="text-lg font-semibold">Add MCQ question</h2>
-        <p className="text-xs text-slate-500">
-          Tick the correct option(s). Single-answer = exactly 1; Multi-answer = 1 or more.
-        </p>
-        <form action={addQuestion} className="mt-3 grid gap-3 md:grid-cols-3">
-          <input type="hidden" name="examId" value={exam.id} />
-          <Field label="Type">
-            <select name="type" defaultValue="SINGLE" className="input">
-              <option value="SINGLE">Single answer</option>
-              <option value="MULTI">Multiple answers</option>
-              <option value="TRUE_FALSE">True/False</option>
-            </select>
-          </Field>
-          <Field label="Domain">
-            <input name="domain" placeholder="e.g. Security" defaultValue="General" className="input" />
-          </Field>
-          <Field label="Difficulty (1-5)">
-            <input name="difficulty" type="number" min={1} max={5} defaultValue={3} className="input" />
-          </Field>
-          <Field label="Question stem" className="md:col-span-3">
-            <textarea name="stem" required rows={3} className="input" placeholder="Question text…" />
-          </Field>
-
-          <div className="md:col-span-3">
-            <div className="mb-1 text-xs font-medium text-slate-600 dark:text-slate-400">
-              Options (leave blank to skip; min 2)
-            </div>
-            <div className="grid gap-2">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="w-5 text-xs font-semibold text-slate-500">
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <input
-                    name={`opt${i}`}
-                    placeholder={`Option ${String.fromCharCode(65 + i)}`}
-                    className="input flex-1"
-                  />
-                  <label className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-                    <input type="checkbox" name={`correct${i}`} /> correct
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Field label="Explanation" className="md:col-span-3">
-            <textarea name="explanation" required rows={2} className="input" placeholder="Why the correct answer is correct…" />
-          </Field>
-
-          <p className="md:col-span-2 self-center text-[12px] text-slate-500 dark:text-slate-400">Added questions are published straight into the pool.</p>
-          <div className="md:col-span-1 flex justify-end">
-            <button className="btn-primary">Add question</button>
-          </div>
-        </form>
-      </section>
-
       <section id="questions" className="card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -640,9 +519,13 @@ export default async function EditExamPage({
             {exam.questions.some((q) => q.status === 'PUBLISHED') && (
               <form action={unpublishAll}>
                 <input type="hidden" name="examId" value={exam.id} />
-                <button className="btn-outline text-sm" type="submit">
+                <ConfirmButton
+                  variant="neutral"
+                  message={`Take all published questions in "${exam.code}" out of the pool? Learners will get no questions until they are published again.`}
+                  className="h-8 px-3 text-sm"
+                >
                   Unpublish all
-                </button>
+                </ConfirmButton>
               </form>
             )}
             {exam.questions.length > 0 && (
@@ -659,6 +542,26 @@ export default async function EditExamPage({
             )}
           </div>
         </div>
+
+        <AddQuestionsPanel
+          defaultMode={exam.questions.length === 0 ? 'manual' : undefined}
+          manual={
+            <QuestionForm
+              action={createQuestion}
+              domains={blueprintOrder}
+              hidden={{ examId: exam.id }}
+              submitLabel="Add question"
+            />
+          }
+          ai={
+            <AiQuestionGenerator
+              examId={exam.id}
+              domains={pool.rows.map((r) => ({ name: r.name, weight: r.weight, pool: r.pool }))}
+              configured={!!openaiKey}
+              model={openaiModel.trim() || DEFAULT_OPENAI_MODEL}
+            />
+          }
+        />
 
         {exam.questions.length > 0 && (
           <div className="mt-3 space-y-2 text-xs">
@@ -712,7 +615,7 @@ export default async function EditExamPage({
                 const opts = (q.options as { id: string; text: string }[]) || [];
                 const correct = (q.correct as string[]) || [];
                 return (
-                  <tr key={q.id} className="align-top">
+                  <tr key={q.id} id={`q-${q.id}`} className={`scroll-mt-24 align-top ${sp.edited === q.id ? 'bg-emerald-50 dark:bg-emerald-950/20' : ''}`}>
                     <td className="px-2 py-2 text-xs text-slate-500">{idx + 1}</td>
                     <td className="px-2 py-2">
                       <div className="font-medium">{q.stem}</div>
@@ -754,17 +657,25 @@ export default async function EditExamPage({
                     </td>
                     <td className="whitespace-nowrap px-2 py-2">
                       <div className="flex items-center gap-3">
+                        {q.type !== 'HOTSPOT' && (
+                          <Link href={`/admin-dashboard/exams/${exam.id}/questions/${q.id}`} className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
+                            Edit
+                          </Link>
+                        )}
                         <form action={toggleQuestionStatus}>
                           <input type="hidden" name="id" value={q.id} />
-                          <input type="hidden" name="examId" value={exam.id} />
-                          <button className="text-xs text-blue-600 hover:underline dark:text-blue-400">
+                          <button
+                            className="text-xs text-slate-600 hover:underline dark:text-slate-300"
+                            title={q.status === 'PUBLISHED' ? 'Take out of the pool (kept as a draft)' : 'Put into the pool'}
+                          >
                             {q.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}
                           </button>
                         </form>
                         <form action={deleteQuestion}>
                           <input type="hidden" name="id" value={q.id} />
-                          <input type="hidden" name="examId" value={exam.id} />
-                          <button className="text-xs text-red-600 hover:underline">Delete</button>
+                          <ConfirmButton message="Delete this question permanently? Use Unpublish instead to keep it out of the pool." className="h-6 px-1.5 text-xs">
+                            Delete
+                          </ConfirmButton>
                         </form>
                       </div>
                     </td>
@@ -779,7 +690,7 @@ export default async function EditExamPage({
               {exam.questions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-2 py-6 text-center text-sm text-slate-500">
-                    No questions yet. Add one above or use AI Generate.
+                    No questions yet — use Add manually or AI Assist above.
                   </td>
                 </tr>
               )}

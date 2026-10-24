@@ -26,10 +26,10 @@ Firecrawl scrape → blueprint-aligned Claude generation → PUBLISHED persisten
    - `infoUrl` must be set — if missing, call `POST /api/admin/exams/lookup`
      with vendor/code/title to backfill via the existing AI Assist endpoint.
    - `domains` must sum to ~100 — if empty, again let the lookup populate it.
-3. **Generate concurrently**. Hit `POST /api/admin/generate-blueprint` with
-   `{ examId, totalCount, difficulty, type, publish: false }` for each exam.
-   Run up to **3 streams in parallel** to respect Claude rate limits; queue the
-   rest. The endpoint streams SSE — consume each stream to completion before
+3. **Generate concurrently**. Hit `POST /api/admin/exams/<examId>/ai-generate` with
+   `{ count, domains: [], type: "MIXED" }` for each exam (OpenAI; questions are
+   published into the pool as they arrive). Run up to **3 streams in parallel**
+   to respect OpenAI rate limits; queue the rest. The endpoint streams SSE — consume each stream to completion before
    marking that exam done.
 4. **Per-exam report**: collect `{ examCode, requested, issued, durationSec, errors[] }`.
 5. **Final summary** to the user: total exams attempted, total questions
@@ -42,10 +42,10 @@ admin worker secret to authenticate (in Settings → Credentials →
 `WORKER_SHARED_SECRET`).
 
 ```bash
-curl -N -s -X POST http://127.0.0.1:3040/api/admin/generate-blueprint \
+curl -N -s -X POST http://127.0.0.1:3040/api/admin/exams/<id>/ai-generate \
   -H "content-type: application/json" \
   -H "x-worker-secret: <secret>" \
-  -d '{"examId":"<id>","totalCount":60,"difficulty":3,"type":"SINGLE","publish":false}'
+  -d '{"count":60,"domains":[],"type":"MIXED"}'
 ```
 
 The endpoint currently only accepts admin-session auth — extend it to also

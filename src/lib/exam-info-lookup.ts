@@ -1,6 +1,6 @@
-import { query } from '@anthropic-ai/claude-agent-sdk';
 import { z } from 'zod';
 import { getSetting } from '@/lib/settings';
+import { aiStructured } from '@/lib/openai';
 
 const DomainSchema = z.object({ name: z.string().min(1), weight: z.number().min(0).max(100) });
 
@@ -23,18 +23,6 @@ function slugify(s: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60);
-}
-
-function extractJsonObject(text: string): unknown | null {
-  const cleaned = text.replace(/```(?:json)?/gi, '').trim();
-  const start = cleaned.indexOf('{');
-  const end = cleaned.lastIndexOf('}');
-  if (start === -1 || end === -1 || end <= start) return null;
-  try {
-    return JSON.parse(cleaned.slice(start, end + 1));
-  } catch {
-    return null;
-  }
 }
 
 const VENDOR_DOMAINS: Record<string, string[]> = {
@@ -138,48 +126,33 @@ function rankUrls(
 
 const FIND_URL_SYSTEM = `You locate the canonical official vendor page for an IT certification.
 
-Given a vendor name and exam code, use the WebSearch and WebFetch tools to find the
-OFFICIAL vendor page that describes the exam (overview, blueprint, or exam guide PDF).
+Given a vendor name and exam code, use web search to find the OFFICIAL vendor page
+that describes the exam (overview, blueprint, or exam guide PDF).
 Prefer pages on the vendor's primary domain (comptia.org, aws.amazon.com,
 learn.microsoft.com, cloud.google.com, cisco.com, isc2.org, oracle.com, etc.).
 Avoid blog posts, marketing articles, third-party study guides, and unofficial dumps.
+If you cannot find the official page, return infoUrl as null.`;
 
-When you have identified the canonical page, respond with ONLY a JSON object:
-{ "infoUrl": "https://..." }
-No prose, no fences. If you cannot find the official page, respond with:
-{ "infoUrl": null }`;
+const FindUrlSchema = z.object({ infoUrl: z.string().nullable() });
 
+/** Last-resort URL finder: OpenAI with its web_search tool. */
 async function findUrlViaAgent(vendor: string, code: string, title: string): Promise<string | null> {
   const prompt = `Vendor: ${vendor}
 Exam code: ${code}
 ${title ? `Title hint: ${title}\n` : ''}
 Find the canonical official vendor page for this exam and return its URL.`;
-  const result = query({
-    prompt,
-    options: {
-      systemPrompt: FIND_URL_SYSTEM,
-      model: 'claude-sonnet-4-6',
-      allowedTools: ['WebSearch', 'WebFetch'],
-      maxTurns: 8
-    } as any
+  const { infoUrl } = await aiStructured({
+    schema: FindUrlSchema,
+    name: 'exam_page',
+    instructions: FIND_URL_SYSTEM,
+    input: prompt,
+    webSearch: true
   });
-  let text = '';
-  for await (const msg of result) {
-    if (msg.type === 'assistant') {
-      for (const block of (msg as any).message.content) {
-        if (block.type === 'text') text += block.text;
-      }
-    } else if (msg.type === 'result' && (msg as any).result && !text) {
-      text = (msg as any).result;
-    }
-  }
-  const obj = extractJsonObject(text) as { infoUrl?: string | null } | null;
-  if (obj && typeof obj.infoUrl === 'string' && obj.infoUrl.startsWith('http')) return obj.infoUrl;
-  return null;
+  return infoUrl && /^https?:\/\//i.test(infoUrl) ? infoUrl : null;
 }
 
 const EXTRACT_SYSTEM = `You extract structured metadata about an IT certification exam
-from raw vendor-page markdown. Output ONE JSON object, no prose, no fences.
+from raw vendor-page markdown.
 
 Fields:
 - title: official certification title (e.g. "CompTIA PenTest+")
@@ -191,9 +164,19 @@ Fields:
 - domains: array of { name, weight } from the published blueprint, weights as
   percentages summing to ~100. Use the exact domain names from the page.
 
-Omit any field you cannot verify from the page. Do not invent numbers.`;
+Use null for any field you cannot verify from the page. Do not invent numbers.`;
 
-async function extractWithClaude(
+// Structured-output shape: every field present, null when the page doesn't say.
+const ExtractSchema = z.object({
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  durationMinutes: z.number().int().nullable(),
+  passingScore: z.number().int().nullable(),
+  questionCount: z.number().int().nullable(),
+  domains: z.array(z.object({ name: z.string(), weight: z.number() })).nullable()
+});
+
+async function extractWithAI(
   url: string,
   markdown: string,
   vendor: string,
@@ -206,33 +189,10 @@ ${titleHint ? `Title hint: ${titleHint}\n` : ''}Source URL: ${url}
 
 --- BEGIN PAGE MARKDOWN ---
 ${markdown.slice(0, 60_000)}
---- END PAGE MARKDOWN ---
-
-Return the JSON object now.`;
-
-  const result = query({
-    prompt,
-    options: {
-      systemPrompt: EXTRACT_SYSTEM,
-      model: 'claude-sonnet-4-6',
-      allowedTools: [],
-      maxTurns: 1
-    } as any
-  });
-
-  let text = '';
-  for await (const msg of result) {
-    if (msg.type === 'assistant') {
-      for (const block of (msg as any).message.content) {
-        if (block.type === 'text') text += block.text;
-      }
-    } else if (msg.type === 'result' && (msg as any).result && !text) {
-      text = (msg as any).result;
-    }
-  }
-  const obj = extractJsonObject(text);
-  if (!obj) throw new Error(`Claude returned no JSON. First 200 chars: ${text.slice(0, 200)}`);
-  return obj as Partial<ExamInfoLookup>;
+--- END PAGE MARKDOWN ---`;
+  const raw = await aiStructured({ schema: ExtractSchema, name: 'exam_info', instructions: EXTRACT_SYSTEM, input: prompt });
+  // Drop nulls so ResultSchema's optional fields stay absent.
+  return Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== null)) as Partial<ExamInfoLookup>;
 }
 
 export async function lookupExamInfo(input: {
@@ -241,12 +201,10 @@ export async function lookupExamInfo(input: {
   code: string;
   infoUrl?: string;
 }): Promise<ExamInfoLookup> {
-  const [storedKey, firecrawlKey, tavilyKey] = await Promise.all([
-    getSetting('ANTHROPIC_API_KEY'),
+  const [firecrawlKey, tavilyKey] = await Promise.all([
     getSetting('FIRECRAWL_API_KEY'),
     getSetting('TAVILY_API_KEY')
   ]);
-  if (storedKey && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = storedKey;
   if (!firecrawlKey) throw new Error('Firecrawl API key not configured (Settings → Credentials).');
 
   // Short-circuit: if the caller already has a vendor URL, scrape that
@@ -256,7 +214,7 @@ export async function lookupExamInfo(input: {
     try {
       const markdown = await scrapeFirecrawl(firecrawlKey, input.infoUrl);
       if (markdown && markdown.length >= 200) {
-        const extracted = await extractWithClaude(
+        const extracted = await extractWithAI(
           input.infoUrl,
           markdown,
           input.vendor,
@@ -324,8 +282,8 @@ export async function lookupExamInfo(input: {
   }
   const errors: string[] = [];
 
-  // Fallback: if neither search backend gave us anything, ask Claude (Agent SDK
-  // with WebSearch + WebFetch) to find the canonical URL itself. We then keep
+  // Fallback: if neither search backend gave us anything, ask OpenAI (with
+  // web search) to find the canonical URL itself. We then keep
   // using Firecrawl for the actual scrape because its markdown output is
   // cleaner than WebFetch's raw HTML.
   if (!aggregated.length || (!tavilyWorked && !firecrawlSearchWorked)) {
@@ -351,7 +309,7 @@ export async function lookupExamInfo(input: {
         errors.push(`${url}: too short (${markdown.length})`);
         continue;
       }
-      const extracted = await extractWithClaude(
+      const extracted = await extractWithAI(
         url,
         markdown,
         input.vendor,
@@ -387,7 +345,7 @@ export async function lookupExamInfo(input: {
     if (agentUrl && !ranked.includes(agentUrl)) {
       const markdown = await scrapeFirecrawl(firecrawlKey, agentUrl);
       if (markdown && markdown.length >= 200) {
-        const extracted = await extractWithClaude(
+        const extracted = await extractWithAI(
           agentUrl,
           markdown,
           input.vendor,

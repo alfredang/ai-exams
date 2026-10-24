@@ -7,7 +7,7 @@
 [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react)](https://react.dev)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2d3748?style=flat-square&logo=prisma)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org)
-[![Claude](https://img.shields.io/badge/AI-Claude-d97757?style=flat-square&logo=anthropic)](https://www.anthropic.com)
+[![OpenAI](https://img.shields.io/badge/AI-OpenAI-412991?style=flat-square&logo=openai)](https://platform.openai.com)
 [![Download on the App Store](https://img.shields.io/badge/Download_on_the-App_Store-0D96F6?style=flat-square&logo=apple)](https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308)
 
 **Practice smarter for your next certification.**
@@ -50,7 +50,7 @@ Tertiary Exams is a full-stack certification practice-exam platform designed for
 
 ## Overview
 
-Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking experience. It solves the problem of managing certification preparation platforms by selling one practice exam per certification — as practice-only or with a real-exam voucher included — backed by a question pool grouped by exam domain. The platform is designed for scalable content generation using Claude AI and Firecrawl, enabling administrators to quickly author and maintain a large library of high-quality, blueprint-aligned practice questions.
+Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking experience. It solves the problem of managing certification preparation platforms by selling one practice exam per certification — as practice-only or with a real-exam voucher included — backed by a question pool grouped by exam domain. The platform is designed for scalable content generation using OpenAI and Firecrawl, enabling administrators to quickly author and maintain a large library of high-quality, blueprint-aligned practice questions.
 
 **Current Status:** The core application features, checkout flows, exam runners, and admin dashboards are implemented and functioning.
 
@@ -76,7 +76,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **WhatsApp Support Avatar:** A friendly animated support avatar (bottom-right on public pages) opens a quick-question panel that links straight to WhatsApp, with a once-per-visit greeting bubble. Hidden on the exam runner, checkout, and admin pages.
 - **Free Teasers:** Guest and authenticated users can take 10 free questions per certification, picked at random from the same domain-weighted pool as the paid exam.
 - **Question Types:** Multiple choice, multiple select ("Select TWO answers") and sequencing — steps are numbered and the answer reads like 5 → 3 → 2 → 4 → 1.
-- **AI-Assisted Question Authoring:** Generate blueprint-aligned questions using Claude AI and Firecrawl via manual input, blueprints, PDFs, or web scraping.
+- **Question Authoring — two modes:** in each question bank, **Add manually** (one form for adding and editing: MCQ, multiple select, true/false and sequencing, with the domain picked from the blueprint and clear validation) or **AI Assist — bulk generate** (pick a number of questions and all or selected exam domains; OpenAI writes questions and answers split by blueprint weight and publishes them into the pool). AI Assist also fills exam details and SEO meta from the official vendor page (OpenAI + Firecrawl/Tavily).
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
 - **Invoices, Refunds & Credit Notes:** Every paid order gets a sequential GST tax invoice (PDF marked PAID) emailed with the order confirmation, CC'd to the business. Refunds — through the provider's API or recorded as "already refunded" in the provider dashboard — mint a `CN-` credit note that references the original invoice, email it to the customer, cancel undelivered vouchers and revoke access on a full refund.
 - **Sales Order Alerts:** Each paid order also emails the sales inbox the buyer's name, email, phone, exam title and code, payment method and date.
@@ -214,7 +214,7 @@ CompTIA voucher-tier prices track CompTIA's official exam-voucher list price (US
 | Database | PostgreSQL, Prisma ORM |
 | Authentication | Auth.js (NextAuth v5 beta), Argon2 |
 | Payments | Stripe, PayPal, HitPay, PayNow |
-| AI / Integrations | Claude Agent SDK, Firecrawl API, Nodemailer, PDF-lib |
+| AI / Integrations | OpenAI SDK (`gpt-6.1-sol` default), Firecrawl API, Tavily, Nodemailer, PDF-lib |
 | Deployment | Docker, Coolify-ready |
 
 ## Architecture
@@ -230,7 +230,7 @@ flowchart TD
     Prisma --> Postgres[(PostgreSQL Database)]
     RouteHandlers --> Payments[Stripe / PayPal / HitPay]
     RouteHandlers --> Email[Nodemailer / Gmail OAuth]
-    RouteHandlers --> AI[Claude / Firecrawl API]
+    RouteHandlers --> AI[OpenAI / Firecrawl API]
     Cron[Cron Workers] --> RouteHandlers
 ```
 
@@ -326,7 +326,7 @@ flowchart TD
 1. Sign in using the seeded admin credentials.
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
-4. Go to `/admin-dashboard/exams/[id]/author` to generate new exam questions using the AI integration. New questions — generated, imported or added by hand — are published straight into the pool; unpublish or delete any you don't want.
+4. Set the OpenAI API key (and optionally the model, default `gpt-6.1-sol`) under `/admin-dashboard/settings/credentials`. In any question bank, use **Add manually** or **AI Assist — bulk generate** in the Question pool. New questions are published straight into the pool; edit, unpublish or delete any you don't want.
 5. The `/admin-dashboard/exams` (Question Banks) list shows each bank's total questions (with any drafts called out) and its number of exam domains. Open any question bank to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Practice Exams) lists every Practice Exam (fixed US$20) with its question bank and linked Exam Voucher; `/admin-dashboard/bundles/vouchers` (Exam Vouchers) manages voucher prices, titles, slugs and on-sale status.
 
 ## Database

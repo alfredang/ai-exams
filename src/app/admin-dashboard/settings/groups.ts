@@ -210,6 +210,8 @@ export const GROUPS: SettingsGroup[] = [
     title: 'Credentials',
     description: 'Non-payment API keys and worker secrets. Payment provider credentials live under Payment Setting.',
     fields: [
+      { key: 'OPENAI_API_KEY', label: 'OpenAI — API Key (question generation, AI Assist)', secret: true },
+      { key: 'OPENAI_MODEL', label: 'OpenAI — Model', placeholder: 'gpt-6.1-sol' },
       { key: 'ANTHROPIC_API_KEY', label: 'Claude (Anthropic) — API Key', secret: true },
       { key: 'FIRECRAWL_API_KEY', label: 'Firecrawl — API Key', secret: true },
       { key: 'TAVILY_API_KEY', label: 'Tavily — API Key', secret: true },
