@@ -12,7 +12,8 @@ import {
   voucherDescriptionFor, voucherHref, voucherOnSale, voucherSlugFor, voucherTitleFor
 } from '@/lib/products';
 import { ExamDomains } from '@/components/exam-domains';
-import { Breadcrumbs, CheckList, FaqList, MobileBuyBar, StatTile } from '@/components/product/product-parts';
+import { Breadcrumbs, CheckList, FaqList, InstructorLedCard, MobileBuyBar, StatTile } from '@/components/product/product-parts';
+import { instructorLedCourseFor } from '@/lib/instructor-led';
 
 const FAQS = [
   { q: 'Is this an official exam voucher?', a: 'Yes. It is a genuine code issued by the certification vendor, redeemed on the vendor’s own registration site or testing partner (for example Pearson VUE).' },
@@ -69,6 +70,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
   const practicePage = practiceOnSale(product) ? practiceHref(vendor.slug, product) : null;
   const poolSize = exam._count.questions;
   const perAttempt = Math.min(exam.questionCount, poolSize);
+  const course = instructorLedCourseFor(product.slug);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -206,6 +208,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
               ]} />
             </div>
           </div>
+          {course && <InstructorLedCard course={course} code={code} />}
         </aside>
       </div>
 

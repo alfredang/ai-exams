@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { ChevronRight, Check, Gift, Ticket } from 'lucide-react';
+import { ChevronRight, Check, ExternalLink, Gift, GraduationCap, Ticket } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
+import type { InstructorLedCourse } from '@/lib/instructor-led';
 
 // Shared building blocks for the two storefront product pages:
 // the Practice Exam page and the Exam Voucher page.
@@ -94,6 +95,30 @@ export function VoucherUpsell({ href, buyHref, price, code, compact = false }: {
           <Link href={href} className="btn-outline w-full">Voucher details</Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Links a certification to its trainer-led WSQ / CASL course on
+ * tertiarycourses.com.sg. Callers render it only when a course exists.
+ */
+export function InstructorLedCard({ course, code }: { course: InstructorLedCourse; code: string }) {
+  return (
+    <div className="rounded-2xl border border-line bg-white p-5 shadow-card dark:border-slate-700/70 dark:bg-slate-900">
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase text-brand-700 dark:text-brand-300">
+          <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Instructor-Led Exam Prep
+        </span>
+        <span className="badge">{course.scheme}</span>
+      </div>
+      <h3 className="mt-2 font-semibold">Prefer a trainer-led class?</h3>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        Prepare for {code} with a {course.scheme} course at Tertiary Courses Singapore — live classes with an experienced trainer and course fee funding for eligible learners.
+      </p>
+      <a href={course.url} target="_blank" rel="noopener" className="btn-outline mt-4 w-full">
+        View {course.scheme} course <ExternalLink className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
+      </a>
     </div>
   );
 }

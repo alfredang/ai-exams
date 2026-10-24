@@ -9,7 +9,8 @@ import { formatPrice } from '@/lib/utils';
 import {
   checkoutHref, displayExamCode, practiceOnSale, voucherHref, voucherOnSale, voucherTitleFor
 } from '@/lib/products';
-import { Breadcrumbs, CheckList, MobileBuyBar, StatTile, VoucherUpsell } from '@/components/product/product-parts';
+import { Breadcrumbs, CheckList, InstructorLedCard, MobileBuyBar, StatTile, VoucherUpsell } from '@/components/product/product-parts';
+import { instructorLedCourseFor } from '@/lib/instructor-led';
 
 type BundleItem = {
   id: string;
@@ -61,6 +62,7 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
   const voucherBuyHref = checkoutHref(bundle.id, 'VOUCHER');
   const voucherPage = voucherHref(vendor.slug, bundle);
   const teaserAction = `/practice-exams/${vendor.slug}/${first.slug}/teaser`;
+  const course = instructorLedCourseFor(bundle.slug);
 
   const productJsonLd = {
     '@context': 'https://schema.org',
@@ -205,6 +207,7 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
               Booking the real exam? <Link href={voucherPage} className="font-medium text-brand hover:underline dark:text-brand-300">{voucherTitleFor(bundle)}</Link>
             </p>
           )}
+          {course && <InstructorLedCard course={course} code={displayCode} />}
         </aside>
       </div>
 
