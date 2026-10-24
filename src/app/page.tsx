@@ -95,8 +95,8 @@ export default async function HomePage() {
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
               {certCount}+ Certifications · Practice Exams &amp; Exam Vouchers
             </p>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight motion-safe:animate-fade-up motion-safe:[animation-delay:80ms] sm:text-5xl md:text-[3.5rem]">
-              Prepare with confidence.<br />
+            <h1 className="mt-4 text-[1.75rem] font-extrabold leading-[1.05] tracking-tight motion-safe:animate-fade-up motion-safe:[animation-delay:80ms] sm:text-5xl md:text-[3.5rem] lg:text-[2.25rem] xl:text-5xl 2xl:text-[3.375rem]">
+              <span className="whitespace-nowrap">Prepare with confidence.</span><br />
               <span className="gradient-text">Get certified.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base text-slate-600 motion-safe:animate-fade-up motion-safe:[animation-delay:160ms] dark:text-slate-300 sm:text-lg">
