@@ -98,6 +98,24 @@ function isLikelyUrl(s: string) {
   return /^https?:\/\//i.test(s);
 }
 
+// Question.references is nullable JSON. Manual authors can omit it, older
+// imports use plain URLs, and batch authors also store per-option metadata.
+function referenceLinks(value: unknown): { label: string; url: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    const url = typeof item === 'string'
+      ? item.trim()
+      : item && typeof item === 'object' && 'url' in item && typeof item.url === 'string'
+        ? item.url.trim()
+        : '';
+    if (!isLikelyUrl(url)) return [];
+    const label = item && typeof item === 'object' && 'label' in item && typeof item.label === 'string'
+      ? item.label.trim()
+      : '';
+    return [{ label: label || url, url }];
+  });
+}
+
 export function ExplanationView({
   text,
   options,
@@ -108,12 +126,13 @@ export function ExplanationView({
   text: string;
   options: Opt[];
   correctIds: string[];
-  references?: { label: string; url: string }[];
+  references?: unknown;
   // The results page already prints the correct answer above the
   // explanation, so it skips the repeated "Correct option" heading.
   hideCorrectTitle?: boolean;
 }) {
   const p = parseExplanation(text, options, correctIds);
+  const links = referenceLinks(references);
   const hasStructure =
     !!p.correctTitle || !!p.correctBody || p.incorrectBullets.length > 0;
 
@@ -181,13 +200,13 @@ export function ExplanationView({
 
       {p.trailing && <p>{p.trailing}</p>}
 
-      {references.length > 0 && (
+      {links.length > 0 && (
         <div>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
             References
           </div>
           <ul className="space-y-0.5 pl-4 text-xs">
-            {references.map((r, i) => (
+            {links.map((r, i) => (
               <li key={i} className="list-disc">
                 <a
                   href={r.url}

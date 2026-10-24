@@ -355,7 +355,7 @@ export default async function ResultsPage({
                       text={q.explanation}
                       options={displayOptions}
                       correctIds={correctIds}
-                      references={(q.references as any[]) as { label: string; url: string }[]}
+                      references={q.references}
                       hideCorrectTitle={q.type !== 'ORDERING'}
                     />
                   </div>
