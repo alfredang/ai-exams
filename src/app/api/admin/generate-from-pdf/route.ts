@@ -20,7 +20,6 @@ export async function POST(req: Request) {
   const count = Math.max(1, Math.min(25, Number(form.get('count') || 5)));
   const difficulty = Math.max(1, Math.min(5, Number(form.get('difficulty') || 3))) as 1 | 2 | 3 | 4 | 5;
   const qType = (form.get('type') as 'SINGLE' | 'MULTI' | 'TRUE_FALSE') ?? 'SINGLE';
-  const publishImmediately = form.get('publish') === 'true' || form.get('publish') === 'on';
   const file = form.get('file');
   if (!(file instanceof File)) return new Response('No file', { status: 400 });
 
@@ -83,7 +82,7 @@ export async function POST(req: Request) {
                   domain: ev.question.domain,
                   difficulty: ev.question.difficulty,
                   references: ev.question.references,
-                  status: publishImmediately ? 'PUBLISHED' : 'DRAFT',
+                  status: 'PUBLISHED', // auto-publish: added questions join the pool
                   generatedBy: 'claude:from-pdf',
                   sourceId: sourceRow.id
                 }

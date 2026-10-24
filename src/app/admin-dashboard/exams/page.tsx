@@ -10,6 +10,7 @@ import { Pager } from '@/components/admin/pager';
 import { StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
 import { buildQS } from '@/components/admin/qs';
+import { examBaseTitle } from '@/lib/exam-title';
 import { SelectAllCheckbox, SelectedCounter, SelectAllMatchingBanner } from '@/components/admin/bulk-select';
 
 export const dynamic = 'force-dynamic';
@@ -241,7 +242,7 @@ async function duplicateExam(formData: FormData) {
         options: q.options as any,
         correct: q.correct as any,
         references: q.references as any,
-        status: 'DRAFT',
+        status: q.status,
         generatedBy: q.generatedBy,
         isTeaser: false
       }))
@@ -272,7 +273,7 @@ async function loadExams(where: any, skip: number, take: number) {
     skip,
     take
   });
-  // Per-exam draft/published question counts for the publish-status dot indicator.
+  // Per-exam draft/published question counts for the Questions column.
   const examIds = exams.map((e) => e.id);
   const statusCounts = examIds.length
     ? await db.question.groupBy({
@@ -290,7 +291,8 @@ async function loadExams(where: any, skip: number, take: number) {
   return exams.map((e) => ({
     ...e,
     draftCount: draftByExam.get(e.id) ?? 0,
-    publishedCount: publishedByExam.get(e.id) ?? 0
+    publishedCount: publishedByExam.get(e.id) ?? 0,
+    domainCount: Array.isArray(e.domains) ? e.domains.length : 0
   }));
 }
 
@@ -448,7 +450,7 @@ export default async function AdminExamsPage({
       key: 'title',
       header: 'Exam Name',
       cell: (e) => {
-        const baseTitle = e.title.split(' — ')[0].replace(/\s*\(Practice Exam\s+\d+\)\s*$/i, '');
+        const baseTitle = examBaseTitle(e.title);
         const variantMatch = e.code.match(/-P(\d+)$/i);
         return (
           <Link
@@ -463,35 +465,6 @@ export default async function AdminExamsPage({
               </span>
             )}
           </Link>
-        );
-      }
-    },
-    {
-      key: 'publishDot',
-      header: '',
-      align: 'left',
-      headerClassName: 'w-6',
-      className: 'pl-0 pr-3',
-      cell: (e) => {
-        const total = e.draftCount + e.publishedCount;
-        let cls = 'bg-slate-400 dark:bg-slate-600';
-        let title = 'No questions yet';
-        let aria = 'No questions';
-        if (total > 0 && e.draftCount === 0) {
-          cls = 'bg-emerald-500';
-          title = `All ${e.publishedCount} questions published`;
-          aria = 'All questions published';
-        } else if (e.draftCount > 0) {
-          cls = 'bg-rose-500';
-          title = `${e.draftCount} draft, ${e.publishedCount} published`;
-          aria = `${e.draftCount} draft questions remaining`;
-        }
-        return (
-          <span
-            className={`inline-block h-2.5 w-2.5 rounded-full ${cls}`}
-            title={title}
-            aria-label={aria}
-          />
         );
       }
     },
@@ -530,6 +503,42 @@ export default async function AdminExamsPage({
           </span>
         );
       }
+    },
+    {
+      key: 'questions',
+      header: 'Questions',
+      align: 'right',
+      // Bank size = published + draft (archived duplicates excluded). Drafts
+      // are not drawn into attempts until published, so they're called out.
+      cell: (e) => {
+        const total = e.draftCount + e.publishedCount;
+        return (
+          <span className="inline-flex flex-col items-end gap-0.5" title={`${e.publishedCount} published, ${e.draftCount} draft`}>
+            <span className={total === 0 ? 'text-slate-400' : ''}>{total}</span>
+            {e.draftCount > 0 && (
+              <Link
+                href={`/admin-dashboard/exams/${e.id}?qstatus=DRAFT#questions`}
+                className="whitespace-nowrap text-[11px] text-rose-700 hover:underline dark:text-rose-400"
+              >
+                {e.draftCount} draft
+              </Link>
+            )}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'domains',
+      header: 'Domains',
+      align: 'right',
+      cell: (e) =>
+        e.domainCount > 0 ? (
+          <Link href={`/admin-dashboard/exams/${e.id}#pool`} className="hover:underline" title="Exam domains (blueprint)">
+            {e.domainCount}
+          </Link>
+        ) : (
+          <span className="text-slate-400" title="No exam domains set">—</span>
+        )
     },
     { key: 'qPerExam', header: 'Q / Exam', cell: (e) => e.questionCount, align: 'right' },
     { key: 'duration', hideBelow: '2xl', header: 'Duration', cell: (e) => `${e.durationMinutes} min`, align: 'right' },
@@ -590,7 +599,7 @@ export default async function AdminExamsPage({
             </Link>
             <form action={duplicateExam} className="inline-flex">
               <input type="hidden" name="id" value={e.id} />
-              <button title="Duplicate exam (questions copy as DRAFT)" className="icon-btn">
+              <button title="Duplicate exam (copied as an inactive question bank)" className="icon-btn">
                 <Copy className="h-3.5 w-3.5" />
               </button>
             </form>

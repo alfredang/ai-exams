@@ -81,7 +81,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           explanation,
           options: opts,
           correct,
-          status: (cols[idx.status]?.trim() as any) || 'DRAFT',
+          status: (cols[idx.status]?.trim() as any) || 'PUBLISHED',
           isTeaser: cols[idx.isTeaser]?.trim().toLowerCase() === 'true',
           generatedBy: 'csv-import'
         }

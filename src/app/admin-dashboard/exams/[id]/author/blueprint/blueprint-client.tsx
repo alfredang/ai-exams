@@ -16,7 +16,6 @@ export default function BlueprintAuthorClient({
   const [totalCount, setTotalCount] = useState(defaultTotal);
   const [difficulty, setDifficulty] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [type, setType] = useState<'SINGLE' | 'MULTI' | 'TRUE_FALSE'>('SINGLE');
-  const [publish, setPublish] = useState(false);
   const [busy, setBusy] = useState(false);
   const [questions, setQuestions] = useState<GenQuestion[]>([]);
   const [progress, setProgress] = useState<{ i: number; of: number } | null>(null);
@@ -47,7 +46,7 @@ export default function BlueprintAuthorClient({
       const res = await fetch('/api/admin/generate-blueprint', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ examId, totalCount, difficulty, type, publish })
+        body: JSON.stringify({ examId, totalCount, difficulty, type })
       });
       if (!res.ok) {
         setError(await res.text());
@@ -113,10 +112,9 @@ export default function BlueprintAuthorClient({
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Difficulty (1-5)</span>
           <input type="number" min={1} max={5} value={difficulty} onChange={(e) => setDifficulty(Math.max(1, Math.min(5, Number(e.target.value) || 3)) as any)} className="input-sm" />
         </label>
-        <label className="md:col-span-3 inline-flex items-center gap-2 text-[12px] text-slate-700 dark:text-slate-200">
-          <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} />
-          Publish immediately (otherwise DRAFT)
-        </label>
+        <p className="md:col-span-3 text-[12px] text-slate-500 dark:text-slate-400">
+          Questions are published straight into the pool. Unpublish or delete any you don't want from the exam page.
+        </p>
         <div className="md:col-span-3">
           <button type="submit" disabled={busy || !infoUrl || domains.length === 0}
             className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700 disabled:opacity-50">

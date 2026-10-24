@@ -8,7 +8,6 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
   const [count, setCount] = useState(5);
   const [difficulty, setDifficulty] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [type, setType] = useState<'SINGLE' | 'MULTI' | 'TRUE_FALSE'>('SINGLE');
-  const [publish, setPublish] = useState(false);
   const [busy, setBusy] = useState(false);
   const [questions, setQuestions] = useState<GenQuestion[]>([]);
   const [progress, setProgress] = useState<{ i: number; of: number } | null>(null);
@@ -34,7 +33,7 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
       const res = await fetch('/api/admin/generate-from-urls', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ examId, urls: list, domain, count, difficulty, type, publish })
+        body: JSON.stringify({ examId, urls: list, domain, count, difficulty, type })
       });
       if (!res.ok) {
         setError(await res.text());
@@ -101,10 +100,9 @@ export default function WebAuthorClient({ examId, domains }: { examId: string; d
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Difficulty (1-5)</span>
           <input type="number" min={1} max={5} value={difficulty} onChange={(e) => setDifficulty(Math.max(1, Math.min(5, Number(e.target.value) || 3)) as any)} className="input-sm" />
         </label>
-        <label className="md:col-span-2 inline-flex items-center gap-2 text-[12px] text-slate-700 dark:text-slate-200">
-          <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} />
-          Publish immediately (otherwise saved as DRAFT for review)
-        </label>
+        <p className="md:col-span-2 text-[12px] text-slate-500 dark:text-slate-400">
+          Questions are published straight into the pool. Unpublish or delete any you don't want from the exam page.
+        </p>
         <div className="md:col-span-2">
           <button
             type="submit"

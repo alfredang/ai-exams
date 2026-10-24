@@ -59,11 +59,6 @@ export function GeneratorClient({ examId, domains }: { examId: string; domains: 
     }
   }
 
-  async function approve(id: string) {
-    await fetch(`/api/admin/questions/${id}/approve`, { method: 'POST' });
-    setDrafts(prev => prev.filter(d => d.id !== id));
-  }
-
   async function discard(id: string) {
     await fetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
     setDrafts(prev => prev.filter(d => d.id !== id));
@@ -99,7 +94,7 @@ export function GeneratorClient({ examId, domains }: { examId: string; domains: 
         </div>
         <div className="md:col-span-3"><label className="label">Official exam guide URL (optional)</label><input className="input" value={examGuideUrl} onChange={e => setExamGuideUrl(e.target.value)} placeholder="https://learn.microsoft.com/..." /></div>
         <div className="md:col-span-3 flex items-center justify-between">
-          <p className="text-xs text-slate-500">All generated questions land as DRAFT until approved.</p>
+          <p className="text-xs text-slate-500">Generated questions are published straight into the pool — Remove any you don't want.</p>
           <button className="btn-primary-grad" disabled={busy}>{busy ? `Generating (${progress?.count ?? 0}/${progress?.total ?? count})…` : 'Generate'}</button>
         </div>
         {err && <p className="md:col-span-3 text-sm text-red-600">{err}</p>}
@@ -126,8 +121,7 @@ export function GeneratorClient({ examId, domains }: { examId: string; domains: 
               <p className="mt-1 text-xs text-slate-500"><b>Refs:</b> {d.references.map((r, i) => <a key={i} href={r.url} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">{r.label}</a>).reduce((p, c) => <>{p}{p ? ' · ' : ''}{c}</>, null as any)}</p>
             )}
             <div className="mt-3 flex gap-2">
-              <button onClick={() => approve(d.id)} className="btn-primary">Approve</button>
-              <button onClick={() => discard(d.id)} className="btn-outline">Discard</button>
+              <button onClick={() => discard(d.id)} className="btn-outline">Remove</button>
             </div>
           </div>
         ))}

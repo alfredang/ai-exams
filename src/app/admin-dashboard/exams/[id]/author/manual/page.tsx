@@ -17,7 +17,6 @@ async function createBatch(formData: FormData) {
   'use server';
   await requireAdmin();
   const examId = String(formData.get('examId'));
-  const publish = formData.get('publish') === 'on';
   if (!examId) return;
   const rows: any[] = [];
   // Form field naming: q{idx}_stem, q{idx}_type, q{idx}_domain, q{idx}_difficulty,
@@ -58,7 +57,7 @@ async function createBatch(formData: FormData) {
       explanation,
       options,
       correct,
-      status: publish ? 'PUBLISHED' : 'DRAFT',
+      status: 'PUBLISHED',
       generatedBy: 'manual',
       references: Object.keys(explainPerOption).length
         ? { explanationByOption: explainPerOption }
@@ -146,10 +145,7 @@ export default async function ManualBatchPage({ params }: { params: Promise<{ id
           </details>
         ))}
         <div className="flex items-center justify-between">
-          <label className="inline-flex items-center gap-2 text-[12px] text-slate-700 dark:text-slate-200">
-            <input type="checkbox" name="publish" defaultChecked />
-            Publish immediately (otherwise saved as DRAFT)
-          </label>
+          <p className="text-[12px] text-slate-500 dark:text-slate-400">Saved questions are published straight into the pool.</p>
           <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
             Save batch
           </button>

@@ -58,13 +58,13 @@ for (const q of quotas) {
     sourceLabel: meta.urls?.map((u) => u.url).join(', ') ?? exam.infoUrl
   })) {
     if (ev.type === 'question') {
-      // Persist as DRAFT with examId + domain set, then SSE-emit.
+      // Persist as PUBLISHED (auto-publish) with examId + domain set, then SSE-emit.
     }
   }
 }
 ```
 
-Persist as `DRAFT` with `generatedBy = 'claude:blueprint'`. Admins can bulk-approve after review at `/admin-dashboard/questions?status=DRAFT`.
+Persist as `PUBLISHED` with `generatedBy = 'claude:blueprint'` (questions auto-publish into the pool). Admins remove or unpublish bad ones from the exam page's question browser.
 
 ## 5. Question type mix
 

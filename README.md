@@ -326,8 +326,8 @@ flowchart TD
 1. Sign in using the seeded admin credentials.
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
-4. Go to `/admin-dashboard/exams/[id]/author` to generate new exam questions using the AI integration.
-5. Open any question bank under `/admin-dashboard/exams` to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Practice Exams) lists every Practice Exam (fixed US$20) with its question bank and linked Exam Voucher; `/admin-dashboard/bundles/vouchers` (Exam Vouchers) manages voucher prices, titles, slugs and on-sale status.
+4. Go to `/admin-dashboard/exams/[id]/author` to generate new exam questions using the AI integration. New questions — generated, imported or added by hand — are published straight into the pool; unpublish or delete any you don't want.
+5. The `/admin-dashboard/exams` (Question Banks) list shows each bank's total questions (with any drafts called out) and its number of exam domains. Open any question bank to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Practice Exams) lists every Practice Exam (fixed US$20) with its question bank and linked Exam Voucher; `/admin-dashboard/bundles/vouchers` (Exam Vouchers) manages voucher prices, titles, slugs and on-sale status.
 
 ## Database
 

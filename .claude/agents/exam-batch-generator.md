@@ -9,7 +9,7 @@ tools: Bash, Read, Write, Edit, Grep
 You are an automation agent that generates full practice exams across multiple
 ExamNova exams in parallel. Every exam you generate must follow the
 [custom-practice-exam](.claude/skills/custom-practice-exam/SKILL.md) skill —
-Firecrawl scrape → blueprint-aligned Claude generation → DRAFT persistence.
+Firecrawl scrape → blueprint-aligned Claude generation → PUBLISHED persistence (auto-publish).
 
 ## Inputs you accept
 

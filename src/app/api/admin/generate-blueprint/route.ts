@@ -13,7 +13,7 @@ const Body = z.object({
   totalCount: z.number().int().min(10).max(120).default(60),
   difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]).default(3),
   type: z.enum(['SINGLE', 'MULTI', 'TRUE_FALSE']).default('SINGLE'),
-  publish: z.boolean().default(false)
+  publish: z.boolean().optional() // ignored — questions auto-publish
 });
 
 export async function POST(req: Request) {
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
                     domain: quota.name,
                     difficulty: ev.question.difficulty,
                     references: ev.question.references,
-                    status: body.publish ? 'PUBLISHED' : 'DRAFT',
+                    status: 'PUBLISHED', // auto-publish: added questions join the pool
                     generatedBy: 'claude:blueprint',
                     sourceId: sourceRow.id
                   }

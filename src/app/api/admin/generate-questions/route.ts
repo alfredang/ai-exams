@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       try {
         for await (const ev of streamGenerateQuestions(input)) {
           if (ev.type === 'question') {
-            // Persist as DRAFT immediately
+            // Auto-publish straight into the pool; the admin can Remove it
             const created = await db.question.create({
               data: {
                 examId: exam.id,
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
                 domain: ev.question.domain,
                 difficulty: ev.question.difficulty,
                 references: ev.question.references,
-                status: 'DRAFT',
+                status: 'PUBLISHED',
                 generatedBy: 'claude-sonnet-4-6'
               }
             });

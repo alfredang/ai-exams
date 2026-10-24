@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
+import { examBaseTitle } from '@/lib/exam-title';
 import { auth } from '@/lib/auth';
 import { drawAttemptQuestions } from '@/lib/question-pool';
 
@@ -50,7 +51,7 @@ export default async function AdminTestExamPage({ params }: { params: Promise<{ 
       </Link>
       <h1 className="mt-2 text-2xl font-bold">Test Question Bank</h1>
       <div className="mt-1 text-sm text-slate-500">
-        {exam.vendor.name} · {exam.code} · {exam.title.split(' — ')[0]}
+        {exam.vendor.name} · {exam.code} · {examBaseTitle(exam.title)}
       </div>
 
       <div className="card mt-4 p-4 text-sm">

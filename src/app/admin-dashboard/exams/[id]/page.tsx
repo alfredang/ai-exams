@@ -161,7 +161,6 @@ async function addQuestion(formData: FormData) {
   const domain = String(formData.get('domain') || 'General').trim() || 'General';
   const difficulty = Number(formData.get('difficulty') || 3);
   const explanation = String(formData.get('explanation') || '').trim();
-  const publish = formData.get('publish') === 'on';
 
   const optionTexts = [0, 1, 2, 3, 4, 5]
     .map((i) => String(formData.get(`opt${i}`) || '').trim())
@@ -187,7 +186,7 @@ async function addQuestion(formData: FormData) {
       explanation,
       options,
       correct,
-      status: publish ? 'PUBLISHED' : 'DRAFT',
+      status: 'PUBLISHED',
       generatedBy: 'manual'
     }
   });
@@ -611,10 +610,7 @@ export default async function EditExamPage({
             <textarea name="explanation" required rows={2} className="input" placeholder="Why the correct answer is correct…" />
           </Field>
 
-          <label className="md:col-span-2 flex items-center gap-2 text-sm">
-            <input type="checkbox" name="publish" defaultChecked />
-            Publish immediately (else save as draft)
-          </label>
+          <p className="md:col-span-2 self-center text-[12px] text-slate-500 dark:text-slate-400">Added questions are published straight into the pool.</p>
           <div className="md:col-span-1 flex justify-end">
             <button className="btn-primary">Add question</button>
           </div>
@@ -627,7 +623,7 @@ export default async function EditExamPage({
             <h2 className="text-lg font-semibold">Question pool ({exam.questions.length})</h2>
             <div className="text-xs text-slate-500">
               {exam.questions.filter((q) => q.status === 'PUBLISHED').length} published ·{' '}
-              {exam.questions.filter((q) => q.status === 'DRAFT').length} draft ·{' '}
+              {exam.questions.filter((q) => q.status === 'DRAFT').length} draft (not drawn) ·{' '}
               {exam.questions.filter((q) => q.status === 'ARCHIVED').length} archived ·{' '}
               each attempt draws {exam.questionCount} published questions by domain · Exam mode {exam.durationMinutes} min · pass {exam.passingScore}%
             </div>
@@ -637,7 +633,7 @@ export default async function EditExamPage({
               <form action={publishAllDrafts}>
                 <input type="hidden" name="examId" value={exam.id} />
                 <button className="btn-primary text-sm" type="submit">
-                  Publish all drafts ({exam.questions.filter((q) => q.status === 'DRAFT').length})
+                  Add {exam.questions.filter((q) => q.status === 'DRAFT').length} drafts to pool
                 </button>
               </form>
             )}
