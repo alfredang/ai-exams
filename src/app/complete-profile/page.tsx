@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { isFullName, needsFullName, normalizeName } from '@/lib/full-name';
+import { isFullName, normalizeName, startBlocker } from '@/lib/full-name';
+import { VerifyEmailForm } from '@/components/verify-email-form';
 import { resumeOrCreateAttempt } from '@/lib/start-attempt';
 
 export const dynamic = 'force-dynamic';
@@ -54,11 +55,29 @@ export default async function CompleteProfilePage({ searchParams }: { searchPara
   const session = await auth();
   const user = session?.user as { id?: string; impersonatedBy?: string } | undefined;
   if (!user?.id) redirect(`/login?next=${encodeURIComponent(`/complete-profile?${targetQuery(sp)}`)}`);
-  if (!(await needsFullName(user.id, user.impersonatedBy))) await continueTo(user.id, sp);
+  const blocker = await startBlocker(user.id, user.impersonatedBy);
+  if (!blocker) await continueTo(user.id, sp);
 
   const me = await db.user.findUnique({ where: { id: user.id }, select: { name: true, email: true } });
   const current = isFullName(me?.name) ? normalizeName(me?.name) : '';
   const t = targetQuery(sp);
+
+  // Step 1: prove the inbox is theirs. The form signs in with an email code,
+  // which marks the address verified, then comes back here for the name.
+  if (blocker === 'email' && me?.email) {
+    return (
+      <div className="container-app max-w-md py-16">
+        <div className="card p-8">
+          <div className="eyebrow mb-2">Before you start</div>
+          <h1 className="text-2xl font-bold">Verify your email</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Practice exams need a verified email address. We&rsquo;ll send a 6-digit code to <b>{me.email}</b>.
+          </p>
+          <VerifyEmailForm email={me.email} next={`/complete-profile?${t}`} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-app max-w-md py-16">

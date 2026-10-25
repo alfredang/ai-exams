@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { drawAttemptQuestions, hasPracticeAccess, resolvePoolExam } from '@/lib/question-pool';
-import { needsFullName } from '@/lib/full-name';
+import { startBlocker } from '@/lib/full-name';
 
 const Body = z.object({
   examId: z.string(),
@@ -42,8 +42,15 @@ export async function POST(req: Request) {
     if (!userId) return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
     // Practice or voucher purchase (the voucher includes the practice exam), or an admin grant.
     if (!(await hasPracticeAccess(db, userId, exam.id))) return NextResponse.json({ error: 'Purchase required' }, { status: 402 });
-    if (await needsFullName(userId, (session?.user as any)?.impersonatedBy)) {
-      return NextResponse.json({ error: 'Enter your full name before starting', needsFullName: true, href: `/complete-profile?examId=${exam.id}&mode=${data.mode}` }, { status: 403 });
+    const blocker = await startBlocker(userId, (session?.user as any)?.impersonatedBy);
+    if (blocker) {
+      const href = `/complete-profile?examId=${exam.id}&mode=${data.mode}`;
+      return NextResponse.json(
+        blocker === 'email'
+          ? { error: 'Verify your email before starting', needsVerifiedEmail: true, href }
+          : { error: 'Enter your full name before starting', needsFullName: true, href },
+        { status: 403 }
+      );
     }
   }
 

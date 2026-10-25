@@ -13,7 +13,7 @@ import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { canUserReview } from '@/lib/reviews';
 import { sequencingSteps, optionsForAttempt } from '@/lib/shuffle';
 import { createAttempt } from '@/lib/start-attempt';
-import { requireFullNameToStart } from '@/lib/full-name';
+import { requireProfileToStart } from '@/lib/full-name';
 
 const LETTERS = 'ABCDEFGHIJ';
 
@@ -55,7 +55,7 @@ function TakeAgainButton({ examId, mode, teaser, examHref }: {
       'use server';
       const s = await auth();
       const uid = (s?.user as any)?.id as string | undefined;
-      await requireFullNameToStart(s, examId, mode);
+      await requireProfileToStart(s, examId, mode);
       // A retake is a fresh domain-weighted draw from the pool — old
       // attempts on a retired variant retake the certification's pool exam.
       const id = uid ? await createAttempt(uid, examId, mode) : null;

@@ -7,9 +7,9 @@ import { AttemptRow } from '@/components/attempt-row';
 import { ScoreTrend } from '@/components/score-trend';
 import { startFromDashboard } from '../actions';
 
-// Attempt history: every attempt with its score, filterable by exam. With an
-// exam selected it also shows the score trend and domain performance across
-// all of that exam's attempts. Each row opens the full answer review.
+// Attempt history: every attempt with its score, filterable by exam. "All
+// exams" is just the list; with an exam selected it also shows the score trend
+// and domain performance across all of that exam's attempts. Each row opens the full answer review.
 export default async function AttemptsPage({ searchParams }: { searchParams: Promise<{ exam?: string }> }) {
   const session = await auth();
   const userId = (session?.user as any)?.id as string | undefined;
@@ -40,15 +40,7 @@ export default async function AttemptsPage({ searchParams }: { searchParams: Pro
         </div>
       )}
 
-      {selected ? (
-        <ExamSummary exam={selected} />
-      ) : (
-        exams.length > 1 && (
-          <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {exams.map((e) => <ExamMini key={e.examId} exam={e} />)}
-          </div>
-        )
-      )}
+      {selected && <ExamSummary exam={selected} />}
 
       <section className="card overflow-hidden">
         <h2 className="border-b border-line px-4 py-3 text-sm font-semibold dark:border-slate-800">
@@ -103,24 +95,6 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const pct = (n: number | null) => (n === null ? '—' : `${n}%`);
-
-// Compact per-exam card on the "All exams" view.
-function ExamMini({ exam }: { exam: ExamHistory }) {
-  const points = trendPoints(exam);
-  return (
-    <Link href={`/user-dashboard/attempts?exam=${exam.examId}`} className="card-hover block p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="badge-brand font-mono">{exam.code}</span>
-        <span className="text-xs text-slate-500 dark:text-slate-400">{exam.attempts.length} {exam.attempts.length === 1 ? 'attempt' : 'attempts'}</span>
-      </div>
-      <div className="mt-3 flex gap-6">
-        <Stat label="Best" value={pct(exam.best)} />
-        <Stat label="Latest" value={pct(exam.latest)} />
-      </div>
-      {points.length > 1 && <div className="mt-2"><ScoreTrend points={points} passMark={exam.passingScore} height={90} linkPoints={false} /></div>}
-    </Link>
-  );
-}
 
 function ExamSummary({ exam }: { exam: ExamHistory }) {
   const points = trendPoints(exam);

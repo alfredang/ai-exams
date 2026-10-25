@@ -6,6 +6,7 @@ import { issueOtp, markInboxVerified, verifyOtp } from '@/lib/otp';
 import { rateLimit } from '@/lib/ratelimit';
 import { clientIp } from '@/lib/client-ip';
 import { rateLimitEmailKey } from '@/lib/email-guard';
+import { isFullName, normalizeName } from '@/lib/full-name-rules';
 
 const Body = z.object({
   email: z.string().email(),
@@ -45,10 +46,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
   }
 
+  const email = data.email.toLowerCase().trim();
+
+  // Every account that registration creates or finishes must end up with a
+  // full name. Checked before the code is consumed so a bad name doesn't
+  // burn it. An existing account that already has one keeps it.
+  const givenName = isFullName(data.name) ? normalizeName(data.name) : undefined;
+  if (data.purpose === 'REGISTER' || data.purpose === 'TEASER_GATE') {
+    const named = await db.user.findUnique({ where: { email }, select: { name: true } });
+    if (!givenName && !isFullName(named?.name)) {
+      return NextResponse.json({ error: 'Enter your first and last name (letters only).', needsFullName: true }, { status: 400 });
+    }
+  }
+
   const ok = await verifyOtp(data.email, data.code, data.purpose);
   if (!ok) return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 });
-
-  const email = data.email.toLowerCase().trim();
 
   if (data.purpose === 'REGISTER') {
     const passwordHash = data.newPassword ? await argon2.hash(data.newPassword) : null;
@@ -60,10 +72,10 @@ export async function POST(req: Request) {
       where: { email },
       update: {
         emailVerified: new Date(),
-        name: data.name?.trim() || undefined,
+        name: givenName,
         ...(passwordHash ? { passwordHash, passwordSetupRequired: false } : dropPassword ? { passwordHash: null } : {})
       },
-      create: { email, emailVerified: new Date(), name: data.name?.trim() || undefined, passwordHash }
+      create: { email, emailVerified: new Date(), name: givenName, passwordHash }
     });
 
     // Migrate any guest attempts associated with the gt cookie to this user
@@ -93,9 +105,12 @@ export async function POST(req: Request) {
 
   if (data.purpose === 'TEASER_GATE') {
     // Just create or attach the user; teaser gate flow follows up with sign-in via OTP separately
-    const existing = await db.user.findUnique({ where: { email }, select: { id: true } });
-    const user = existing ?? (await db.user.create({ data: { email, emailVerified: new Date() }, select: { id: true } }));
-    if (existing) await markInboxVerified(existing.id);
+    const existing = await db.user.findUnique({ where: { email }, select: { id: true, name: true } });
+    const user = existing ?? (await db.user.create({ data: { email, name: givenName, emailVerified: new Date() }, select: { id: true } }));
+    if (existing) {
+      await markInboxVerified(existing.id);
+      if (givenName && !isFullName(existing.name)) await db.user.update({ where: { id: existing.id }, data: { name: givenName } });
+    }
     const cookieHeader = req.headers.get('cookie') || '';
     const gt = /(?:^|; )gt=([^;]+)/.exec(cookieHeader)?.[1];
     if (gt) {

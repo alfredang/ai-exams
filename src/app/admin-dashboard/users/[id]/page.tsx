@@ -8,6 +8,8 @@ import { formatMoney, tierLabel } from '@/lib/utils';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
+import { ScoreTrend } from '@/components/score-trend';
+import { getAttemptHistory, type ExamHistory } from '@/lib/attempt-history';
 import {
   Ban,
   CheckCircle2,
@@ -17,6 +19,7 @@ import {
   Eye as EyeIcon,
   Pin,
   Trash2,
+  Download,
   Tag as TagIcon
 } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -252,7 +255,7 @@ export default async function AdminUserDetailPage({
     orders,
     entitlements,
     invoices,
-    attempts,
+    history,
     emails,
     notes,
     activity,
@@ -273,12 +276,7 @@ export default async function AdminUserDetailPage({
       where: { userId: id },
       orderBy: { issueDate: 'desc' }
     }),
-    db.attempt.findMany({
-      where: { userId: id },
-      include: { exam: { select: { code: true, title: true } } },
-      orderBy: { startedAt: 'desc' },
-      take: 50
-    }),
+    getAttemptHistory(id),
     db.emailLog.findMany({
       where: { userId: id },
       orderBy: { sentAt: 'desc' },
@@ -306,6 +304,7 @@ export default async function AdminUserDetailPage({
   const ltv = aggregates._sum.amount ?? 0;
   const paidCount = aggregates._count ?? 0;
   const vouchers = entitlements.filter((e) => e.voucher);
+  const attempts = history.attempts;
   const subtitle = (
     <span className="inline-flex flex-wrap items-center gap-2">
       <Badge variant={user.active ? 'success' : 'danger'}>{user.active ? 'ACTIVE' : 'SUSPENDED'}</Badge>
@@ -401,6 +400,14 @@ export default async function AdminUserDetailPage({
                 <Row k="Email verified" v={user.emailVerified ? user.emailVerified.toLocaleString() : '—'} />
                 <Row k="Joined" v={user.createdAt.toLocaleString()} />
                 <Row k="Session version" v={String(user.sessionVersion)} />
+              </Card>
+              <Card title={`Exam history (${attempts.length} attempt${attempts.length === 1 ? '' : 's'})`}>
+                <ExamHistoryCards exams={history.exams} />
+                {attempts.length > 0 && (
+                  <Link href={`/admin-dashboard/users/${user.id}?tab=attempts`} className="mt-3 inline-block text-[12px] font-medium text-blue-700 hover:underline dark:text-blue-300">
+                    View every attempt →
+                  </Link>
+                )}
               </Card>
               <Card title="Billing addresses">
                 {user.billingAddresses.length === 0 ? (
@@ -575,38 +582,57 @@ export default async function AdminUserDetailPage({
           )}
 
           {tab === 'attempts' && (
-            <Card title={`Recent attempts (${attempts.length})`}>
-              {attempts.length === 0 ? (
-                <p className="text-[12px] text-slate-500">No attempts.</p>
-              ) : (
-                <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
-                      <th className="py-1">Started</th>
-                      <th className="py-1">Exam</th>
-                      <th className="py-1">Mode</th>
-                      <th className="py-1 text-right">Score</th>
-                      <th className="py-1">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                    {attempts.map((a) => (
-                      <tr key={a.id}>
-                        <td className="py-1.5">{a.startedAt.toLocaleString()}</td>
-                        <td className="py-1.5">{a.exam.code}</td>
-                        <td className="py-1.5">{a.mode}</td>
-                        <td className="py-1.5 text-right">{a.score != null ? `${a.score}%` : '—'}</td>
-                        <td className="py-1.5">
-                          <Badge variant={a.submittedAt ? (a.passed ? 'success' : 'warn') : 'muted'}>
-                            {a.submittedAt ? (a.passed ? 'PASSED' : 'FAILED') : 'IN PROGRESS'}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Card>
+            <>
+              <Card title="Score history by exam">
+                <ExamHistoryCards exams={history.exams} />
+              </Card>
+              <Card title={`All attempts (${attempts.length})`}>
+                {attempts.length === 0 ? (
+                  <p className="text-[12px] text-slate-500">No attempts.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[12px]">
+                      <thead>
+                        <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                          <th className="py-1 pr-2">Started</th>
+                          <th className="py-1 pr-2">Exam</th>
+                          <th className="py-1 pr-2">Mode</th>
+                          <th className="py-1 pr-2 text-right">Score</th>
+                          <th className="py-1 pr-2 text-right">Time</th>
+                          <th className="py-1 pr-2">Status</th>
+                          <th className="py-1"><span className="sr-only">Report</span></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                        {attempts.map((a) => (
+                          <tr key={a.id}>
+                            <td className="whitespace-nowrap py-1.5 pr-2">{a.startedAt.toLocaleString()}</td>
+                            <td className="py-1.5 pr-2 font-mono" title={a.examTitle}>{a.examCode.replace(/-P\d+$/, '')}</td>
+                            <td className="py-1.5 pr-2">{a.isTeaser ? 'TEASER' : a.mode}</td>
+                            <td className="whitespace-nowrap py-1.5 pr-2 text-right tabular-nums">
+                              {a.score != null ? `${a.score}% · ${a.correct}/${a.total}` : `— · ${a.total} q`}
+                            </td>
+                            <td className="whitespace-nowrap py-1.5 pr-2 text-right tabular-nums">{fmtDuration(a.timeUsedSec)}</td>
+                            <td className="py-1.5 pr-2">
+                              <Badge variant={a.inProgress ? 'muted' : a.passed ? 'success' : 'warn'}>
+                                {a.inProgress ? 'IN PROGRESS' : a.passed ? 'PASS' : 'FAIL'}
+                              </Badge>
+                            </td>
+                            <td className="py-1.5 text-right">
+                              {!a.inProgress && (
+                                <a href={`/api/results/${a.id}/pdf`} className="inline-flex items-center gap-1 text-blue-700 hover:underline dark:text-blue-300" title="Download the score report (PDF)">
+                                  <Download className="h-3.5 w-3.5" /> PDF
+                                </a>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
+            </>
           )}
 
           {tab === 'emails' && (
@@ -789,6 +815,53 @@ export default async function AdminUserDetailPage({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function fmtDuration(sec: number | null) {
+  if (sec == null) return '—';
+  const m = Math.floor(sec / 60);
+  return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m ${sec % 60}s`;
+}
+
+const pct = (n: number | null) => (n === null ? '—' : `${n}%`);
+
+// Per-certification summary (same numbers the customer sees on Exam history):
+// best / average / latest, domain weak spots and the score-per-attempt line.
+function ExamHistoryCards({ exams }: { exams: ExamHistory[] }) {
+  if (exams.length === 0) return <p className="text-[12px] text-slate-500">No attempts yet.</p>;
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {exams.map((e) => {
+        const points = e.attempts
+          .filter((a) => a.score !== null)
+          .map((a) => ({ id: a.id, score: a.score!, date: a.startedAt }))
+          .reverse();
+        const weak = e.domains.filter((d) => (d.correct / d.total) * 100 < e.passingScore).slice(0, 3);
+        return (
+          <div key={e.examId} className="rounded-md border border-slate-200 p-3 dark:border-slate-700">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-mono text-[12px] font-semibold" title={e.title}>{e.code}</span>
+              <span className="text-[11px] text-slate-500">{e.attempts.length} attempt{e.attempts.length === 1 ? '' : 's'}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-[12px]">
+              {([['Best', e.best], ['Average', e.average], ['Latest', e.latest]] as const).map(([k, v]) => (
+                <div key={k}>
+                  <div className="text-[11px] uppercase tracking-wider text-slate-500">{k}</div>
+                  <div className={`font-semibold tabular-nums ${v !== null && v >= e.passingScore ? 'text-emerald-700 dark:text-emerald-400' : ''}`}>{pct(v)}</div>
+                </div>
+              ))}
+            </div>
+            {points.length > 1 && <div className="mt-2"><ScoreTrend points={points} passMark={e.passingScore} height={80} linkPoints={false} /></div>}
+            {weak.length > 0 && (
+              <p className="mt-2 text-[11px] text-slate-500">
+                Weak domains: {weak.map((d) => `${d.name} (${Math.round((d.correct / d.total) * 100)}%)`).join(', ')}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

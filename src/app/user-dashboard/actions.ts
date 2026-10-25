@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { resumeOrCreateAttempt } from '@/lib/start-attempt';
-import { requireFullNameToStart } from '@/lib/full-name';
+import { requireProfileToStart } from '@/lib/full-name';
 
 /** One-click start from a dashboard badge: straight into the exam runner. */
 export async function startFromDashboard(formData: FormData) {
@@ -14,7 +14,7 @@ export async function startFromDashboard(formData: FormData) {
   const examId = String(formData.get('examId') || '');
   // Exam mode is the default, like the real test; Practice must be asked for.
   const mode = formData.get('mode') === 'PRACTICE' ? 'PRACTICE' : 'EXAM';
-  if (examId) await requireFullNameToStart(session, examId, mode);
+  if (examId) await requireProfileToStart(session, examId, mode);
   const attemptId = examId ? await resumeOrCreateAttempt(userId, examId, mode) : null;
   redirect(attemptId ? `/exam/${attemptId}` : '/user-dashboard?start=failed');
 }

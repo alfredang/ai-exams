@@ -23,6 +23,12 @@ export async function POST(req: Request) {
       if (!(await hasPracticeAccess(db, auth.user.id, exam.id))) {
         return NextResponse.json({ error: 'Exam access required' }, { status: 403 });
       }
+      // Mobile login already refuses unverified accounts; this covers tokens
+      // issued before that rule.
+      const me = await db.user.findUnique({ where: { id: auth.user.id }, select: { emailVerified: true, role: true } });
+      if (me?.role === 'USER' && !me.emailVerified) {
+        return NextResponse.json({ error: 'Verify your email before starting', needsVerification: true }, { status: 403 });
+      }
     }
 
     // Fresh domain-weighted draw from the pool on every attempt (retakes included).

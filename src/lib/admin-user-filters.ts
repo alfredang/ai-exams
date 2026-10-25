@@ -41,3 +41,20 @@ export function buildUserWhere(params: UserFilterParams): Prisma.UserWhereInput 
   }
   return where;
 }
+
+/**
+ * Customer accounts that never verified their email and never took an exam —
+ * the "Delete unverified users" clean-up on /admin-dashboard/users. Accounts
+ * with any money trail (orders, invoices, coupon redemptions) are always kept
+ * for revenue history, as are staff and anonymised rows. Access grants are
+ * deleted with the account (the admin sees them listed before confirming).
+ */
+export const PURGEABLE_UNVERIFIED_WHERE: Prisma.UserWhereInput = {
+  role: 'USER',
+  emailVerified: null,
+  anonymizedAt: null,
+  attempts: { none: {} },
+  orders: { none: {} },
+  invoices: { none: {} },
+  couponRedemptions: { none: {} }
+};

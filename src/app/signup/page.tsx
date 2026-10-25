@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { SocialLoginButtons } from '@/components/social-login-buttons';
 import { useCaptcha } from '@/components/captcha';
+import { isFullName, normalizeName } from '@/lib/full-name-rules';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,7 +19,9 @@ export default function SignupPage() {
   const captcha = useCaptcha();
 
   async function startSignup(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setErr('');
+    e.preventDefault(); setErr('');
+    if (!isFullName(name)) { setErr('Enter your first and last name (letters only, e.g. "Tan Wei Ming").'); return; }
+    setBusy(true);
     const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'REGISTER', ...captcha.fields() }) });
     setBusy(false);
     captcha.reset();
@@ -31,7 +34,7 @@ export default function SignupPage() {
     const r = await fetch('/api/otp/verify', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, code, purpose: 'REGISTER', name, newPassword: password || undefined, sendLoginCode: !password })
+      body: JSON.stringify({ email, code, purpose: 'REGISTER', name: normalizeName(name), newPassword: password || undefined, sendLoginCode: !password })
     });
     if (!r.ok) { setBusy(false); setErr((await r.json()).error || 'Verification failed'); return; }
     if (password) {
@@ -54,7 +57,7 @@ export default function SignupPage() {
 
         {step === 'form' ? (
           <form onSubmit={startSignup} className="mt-6 space-y-4">
-            <div><label className="label">Name</label><input className="input" value={name} onChange={e => setName(e.target.value)} /></div>
+            <div><label htmlFor="name" className="label">Full name</label><input id="name" className="input" required minLength={3} maxLength={120} autoComplete="name" placeholder="e.g. Tan Wei Ming" value={name} onChange={e => setName(e.target.value)} /><p className="mt-1 text-xs text-slate-500">As on your ID — it appears on score reports and vouchers.</p></div>
             <div><label className="label">Email</label><input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} /></div>
             <div><label className="label">Password <span className="text-xs text-slate-500">(optional — you can sign in with email codes)</span></label><input className="input" type="password" minLength={8} value={password} onChange={e => setPassword(e.target.value)} /></div>
             {captcha.widget}

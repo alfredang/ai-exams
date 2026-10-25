@@ -40,5 +40,6 @@ paths:
   classes inside it, not the shared `.btn-*`. No `alert()` / `confirm()`.
 - `Question.references` may be null, URL strings or `{url,label}` — normalise
   through `ExplanationView`; a bad reference must never break a result page.
-- Full attempts require a real full name (`requireFullNameToStart()`);
+- Full attempts require a verified email and a real full name
+  (`startBlocker()` / `requireProfileToStart()` → `/complete-profile`);
   teasers, staff and impersonated sessions are exempt.

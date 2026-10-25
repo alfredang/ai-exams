@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCaptcha } from '@/components/captcha';
+import { isFullName, normalizeName } from '@/lib/full-name-rules';
 
 type Props = {
   count: number;
@@ -35,6 +36,7 @@ export function TeaserGate({
 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<'email' | 'otp' | 'done'>('email');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -47,6 +49,7 @@ export function TeaserGate({
   async function send(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return; // guard against rapid double-submit before React re-renders the disabled button (Teaser-audit L3)
+    if (!isFullName(name)) { setErr('Enter your first and last name (letters only).'); return; }
     setBusy(true); setErr('');
     const r = await fetch('/api/otp/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, purpose: 'TEASER_GATE', ...captcha.fields() }) });
     setBusy(false);
@@ -60,7 +63,7 @@ export function TeaserGate({
     setBusy(true); setErr('');
     // sendLoginCode: the server emails a LOGIN code on success, then we ship
     // the user to /verify-otp to complete sign-in
-    const r = await fetch('/api/otp/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, code, purpose: 'TEASER_GATE', sendLoginCode: true }) });
+    const r = await fetch('/api/otp/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, code, name: normalizeName(name), purpose: 'TEASER_GATE', sendLoginCode: true }) });
     if (!r.ok) { setBusy(false); setErr((await r.json()).error || 'Verification failed'); return; }
     router.push(`/verify-otp?email=${encodeURIComponent(email)}&purpose=LOGIN&next=${encodeURIComponent(resolvedNext)}`);
   }
@@ -76,7 +79,8 @@ export function TeaserGate({
 
         {step === 'email' && (
           <form onSubmit={send} className="mt-5 space-y-3">
-            <input className="input" type="email" required placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+            <input className="input" aria-label="Full name" required minLength={3} maxLength={120} autoComplete="name" placeholder="Full name, e.g. Tan Wei Ming" value={name} onChange={e => setName(e.target.value)} />
+            <input className="input" type="email" aria-label="Email" required autoComplete="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
             {captcha.widget}
             {err && <p className="text-sm text-red-600">{err}</p>}
             <button className="btn-primary-grad w-full" disabled={busy || !captcha.ready}>{busy ? 'Sending…' : primaryLabel}</button>
