@@ -882,3 +882,30 @@ model Testimonial {
   deletedAt      DateTime?
   @@index([published, sortOrder])
 }
+
+// Leads from the public Support page enquiry form. Stored even when the
+// sales alert email fails, so no enquiry is lost. No FK to User: guests
+// enquire too.
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model Enquiry {
+  id            String        @id @default(cuid())
+  topic          String
+  name           String
+  email          String
+  phone          String?
+  preferWhatsApp Boolean       @default(false)
+  certification  String?
+  message        String
+  status         EnquiryStatus @default(NEW)
+  ip             String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+}

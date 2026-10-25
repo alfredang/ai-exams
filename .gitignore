@@ -26,9 +26,11 @@ practice-exams-pdfs-*/
 !.claude/skills/
 !.claude/agents/
 !.claude/commands/
+!.claude/rules/
 !.claude/skills/**
 !.claude/agents/**
 !.claude/commands/**
+!.claude/rules/**
 
 # Personal skills symlinked into ignored .agents/ — broken links on GitHub, keep local-only
 .claude/skills/find-skills
@@ -67,3 +69,10 @@ scripts/_*
 
 # Source material the project was derived from — not ours to republish.
 **/reference/
+
+# Skills installed into ignored .agents/ via `npx skills add` — keep local-only
+.claude/skills/lead-magnets
+.claude/skills/cybersecurity-analyst
+
+# Security assessment reports — confidential, never commit or upload
+/docs/security/

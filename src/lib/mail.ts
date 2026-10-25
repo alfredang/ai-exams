@@ -417,6 +417,45 @@ ${alert.voucherPending ? '<p><b>Action needed:</b> this order includes an exam v
   );
 }
 
+/** Support-page enquiry → sales inbox (same recipients as the order alert). */
+export async function sendEnquiryAlertEmail(e: {
+  id: string;
+  topic: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  preferWhatsApp: boolean;
+  certification: string | null;
+  message: string;
+  createdAt: Date;
+}) {
+  const date = e.createdAt.toLocaleString('en-SG', { timeZone: 'Asia/Singapore', dateStyle: 'medium', timeStyle: 'short' });
+  const rows: [string, string][] = [
+    ['Topic', e.topic],
+    ['Name', e.name],
+    ['Email', e.email],
+    ['Tel', e.phone || '—'],
+    ['Reply via', e.preferWhatsApp && e.phone ? 'WhatsApp' : 'Email'],
+    ['Certification', e.certification || '—'],
+    ['Date', `${date} (SGT)`]
+  ];
+  const html = `<p>A new enquiry came in from the Tertiary Exams Support page.</p>
+<table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">
+${rows.map(([k, v]) => `<tr><td><b>${k}</b></td><td>${escapeHtml(v)}</td></tr>`).join('\n')}
+</table>
+<p><b>Message</b></p>
+<p style="white-space:pre-wrap;font-family:Arial,sans-serif;font-size:14px">${escapeHtml(e.message)}</p>
+<p>Reply to <a href="mailto:${escapeHtml(e.email)}">${escapeHtml(e.email)}</a>. All enquiries: Admin → Enquiries.</p>`;
+  return sendMail(
+    ORDER_ALERT_TO,
+    `New enquiry — ${e.topic} — ${e.name}`,
+    html,
+    undefined,
+    ORDER_ALERT_CC,
+    { template: 'ENQUIRY_ALERT' }
+  );
+}
+
 export async function sendRefundEmail(orderId: string, creditNoteId: string, amountCents: number, fullyRefunded: boolean) {
   const [order, creditNote] = await Promise.all([
     db.order.findUnique({ where: { id: orderId }, include: { user: true, bundle: true, exam: true, invoice: true } }),

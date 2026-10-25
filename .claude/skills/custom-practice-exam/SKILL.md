@@ -1,86 +1,105 @@
 ---
 name: custom-practice-exam
-description: Generate a full practice exam (e.g. 60 questions) for an ExamNova exam by first scraping the vendor's latest official exam objectives via Firecrawl, then prompting Claude to author questions whose domain distribution matches the published blueprint percentages. Use when the user asks to "generate a full exam", "auto-fill the exam bank", "create N questions for AZ-900 blueprint", or invokes the "AI Assist (Blueprint)" mode in the admin.
+description: Build or extend the Practice Exam for one certification on Tertiary Exams — resolve the product and its pool exam (Question Bank), set the official domain weights, and fill the question pool with domain-weighted MCQ, Multiple select and Sequencing questions that carry suggested answers and references. Use when the user asks to "create a practice exam for X", "generate a full exam", "fill the question bank", "create N questions for the AZ-900 blueprint", "add a new certification", or "top up a domain".
 ---
 
-# Custom practice exam skill
+# Custom practice exam (Tertiary Exams)
 
-Generates a faithful, blueprint-aligned practice exam for a given ExamNova `Exam` row. The workflow:
+How a Practice Exam works on this site today, and the two ways to fill one.
+`CLAUDE.md` is the source of truth — re-read its Exam runtime, Data model
+invariants and Seeding sections if anything here disagrees.
 
-## 1. Resolve the exam + domain blueprint
+## The model you are filling
 
-Read the `Exam` row (by `id` or `slug`). Inspect `exam.domains` — it's a JSON array of `{ name, weight }` where weights sum to ~100.
+- **One Practice Exam per certification.** A `Bundle` row is the product
+  (`slug`, title, fixed US$20 `price`, optional Exam Voucher). Its PRACTICE
+  `BundleItem` points at the **pool exam** — the `Exam` row admins call the
+  **Question Bank**. Old `-p2/-p3` variants are retired (`poolExamId` set) and
+  folded into it on every deploy; never add questions to a retired variant.
+- **Every attempt is drawn, not fixed.** `drawAttemptQuestions()`
+  (`src/lib/question-pool.ts`) apportions `Exam.questionCount` seats across
+  `Exam.domains` weights (largest remainder). So the pool must be deep in
+  every domain — aim for ≥ 2× the per-attempt seats per domain — and every
+  question's `domain` must equal a blueprint domain name exactly.
+- **Teaser**: 10 questions drawn from the same pool (pinned in code). Exam
+  mode is timed from `Exam.durationMinutes`; Practice mode shows the
+  explanation ("Suggested answer") immediately; results show the "Why" box,
+  the domain and the references.
+- Customer-facing words: **Practice Exam**, **Exam Voucher**, **Vendor**,
+  **Certification**. Never "bundle", "tier", "dump" or "real exam questions".
 
-If `exam.domains` is empty or stale, prefer scraping fresh data from `exam.infoUrl` (set via the admin "Look up via Claude" button). If `infoUrl` is missing, ask the admin to populate it first — do NOT invent domains.
+## 1. Resolve the certification
 
-## 2. Scrape the vendor's latest exam guide
+Find the product by slug (`aws-saa-c03`), code or title → its PRACTICE item →
+the pool exam (`resolvePoolExam()` maps a variant id to it). A brand-new
+certification is created in admin at **Create Practice Exam**
+(`/admin-dashboard/exams/new`, which makes the Question Bank and a draft
+product), or by a seed module listed in `prisma/seed.ts` `BUNDLES`
+(see CLAUDE.md "Seeding a new exam bundle to production").
 
-Use the Firecrawl API (key in Settings → Credentials → `FIRECRAWL_API_KEY`):
+## 2. Domain blueprint
 
-```ts
-import { extractFromUrls } from '@/lib/sources/extract';
-const { text, meta } = await extractFromUrls([exam.infoUrl]);
-```
+Official weights live in `src/lib/exam-blueprints.ts`, keyed by product slug:
+`domains [{name, weight}]`, `sourceUrl`, `verifiedAt`, display-only `topics`
+per domain, and `examPageUrl` / `studyGuideUrl` for the product page's
+References. Add or update the entry from the vendor's current exam guide
+(read it with WebFetch/Firecrawl) and bump `verifiedAt`; the deploy-time fold
+applies it unless an admin edited weights later at
+`/admin-dashboard/exams/[id]#pool`. Use `aliases` for legacy domain labels.
+Never invent domains — if the vendor publishes none, ask.
 
-If the vendor publishes a PDF guide rather than HTML, ask the admin to upload it via the PDF authoring mode instead — Firecrawl handles HTML but PDFs go through `extractFromPdf`.
+## 3. Fill the pool — pick one path
 
-## 3. Compute per-domain question quotas
+| | A. AI Assist — bulk generate (in app) | B. `question-bank-generator` agent |
+|---|---|---|
+| Where | Exam page → Question pool → **AI Assist** | Claude Code, `.claude/agents/question-bank-generator.md` (Opus) |
+| Model | OpenAI (`OPENAI_MODEL`, admin → Settings → Credentials) | Claude Opus writes the questions |
+| Types | MCQ, Multiple select, True/False | MCQ, Multiple select, **Sequencing** |
+| References | model-supplied, validated as URLs | curated official docs, each URL checked |
+| Persistence | saved PUBLISHED as they stream | idempotent seed module + admin seed endpoint |
+| Use for | quick top-ups by an admin | new certifications, Sequencing, high-quality pools |
 
-Given a target `totalCount` (e.g. 60):
+Path A: `POST /api/admin/exams/[id]/ai-generate` with
+`{ count ≤ 200, domains: [] /* all */, type: 'MIXED' | 'SINGLE' | 'MULTI' | 'TRUE_FALSE' }`
+splits `count` by weight (`planDomainCounts()`), validates each question and
+streams SSE `plan` / `question` / `warn` / `done`. Admin session only.
 
-```ts
-const quotas = exam.domains.map((d) => ({
-  name: d.name,
-  count: Math.round((d.weight / 100) * totalCount)
-}));
-// Reconcile rounding so the sum equals totalCount exactly:
-const drift = totalCount - quotas.reduce((s, q) => s + q.count, 0);
-if (drift !== 0) quotas[0].count += drift;
-```
+Path B: run the agent; it plans the split, writes, validates with
+`validateQuestion()` (`src/lib/question-input.ts`) and persists via
+`src/lib/seed/<slug>-bank-questions.ts`. Manual one-offs go through **Add
+manually** on the exam page.
 
-## 4. Generate per domain via `streamGenerateQuestions`
+## 4. Question rules (both paths)
 
-For each `quota`, call the existing generator with `sourceExcerpt = scraped text` and `domain = quota.name`:
+- Shapes: `options` `[{id, text}]`, `correct` = option ids, `references`
+  `[{label, url}]` (http/https only). No AnswerOption table.
+- MCQ: 4 options, one correct. Multiple select: 5 options, 2 correct, stem
+  says "(Select TWO.)". Sequencing (`ORDERING`): 4–6 steps written out of
+  order with ids `'1'…'N'`, `correct` = right order; the runner, results and
+  PDF all render via `sequencingSteps()`.
+- Default mix 70% MCQ / 20% Multiple select / 10% Sequencing, with
+  Sequencing only for real procedures.
+- Explanation opens with the suggested answer ("Correct: B.", "Correct
+  sequence: 3 → 1 → 4 → 2."), then why, then why the distractors are wrong.
+- Original, scenario-based, blueprint-aligned. Never claim real-exam content.
+- Questions save PUBLISHED (auto-publish). Admins unpublish or edit bad ones
+  at `/admin-dashboard/exams/[id]/questions/[qid]`; option ids never change
+  on edit so past answers stay valid.
 
-```ts
-import { streamGenerateQuestions } from '@/lib/claude';
-for (const q of quotas) {
-  for await (const ev of streamGenerateQuestions({
-    vendor: exam.vendor.name,
-    certification: exam.title,
-    examCode: exam.code,
-    domain: q.name,
-    domainWeights: exam.domains,
-    count: q.count,
-    difficulty: 3,
-    type: 'SINGLE',
-    sourceExcerpt: text,
-    sourceLabel: meta.urls?.map((u) => u.url).join(', ') ?? exam.infoUrl
-  })) {
-    if (ev.type === 'question') {
-      // Persist as PUBLISHED (auto-publish) with examId + domain set, then SSE-emit.
-    }
-  }
-}
-```
+## 5. Check the result
 
-Persist as `PUBLISHED` with `generatedBy = 'claude:blueprint'` (questions auto-publish into the pool). Admins remove or unpublish bad ones from the exam page's question browser.
+- `/admin-dashboard/exams/[id]#pool`: per-domain pool vs per-attempt draw —
+  no domain short of its seats.
+- Product page `/practice-exams/[vendor]/[slug]`: card label
+  "{pool}-question pool · {n} per attempt" (`poolCardLabel()`), domain
+  accordion from blueprint `topics`.
+- Take the free teaser and one Practice-mode attempt; open the results page
+  and the results PDF to see explanations, domains and references render.
 
-## 5. Question type mix
+## Failure modes
 
-Default to all `SINGLE`. If the admin overrides with a mix (e.g. 70% SINGLE / 30% MULTI), split each domain's quota proportionally with rounding reconciled the same way.
-
-## 6. Surface in the admin
-
-**Current runtime:** the admin mode is **"AI Assist — bulk generate"** in the exam page's Question pool (`/admin-dashboard/exams/[id]#questions`). It calls `POST /api/admin/exams/[id]/ai-generate` with `{ count, domains, type }`, which uses OpenAI (`OPENAI_MODEL`, default `gpt-6.1-sol`) — see `src/lib/ai-question-gen.ts`. The old `/author` blueprint page and `/api/admin/generate-blueprint` were removed; the Claude-based steps above describe the earlier design.
-
-## 7. Failure modes to surface
-
-- `exam.infoUrl missing` → tell admin to set it (banner: "Look up via Claude" button).
-- `Firecrawl 4xx/5xx` → relay the API error; ask to retry.
-- `Claude returned fewer questions than the quota for domain X` → continue; persist what came back and log a warning. Don't backfill from another domain.
-- `Domain blueprint sums to 0` → refuse; ask admin to populate `exam.domains`.
-
-## 8. Cost + time
-
-A 60-question generation typically costs ~3-6 Claude calls (chunks vary by source size) and takes 60-120 seconds end to end. The SSE stream emits one event per question so admins see progress live.
+- No blueprint and the vendor page has no domain list → stop and ask.
+- A domain's pool is smaller than its per-attempt seats → the draw
+  re-apportions, but top that domain up next.
+- Seed endpoint answers 200 with old code → the deploy is not live yet
+  (`npm run seed:prod -- <slug> <expected-exam-slug>` exits 4).

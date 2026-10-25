@@ -73,6 +73,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Click-to-Start Dashboard:** After login, `/user-dashboard` shows every practice exam the learner owns as a badge with their best and last score and a **Choose a mode** pair — **Exam mode** (timed, primary) or **Practice mode**. One click opens the exam runner directly, resuming an unfinished attempt in that mode. Recent attempts are listed underneath in fixed columns (score, Pass / Fail / In progress, Resume or Review answers), and on phones the sidebar becomes a scrollable tab strip.
 - **Exam History:** `/user-dashboard/attempts` (sidebar: *Exam history*) lists every attempt with its score, correct / total, pass result and time used, filterable by certification. Each certification shows best / average / latest score, a score-per-attempt trend against the pass mark, and performance by exam domain across all attempts (domains below the pass mark are tagged *Focus here*). Every row opens the full answer review, and a trash button (with a confirm dialog) lets learners delete any attempt from their history.
 - **Light-Blue & Premium Navy Themes:** A compact, chip-free layout with a light-blue light theme by default and an opt-in premium deep-navy dark theme with blue glow accents, Archivo / IBM Plex typography, and an animated hero that previews the exam experience. The exam runner stays a light test-centre screen in both.
+- **Support & Lead Capture:** `/p/support` is a lead page — a "free study plan & quote" enquiry form (study plan, Exam Voucher quote, teams & corporate, order help, question feedback), WhatsApp / email / phone cards, a free-teaser offer and self-help links. Enquiries are stored even if email is down, raise an admin notification, email the sales inbox, and are worked at **Admin → Enquiries** (New → Contacted → Closed). Protected by Turnstile, a honeypot, minimum fill time and rate limits.
 - **WhatsApp Support Avatar:** A friendly animated support avatar (bottom-right on public pages) opens a quick-question panel that links straight to WhatsApp, with a once-per-visit greeting bubble. Hidden on the exam runner, checkout, and admin pages.
 - **Free Teasers:** Guest and authenticated users can take 10 free questions per certification, picked at random from the same domain-weighted pool as the paid exam.
 - **Question Types:** Multiple choice, multiple select ("Select TWO answers") and sequencing — steps are numbered and the answer reads like 5 → 3 → 2 → 4 → 1.
@@ -241,7 +242,7 @@ flowchart TD
 - `src/components/`: Shared UI components for frontend and dense admin data tables.
 - `src/lib/`: Core business logic (analytics, invoice generation, payments, AI integration, coupons, settings, etc.).
 - `scripts/`: Bulk question seeding, content generation, and utility scripts.
-- `.claude/`: Project-specific Claude AI agent and skill instructions.
+- `.claude/`: Project-specific Claude Code setup — path-scoped rules (`.claude/rules/`: API, payments, exam runtime, questions/seeds, storefront copy, auth/security, schema/deploy), skills (`custom-practice-exam`, `seo-audit`) and agents (`question-bank-generator` — Opus-authored MCQ / multiple-select / sequencing questions per exam domain; `security-scanner` — writes a local Word security assessment to the git-ignored `docs/security/`).
 - `public/`: Static assets and logos.
 
 ## Prerequisites
@@ -326,8 +327,9 @@ flowchart TD
 1. Sign in using the seeded admin credentials.
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
-4. Set the OpenAI API key (and optionally the model, default `gpt-6.1-sol`) under `/admin-dashboard/settings/credentials`. In any question bank, use **Add manually** or **AI Assist — bulk generate** in the Question pool. New questions are published straight into the pool; edit, unpublish or delete any you don't want.
-5. The `/admin-dashboard/exams` (Question Banks) list shows each bank's total questions (with any drafts called out) and its number of exam domains. Open any question bank to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Practice Exams) lists every Practice Exam (fixed US$20) with its question bank and linked Exam Voucher; `/admin-dashboard/bundles/vouchers` (Exam Vouchers) manages voucher prices, titles, slugs and on-sale status.
+4. Work sales leads from the Support page at `/admin-dashboard/enquiries` (filter by status and topic; reply by email or WhatsApp, then mark Contacted / Closed).
+5. Set the OpenAI API key (and optionally the model, default `gpt-6.1-sol`) under `/admin-dashboard/settings/credentials`. In any question bank, use **Add manually** or **AI Assist — bulk generate** in the Question pool. New questions are published straight into the pool; edit, unpublish or delete any you don't want.
+6. The `/admin-dashboard/exams` (Question Banks) list shows each bank's total questions (with any drafts called out) and its number of exam domains. Open any question bank to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Practice Exams) lists every Practice Exam (fixed US$20) with its question bank and linked Exam Voucher; `/admin-dashboard/bundles/vouchers` (Exam Vouchers) manages voucher prices, titles, slugs and on-sale status.
 
 ## Database
 
@@ -369,18 +371,20 @@ The repository includes a multi-stage `Dockerfile` tailored for Next.js standalo
 - Ensure `NEXTAUTH_SECRET` and `WORKER_SHARED_SECRET` are randomly generated and securely stored.
 - Most sensitive keys (Stripe, HitPay, OAuth Client Secrets) are stored encrypted in the `Setting` database table and decrypted at runtime.
 - **Sign-up spam protection:** Cloudflare Turnstile CAPTCHA on every email-code request (keys in Admin → Settings → Security), disposable/no-MX email blocking, a honeypot and minimum fill time, failures-only rate limits keyed on the proxy-appended client IP and a normalised email (`+tag` / Gmail dots), and one-time codes that burn after 5 wrong guesses. Mobile sign-up requires an emailed verification code.
+- Run the `security-scanner` agent for a static security review; its Word report stays in the git-ignored `docs/security/` folder and must never be uploaded.
 - Next.js Route handlers acting as webhooks verify request signatures (e.g., Stripe, HitPay) before processing logic.
 
 ## Troubleshooting
 
 - **Database Connection Error:** Ensure Docker is running and the `DATABASE_URL` port matches the exposed port (`55432` by default).
 - **Next.js Hydration Errors:** Occur occasionally during development; restart the dev server or verify HTML markup nesting.
-- **AI Generation Failing:** Check the Admin Dashboard Settings to ensure a valid `ANTHROPIC_API_KEY` and `FIRECRAWL_API_KEY` are provided.
+- **AI Generation Failing:** Check Admin → Settings → Credentials for a valid `OPENAI_API_KEY` (and `OPENAI_MODEL`); vendor-page lookup also needs `FIRECRAWL_API_KEY` or Tavily.
+- **New Prisma model returns 500 in dev:** run `npx prisma generate` and restart the dev server — a running server keeps the old client.
 - **NPM Install Errors:** Ensure you pass the `--legacy-peer-deps` flag to `npm install` to avoid conflicts with React 19.
 
 ## Known Issues
 
-- The runner UI currently only supports `SINGLE`, `MULTI`, and `TRUE_FALSE` questions, despite the database schema supporting `ORDERING` and `HOTSPOT`.
+- The runner supports `SINGLE`, `MULTI`, `TRUE_FALSE` and `ORDERING` (sequencing); `HOTSPOT` exists in the schema but is not rendered yet.
 - Formal compliance certifications (e.g., GDPR reporting features) are limited to data export requests.
 - Role-based Access Control (RBAC) granular roles (Finance, Support, Content) are defined but mostly require strict `ADMIN` enforcement at the API proxy layer.
 
@@ -388,7 +392,8 @@ The repository includes a multi-stage `Dockerfile` tailored for Next.js standalo
 
 - [ ] Define security and privacy acceptance gates before production use.
 - [ ] Add automated test coverage for auth, payments, attempts, and admin mutations.
-- [ ] Implement front-end support for `ORDERING` and `HOTSPOT` question types.
+- [ ] Implement front-end support for the `HOTSPOT` question type.
+- [ ] Work through the local security assessment (`docs/security/`, not in git): Next.js / next-auth upgrades, session revocation, security headers, PayPal capture checks.
 - [ ] Refine proxy permissions to utilize non-admin granular RBAC roles (`FINANCE`, `SUPPORT`, `CONTENT`).
 
 ## Contributing

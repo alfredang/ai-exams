@@ -98,6 +98,7 @@ const SECTIONS: NavSection[] = [
     title: 'People',
     items: [
       { href: '/admin-dashboard/users', label: 'Users', icon: Users },
+      { href: '/admin-dashboard/enquiries', label: 'Enquiries', icon: Inbox },
       { href: '/admin-dashboard/admins', label: 'Admins', icon: ShieldCheck }
     ]
   },

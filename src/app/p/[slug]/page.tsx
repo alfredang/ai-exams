@@ -16,6 +16,8 @@ export const revalidate = 600;
 export async function generateStaticParams() {
   const dbRows = await db.page.findMany({ where: { published: true }, select: { slug: true } });
   const slugs = new Set<string>([...DEFAULT_PAGES.map(p => p.slug), ...dbRows.map(r => r.slug)]);
+  // /p/support has its own static route (lead form), which wins over [slug].
+  slugs.delete('support');
   return Array.from(slugs).map(slug => ({ slug }));
 }
 

@@ -5,3 +5,6 @@ node_modules
 .env.local
 *.log
 README.md
+
+# Confidential security reports
+docs/security
