@@ -17,24 +17,20 @@ export default async function MyOrdersPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  const vouchers = await db.entitlement.findMany({
-    where: { userId, voucher: { not: null } },
-    include: { exam: true }
-  });
-  const voucherByExam = new Map(vouchers.map((v) => [v.examId, v]));
 
   return (
     <div>
       <h1 className="text-2xl font-bold">Orders & billing</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Your purchase history. PDFs for voucher orders are available below.
+        Your purchase history and payment status. Tax invoices are under{' '}
+        <Link href="/user-dashboard/invoices" className="text-blue-600 hover:underline dark:text-blue-400">Invoices</Link>; voucher codes are under{' '}
+        <Link href="/user-dashboard/vouchers" className="text-blue-600 hover:underline dark:text-blue-400">My Vouchers</Link>.
       </p>
 
       <div className="card mt-4 divide-y divide-slate-200 dark:divide-slate-800">
         {orders.map((o) => {
           const product = o.bundle ? o.bundle.title : o.exam?.title ?? '(unknown)';
           const tier = o.tier ? tierLabel(o.tier) : '—';
-          const voucher = o.examId ? voucherByExam.get(o.examId) : undefined;
           return (
             <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0">
@@ -42,17 +38,6 @@ export default async function MyOrdersPage() {
                 <div className="text-xs text-slate-500">
                   {tier} · {o.createdAt.toLocaleString()} · Order <span className="font-mono">{o.number ?? o.id.slice(0, 10)}</span>
                 </div>
-                {voucher?.voucher && (
-                  <div className="mt-1 text-xs">
-                    Voucher code: <code className="font-mono">{voucher.voucher}</code>{' '}
-                    <Link
-                      href={`/api/vouchers/${voucher.id}/pdf`}
-                      className="ml-1 text-blue-600 hover:underline dark:text-blue-400"
-                    >
-                      Download PDF
-                    </Link>
-                  </div>
-                )}
               </div>
               <div className="flex items-center gap-3">
                 <div className="font-semibold">{formatPrice(o.amount, o.currency)}</div>

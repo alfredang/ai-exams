@@ -8,7 +8,7 @@
  *
  * Retired "Practice Exam N" variants point at the pool exam via
  * `Exam.poolExamId`; `resolvePoolExam()` follows that pointer so old links,
- * old entitlements and "Take it again" on old attempts land on the pool.
+ * old entitlements and "Retake exam" on old attempts land on the pool.
  */
 import type { PrismaClient } from '@prisma/client';
 

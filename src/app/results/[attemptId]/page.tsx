@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { CheckCircle2, Download, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, RotateCcw, XCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
@@ -8,6 +8,8 @@ import { isAnswerCorrect, scoreAttempt, type Responses } from '@/lib/attempts';
 import { ExplanationView } from '@/components/explanation-view';
 import { ReviewFormModal } from '@/components/review-form-modal';
 import { ResultsSignupPrompt } from '@/components/results-signup-prompt';
+import { UserChrome } from '@/components/user-chrome';
+import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { canUserReview } from '@/lib/reviews';
 import { sequencingSteps, optionsForAttempt } from '@/lib/shuffle';
 import { createAttempt } from '@/lib/start-attempt';
@@ -44,7 +46,7 @@ function TakeAgainButton({ examId, mode, teaser, examHref }: {
   if (teaser) {
     return (
       <form action={`${examHref}/teaser`} method="post">
-        <button className="btn-primary">Take it again</button>
+        <button className="btn-primary gap-1.5"><RotateCcw className="h-4 w-4" aria-hidden /> Retake exam</button>
       </form>
     );
   }
@@ -59,7 +61,7 @@ function TakeAgainButton({ examId, mode, teaser, examHref }: {
       const id = uid ? await createAttempt(uid, examId, mode) : null;
       redirect(id ? `/exam/${id}` : examHref);
     }}>
-      <button className="btn-primary">Take it again</button>
+      <button className="btn-primary gap-1.5"><RotateCcw className="h-4 w-4" aria-hidden /> Retake exam</button>
     </form>
   );
 }
@@ -141,16 +143,10 @@ export default async function ResultsPage({
   const domains = Object.entries(perDomain).sort(([, a], [, b]) => a.correct / a.total - b.correct / b.total);
   const missedCount = total - correctCount;
   const flaggedCount = ordered.filter(q => responses[q.id]?.flagged).length;
-  const historyHref = `/user-dashboard/attempts?exam=${attempt.exam.poolExamId ?? attempt.examId}`;
 
-  return (
-    <div className="min-h-full bg-canvas/60 dark:bg-transparent">
-      <div className="mx-auto grid max-w-[980px] gap-6 px-4 pb-16 pt-8 sm:px-6">
-        {userId && (
-          <Link href={historyHref} className="-mb-3 w-fit text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
-            ← Attempt history
-          </Link>
-        )}
+  const report = (
+    <div className={userId ? '' : 'min-h-full bg-canvas/60 dark:bg-transparent'}>
+      <div className={`mx-auto grid max-w-[980px] gap-6 ${userId ? '' : 'px-4 pb-16 pt-8 sm:px-6'}`}>
         <div className="eyebrow">{attempt.exam.vendor.name} · {attempt.exam.code} · {attempt.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'}</div>
 
         {/* Score card */}
@@ -193,13 +189,33 @@ export default async function ResultsPage({
           </p>
         </div>
 
-        <a
-          href={`/api/results/${attempt.id}/pdf`}
-          className="btn-outline inline-flex w-fit items-center gap-2"
-          download
-        >
-          <Download className="h-4 w-4" /> Download summary (PDF) — questions, answers, explanations and domains
-        </a>
+        {/* The report's only action bar. Navigation (dashboard, exam
+            history) lives in the sidebar, so it isn't repeated here. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <TakeAgainButton
+            examId={attempt.examId}
+            mode={attempt.mode}
+            teaser={attempt.isTeaser}
+            examHref={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`}
+          />
+          <a
+            href={`/api/results/${attempt.id}/pdf`}
+            className="btn-outline inline-flex items-center gap-2"
+            title="Questions, answers, explanations and domains"
+            download
+          >
+            <Download className="h-4 w-4" /> Download summary (PDF)
+          </a>
+          {canReview && (
+            <ReviewFormModal
+              examId={attempt.examId}
+              examTitle={attempt.exam.title}
+              attemptId={attempt.id}
+              existing={existingReview as any}
+              trigger={<span className="btn-outline">{existingReview ? 'Edit your review' : 'Leave a review'}</span>}
+            />
+          )}
+        </div>
 
         {/* Anonymous guest who submitted the teaser without converting in
             the in-attempt modal lands here. Give them a second chance to
@@ -364,26 +380,17 @@ export default async function ResultsPage({
           </div>
         </section>
 
-        <div className="flex flex-wrap gap-2">
-          <TakeAgainButton
-            examId={attempt.examId}
-            mode={attempt.mode}
-            teaser={attempt.isTeaser}
-            examHref={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`}
-          />
-          {userId && <Link href={historyHref} className="btn-outline">Attempt history</Link>}
-          <Link href="/user-dashboard" className="btn-outline">My dashboard</Link>
-          {canReview && (
-            <ReviewFormModal
-              examId={attempt.examId}
-              examTitle={attempt.exam.title}
-              attemptId={attempt.id}
-              existing={existingReview as any}
-              trigger={<span className="btn-outline">{existingReview ? 'Edit your review' : 'Leave a review'}</span>}
-            />
-          )}
-        </div>
       </div>
     </div>
+  );
+
+  // Signed-in takers read the report inside the dashboard, with Exam history
+  // highlighted in the sidebar; anonymous teaser guests get it bare.
+  if (!userId) return report;
+  return (
+    <>
+      <ImpersonationBanner />
+      <UserChrome>{report}</UserChrome>
+    </>
   );
 }

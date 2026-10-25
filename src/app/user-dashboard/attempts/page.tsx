@@ -23,7 +23,7 @@ export default async function AttemptsPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <div className="mb-5">
-        <h1 className="text-2xl font-bold tracking-tight">Attempt history</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Exam history</h1>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Your score on every attempt. Open one to see how you did in each exam domain and review every question against the answer key.
         </p>

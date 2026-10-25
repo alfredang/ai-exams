@@ -14,15 +14,23 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-const ITEMS: { href: string; label: string; icon: any }[] = [
+// One entry per job, labelled like the page it opens. `match` lists extra
+// path prefixes that keep an entry highlighted (a score report belongs to
+// Exam history).
+const ITEMS: { href: string; label: string; icon: any; match?: string[] }[] = [
   { href: '/user-dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/user-dashboard/exams', label: 'Exams', icon: BookOpen },
-  { href: '/user-dashboard/attempts', label: 'Attempts', icon: ClipboardList },
+  { href: '/user-dashboard/exams', label: 'My Exams', icon: BookOpen },
+  { href: '/user-dashboard/attempts', label: 'Exam history', icon: ClipboardList, match: ['/results/'] },
+  { href: '/user-dashboard/vouchers', label: 'My Vouchers', icon: Ticket },
   { href: '/user-dashboard/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/user-dashboard/invoices', label: 'Invoices', icon: Receipt },
-  { href: '/user-dashboard/vouchers', label: 'Vouchers', icon: Ticket },
   { href: '/user-dashboard/settings', label: 'My Profile', icon: UserCircle }
 ];
+
+function isActive(pathname: string, item: (typeof ITEMS)[number]) {
+  if (item.href === '/user-dashboard') return pathname === '/user-dashboard';
+  return pathname.startsWith(item.href) || !!item.match?.some((m) => pathname.startsWith(m));
+}
 
 export function UserChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/user-dashboard';
@@ -55,8 +63,9 @@ export function UserChrome({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-[calc(100vh-6rem)] w-full flex-col md:flex-row">
       {/* Phones: a scrollable tab strip instead of the sidebar. */}
       <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-white px-4 py-2 md:hidden dark:border-slate-800 dark:bg-slate-900">
-        {ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = href === '/user-dashboard' ? pathname === '/user-dashboard' : pathname.startsWith(href);
+        {ITEMS.map((item) => {
+          const { href, label, icon: Icon } = item;
+          const active = isActive(pathname, item);
           return (
             <Link
               key={href}
@@ -93,8 +102,9 @@ export function UserChrome({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 px-2 pb-4">
-          {ITEMS.map(({ href, label, icon: Icon }) => {
-            const active = href === '/user-dashboard' ? pathname === '/user-dashboard' : pathname.startsWith(href);
+          {ITEMS.map((item) => {
+            const { href, label, icon: Icon } = item;
+            const active = isActive(pathname, item);
             return (
               <Link
                 key={href}

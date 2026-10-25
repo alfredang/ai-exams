@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { productTitle } from '@/lib/products';
 import { FileText } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -15,8 +16,8 @@ export default async function MyInvoicesPage() {
   const invoices = await db.invoice.findMany({
     where: { userId },
     include: {
-      order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true } } } },
-      creditNoteOf: { select: { order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true } } } } } }
+      order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true, voucherTitle: true } } } },
+      creditNoteOf: { select: { order: { include: { exam: { select: { title: true, code: true } }, bundle: { select: { title: true, voucherTitle: true } } } } } }
     },
     orderBy: { issueDate: 'desc' }
   });
@@ -37,7 +38,7 @@ export default async function MyInvoicesPage() {
           {invoices.map((inv) => {
             const o = inv.order ?? inv.creditNoteOf?.order;
             const product = o?.bundle
-              ? `${o.bundle.title} (bundle)`
+              ? productTitle(o.bundle, o.tier)
               : o?.exam
                 ? `${o.exam.title} (${o.exam.code})`
                 : 'Order';
