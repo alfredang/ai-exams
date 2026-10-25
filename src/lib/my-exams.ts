@@ -37,9 +37,70 @@ export type GroupedExams = {
 
 // Unified card item for the My Exams list UI. Server pages build this
 // shape and pass it to the <MyExamsList> client component.
-export type MyExamsListItem =
+export type MyExamsListItem = (
   | { kind: 'bundle'; data: BundleGroup }
-  | { kind: 'standalone'; data: ExamRow };
+  | { kind: 'standalone'; data: ExamRow }
+) & { activity?: string }; // "Last attempt 3 Oct 2026" / "Purchased …", set by sortListItems()
+
+export type MyExamsSort = 'recent' | 'purchased' | 'oldest' | 'name';
+export const MY_EXAMS_SORTS: { value: MyExamsSort; label: string }[] = [
+  { value: 'recent', label: 'Recently used' },
+  { value: 'purchased', label: 'Recently purchased' },
+  { value: 'oldest', label: 'Oldest first' },
+  { value: 'name', label: 'A–Z' }
+];
+
+/** Newest attempt start per pool exam (retired variants fold into their pool exam). */
+export async function lastAttemptByExam(userId: string): Promise<Map<string, Date>> {
+  const rows = await db.attempt.findMany({
+    where: { userId },
+    select: { examId: true, startedAt: true, exam: { select: { poolExamId: true } } },
+    orderBy: { startedAt: 'desc' }
+  });
+  const out = new Map<string, Date>();
+  for (const r of rows) {
+    const id = r.exam.poolExamId ?? r.examId;
+    if (!out.has(id)) out.set(id, r.startedAt);
+  }
+  return out;
+}
+
+const fmtDay = (d: Date) =>
+  d.toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Singapore' });
+
+/**
+ * Order My Exams chronologically. 'recent' ranks by the newest attempt, falling
+ * back to the purchase date for exams never attempted (the same order as the
+ * overview's Latest Exams); 'purchased' / 'oldest' use the purchase date only.
+ */
+export function sortListItems(
+  items: MyExamsListItem[],
+  sort: MyExamsSort,
+  lastAttempt: Map<string, Date>
+): MyExamsListItem[] {
+  const info = (it: MyExamsListItem) => {
+    const examId = it.kind === 'bundle' ? it.data.items[0].examId : it.data.examId;
+    const title = it.kind === 'bundle' ? it.data.bundleTitle : it.data.examTitle;
+    const granted = it.data.grantedAt;
+    const attempted = lastAttempt.get(examId) ?? null;
+    return { title, granted, attempted, used: attempted ?? granted };
+  };
+  const rows = items.map((it) => ({ it, ...info(it) }));
+  rows.sort((a, b) => {
+    switch (sort) {
+      case 'name': return a.title.localeCompare(b.title);
+      case 'purchased': return b.granted.getTime() - a.granted.getTime();
+      case 'oldest': return a.granted.getTime() - b.granted.getTime();
+      default: return b.used.getTime() - a.used.getTime() || a.title.localeCompare(b.title);
+    }
+  });
+  return rows.map(({ it, granted, attempted }) => ({
+    ...it,
+    activity: attempted && (sort === 'recent' || sort === 'name')
+      ? `Last attempt ${fmtDay(attempted)}`
+      : `Purchased ${fmtDay(granted)}`
+  }));
+}
 
 /**
  * Group items by kind for the My Exams display: bundle cards first, then
@@ -197,13 +258,14 @@ export type PracticeBadge = {
   bestScore: number | null;
   inProgress: boolean; // an unfinished practice attempt will be resumed
   examInProgress: boolean; // an unfinished timed Exam-mode attempt will be resumed
+  lastActivity: Date;  // newest attempt start, else the purchase date
 };
 
 /**
  * One badge per practice exam the user can take, for the dashboard's
  * click-to-start grid. Voucher-only rows are left out (no practice access
  * shown there); progress comes from the same attempt history the Attempts
- * page shows, so the numbers always agree.
+ * page shows, so the numbers always agree. Newest activity first.
  */
 export async function getPracticeBadges(
   userId: string,
@@ -233,8 +295,9 @@ export async function getPracticeBadges(
         lastScore: exam?.latest ?? null,
         bestScore: exam?.best ?? null,
         inProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'PRACTICE' && !a.isTeaser),
-        examInProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'EXAM' && !a.isTeaser && (!a.expiresAt || a.expiresAt > now))
+        examInProgress: !!exam?.attempts.some((a) => a.inProgress && a.mode === 'EXAM' && !a.isTeaser && (!a.expiresAt || a.expiresAt > now)),
+        lastActivity: exam?.attempts[0]?.startedAt ?? row.grantedAt
       };
     })
-    .sort((a, b) => a.code.localeCompare(b.code));
+    .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime() || a.code.localeCompare(b.code));
 }

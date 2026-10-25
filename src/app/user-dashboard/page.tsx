@@ -7,8 +7,9 @@ import { PracticeBadges } from '@/components/practice-badges';
 import { AttemptRow } from '@/components/attempt-row';
 import { BookOpen, ChartBar, Trophy } from 'lucide-react';
 
-// The signed-in landing page: every practice exam the user owns as a
-// click-to-start badge, their latest attempts, then overall stats.
+// The signed-in landing page: the three most recently used practice exams as
+// click-to-start badges (View all → My Exams), their latest attempts, then
+// overall stats.
 export default async function MyContentPage({
   searchParams
 }: {
@@ -25,6 +26,7 @@ export default async function MyContentPage({
   const scores = history.attempts.filter((a) => a.score !== null).map((a) => a.score!);
   const avgScore = scores.length === 0 ? null : Math.round(scores.reduce((s, x) => s + x, 0) / scores.length);
   const recent = history.attempts.slice(0, 5);
+  const latestBadges = badges.slice(0, 3);
   const userName = session!.user!.name || session!.user!.email?.split('@')[0] || 'there';
 
   return (
@@ -46,9 +48,14 @@ export default async function MyContentPage({
 
       <section className="mb-10">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">My Practice Exams</h2>
+          <h2 className="text-lg font-semibold">Latest Exams</h2>
+          {badges.length > 0 && (
+            <Link href="/user-dashboard/exams" className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
+              View all ({badges.length}) →
+            </Link>
+          )}
         </div>
-        <PracticeBadges badges={badges} />
+        <PracticeBadges badges={latestBadges} />
       </section>
 
       {recent.length > 0 && (

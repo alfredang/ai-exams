@@ -3,19 +3,21 @@ import { revalidatePath } from 'next/cache';
 import argon2 from 'argon2';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { NATIONALITIES, NATIONALITY_CODES } from '@/lib/nationalities';
+import { NATIONALITY_CODES } from '@/lib/nationalities';
 import { ThemePreferenceSelect } from '@/components/theme-preference-select';
+import { ProfileForm, type ProfileState } from '@/components/profile-form';
 
-async function updateProfile(formData: FormData) {
+async function updateProfile(formData: FormData): Promise<ProfileState> {
   'use server';
   const session = await auth();
   const userId = (session?.user as any)?.id as string | undefined;
-  if (!userId) return;
+  if (!userId) return { error: 'Your session has expired. Sign in again.' };
   const name = String(formData.get('name') || '').trim().slice(0, 120) || null;
   const nationalityRaw = String(formData.get('nationality') || '').trim();
   const nationality = NATIONALITY_CODES.has(nationalityRaw) ? nationalityRaw : null;
   await db.user.update({ where: { id: userId }, data: { name, nationality } });
   revalidatePath('/user-dashboard/settings');
+  return { ok: true };
 }
 
 async function changePassword(formData: FormData) {
@@ -61,49 +63,13 @@ export default async function MyProfilePage() {
         {/* Profile details */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold">Account details</h2>
-          <form action={updateProfile} className="mt-4 space-y-4">
-            <div>
-              <label className="label">Name</label>
-              <input
-                name="name"
-                defaultValue={me.name ?? ''}
-                placeholder="Your full name"
-                className="input"
-                maxLength={120}
-              />
-            </div>
-
-            <div>
-              <label className="label">Email</label>
-              <input
-                value={me.email}
-                disabled
-                className="input cursor-not-allowed opacity-70"
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                Email is used to sign in and cannot be changed here.
-              </p>
-            </div>
-
-            <div>
-              <label className="label">Nationality</label>
-              <select name="nationality" defaultValue={me.nationality ?? ''} className="input">
-                <option value="">Select nationality…</option>
-                {NATIONALITIES.map((n) => (
-                  <option key={n.code} value={n.code}>
-                    {n.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">
-                Joined {me.createdAt.toLocaleDateString()} · Role {me.role}
-              </span>
-              <button className="btn-primary">Save changes</button>
-            </div>
-          </form>
+          <ProfileForm
+            action={updateProfile}
+            email={me.email}
+            initialName={me.name ?? ''}
+            initialNationality={me.nationality ?? ''}
+            footer={`Joined ${me.createdAt.toLocaleDateString()} · Role ${me.role}`}
+          />
         </div>
 
         {/* Password */}
