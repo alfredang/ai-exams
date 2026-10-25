@@ -128,7 +128,7 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-line bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="container-app grid grid-cols-2 gap-x-6 gap-y-8 pb-6 pt-10 md:grid-cols-12">
+      <div className="container-app grid grid-cols-2 gap-x-6 gap-y-8 pb-10 pt-10 md:grid-cols-12">
         {/* Brand */}
         <div className="col-span-2 md:col-span-4">
           <div className="mb-3 flex items-center gap-2">
@@ -173,6 +173,12 @@ export async function Footer() {
             <Contact icon={WhatsAppIcon} href={WHATSAPP_URL}>
               {WHATSAPP_LABEL}
             </Contact>
+            {company.address && (
+              <Contact icon={MapPin} href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(company.address)}`}>
+                <span className="block font-medium text-slate-700 dark:text-slate-300">{company.name}</span>
+                {company.address}
+              </Contact>
+            )}
           </ul>
           <a
             href={APP_STORE_URL}
@@ -183,18 +189,6 @@ export async function Footer() {
           >
             <Image src={APP_STORE_BADGE} alt="Download on the App Store" width={120} height={40} unoptimized className="h-10 w-auto" />
           </a>
-        </div>
-      </div>
-
-      <div className="border-t border-line dark:border-slate-800">
-        <div className="container-app py-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          <p className="flex items-start gap-1.5">
-            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span>
-              <span className="font-medium text-slate-600 dark:text-slate-300">{company.name}</span>
-              {company.address ? ` · ${company.address}` : ''}
-            </span>
-          </p>
         </div>
       </div>
     </footer>
