@@ -189,8 +189,10 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="relative overflow-hidden rounded-2xl border border-emerald-300/70 bg-white p-5 shadow-lift dark:border-emerald-500/40 dark:bg-slate-900">
             <div className="eyebrow">Exam Voucher</div>
-            <div className="mt-1 font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(price)}</div>
-            <div className="text-sm text-muted dark:text-slate-400">{PRICE_TAX_NOTE} · Practice exam included — no extra cost</div>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
+              <span className="font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(price)}</span>
+              <span className="whitespace-nowrap text-sm text-muted dark:text-slate-400">({PRICE_TAX_NOTE})</span>
+            </div>
             <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm dark:bg-emerald-950/30">
               <div className="flex justify-between"><span>{code} exam voucher</span><span className="font-medium">{formatPrice(price)}</span></div>
               <div className="mt-1 flex justify-between"><span>{code} Practice Exam</span><span className="font-medium"><s className="text-muted">{formatPrice(PRACTICE_PRICE_CENTS)}</s> <span className="text-emerald-700 dark:text-emerald-300">FREE</span></span></div>
@@ -202,6 +204,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             )}
             <div className="mt-4">
               <CheckList tone="emerald" items={[
+                <span key="p" className="inline-flex items-center gap-1"><Gift className="h-3.5 w-3.5" aria-hidden="true" /> Practice exam included — no extra cost</span>,
                 <span key="m" className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" aria-hidden="true" /> Code emailed in {VOUCHER_DELIVERY_TEXT}</span>,
                 <span key="r" className="inline-flex items-center gap-1"><ReceiptText className="h-3.5 w-3.5" aria-hidden="true" /> Tax invoice with every order</span>,
                 <span key="s" className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Refundable until the code is issued</span>

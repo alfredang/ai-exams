@@ -171,12 +171,12 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
           ) : forSale ? (
             <div className="card p-5">
               <div className="eyebrow">Practice Exam</div>
-              <div className="mt-1 flex items-baseline gap-2">
+              <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
                 <span className="font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(bundle.price)}</span>
-                <span className="text-sm text-muted dark:text-slate-400">one-time · lifetime access · {PRICE_TAX_NOTE}</span>
+                <span className="whitespace-nowrap text-sm text-muted dark:text-slate-400">({PRICE_TAX_NOTE})</span>
               </div>
               <div className="mt-4">
-                <CheckList items={['Timed Exam mode + Practice mode', 'Unlimited fresh attempts', 'Instant access after payment']} />
+                <CheckList items={['One-time payment · lifetime access', 'Timed Exam mode + Practice mode', 'Unlimited fresh attempts', 'Instant access after payment']} />
               </div>
               <Link href={buyHref} className="btn-primary-grad mt-5 min-h-[44px] w-full">Buy Practice Exam</Link>
               <div className="mt-3 flex items-center justify-center gap-3 text-[11px] text-muted dark:text-slate-400">
