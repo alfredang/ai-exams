@@ -36,7 +36,8 @@ paths:
   code isn't slug-derived. List new products in `BUNDLES` or they are taken
   off sale on deploy.
 - Never publish or add a retired variant (`poolExamId` set) to a product.
-- Admin AI generation is **OpenAI** (`src/lib/openai.ts`); Claude-authored
+- Admin AI generation uses the provider chain in `src/lib/openai.ts` (OpenAI →
+  DeepSeek → MiniMax), always saving DRAFTs; Claude-authored
   banks go through the `question-bank-generator` agent and a seed module.
 - Seeding production: `npm run seed:prod -- <name> <expected-slug>` after the
   deploy is confirmed live; stop after one failed login.

@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { query } from '@anthropic-ai/claude-agent-sdk';
 import { auth } from '@/lib/auth';
 import { isAdminRole } from '@/lib/permissions';
-import { getSetting } from '@/lib/settings';
+import { aiStructured } from '@/lib/openai';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,12 +27,15 @@ Tertiary Exams sells original practice questions for IT certifications (AWS, Mic
 CompTIA, Google Cloud, etc.), free teasers per exam, Practice Mode + timed Exam Mode,
 and discounted real-exam vouchers.
 
-Output ONLY a JSON array of objects: [{ "question": "...", "answer": "..." }, ...].
+Output a JSON object: { "items": [{ "question": "...", "answer": "..." }, ...] }.
 - Each question is a customer-facing question (≤120 chars).
 - Each answer is plain text, 1-3 sentences, customer-friendly and specific.
 - Use {{TEASER_N}} as a placeholder for the teaser-question count when relevant.
 - Do NOT duplicate questions already provided.
 - Do NOT include markdown fences. Do NOT include any prose outside the JSON.`;
+
+const GenerateSchema = z.object({ items: z.array(z.object({ question: z.string(), answer: z.string() })) });
+const RewriteSchema = z.object({ answer: z.string() });
 
 const REWRITE_SYSTEM = `You rewrite a single FAQ answer for an exam-prep SaaS.
 
@@ -42,24 +44,6 @@ Output ONLY a JSON object: { "answer": "..." }
 - Use {{TEASER_N}} as the placeholder for the teaser-question count if relevant.
 - No markdown fences, no prose outside the JSON.`;
 
-function extractJson(text: string): unknown | null {
-  const cleaned = text.replace(/```(?:json)?/gi, '').trim();
-  // Try array first, then object.
-  for (const [openIdx, closeIdx] of [
-    [cleaned.indexOf('['), cleaned.lastIndexOf(']')],
-    [cleaned.indexOf('{'), cleaned.lastIndexOf('}')]
-  ]) {
-    if (openIdx !== -1 && closeIdx > openIdx) {
-      try {
-        return JSON.parse(cleaned.slice(openIdx, closeIdx + 1));
-      } catch {
-        /* try next */
-      }
-    }
-  }
-  return null;
-}
-
 export async function POST(req: Request) {
   const session = await auth();
   if (!isAdminRole((session?.user as any)?.role)) {
@@ -67,8 +51,6 @@ export async function POST(req: Request) {
   }
   try {
     const body = Body.parse(await req.json());
-    const storedKey = await getSetting('ANTHROPIC_API_KEY');
-    if (storedKey && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = storedKey;
 
     if (body.mode === 'generate') {
       const existingList = (body.existing ?? [])
@@ -78,23 +60,8 @@ export async function POST(req: Request) {
 Number of new FAQ entries to write: ${body.count}
 
 ${existingList ? `Existing FAQs (do NOT duplicate):\n${existingList}\n` : ''}
-Respond with the JSON array now.`;
-      const result = query({
-        prompt: userMsg,
-        options: { systemPrompt: GENERATE_SYSTEM, model: 'claude-sonnet-4-6', allowedTools: [], maxTurns: 1 } as any
-      });
-      let text = '';
-      for await (const msg of result) {
-        if (msg.type === 'assistant') {
-          for (const block of (msg as any).message.content) if (block.type === 'text') text += block.text;
-        } else if (msg.type === 'result' && (msg as any).result && !text) {
-          text = (msg as any).result;
-        }
-      }
-      const arr = extractJson(text);
-      if (!Array.isArray(arr)) {
-        return NextResponse.json({ ok: false, error: `Claude returned no JSON array. First 200: ${text.slice(0, 200)}` }, { status: 500 });
-      }
+Respond with the JSON object now.`;
+      const { items: arr } = await aiStructured({ schema: GenerateSchema, name: 'faq_entries', instructions: GENERATE_SYSTEM, input: userMsg });
       const items = arr
         .filter((x: any) => x && typeof x.question === 'string' && typeof x.answer === 'string')
         .map((x: any) => ({ question: String(x.question).trim(), answer: String(x.answer).trim() }))
@@ -108,22 +75,10 @@ ${body.answer ? `Current answer: ${body.answer}\n` : ''}
 Writer brief: ${body.instruction}
 
 Respond with the JSON object now.`;
-    const result = query({
-      prompt: userMsg,
-      options: { systemPrompt: REWRITE_SYSTEM, model: 'claude-sonnet-4-6', allowedTools: [], maxTurns: 1 } as any
-    });
-    let text = '';
-    for await (const msg of result) {
-      if (msg.type === 'assistant') {
-        for (const block of (msg as any).message.content) if (block.type === 'text') text += block.text;
-      } else if (msg.type === 'result' && (msg as any).result && !text) {
-        text = (msg as any).result;
-      }
-    }
-    const obj = extractJson(text) as { answer?: string } | null;
+    const obj = await aiStructured({ schema: RewriteSchema, name: 'faq_answer', instructions: REWRITE_SYSTEM, input: userMsg });
     const answer = obj && typeof obj.answer === 'string' ? obj.answer.trim() : '';
     if (!answer) {
-      return NextResponse.json({ ok: false, error: `Claude returned no answer. First 200: ${text.slice(0, 200)}` }, { status: 500 });
+      return NextResponse.json({ ok: false, error: 'The AI returned no answer.' }, { status: 500 });
     }
     return NextResponse.json({ ok: true, answer });
   } catch (err: any) {

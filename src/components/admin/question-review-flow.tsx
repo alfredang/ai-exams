@@ -11,7 +11,8 @@ export function QuestionReviewFlow({
   published,
   perAttempt,
   reviewHref = '#review',
-  poolHref
+  poolHref,
+  generate
 }: {
   awaiting: number;
   published: number;
@@ -19,6 +20,8 @@ export function QuestionReviewFlow({
   perAttempt?: number;
   reviewHref?: string;
   poolHref?: string;
+  /** Step 1's action — the AI Generate button that opens the pop-up form. */
+  generate?: ReactNode;
 }) {
   return (
     <ol className="grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
@@ -28,7 +31,7 @@ export function QuestionReviewFlow({
         tone="violet"
         title="AI generates"
         body="Questions, answers, explanations and references for the domains you choose. Saved as drafts."
-        status="Use the form below"
+        status={generate ?? 'Use the form below'}
       />
       <Arrow />
       <Step

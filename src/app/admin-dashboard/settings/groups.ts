@@ -209,14 +209,13 @@ export const GROUPS: SettingsGroup[] = [
   {
     slug: 'credentials',
     title: 'Credentials',
-    description: 'Non-payment API keys and worker secrets. Payment provider credentials live under Payment Setting.',
+    description:
+      'AI keys, tried in order: OpenAI → DeepSeek → MiniMax. If one fails or hits a usage limit, the next configured key takes over. Find official page needs OpenAI (web search).',
     fields: [
-      { key: 'OPENAI_API_KEY', label: 'OpenAI — API Key (question generation, AI Assist)', secret: true },
+      { key: 'OPENAI_API_KEY', label: '1 · OpenAI — API Key (primary)', secret: true },
       { key: 'OPENAI_MODEL', label: 'OpenAI — Model', placeholder: 'gpt-6.1-sol' },
-      { key: 'ANTHROPIC_API_KEY', label: 'Claude (Anthropic) — API Key', secret: true },
-      { key: 'FIRECRAWL_API_KEY', label: 'Firecrawl — API Key', secret: true },
-      { key: 'TAVILY_API_KEY', label: 'Tavily — API Key', secret: true },
-      { key: 'WORKER_SHARED_SECRET', label: 'Cron worker — shared secret', secret: true }
+      { key: 'DEEPSEEK_API_KEY', label: '2 · DeepSeek — API Key (fallback, V4.1 Flash)', secret: true },
+      { key: 'MINIMAX_API_KEY', label: '3 · MiniMax — API Key (fallback, M3.1 Flash)', secret: true }
     ]
   }
 ];

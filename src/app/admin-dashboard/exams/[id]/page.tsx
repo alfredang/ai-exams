@@ -9,12 +9,12 @@ import { SeoSavedFlash } from '@/components/admin/seo-saved-flash';
 import { ConfirmButton } from '@/components/admin/confirm-button';
 import { Pager } from '@/components/admin/pager';
 import { parseDomains, poolStats } from '@/lib/question-pool';
-import { getSetting } from '@/lib/settings';
-import { DEFAULT_OPENAI_MODEL } from '@/lib/openai';
+import { aiProviders, providerChainLabel } from '@/lib/openai';
 import { AddQuestionsPanel } from '@/components/admin/add-questions-panel';
 import { QuestionForm } from '@/components/admin/question-form';
-import { AiQuestionGenerator } from '@/components/admin/ai-question-generator';
+import { AiGenerateDialog } from '@/components/admin/ai-question-generator';
 import { QuestionReviewFlow } from '@/components/admin/question-review-flow';
+import { examBaseTitle } from '@/lib/exam-title';
 import { InfoLookupButton } from '@/components/admin/info-lookup-button';
 import { approveQuestion, createQuestion, deleteQuestion, rejectQuestion, toggleQuestionStatus } from './question-actions';
 
@@ -253,7 +253,8 @@ const LEVELS = ['Foundational', 'Associate', 'Professional', 'Specialty'];
 /** Where a question came from, from its generatedBy tag. */
 function sourceLabel(generatedBy: string | null): string {
   if (!generatedBy || generatedBy === 'manual') return 'Added manually';
-  if (generatedBy.startsWith('openai:')) return `AI · ${generatedBy.slice('openai:'.length)}`;
+  const ai = /^(openai|deepseek|minimax):(.+)$/.exec(generatedBy);
+  if (ai) return `AI · ${ai[2]}`;
   if (/^(claude|gpt)/.test(generatedBy)) return `AI · ${generatedBy}`;
   if (generatedBy === 'csv-import') return 'CSV import';
   if (generatedBy.startsWith('manual:')) return 'Seed import';
@@ -329,7 +330,7 @@ export default async function EditExamPage({
   const pageDrafts = drafts.slice((rPage - 1) * R_PAGE_SIZE, rPage * R_PAGE_SIZE);
   const draftSources = [...new Set(drafts.map((q) => sourceLabel(q.generatedBy)))];
   const reviewHref = (p: number) => `/admin-dashboard/exams/${exam.id}${p > 1 ? `?rpage=${p}` : ''}#review`;
-  const [openaiKey, openaiModel] = await Promise.all([getSetting('OPENAI_API_KEY'), getSetting('OPENAI_MODEL')]);
+  const providers = await aiProviders();
   const TYPE_NAMES: Record<string, string> = { SINGLE: 'MCQ', MULTI: 'Multiple select', ORDERING: 'Sequencing', TRUE_FALSE: 'True/False', HOTSPOT: 'Hotspot' };
 
   return (
@@ -360,18 +361,29 @@ export default async function EditExamPage({
             Generate questions &amp; answers with AI
           </h2>
           <p className="text-xs text-slate-500">
-            Pick how many questions and which exam domain. AI writes them as drafts; you review each one, and only approved questions join the pool.
+            Click AI Generate, choose the number of questions, question types and exam domains. AI writes them as drafts; you review each one, and only approved questions join the pool.
           </p>
         </div>
-        <QuestionReviewFlow awaiting={drafts.length} published={publishedCount} perAttempt={Math.min(exam.questionCount, pool.total)} poolHref="#questions" />
-        <div className="mt-4 rounded-md border border-violet-200 bg-violet-50/40 p-3 dark:border-violet-900/60 dark:bg-violet-950/20">
-          <AiQuestionGenerator
-            examId={exam.id}
-            domains={pool.rows.map((r) => ({ name: r.name, weight: r.weight, pool: r.pool }))}
-            configured={!!openaiKey}
-            model={openaiModel.trim() || DEFAULT_OPENAI_MODEL}
-          />
-        </div>
+        <QuestionReviewFlow
+          awaiting={drafts.length}
+          published={publishedCount}
+          perAttempt={Math.min(exam.questionCount, pool.total)}
+          poolHref="#questions"
+          generate={
+            <AiGenerateDialog
+              exams={[{
+                id: exam.id,
+                code: exam.code,
+                title: examBaseTitle(exam.title),
+                vendor: exam.vendor.name,
+                drafts: drafts.length,
+                domains: pool.rows.map((r) => ({ name: r.name, weight: r.weight, pool: r.pool }))
+              }]}
+              configured={providers.length > 0}
+              providers={providerChainLabel(providers)}
+            />
+          }
+        />
       </section>
 
       {drafts.length > 0 && (

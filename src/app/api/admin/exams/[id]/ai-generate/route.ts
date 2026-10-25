@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { getOpenAI } from '@/lib/openai';
+import { aiProviders, providerChainLabel } from '@/lib/openai';
 import { parseDomains, matchDomain } from '@/lib/question-pool';
-import { generateDomainBatch, planDomainCounts } from '@/lib/ai-question-gen';
+import { GEN_KINDS, generateDomainBatch, planDomainCounts } from '@/lib/ai-question-gen';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +12,8 @@ const Body = z.object({
   count: z.number().int().min(1).max(200),
   /** Blueprint domain names; empty = all domains. */
   domains: z.array(z.string()).default([]),
-  type: z.enum(['MIXED', 'SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING']).default('MIXED')
+  /** Question kinds; empty = all types. */
+  types: z.array(z.enum(['SINGLE', 'MULTI', 'ORDERING', 'TRUE_FALSE'])).default([])
 });
 
 const BATCH = 5; // questions per model call
@@ -20,7 +21,8 @@ const CONCURRENCY = 3; // model calls in flight
 
 /**
  * POST /api/admin/exams/[id]/ai-generate — generate `count` questions with
- * OpenAI across the chosen domains (split by blueprint weight). Streams SSE:
+ * the AI provider chain (OpenAI → DeepSeek → MiniMax, see src/lib/openai.ts)
+ * across the chosen domains (split by blueprint weight). Streams SSE:
  * `plan`, `question` (each one saved as a DRAFT awaiting admin review — it only
  * joins the pool once approved), `warn`, `done`, `error`.
  */
@@ -35,12 +37,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const exam = await db.exam.findUnique({ where: { id }, include: { vendor: true } });
   if (!exam) return Response.json({ error: 'Question bank not found' }, { status: 404 });
-  let model: string;
-  try {
-    ({ model } = await getOpenAI());
-  } catch (e: any) {
-    return Response.json({ error: e?.message ?? 'OpenAI not configured' }, { status: 400 });
-  }
+  const providers = await aiProviders();
+  if (!providers.length) return Response.json({ error: 'No AI provider configured (admin → Settings → Credentials).' }, { status: 400 });
+  const model = providerChainLabel(providers);
+  // Every kind selected is the same as "all types".
+  const types = body.types.length === GEN_KINDS.length ? [] : [...new Set(body.types)];
 
   const blueprint = parseDomains(exam.domains);
   const chosen = blueprint.length
@@ -88,7 +89,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
               blueprint,
               domain: job.domain,
               count: job.count,
-              type: body.type,
+              types,
               avoid
             });
             for (const q of res.questions) {
@@ -104,7 +105,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
                   correct: q.correct,
                   references: q.references,
                   status: 'DRAFT',
-                  generatedBy: `openai:${model}`
+                  generatedBy: res.generatedBy
                 }
               });
               created++;
@@ -126,7 +127,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             action: 'question.ai_generate',
             targetType: 'Exam',
             targetId: id,
-            metadata: { model, requested: body.count, created, rejected, type: body.type, plan }
+            metadata: { model, requested: body.count, created, rejected, types, plan }
           }
         });
         revalidatePath(`/admin-dashboard/exams/${id}`);

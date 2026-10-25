@@ -50,7 +50,7 @@ Tertiary Exams is a full-stack certification practice-exam platform designed for
 
 ## Overview
 
-Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking experience. It solves the problem of managing certification preparation platforms by selling one practice exam per certification — as practice-only or with a real-exam voucher included — backed by a question pool grouped by exam domain. The platform is designed for scalable content generation using OpenAI and Firecrawl, enabling administrators to quickly author and maintain a large library of high-quality, blueprint-aligned practice questions.
+Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking experience. It solves the problem of managing certification preparation platforms by selling one practice exam per certification — as practice-only or with a real-exam voucher included — backed by a question pool grouped by exam domain. The platform is designed for scalable content generation using OpenAI (with DeepSeek and MiniMax fallbacks), enabling administrators to quickly author and maintain a large library of high-quality, blueprint-aligned practice questions.
 
 **Current Status:** The core application features, checkout flows, exam runners, and admin dashboards are implemented and functioning.
 
@@ -77,7 +77,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **WhatsApp Support Avatar:** A friendly animated support avatar (bottom-right on public pages) opens a quick-question panel that links straight to WhatsApp, with a once-per-visit greeting bubble. Hidden on the exam runner, checkout, and admin pages.
 - **Free Teasers:** Guest and authenticated users can take 10 free questions per certification, picked at random from the same domain-weighted pool as the paid exam.
 - **Question Types:** Multiple choice, multiple select ("Select TWO answers") and sequencing — steps are numbered and the answer reads like 5 → 3 → 2 → 4 → 1.
-- **Question Authoring — two modes:** in each question bank, **Add manually** (one form for adding and editing: MCQ, multiple select, true/false and sequencing, with the domain picked from the blueprint and clear validation) or **Generate questions & answers with AI** (top of each question bank page, or the **AI Question Generator** page in the admin sidebar: pick the exam, all exam domains or one, the question type — Anything, MCQ, Multiple select, Sequencing or True/False — and the number of questions, default 10; OpenAI writes questions, answers and explanations split by blueprint weight). AI questions follow a three-step process map — **AI generates → Human review → Added to the pool**: they land as drafts in the **Review queue**, where an admin approves, edits or rejects each one; only approved questions are drawn into attempts. **Find official page** fills the Exam Info URL from the vendor site and SEO AI Assist writes meta tags (OpenAI + Firecrawl/Tavily).
+- **Question Authoring — two modes:** in each question bank, **Add manually** (one form for adding and editing: MCQ, multiple select, true/false and sequencing, with the domain picked from the blueprint and clear validation) or **Generate questions & answers with AI** (the **AI Generate** button on each question bank page, or on the **AI Question Generator** page in the admin sidebar, opens a pop-up: pick the exam, the number of questions — default 10 — all question types or any of MCQ / Multiple select / Sequencing, and all exam domains or any of them; the AI writes questions, answers and explanations split by blueprint weight). AI questions follow a three-step process map — **AI generates → Human review → Added to the pool**: they land as drafts in the **Review queue**, where an admin approves, edits or rejects each one; only approved questions are drawn into attempts. **Find official page** fills the Exam Info URL from the vendor site (OpenAI web search) and SEO AI Assist writes meta tags. AI calls try **OpenAI → DeepSeek V4.1 Flash → MiniMax M3.1 Flash**, falling through on any failure.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
 - **Invoices, Refunds & Credit Notes:** Every paid order gets a sequential GST tax invoice (PDF marked PAID) showing Subtotal (excl. GST), GST 9% (included) and Total (incl. GST), emailed with an order confirmation that lists the same GST breakdown, CC'd to the business. Refunds — through the provider's API or recorded as "already refunded" in the provider dashboard — mint a `CN-` credit note that references the original invoice, email it to the customer, cancel undelivered vouchers and revoke access on a full refund.
 - **Sales Order Alerts:** Each paid order also emails the sales inbox the buyer's name, email, phone, exam title and code, payment method and date.
@@ -215,7 +215,7 @@ CompTIA voucher-tier prices track CompTIA's official exam-voucher list price (US
 | Database | PostgreSQL, Prisma ORM |
 | Authentication | Auth.js (NextAuth v5 beta), Argon2 |
 | Payments | Stripe, PayPal, HitPay, PayNow |
-| AI / Integrations | OpenAI SDK (`gpt-6.1-sol` default), Firecrawl API, Tavily, Nodemailer, PDF-lib |
+| AI / Integrations | OpenAI SDK (`gpt-6.1-sol` default) with DeepSeek (`deepseek-flash`) and MiniMax (`MiniMax-M3.1-Flash`) fallbacks, Nodemailer, PDF-lib |
 | Deployment | Docker, Coolify-ready |
 
 ## Architecture
@@ -231,7 +231,7 @@ flowchart TD
     Prisma --> Postgres[(PostgreSQL Database)]
     RouteHandlers --> Payments[Stripe / PayPal / HitPay]
     RouteHandlers --> Email[Nodemailer / Gmail OAuth]
-    RouteHandlers --> AI[OpenAI / Firecrawl API]
+    RouteHandlers --> AI[OpenAI / DeepSeek / MiniMax]
     Cron[Cron Workers] --> RouteHandlers
 ```
 
@@ -328,7 +328,7 @@ flowchart TD
 2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
 4. Work sales leads from the Support page at `/admin-dashboard/enquiries` (filter by status and topic; reply by email or WhatsApp, then mark Contacted / Closed).
-5. Set the OpenAI API key (and optionally the model, default `gpt-6.1-sol`) under `/admin-dashboard/settings/credentials`. In any question bank, use **Add manually** in the Question pool (published straight away) or **Generate questions & answers with AI** at the top of the page. AI questions wait in the **Review queue** until you approve them; edit or reject any you don't want.
+5. Set the OpenAI API key (and optionally the model, default `gpt-6.1-sol`) under `/admin-dashboard/settings/credentials`, plus DeepSeek and/or MiniMax keys as fallbacks. In any question bank, use **Add manually** in the Question pool (published straight away) or **Generate questions & answers with AI** at the top of the page. AI questions wait in the **Review queue** until you approve them; edit or reject any you don't want.
 6. The `/admin-dashboard/exams` (Question Banks) list shows each bank's total questions (with any drafts called out) and its number of exam domains. Open any question bank to browse its whole question pool (`#questions`, filterable by domain, status and type) and the pool-by-domain panel (`#pool`: exam %, pool size, per-attempt draw, editable weights). `/admin-dashboard/bundles` (Practice Exams) lists every Practice Exam (fixed US$20) with its question bank and linked Exam Voucher; `/admin-dashboard/bundles/vouchers` (Exam Vouchers) manages voucher prices, titles, slugs and on-sale status.
 
 ## Database
@@ -378,7 +378,7 @@ The repository includes a multi-stage `Dockerfile` tailored for Next.js standalo
 
 - **Database Connection Error:** Ensure Docker is running and the `DATABASE_URL` port matches the exposed port (`55432` by default).
 - **Next.js Hydration Errors:** Occur occasionally during development; restart the dev server or verify HTML markup nesting.
-- **AI Generation Failing:** Check Admin → Settings → Credentials for a valid `OPENAI_API_KEY` (and `OPENAI_MODEL`); vendor-page lookup also needs `FIRECRAWL_API_KEY` or Tavily.
+- **AI Generation Failing:** Check Admin → Settings → Credentials for at least one valid key (OpenAI, DeepSeek or MiniMax); the error lists each provider's failure. Find official page needs the OpenAI key (web search).
 - **New Prisma model returns 500 in dev:** run `npx prisma generate` and restart the dev server — a running server keeps the old client.
 - **NPM Install Errors:** Ensure you pass the `--legacy-peer-deps` flag to `npm install` to avoid conflicts with React 19.
 

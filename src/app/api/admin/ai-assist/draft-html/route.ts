@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { query } from '@anthropic-ai/claude-agent-sdk';
 import { auth } from '@/lib/auth';
 import { isAdminRole } from '@/lib/permissions';
-import { getSetting } from '@/lib/settings';
+import { aiStructured } from '@/lib/openai';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -49,7 +48,7 @@ Rules:
   enumerations.`;
 
 function extractHtml(text: string): string {
-  // Strip markdown fences if Claude wrapped the answer.
+  // Strip markdown fences if the model wrapped the answer.
   let t = text.replace(/^```(?:html)?\s*/i, '').replace(/```\s*$/i, '').trim();
   // If the model still emitted a paragraph of prose before the HTML,
   // try to grab from the first tag onward.
@@ -66,9 +65,6 @@ export async function POST(req: Request) {
   try {
     const { prompt, context } = Body.parse(await req.json());
 
-    const storedKey = await getSetting('ANTHROPIC_API_KEY');
-    if (storedKey && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = storedKey;
-
     const systemPrompt = context.kind === 'email' ? EMAIL_SYSTEM : PAGE_SYSTEM;
     const contextLines = [
       context.kind === 'email' && context.subject ? `Email subject: ${context.subject}` : '',
@@ -78,31 +74,12 @@ export async function POST(req: Request) {
         : ''
     ].filter(Boolean).join('\n');
 
-    const userMsg = `${contextLines}\n\nWriter brief:\n${prompt}\n\nRespond with the HTML body now.`;
+    const userMsg = `${contextLines}\n\nWriter brief:\n${prompt}\n\nRespond with a JSON object { "html": "<the HTML body>" }.`;
 
-    const result = query({
-      prompt: userMsg,
-      options: {
-        systemPrompt,
-        model: 'claude-sonnet-4-6',
-        allowedTools: [],
-        maxTurns: 1
-      } as any
-    });
-
-    let text = '';
-    for await (const msg of result) {
-      if (msg.type === 'assistant') {
-        for (const block of (msg as any).message.content) {
-          if (block.type === 'text') text += block.text;
-        }
-      } else if (msg.type === 'result' && (msg as any).result && !text) {
-        text = (msg as any).result;
-      }
-    }
+    const { html: text } = await aiStructured({ schema: z.object({ html: z.string() }), name: 'html_body', instructions: systemPrompt, input: userMsg });
     const html = extractHtml(text);
     if (!html || html.length < 20) {
-      return NextResponse.json({ ok: false, error: 'Claude returned no usable HTML' }, { status: 500 });
+      return NextResponse.json({ ok: false, error: 'The AI returned no usable HTML' }, { status: 500 });
     }
     return NextResponse.json({ ok: true, html });
   } catch (err: any) {

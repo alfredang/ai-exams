@@ -195,17 +195,43 @@ ${markdown.slice(0, 60_000)}
   return Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== null)) as Partial<ExamInfoLookup>;
 }
 
+/**
+ * Lookup without a scraper: OpenAI's web search finds the official page and
+ * reads the metadata in one call. Used when no Firecrawl key is stored (the
+ * Credentials page no longer offers Firecrawl/Tavily fields).
+ */
+async function lookupViaWebSearch(input: { vendor: string; title?: string; code: string; infoUrl?: string }): Promise<ExamInfoLookup> {
+  const raw = await aiStructured({
+    schema: ExtractSchema.extend({ infoUrl: z.string().nullable() }),
+    name: 'exam_info',
+    instructions: `${FIND_URL_SYSTEM}\n\nThen read that page and fill the metadata.\n\n${EXTRACT_SYSTEM}`,
+    input: `Vendor: ${input.vendor}
+Exam code: ${input.code}
+${input.title ? `Title hint: ${input.title}\n` : ''}${input.infoUrl ? `Start from this page if it is the official one: ${input.infoUrl}\n` : ''}
+Find the official exam page, read it, and return its URL and metadata.`,
+    webSearch: true
+  });
+  const fields = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== null)) as Record<string, any>;
+  if (!fields.infoUrl || !/^https?:\/\//i.test(fields.infoUrl)) throw new Error(`Could not find the official page for ${input.vendor} ${input.code}.`);
+  if (!fields.slug) fields.slug = slugify(`${input.vendor} ${input.code}`);
+  const parsed = ResultSchema.safeParse(fields);
+  if (parsed.success) return parsed.data;
+  // Keep the URL even when a number is out of range.
+  return { infoUrl: fields.infoUrl, slug: fields.slug, notes: parsed.error.issues[0]?.message };
+}
+
 export async function lookupExamInfo(input: {
   vendor: string;
   title?: string;
   code: string;
   infoUrl?: string;
 }): Promise<ExamInfoLookup> {
+  // Firecrawl/Tavily are only used when a key is still stored from before.
   const [firecrawlKey, tavilyKey] = await Promise.all([
     getSetting('FIRECRAWL_API_KEY'),
     getSetting('TAVILY_API_KEY')
   ]);
-  if (!firecrawlKey) throw new Error('Firecrawl API key not configured (Settings → Credentials).');
+  if (!firecrawlKey) return lookupViaWebSearch(input);
 
   // Short-circuit: if the caller already has a vendor URL, scrape that
   // first. Search/agent fallback only runs if this URL yields nothing.

@@ -3,19 +3,19 @@ import { redirect } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { getSetting } from '@/lib/settings';
-import { DEFAULT_OPENAI_MODEL } from '@/lib/openai';
+import { aiProviders, providerChainLabel } from '@/lib/openai';
 import { examBaseTitle } from '@/lib/exam-title';
 import { matchDomain, parseDomains } from '@/lib/question-pool';
 import { QuestionReviewFlow } from '@/components/admin/question-review-flow';
-import { AiGeneratorExamSelect, type GeneratorExam } from '@/components/admin/ai-generator-exam-select';
+import { AiGenerateDialog, type GeneratorExam } from '@/components/admin/ai-question-generator';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * AI Question Generator: pick an exam, exam domain, question type and number
- * of questions; OpenAI writes them as drafts into that question bank's review
- * queue (/admin-dashboard/exams/[id]#review). `?exam=<id>` preselects one.
+ * of questions in the AI Generate pop-up; the AI provider chain writes them as
+ * drafts into that question bank's review queue
+ * (/admin-dashboard/exams/[id]#review). `?exam=<id>` opens the pop-up on that exam.
  */
 export default async function AiQuestionGeneratorPage({ searchParams }: { searchParams: Promise<{ exam?: string }> }) {
   const session = await auth();
@@ -23,15 +23,14 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
   const sp = await searchParams;
 
   // Pool exams only — retired variants (poolExamId set) never get new questions.
-  const [exams, counts, openaiKey, openaiModel] = await Promise.all([
+  const [exams, counts, providers] = await Promise.all([
     db.exam.findMany({
       where: { poolExamId: null },
       select: { id: true, code: true, title: true, domains: true, vendor: { select: { name: true } } },
       orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }]
     }),
     db.question.groupBy({ by: ['examId', 'domain', 'status'], where: { status: { in: ['PUBLISHED', 'DRAFT'] } }, _count: { _all: true } }),
-    getSetting('OPENAI_API_KEY'),
-    getSetting('OPENAI_MODEL')
+    aiProviders()
   ]);
 
   const rows: GeneratorExam[] = exams.map((e) => {
@@ -67,21 +66,25 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
           AI Question Generator
         </h1>
         <p className="text-sm text-slate-500">
-          Choose the exam, exam domain, question type and number of questions. AI writes them as drafts; you review each one in that
-          question bank, and only approved questions join its pool.
+          Click AI Generate, then choose the exam, number of questions, question types and exam domains. AI writes them as drafts; you
+          review each one in that question bank, and only approved questions join its pool.
         </p>
       </div>
 
-      <QuestionReviewFlow awaiting={totalDrafts} published={totalPublished} reviewHref="#awaiting" />
-
-      <section className="card p-4">
-        <AiGeneratorExamSelect
-          exams={rows}
-          initialExamId={sp.exam}
-          configured={!!openaiKey}
-          model={openaiModel.trim() || DEFAULT_OPENAI_MODEL}
-        />
-      </section>
+      <QuestionReviewFlow
+        awaiting={totalDrafts}
+        published={totalPublished}
+        reviewHref="#awaiting"
+        generate={
+          <AiGenerateDialog
+            exams={rows}
+            initialExamId={sp.exam}
+            defaultOpen={!!sp.exam}
+            configured={providers.length > 0}
+            providers={providerChainLabel(providers)}
+          />
+        }
+      />
 
       <section id="awaiting" className="card scroll-mt-24 p-4">
         <h2 className="text-lg font-semibold">Awaiting review ({totalDrafts})</h2>

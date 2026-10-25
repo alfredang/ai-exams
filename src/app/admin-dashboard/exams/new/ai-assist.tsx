@@ -88,7 +88,7 @@ export function CreateExamAiAssist({ vendorMap }: { vendorMap: Record<string, st
         <div>
           <div className="font-medium">AI Assist — auto-fill from official vendor page</div>
           <div className="text-xs text-slate-500">
-            Pick a vendor + enter the exam code, then click. If you already know the official page, paste it into <span className="font-medium">Exam Info URL</span> and we'll scrape that directly; otherwise Tavily/Firecrawl find the canonical page (with an OpenAI web-search fallback). OpenAI returns title, info URL, description, duration, pass %, question count, and the domain blueprint.
+            Pick a vendor + enter the exam code, then click. OpenAI web search finds the official exam page (or starts from the <span className="font-medium">Exam Info URL</span> if you paste one) and fills the title, info URL, description, duration, pass %, question count and domain blueprint. Needs the OpenAI key — DeepSeek and MiniMax can&apos;t search the web.
           </div>
         </div>
         <button type="button" onClick={fill} disabled={busy} className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700 disabled:opacity-50">

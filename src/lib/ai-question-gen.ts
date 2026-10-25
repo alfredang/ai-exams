@@ -7,10 +7,12 @@
  * before it is saved — the model's output is never trusted as-is.
  */
 import { z } from 'zod';
-import { aiStructured } from '@/lib/openai';
+import { aiStructuredWithMeta } from '@/lib/openai';
 import { planAllocation, type BlueprintDomain } from '@/lib/question-pool';
 
-export type GenType = 'MIXED' | 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING';
+/** Question kinds the generator can write. An empty selection means all of them. */
+export type GenKind = 'SINGLE' | 'MULTI' | 'ORDERING' | 'TRUE_FALSE';
+export const GEN_KINDS: GenKind[] = ['SINGLE', 'MULTI', 'ORDERING', 'TRUE_FALSE'];
 
 export type ValidQuestion = {
   stem: string;
@@ -54,13 +56,12 @@ Rules — these are non-negotiable:
 - Scenario-based stems that test applied understanding beat recall of trivia. Vary the correct option's position.
 - difficulty is an integer 1-5.`;
 
-const TYPE_HINT: Record<GenType, string> = {
-  MIXED: 'A mix: mostly SINGLE, about 1 in 5 MULTI, and about 1 in 10 ORDERING where the domain has a real step-by-step procedure.',
-  SINGLE: 'All questions are SINGLE.',
-  MULTI: 'All questions are MULTI.',
-  TRUE_FALSE: 'All questions are TRUE_FALSE.',
-  ORDERING: 'All questions are ORDERING (sequencing).'
-};
+/** The prompt's type instruction for the admin's selection (empty = all types). */
+function typeHint(kinds: GenKind[]): string {
+  if (!kinds.length) return 'A mix: mostly SINGLE, about 1 in 5 MULTI, and about 1 in 10 ORDERING where the domain has a real step-by-step procedure.';
+  if (kinds.length === 1) return `All questions are ${kinds[0]}.`;
+  return `Only these types, mixed roughly evenly: ${kinds.join(', ')}.`;
+}
 
 /** Split `total` across the chosen domains by blueprint weight (largest remainder). */
 export function planDomainCounts(domains: BlueprintDomain[], total: number): Record<string, number> {
@@ -108,10 +109,11 @@ export async function generateDomainBatch(input: {
   blueprint: BlueprintDomain[];
   domain: string;
   count: number;
-  type: GenType;
+  /** Allowed question kinds; empty = all. */
+  types: GenKind[];
   /** Stems already in this domain, so the model avoids repeating them. */
   avoid: string[];
-}): Promise<{ questions: ValidQuestion[]; rejected: string[] }> {
+}): Promise<{ questions: ValidQuestion[]; rejected: string[]; generatedBy: string }> {
   const blueprint = input.blueprint.length
     ? `Full exam blueprint (for context):\n${input.blueprint.map((d) => `- ${d.name}: ${d.weight}%`).join('\n')}\n\n`
     : '';
@@ -124,14 +126,14 @@ Vendor: ${input.vendor}
 Certification: ${input.certification}
 Exam code: ${input.examCode}
 Exam domain for EVERY question: ${input.domain}
-Question types: ${TYPE_HINT[input.type]}
+Question types: ${typeHint(input.types)}
 
 ${blueprint}${avoid}`;
-  const out = await aiStructured({ schema: BatchSchema, name: 'practice_questions', instructions: SYSTEM, input: prompt });
+  const { data: out, provider, model } = await aiStructuredWithMeta({ schema: BatchSchema, name: 'practice_questions', instructions: SYSTEM, input: prompt });
   const questions: ValidQuestion[] = [];
   const rejected: string[] = [];
   for (const q of out.questions.slice(0, input.count)) {
-    if (input.type !== 'MIXED' && q.type !== input.type) {
+    if (input.types.length && !input.types.includes(q.type)) {
       rejected.push(`wrong type ${q.type}`);
       continue;
     }
@@ -139,5 +141,5 @@ ${blueprint}${avoid}`;
     if (typeof v === 'string') rejected.push(v);
     else questions.push(v);
   }
-  return { questions, rejected };
+  return { questions, rejected, generatedBy: `${provider}:${model}` };
 }
