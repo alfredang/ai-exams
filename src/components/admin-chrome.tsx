@@ -26,15 +26,12 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Search,
   Sparkles,
   MessageSquare,
   Quote,
   Menu,
   X,
 } from 'lucide-react';
-import { CmdK } from './admin/cmdk';
-import { NotificationBell } from './admin/notification-bell';
 
 type NavItem = {
   href: string;
@@ -166,7 +163,6 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const [cmdkOpen, setCmdkOpen] = useState(false);
   // Below lg the sidebar is an off-canvas drawer opened from the Menu button.
   const [mobileOpen, setMobileOpen] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -184,19 +180,6 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
       if (s) setOpenSections(JSON.parse(s));
     } catch {}
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const isMac = navigator.platform.toLowerCase().includes('mac');
-      const meta = isMac ? e.metaKey : e.ctrlKey;
-      if (meta && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setCmdkOpen((v) => !v);
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   function toggleCollapse() {
@@ -249,7 +232,6 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
               Admin
             </span>
           )}
-          {!narrow && <NotificationBell />}
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
@@ -263,28 +245,6 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
             className="hidden h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:inline-flex"
           >
             {narrow ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-          </button>
-        </div>
-
-        {/* Global search trigger */}
-        <div className="px-2 pb-2">
-          <button
-            type="button"
-            onClick={() => setCmdkOpen(true)}
-            title="Search (⌘K)"
-            className={`flex h-7 w-full items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 text-xs text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 ${
-              narrow ? 'justify-center' : ''
-            }`}
-          >
-            <Search className="h-3 w-3 shrink-0" />
-            {!narrow && (
-              <>
-                <span className="flex-1 text-left">Search…</span>
-                <kbd className="rounded border border-slate-300 bg-white px-1 text-[9px] font-mono text-slate-500 dark:border-slate-600 dark:bg-slate-900">
-                  ⌘K
-                </kbd>
-              </>
-            )}
           </button>
         </div>
 
@@ -387,7 +347,6 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
         </button>
         {children}
       </main>
-      <CmdK open={cmdkOpen} onClose={() => setCmdkOpen(false)} />
     </div>
   );
 }

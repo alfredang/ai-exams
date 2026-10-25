@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/utils';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
+import { AdminHeaderTools } from './admin/header-tools';
 import { BookOpenCheck, Building2, ChevronRight, HelpCircle, Info, LifeBuoy, ListChecks, Menu, Ticket, X } from 'lucide-react';
 
 const LINKS = [
@@ -23,7 +24,8 @@ const MOBILE_EXTRA = [{ href: '/p/about-us', label: 'About Us', icon: Info, desc
 
 export function Nav() {
   const pathname = usePathname() || '/';
-  const inBackend = pathname.startsWith('/admin-dashboard') || pathname.startsWith('/user-dashboard');
+  const inAdmin = pathname.startsWith('/admin-dashboard');
+  const inBackend = inAdmin || pathname.startsWith('/user-dashboard');
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -74,6 +76,7 @@ export function Nav() {
           </nav>
         )}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          {inAdmin && <AdminHeaderTools />}
           <UserMenu />
           <div className="border-l border-line pl-1 dark:border-slate-800 sm:ml-1 sm:pl-2">
             <ThemeToggle />
