@@ -191,7 +191,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             <div className="eyebrow">Exam Voucher</div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
               <span className="font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(price)}</span>
-              <span className="whitespace-nowrap text-sm text-muted dark:text-slate-400">({PRICE_TAX_NOTE})</span>
+              <span className="whitespace-nowrap text-lg font-semibold text-ink dark:text-slate-100">({PRICE_TAX_NOTE})</span>
             </div>
             <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm dark:bg-emerald-950/30">
               <div className="flex justify-between"><span>{code} exam voucher</span><span className="font-medium">{formatPrice(price)}</span></div>
