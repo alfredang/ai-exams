@@ -128,7 +128,7 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-line bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="container-app grid grid-cols-2 gap-x-6 gap-y-8 py-10 md:grid-cols-12">
+      <div className="container-app grid grid-cols-2 gap-x-6 gap-y-8 pb-6 pt-10 md:grid-cols-12">
         {/* Brand */}
         <div className="col-span-2 md:col-span-4">
           <div className="mb-3 flex items-center gap-2">
@@ -139,10 +139,6 @@ export async function Footer() {
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
             Original, blueprint-aligned Practice Exams with explanations — and official Exam Vouchers that include the Practice Exam free. No brain dumps.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/practice-exams" className="btn-outline min-h-[40px] text-xs">Practice Exams</Link>
-            <Link href="/exam-vouchers" className="btn-secondary min-h-[40px] text-xs">Exam Vouchers</Link>
-          </div>
         </div>
 
         {columns.map((col) => (
@@ -191,16 +187,13 @@ export async function Footer() {
       </div>
 
       <div className="border-t border-line dark:border-slate-800">
-        <div className="container-app flex flex-col gap-2 py-4 text-xs leading-relaxed text-slate-500 md:flex-row md:items-start md:justify-between dark:text-slate-400">
+        <div className="container-app py-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
           <p className="flex items-start gap-1.5">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>
               <span className="font-medium text-slate-600 dark:text-slate-300">{company.name}</span>
               {company.address ? ` · ${company.address}` : ''}
             </span>
-          </p>
-          <p className="max-w-xl md:text-right">
-            Original practice questions for learning and exam preparation. Not affiliated with AWS, Microsoft, Cisco, CompTIA, Google Cloud, or other Certification owners unless explicitly stated. We do not provide real exam dumps.
           </p>
         </div>
       </div>

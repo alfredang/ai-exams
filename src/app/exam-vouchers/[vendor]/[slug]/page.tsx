@@ -116,7 +116,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             <span className="badge">{code}</span>
             <span className="badge">{exam.level}</span>
           </div>
-          <h1 className="mt-3 max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">{title}</h1>
+          <h1 className="mt-3 text-balance font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">{title}</h1>
           <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">{description}</p>
           <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-xl border border-emerald-300/70 bg-white/80 px-4 py-2.5 text-sm shadow-card dark:border-emerald-500/40 dark:bg-slate-900/70">
             <Gift className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
