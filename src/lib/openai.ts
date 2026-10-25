@@ -127,3 +127,34 @@ export async function aiStructured<S extends z.ZodTypeAny>(opts: {
 }): Promise<z.infer<S>> {
   return (await aiStructuredWithMeta(opts)).data;
 }
+
+export type AiProviderTest = { id: AiProviderId; label: string; model: string; ok: boolean; ms: number; error?: string };
+
+/**
+ * Ping every configured provider on its own (no fallback) through the same
+ * structured-output path the admin features use, so a bad key, an unknown
+ * model or a usage limit shows up per provider. Admin → Settings → Credentials.
+ */
+export async function testAiProviders(): Promise<AiProviderTest[]> {
+  const { z } = await import('zod');
+  const schema = z.object({ ok: z.boolean(), sum: z.number() });
+  const providers = await aiProviders();
+  return Promise.all(
+    providers.map(async (p): Promise<AiProviderTest> => {
+      const started = Date.now();
+      try {
+        const out = await callProvider(p, {
+          schema,
+          name: 'ping',
+          instructions: 'You are a health check. Answer with the JSON object only.',
+          input: 'Set ok to true and sum to 2 + 3.'
+        });
+        if (out.sum !== 5) throw new Error(`unexpected reply ${JSON.stringify(out)}`);
+        return { id: p.id, label: p.label, model: p.model, ok: true, ms: Date.now() - started };
+      } catch (e: any) {
+        const status = e?.status ? `HTTP ${e.status}: ` : '';
+        return { id: p.id, label: p.label, model: p.model, ok: false, ms: Date.now() - started, error: `${status}${String(e?.message ?? e).slice(0, 300)}` };
+      }
+    })
+  );
+}
