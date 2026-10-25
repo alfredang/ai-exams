@@ -109,14 +109,6 @@ export async function Footer() {
   const pageLink = (slug: string) => ({ href: `/p/${slug}`, label: pageBySlug.get(slug)?.title ?? USEFUL_LINK_FALLBACKS[slug] });
   const columns: { title: string; links: { href: string; label: string }[] }[] = [
     {
-      title: 'Shop',
-      links: [
-        { href: '/practice-exams', label: 'Practice Exams' },
-        { href: '/exam-vouchers', label: 'Exam Vouchers' },
-        { href: '/vendors', label: 'Vendors' }
-      ]
-    },
-    {
       title: 'Help',
       links: [pageLink('how-it-works'), { href: '/#faq', label: 'FAQ' }, pageLink('support'), pageLink('about-us')]
     },
@@ -157,7 +149,7 @@ export async function Footer() {
         ))}
 
         {/* Contact + app */}
-        <div className="col-span-2 md:col-span-2">
+        <div className="col-span-2 md:col-span-4">
           <FooterHeading>Contact</FooterHeading>
           <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
             {company.email && (
