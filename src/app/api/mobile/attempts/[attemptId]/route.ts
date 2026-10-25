@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireMobileUser } from '@/lib/mobile-auth';
 import { scoreAttempt, type Responses } from '@/lib/attempts';
-import { optionsForAttempt } from '@/lib/shuffle';
+import { optionsForAttempt, sequencingSteps } from '@/lib/shuffle';
 
 export async function GET(req: Request, { params }: { params: Promise<{ attemptId: string }> }) {
   const auth = await requireMobileUser(req);
@@ -46,6 +46,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ attemptI
       submittedAt: attempt.submittedAt?.toISOString() ?? null,
       expiresAt: attempt.expiresAt?.toISOString() ?? null,
       durationSec: attempt.durationSec,
+      // Seconds left on an Exam-mode clock, from the server's expiresAt.
+      remainingSec: attempt.expiresAt ? Math.max(0, Math.floor((attempt.expiresAt.getTime() - Date.now()) / 1000)) : null,
       score: attempt.score,
       passed: attempt.passed,
       responses
@@ -62,10 +64,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ attemptI
       stem: question!.stem,
       type: question!.type,
       domain: question!.domain,
-      options: attempt.optionShuffleVersion === 0 ? question!.options : optionsForAttempt(
+      // Same per-attempt order as the web runner.
+      options: optionsForAttempt(
         question!.options as { id: string; text: string }[], question!.type,
         question!.correct as string[], attempt.id, question!.id, attempt.optionShuffleVersion
       ),
+      // MULTI: how many options to pick ("Select TWO answers").
+      selectCount: question!.type === 'MULTI' ? (question!.correct as string[]).length : null,
+      // ORDERING: steps in their fixed Step 1…N labelling; the answer is the
+      // sequence of step ids.
+      steps: question!.type === 'ORDERING'
+        ? sequencingSteps(question!.options as { id: string; text: string }[], question!.correct as string[], question!.id)
+        : null,
       ...(includeReview
         ? {
             correct: question!.correct,
