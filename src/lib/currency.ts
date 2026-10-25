@@ -8,3 +8,7 @@
 //
 // No imports — safe for edge and client bundles.
 export const STORE_CURRENCY = 'USD';
+
+// Shown beside storefront prices. The amount charged is the listed price;
+// invoices carve the GST out of it (TAX_INCLUSIVE).
+export const PRICE_TAX_NOTE = 'GST inclusive';

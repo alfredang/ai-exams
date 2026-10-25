@@ -37,7 +37,13 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
     <tr><td style="padding:6px 0;color:#64748b">Order</td><td style="padding:6px 0;text-align:right"><code>{{order.id}}</code></td></tr>
     {{#if invoiceNumber}}<tr><td style="padding:6px 0;color:#64748b">Invoice</td><td style="padding:6px 0;text-align:right"><code>{{invoiceNumber}}</code></td></tr>{{/if}}
     <tr><td style="padding:6px 0;color:#64748b">Payment method</td><td style="padding:6px 0;text-align:right">{{paymentMethod}}</td></tr>
+    {{#if tax}}
+    <tr><td style="padding:6px 0;color:#64748b">Price (excl. {{tax.label}})</td><td style="padding:6px 0;text-align:right">{{money tax.subtotal order.currency}}</td></tr>
+    <tr><td style="padding:6px 0;color:#64748b">{{tax.label}} {{tax.rate}} (included)</td><td style="padding:6px 0;text-align:right">{{money tax.amount order.currency}}</td></tr>
+    <tr><td style="padding:6px 0;border-top:1px solid #e2e8f0"><b>Total paid (incl. {{tax.label}})</b></td><td style="padding:6px 0;border-top:1px solid #e2e8f0;text-align:right"><b>{{money order.amount order.currency}}</b></td></tr>
+    {{else}}
     <tr><td style="padding:6px 0;color:#64748b">Amount</td><td style="padding:6px 0;text-align:right">{{money order.amount order.currency}}</td></tr>
+    {{/if}}
   </table>
   {{#if invoiceNumber}}<p style="color:#64748b;font-size:13px">Your tax invoice is attached to this email and also available under <a href="{{appUrl}}/user-dashboard/invoices" style="color:{{brand.primaryColor}}">Invoices</a>.</p>{{/if}}
   {{#if voucherPending}}
@@ -52,6 +58,7 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       paymentMethod: 'PayPal',
       voucherPending: true,
       invoiceNumber: 'INV-2026-00042',
+      tax: { label: 'GST', rate: '9%', amount: 817, subtotal: 9083 },
       user: { name: 'Alex', email: 'alex@example.com' },
       order: { id: 'ord_abc123', amount: 9900, currency: STORE_CURRENCY }
     }

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { ShoppingCart, Ticket } from 'lucide-react';
 import { checkoutHref, voucherOnSale } from '@/lib/products';
 
@@ -48,6 +49,7 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
           </Link>
         )}
       </div>
+      <p className="mt-2 text-center text-[11px] text-slate-500 dark:text-slate-300">Prices are {PRICE_TAX_NOTE}</p>
       {voucherOnSale(product) && (
         <p className="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-300">
           Practice access is immediate; voucher codes arrive by email within 3–5 business days. The voucher portion is non-refundable after issue. <Link href="/p/refund-policy" className="text-blue-600 underline dark:text-blue-300">Refund details</Link>

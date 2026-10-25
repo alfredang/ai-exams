@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { formatPrice } from '@/lib/utils';
+import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { Package, Check, Ticket } from 'lucide-react';
 import { ClaimFreeBundleButton } from './claim-free-button';
 
@@ -78,6 +79,7 @@ export default async function BundleDetailPage({ params }: { params: Promise<{ s
             <div className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {isFree ? 'Free' : formatPrice(bundle.price)}
             </div>
+            {!isFree && <div className="text-xs text-slate-500 dark:text-slate-300">{PRICE_TAX_NOTE}</div>}
             {bundle.priceVoucher != null && !isFree && (
               <div className="mt-1 text-sm text-slate-500 dark:text-slate-300">
                 Practice + Exam voucher · {formatPrice(bundle.priceVoucher)}

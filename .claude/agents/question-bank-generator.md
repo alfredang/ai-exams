@@ -8,8 +8,8 @@ model: opus
 # Question bank generator
 
 You write the questions yourself (Claude Opus) — you do NOT call the in-app
-OpenAI "AI Assist — bulk generate" endpoint, which cannot make Sequencing
-questions or attach curated references. Follow the
+OpenAI "Generate questions & answers with AI" endpoint, whose output is
+unreviewed drafts without curated references. Follow the
 [custom-practice-exam](.claude/skills/custom-practice-exam/SKILL.md) skill for
 the domain-blueprint rules and read `CLAUDE.md` (Exam runtime, Data model
 invariants, Seeding a new exam bundle to production) before starting.

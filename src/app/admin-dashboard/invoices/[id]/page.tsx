@@ -10,6 +10,7 @@ import { FileText, Download, RefreshCw } from 'lucide-react';
 import { sendPurchaseEmail, sendRefundEmail } from '@/lib/mail';
 import { buildInvoiceLines } from '@/lib/invoice/build-lines';
 import { orderIdForInvoice } from '@/lib/invoice/issue';
+import { formatTaxRate, invoiceTaxVars } from '@/lib/invoice/tax';
 import { renderPdfForInvoice } from '@/lib/invoice/pdf-for-invoice';
 
 export const dynamic = 'force-dynamic';
@@ -101,7 +102,7 @@ async function resendInvoice(formData: FormData) {
       user: { name: inv.user.name, email: inv.billingEmail },
       paymentMethod: inv.order.provider
     },
-    { invoicePdf: pdf, invoiceNumber: inv.number }
+    { invoicePdf: pdf, invoiceNumber: inv.number, tax: invoiceTaxVars(inv) }
   ).catch(() => {});
   await db.adminLog.create({
     data: { adminId: user.id, action: 'invoice.resend', targetType: 'Invoice', targetId: id, metadata: { to: inv.billingEmail } }
@@ -194,15 +195,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               </tbody>
             </table>
             <div className="mt-3 ml-auto max-w-xs text-[13px]">
-              <div className="flex justify-between py-0.5"><span className="text-slate-500">Subtotal</span><span>{formatMoney(invoice.subtotal, invoice.currency)}</span></div>
+              <div className="flex justify-between py-0.5"><span className="text-slate-500">Subtotal{invoice.taxAmount !== 0 && ` (excl. ${invoice.taxLabel})`}</span><span>{formatMoney(invoice.subtotal, invoice.currency)}</span></div>
               {invoice.taxAmount !== 0 && (
                 <div className="flex justify-between py-0.5">
-                  <span className="text-slate-500">{invoice.taxLabel} ({(invoice.taxRate / 100).toFixed(2)}%)</span>
+                  <span className="text-slate-500">{invoice.taxLabel} {formatTaxRate(invoice.taxRate)} (included)</span>
                   <span>{formatMoney(invoice.taxAmount, invoice.currency)}</span>
                 </div>
               )}
               <div className="mt-1 flex justify-between border-t border-slate-200 pt-1 font-semibold dark:border-slate-700">
-                <span>Total</span>
+                <span>Total{invoice.taxAmount !== 0 && ` (incl. ${invoice.taxLabel})`}</span>
                 <span>{formatMoney(invoice.total, invoice.currency)}</span>
               </div>
               {invoice.totalSgd != null && invoice.currency.toUpperCase() !== 'SGD' && (

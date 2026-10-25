@@ -5,6 +5,7 @@ import { formatPrice, tierLabel } from './utils';
 import { getDelayDays } from './scheduling/voucher-delivery';
 import { issueInvoiceForOrder } from './invoice/issue';
 import { renderPdfForInvoice } from './invoice/pdf-for-invoice';
+import { formatTaxRate, invoiceTaxVars } from './invoice/tax';
 import { productTitle } from './products';
 
 function providerLabel(p: PaymentProvider): string {
@@ -151,7 +152,11 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
         examCode: [...new Set(examCodes.map((c) => c.replace(/-P\d+$/i, '')))].join(', '),
         tier: order.tier ? tierLabel(order.tier) : tierText,
         paymentMethod: providerLabel(order.provider),
-        amount: formatPrice(order.amount, order.currency),
+        amount:
+          formatPrice(order.amount, order.currency) +
+          (invoice.taxAmount !== 0
+            ? ` (incl. ${invoice.taxLabel} ${formatTaxRate(invoice.taxRate)} ${formatPrice(invoice.taxAmount, order.currency)})`
+            : ''),
         paidAt: new Date(),
         billingAddress: order.billingAddress ? formatAddress(order.billingAddress) : null,
         voucherPending
@@ -176,7 +181,7 @@ export async function fulfillOrder(orderId: string, paypalPayload: any, paypalCa
         emailSpec.voucherPending,
         emailSpec.extras,
         invoicePdf && invoice
-          ? { invoicePdf, invoiceNumber: invoice.number }
+          ? { invoicePdf, invoiceNumber: invoice.number, tax: invoiceTaxVars(invoice) }
           : undefined
       );
     } catch {

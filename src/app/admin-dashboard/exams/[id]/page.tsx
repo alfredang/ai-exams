@@ -14,7 +14,9 @@ import { DEFAULT_OPENAI_MODEL } from '@/lib/openai';
 import { AddQuestionsPanel } from '@/components/admin/add-questions-panel';
 import { QuestionForm } from '@/components/admin/question-form';
 import { AiQuestionGenerator } from '@/components/admin/ai-question-generator';
-import { createQuestion, deleteQuestion, toggleQuestionStatus } from './question-actions';
+import { QuestionReviewFlow } from '@/components/admin/question-review-flow';
+import { InfoLookupButton } from '@/components/admin/info-lookup-button';
+import { approveQuestion, createQuestion, deleteQuestion, rejectQuestion, toggleQuestionStatus } from './question-actions';
 
 async function requireAdmin() {
   const session = await auth();
@@ -158,6 +160,7 @@ async function runSeoAssist(formData: FormData) {
   revalidatePath(`/admin-dashboard/exams/${id}`);
 }
 
+// Review queue "Approve all": publishes every draft into the pool.
 async function publishAllDrafts(formData: FormData) {
   'use server';
   const session = await auth();
@@ -247,12 +250,30 @@ async function saveSeoMeta(formData: FormData) {
 
 const LEVELS = ['Foundational', 'Associate', 'Professional', 'Specialty'];
 
+/** Where a question came from, from its generatedBy tag. */
+function sourceLabel(generatedBy: string | null): string {
+  if (!generatedBy || generatedBy === 'manual') return 'Added manually';
+  if (generatedBy.startsWith('openai:')) return `AI · ${generatedBy.slice('openai:'.length)}`;
+  if (/^(claude|gpt)/.test(generatedBy)) return `AI · ${generatedBy}`;
+  if (generatedBy === 'csv-import') return 'CSV import';
+  if (generatedBy.startsWith('manual:')) return 'Seed import';
+  return generatedBy;
+}
+
+/** Legacy rows store references as URL strings or {url,label}. */
+function referenceLinks(raw: unknown): { url: string; label: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((r) => (typeof r === 'string' ? { url: r, label: r } : r && typeof r.url === 'string' ? { url: r.url, label: r.label || r.url } : null))
+    .filter((r): r is { url: string; label: string } => !!r && /^https?:\/\//.test(r.url));
+}
+
 export default async function EditExamPage({
   params,
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string; qpage?: string; edited?: string }>;
+  searchParams: Promise<{ domain?: string; qstatus?: string; qtype?: string; qpage?: string; rpage?: string; edited?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -297,6 +318,17 @@ export default async function EditExamPage({
     const qs = Object.entries(next).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
     return `/admin-dashboard/exams/${exam.id}${qs ? `?${qs}` : ''}#questions`;
   };
+  // Review queue: drafts, newest first, 20 per page (?rpage=). After an edit,
+  // open the page that holds the edited draft.
+  const drafts = exam.questions.filter((q) => q.status === 'DRAFT').reverse();
+  const publishedCount = exam.questions.filter((q) => q.status === 'PUBLISHED').length;
+  const R_PAGE_SIZE = 20;
+  const rPages = Math.max(1, Math.ceil(drafts.length / R_PAGE_SIZE));
+  const editedDraftIdx = sp.edited && !sp.rpage ? drafts.findIndex((q) => q.id === sp.edited) : -1;
+  const rPage = Math.min(rPages, Math.max(1, editedDraftIdx >= 0 ? Math.floor(editedDraftIdx / R_PAGE_SIZE) + 1 : Number(sp.rpage) || 1));
+  const pageDrafts = drafts.slice((rPage - 1) * R_PAGE_SIZE, rPage * R_PAGE_SIZE);
+  const draftSources = [...new Set(drafts.map((q) => sourceLabel(q.generatedBy)))];
+  const reviewHref = (p: number) => `/admin-dashboard/exams/${exam.id}${p > 1 ? `?rpage=${p}` : ''}#review`;
   const [openaiKey, openaiModel] = await Promise.all([getSetting('OPENAI_API_KEY'), getSetting('OPENAI_MODEL')]);
   const TYPE_NAMES: Record<string, string> = { SINGLE: 'MCQ', MULTI: 'Multiple select', ORDERING: 'Sequencing', TRUE_FALSE: 'True/False', HOTSPOT: 'Hotspot' };
 
@@ -321,21 +353,128 @@ export default async function EditExamPage({
         </div>
       </div>
 
-      <form action={autoFillFromWeb} className="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900/40">
-        <input type="hidden" name="id" value={exam.id} />
-        <div className="flex-1 min-w-[260px]">
-          <div className="font-medium">AI Assist — auto-fill from official vendor page</div>
-          <div className="text-xs text-slate-500">
-            Tavily/Firecrawl find the canonical vendor page (with an OpenAI web-search fallback);
-            Firecrawl scrapes it and OpenAI returns the metadata. Overwrites <span className="font-medium">Exam Info URL</span> and <span className="font-medium"># of Exams</span>.
-          </div>
+      <section id="ai-generate" className="card scroll-mt-24 p-4">
+        <div className="mb-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+            Generate questions &amp; answers with AI
+          </h2>
+          <p className="text-xs text-slate-500">
+            Pick how many questions and which exam domain. AI writes them as drafts; you review each one, and only approved questions join the pool.
+          </p>
         </div>
-        <SubmitBusyButton
-          idleLabel={<><Sparkles className="mr-1 h-3.5 w-3.5" /> AI Assist</>}
-          busyLabel={<>Looking up…</>}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700 disabled:cursor-wait disabled:bg-violet-400"
-        />
-      </form>
+        <QuestionReviewFlow awaiting={drafts.length} published={publishedCount} perAttempt={Math.min(exam.questionCount, pool.total)} poolHref="#questions" />
+        <div className="mt-4 rounded-md border border-violet-200 bg-violet-50/40 p-3 dark:border-violet-900/60 dark:bg-violet-950/20">
+          <AiQuestionGenerator
+            examId={exam.id}
+            domains={pool.rows.map((r) => ({ name: r.name, weight: r.weight, pool: r.pool }))}
+            configured={!!openaiKey}
+            model={openaiModel.trim() || DEFAULT_OPENAI_MODEL}
+          />
+        </div>
+      </section>
+
+      {drafts.length > 0 && (
+        <section id="review" className="card scroll-mt-24 border-amber-300 p-4 dark:border-amber-800">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Review queue ({drafts.length})</h2>
+              <p className="text-xs text-slate-500">
+                Drafts are not drawn into any attempt. Check the question, the marked answer and the explanation, then approve, edit or reject.
+                Source: {draftSources.join(', ')}.
+              </p>
+            </div>
+            <form action={publishAllDrafts}>
+              <input type="hidden" name="examId" value={exam.id} />
+              <ConfirmButton
+                variant="neutral"
+                message={`Approve all ${drafts.length} drafts and add them to the "${exam.code}" pool without reviewing them one by one?`}
+                className="h-8 px-3 text-sm"
+              >
+                Approve all {drafts.length}
+              </ConfirmButton>
+            </form>
+          </div>
+          <ol className="mt-3 space-y-3">
+            {pageDrafts.map((q, i) => {
+              const opts = (q.options as { id: string; text: string }[]) || [];
+              const correct = (q.correct as string[]) || [];
+              const refs = referenceLinks(q.references);
+              return (
+                <li
+                  key={q.id}
+                  id={`review-${q.id}`}
+                  className={`scroll-mt-24 rounded-md border p-3 ${sp.edited === q.id ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20' : 'border-slate-200 dark:border-slate-700'}`}
+                >
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <span className="font-semibold text-slate-500">#{(rPage - 1) * R_PAGE_SIZE + i + 1}</span>
+                    <span className="rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">AWAITING REVIEW</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{q.domain}</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{TYPE_NAMES[q.type] ?? q.type}</span>
+                    <span className="rounded bg-violet-50 px-1.5 py-0.5 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">{sourceLabel(q.generatedBy)}</span>
+                    <span className="text-slate-500">{q.createdAt.toISOString().slice(0, 10)}</span>
+                  </div>
+                  <div className="mt-2 text-sm font-medium">{q.stem}</div>
+                  {q.type === 'ORDERING' ? (
+                    <>
+                      <ol className="mt-1.5 space-y-0.5 text-[13px] text-slate-600 dark:text-slate-400">
+                        {opts.map((o, j) => <li key={`${j}-${o.id}`}>Step {j + 1}. {o.text}</li>)}
+                      </ol>
+                      <div className="mt-1 font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                        Correct sequence: {correct.map((c) => opts.findIndex((o) => o.id === c) + 1).join(' → ')}
+                      </div>
+                    </>
+                  ) : (
+                    <ul className="mt-1.5 space-y-0.5 text-[13px] text-slate-600 dark:text-slate-400">
+                      {opts.map((o, j) => (
+                        <li key={`${j}-${o.id}`} className={correct.includes(o.id) ? 'font-semibold text-emerald-700 dark:text-emerald-400' : ''}>
+                          {o.id.toUpperCase()}. {o.text} {correct.includes(o.id) && '✓ answer'}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {q.explanation && (
+                    <div className="mt-2 rounded bg-slate-50 px-2.5 py-2 text-[12px] text-slate-600 dark:bg-slate-900/50 dark:text-slate-300">
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">Why: </span>
+                      <span className="whitespace-pre-line">{q.explanation}</span>
+                      {refs.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-x-3">
+                          {refs.map((r) => (
+                            <a key={r.url} href={r.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">{r.label} ↗</a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <form action={approveQuestion}>
+                      <input type="hidden" name="id" value={q.id} />
+                      <button className="inline-flex h-8 items-center rounded-md bg-emerald-600 px-3 text-[12px] font-medium text-white hover:bg-emerald-700">
+                        Approve → add to pool
+                      </button>
+                    </form>
+                    {q.type !== 'HOTSPOT' && (
+                      <Link
+                        href={`/admin-dashboard/exams/${exam.id}/questions/${q.id}`}
+                        className="inline-flex h-8 items-center rounded-md border border-slate-200 px-3 text-[12px] font-medium text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200"
+                      >
+                        Edit
+                      </Link>
+                    )}
+                    <form action={rejectQuestion}>
+                      <input type="hidden" name="id" value={q.id} />
+                      <ConfirmButton message="Reject this draft? It is removed and never added to the pool." className="h-8 px-3 text-[12px]">
+                        Reject
+                      </ConfirmButton>
+                    </form>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          <Pager page={rPage} pages={rPages} buildHref={reviewHref} />
+        </section>
+      )}
 
       <form action={updateExam} className="card grid gap-3 p-4 md:grid-cols-3">
         <input type="hidden" name="id" value={exam.id} />
@@ -362,9 +501,13 @@ export default async function EditExamPage({
         <Field label="Questions per exam">
           <input name="questionCount" type="number" min={1} defaultValue={exam.questionCount} className="input" />
         </Field>
-        <Field label="Exam Info URL (vendor page or PDF)" className="md:col-span-2">
-          <input name="infoUrl" type="url" placeholder="https://aws.amazon.com/certification/..." defaultValue={exam.infoUrl ?? ''} className="input" />
-        </Field>
+        <div className="text-sm md:col-span-2">
+          <label htmlFor="infoUrl" className="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200">Exam Info URL (vendor page or PDF)</label>
+          <div className="flex gap-2">
+            <input key={exam.infoUrl ?? ''} id="infoUrl" name="infoUrl" type="url" placeholder="https://aws.amazon.com/certification/..." defaultValue={exam.infoUrl ?? ''} className="input" />
+            <InfoLookupButton examId={exam.id} action={autoFillFromWeb} />
+          </div>
+        </div>
         <Field label="Label (optional)" className="md:col-span-1">
           <input name="label" placeholder="e.g. Practice Exam 1" defaultValue={exam.label ?? ''} className="input" />
         </Field>
@@ -501,20 +644,17 @@ export default async function EditExamPage({
           <div>
             <h2 className="text-lg font-semibold">Question pool ({exam.questions.length})</h2>
             <div className="text-xs text-slate-500">
-              {exam.questions.filter((q) => q.status === 'PUBLISHED').length} published ·{' '}
-              {exam.questions.filter((q) => q.status === 'DRAFT').length} draft (not drawn) ·{' '}
+              {publishedCount} published ·{' '}
+              {drafts.length > 0 ? <a href="#review" className="text-amber-700 hover:underline dark:text-amber-400">{drafts.length} awaiting review (not drawn)</a> : '0 awaiting review'} ·{' '}
               {exam.questions.filter((q) => q.status === 'ARCHIVED').length} archived ·{' '}
               each attempt draws {exam.questionCount} published questions by domain · Exam mode {exam.durationMinutes} min · pass {exam.passingScore}%
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {exam.questions.some((q) => q.status === 'DRAFT') && (
-              <form action={publishAllDrafts}>
-                <input type="hidden" name="examId" value={exam.id} />
-                <button className="btn-primary text-sm" type="submit">
-                  Add {exam.questions.filter((q) => q.status === 'DRAFT').length} drafts to pool
-                </button>
-              </form>
+            {drafts.length > 0 && (
+              <a href="#review" className="btn-primary text-sm">
+                Review {drafts.length} draft{drafts.length === 1 ? '' : 's'}
+              </a>
             )}
             {exam.questions.some((q) => q.status === 'PUBLISHED') && (
               <form action={unpublishAll}>
@@ -544,21 +684,14 @@ export default async function EditExamPage({
         </div>
 
         <AddQuestionsPanel
-          defaultMode={exam.questions.length === 0 ? 'manual' : undefined}
+          defaultOpen={exam.questions.length === 0}
+          aiHref="#ai-generate"
           manual={
             <QuestionForm
               action={createQuestion}
               domains={blueprintOrder}
               hidden={{ examId: exam.id }}
               submitLabel="Add question"
-            />
-          }
-          ai={
-            <AiQuestionGenerator
-              examId={exam.id}
-              domains={pool.rows.map((r) => ({ name: r.name, weight: r.weight, pool: r.pool }))}
-              configured={!!openaiKey}
-              model={openaiModel.trim() || DEFAULT_OPENAI_MODEL}
             />
           }
         />
@@ -578,7 +711,7 @@ export default async function EditExamPage({
               <span className="w-14 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Status</span>
               {['', 'PUBLISHED', 'DRAFT', 'ARCHIVED'].map((st) => (
                 <a key={st || 'all'} href={filterHref({ qstatus: st })} className={`rounded-full border px-2.5 py-1 ${fStatus === st ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
-                  {st ? st.charAt(0) + st.slice(1).toLowerCase() : 'All'}
+                  {st === 'DRAFT' ? 'Awaiting review' : st ? st.charAt(0) + st.slice(1).toLowerCase() : 'All'}
                 </a>
               ))}
               <span className="ml-3 w-10 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Type</span>
@@ -690,7 +823,7 @@ export default async function EditExamPage({
               {exam.questions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-2 py-6 text-center text-sm text-slate-500">
-                    No questions yet — use Add manually or AI Assist above.
+                    No questions yet — use Add manually, or Generate with AI at the top of the page.
                   </td>
                 </tr>
               )}

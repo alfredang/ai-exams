@@ -70,7 +70,49 @@ export async function updateQuestion(_prev: QuestionFormState, fd: FormData): Pr
     }
   });
   refresh(before.examId);
+  // A draft goes back to the review queue; anything else to its row in the pool.
+  if (before.status === 'DRAFT') redirect(`/admin-dashboard/exams/${before.examId}?edited=${id}#review-${id}`);
   redirect(`/admin-dashboard/exams/${before.examId}?edited=${id}#q-${id}`);
+}
+
+/** Review queue: an admin approves a draft, which publishes it into the pool. */
+export async function approveQuestion(fd: FormData) {
+  const admin = await adminId();
+  if (!admin) return;
+  const id = String(fd.get('id') || '');
+  const q = await db.question.findUnique({ where: { id }, select: { examId: true, status: true } });
+  if (!q || q.status !== 'DRAFT') return;
+  await db.question.update({ where: { id }, data: { status: 'PUBLISHED' } });
+  await db.adminLog.create({
+    data: { adminId: admin, action: 'question.approve', targetType: 'Question', targetId: id, metadata: { examId: q.examId } }
+  });
+  refresh(q.examId);
+}
+
+/**
+ * Review queue: reject a draft. It is deleted, unless an earlier attempt drew
+ * it (it was published before), in which case it is archived so that
+ * attempt's results still open.
+ */
+export async function rejectQuestion(fd: FormData) {
+  const admin = await adminId();
+  if (!admin) return;
+  const id = String(fd.get('id') || '');
+  const q = await db.question.findUnique({ where: { id }, select: { examId: true, status: true, stem: true, generatedBy: true } });
+  if (!q || q.status !== 'DRAFT') return;
+  const usedIn = await db.attempt.count({ where: { questionIds: { has: id } } });
+  if (usedIn > 0) await db.question.update({ where: { id }, data: { status: 'ARCHIVED' } });
+  else await db.question.delete({ where: { id } });
+  await db.adminLog.create({
+    data: {
+      adminId: admin,
+      action: 'question.reject',
+      targetType: 'Question',
+      targetId: id,
+      metadata: { examId: q.examId, stem: q.stem, generatedBy: q.generatedBy, archived: usedIn > 0 }
+    }
+  });
+  refresh(q.examId);
 }
 
 export async function deleteQuestion(fd: FormData) {

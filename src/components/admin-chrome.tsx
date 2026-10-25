@@ -27,6 +27,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Wand2,
   MessageSquare,
   Quote,
   Menu,
@@ -58,6 +59,7 @@ const SECTIONS: NavSection[] = [
       { href: '/admin-dashboard/bundles/vouchers', label: 'Exam Vouchers', icon: Ticket },
       { href: '/admin-dashboard/exams/new', label: 'Create Practice Exam', icon: Sparkles },
       { href: '/admin-dashboard/exams', label: 'Question Banks', icon: FileText, exact: true },
+      { href: '/admin-dashboard/questions', label: 'AI Question Generator', icon: Wand2 },
       { href: '/admin-dashboard/vendors', label: 'Vendors', icon: Building2 }
     ]
   },
@@ -135,7 +137,7 @@ const SECTIONS: NavSection[] = [
           { href: '/admin-dashboard/settings/company', label: 'Company Info', icon: Building2 },
           { href: '/admin-dashboard/settings/branding', label: 'Branding', icon: Palette },
           { href: '/admin-dashboard/settings/site-seo', label: 'Site SEO', icon: BarChart3 },
-          { href: '/admin-dashboard/settings/tax-invoice', label: 'Tax & Invoice', icon: Receipt },
+          { href: '/admin-dashboard/settings/tax-invoice', label: 'GST & Invoice', icon: Receipt },
           { href: '/admin-dashboard/settings/payment', label: 'Payment', icon: CreditCard },
           { href: '/admin-dashboard/settings/payment-guide', label: 'Payment Setup Guide', icon: BookOpen },
           { href: '/admin-dashboard/settings/email', label: 'Email', icon: Mail },

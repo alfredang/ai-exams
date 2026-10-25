@@ -945,11 +945,10 @@ const CCA_BUNDLE = {
   title: 'Claude Certified Architect — Foundations (CCAR-F)',
   description:
     'Practice exam for the Claude Certified Architect — Foundations (CCAR-F) credential, with unlimited retakes drawn fresh from a 180-question scenario-based pool weighted by the official exam domains — covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
-  // $20 PRACTICE tier. No voucher tier: Anthropic sells exam attempts directly
-  // through Partner Academy (credit card, then schedule with Pearson VUE), and
-  // its partner voucher storefront is still "in progress" as of July 2026 —
-  // there is nothing for us to resell.
-  price: 2000
+  // $20 Practice Exam + $125 Exam Voucher (Anthropic's CCAR-F list price).
+  // Keep in step with the BUNDLE_SPECS entry in prisma/seed.ts.
+  price: 2000,
+  priceVoucher: 12500
 };
 
 // ───────────────────── Seed entry point ─────────────────────
@@ -1035,8 +1034,7 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
     examResults.push({ slug: v.slug, questionCount: v.questions.length, teaserCount, legacyRetired });
   }
 
-  // Upsert the bundle. No priceVoucher — Anthropic doesn't run a paid proctored
-  // exam for this credential, so there's nothing to bundle a voucher for.
+  // Upsert the bundle with both products.
   const existingBundle = await db.bundle.findUnique({ where: { slug: CCA_BUNDLE.slug } });
   const bundle = await db.bundle.upsert({
     where: { slug: CCA_BUNDLE.slug },
@@ -1044,6 +1042,7 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
       title: CCA_BUNDLE.title,
       description: CCA_BUNDLE.description,
       price: CCA_BUNDLE.price,
+      priceVoucher: CCA_BUNDLE.priceVoucher,
       published: true
     },
     create: {
@@ -1051,11 +1050,13 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
       title: CCA_BUNDLE.title,
       description: CCA_BUNDLE.description,
       price: CCA_BUNDLE.price,
+      priceVoucher: CCA_BUNDLE.priceVoucher,
       published: true
     }
   });
 
-  // Replace bundle items deterministically: 3 PRACTICE variants in order.
+  // Replace bundle items deterministically: 3 PRACTICE variants in order,
+  // then the VOUCHER item on P1 (the pool exam after the fold).
   await db.bundleItem.deleteMany({ where: { bundleId: bundle.id } });
   let position = 1;
   for (const v of VARIANTS) {
@@ -1068,6 +1069,9 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
       }
     });
   }
+  await db.bundleItem.create({
+    data: { bundleId: bundle.id, examId: examIdBySlug[VARIANTS[0].slug], tier: 'VOUCHER', position }
+  });
 
   return {
     vendor: existingVendor ? 'existing' : 'created',

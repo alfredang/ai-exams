@@ -54,9 +54,8 @@ const VENDORS = [
 // one of these exactly or it drops out of the per-domain results breakdown.
 // The seed modules in src/lib/seed/ duplicate these — keep the two in sync.
 //
-// Every Claude cert is PRACTICE-only ($20, no voucher tier): Anthropic sells
-// attempts directly via Partner Academy and its partner voucher storefront is
-// still "in progress" as of July 2026, so there is nothing to resell.
+// CCAO-F and CCAR-F also sell an Exam Voucher (booked by sales through our
+// Claude Partner Network membership); CCAR-P and CCDV-F are Practice Exam only.
 const CLAUDE_CERT_INFO = {
   ccarF: 'https://anthropic-partners.skilljar.com/claude-certified-architect-foundations-certification',
   ccarP: 'https://anthropic-partners.skilljar.com/claude-certified-architect-professional-certification',
@@ -315,10 +314,10 @@ const BUNDLE_SPECS: BundleSeed[] = [
   // requires variant slugs to be exactly `${bundleSlug}-pN` (our P1 keeps the
   // bare slug so the bundle slug and P1 exam slug match).
   //
-  // PRACTICE tier only, all four: Anthropic sells exam attempts directly through
-  // Partner Academy (credit card, then schedule with Pearson VUE) and its partner
-  // voucher storefront is still "in progress" as of July 2026 — we have no
-  // vouchers to fulfil, so offering a VOUCHER tier would be selling vapour.
+  // Anthropic sells exam attempts through Partner Academy (then schedule with
+  // Pearson VUE). As a Claude Partner Network member we can book them for
+  // customers, so CCAO-F and CCAR-F carry an Exam Voucher (sales books it by
+  // hand off the order alert); CCAR-P and CCDV-F stay Practice Exam only.
   {
     // CCA-F is a 3-variant practice bundle (P2/P3 added 2026-06). The bundle
     // slug matches the P1 exam slug; all three variant exams are in
@@ -330,11 +329,13 @@ const BUNDLE_SPECS: BundleSeed[] = [
     title: 'Claude Certified Architect — Foundations (CCAR-F)',
     description:
       'Practice exam for the Claude Certified Architect — Foundations (CCAR-F) credential, with unlimited retakes drawn fresh from a 180-question scenario-based pool weighted by the official exam domains — covering the Claude Agent SDK, tool design and MCP integration, Claude Code configuration, prompt engineering, and context management. Aligned to the official Anthropic exam guide and the public documentation at docs.anthropic.com, docs.claude.com, and modelcontextprotocol.io.',
-    price: 2000, // $20 — PRACTICE tier
+    price: 2000, // $20 — Practice Exam
+    priceVoucher: 12500, // $125 — Exam Voucher at Anthropic's CCAR-F list price (practice exam included)
     items: [
       { examSlug: 'anthropic-cca-foundations', tier: 'PRACTICE', position: 1 },
       { examSlug: 'anthropic-cca-foundations-p2', tier: 'PRACTICE', position: 2 },
-      { examSlug: 'anthropic-cca-foundations-p3', tier: 'PRACTICE', position: 3 }
+      { examSlug: 'anthropic-cca-foundations-p3', tier: 'PRACTICE', position: 3 },
+      { examSlug: 'anthropic-cca-foundations', tier: 'VOUCHER', position: 4 }
     ]
   },
   {

@@ -12,7 +12,7 @@ const Body = z.object({
   count: z.number().int().min(1).max(200),
   /** Blueprint domain names; empty = all domains. */
   domains: z.array(z.string()).default([]),
-  type: z.enum(['MIXED', 'SINGLE', 'MULTI', 'TRUE_FALSE']).default('MIXED')
+  type: z.enum(['MIXED', 'SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING']).default('MIXED')
 });
 
 const BATCH = 5; // questions per model call
@@ -21,7 +21,8 @@ const CONCURRENCY = 3; // model calls in flight
 /**
  * POST /api/admin/exams/[id]/ai-generate — generate `count` questions with
  * OpenAI across the chosen domains (split by blueprint weight). Streams SSE:
- * `plan`, `question` (each one saved PUBLISHED), `warn`, `done`, `error`.
+ * `plan`, `question` (each one saved as a DRAFT awaiting admin review — it only
+ * joins the pool once approved), `warn`, `done`, `error`.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -50,9 +51,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!chosen.length) return Response.json({ error: 'Pick at least one exam domain' }, { status: 400 });
   const plan = planDomainCounts(chosen, body.count);
 
-  // Existing stems per domain, so the model steers away from repeats.
+  // Existing stems per domain (rejected/archived included), so the model
+  // steers away from repeats.
   const existing = await db.question.findMany({
-    where: { examId: id, status: { not: 'ARCHIVED' } },
+    where: { examId: id },
     select: { stem: true, domain: true },
     orderBy: { createdAt: 'desc' }
   });
@@ -101,7 +103,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
                   options: q.options,
                   correct: q.correct,
                   references: q.references,
-                  status: 'PUBLISHED',
+                  status: 'DRAFT',
                   generatedBy: `openai:${model}`
                 }
               });

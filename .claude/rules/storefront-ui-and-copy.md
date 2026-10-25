@@ -21,7 +21,9 @@ paths:
   `voucherHref`, `checkoutHref`, …) — don't build them by hand.
 - **Promises must be true**: teaser is 10 questions, voucher delivery is
   `VOUCHER_DELIVERY_TEXT`, Practice Exam is `formatPrice(PRACTICE_PRICE_CENTS)`.
-  Import the constants instead of retyping numbers.
+  Import the constants instead of retyping numbers. Every displayed price
+  carries `PRICE_TAX_NOTE` ("GST inclusive", `src/lib/currency.ts`) — the
+  amount charged is the listed price and the invoice carves GST out of it.
 - **Theme**: light by default. Neutrals are the blue-tinted `slate` ramp;
   use `page` / `canvas` / `ink` / `muted` / `line` tokens and the shared
   `.btn-*`, `.card`, `.input`, `.label`, `.eyebrow` classes. Any `bg-white`

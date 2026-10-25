@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, BadgeCheck, BookOpen, ChevronDown, Gift, Mail, ReceiptText, ShoppingCart, CalendarCheck, Ticket } from 'lucide-react';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { serializeJsonLd } from '@/lib/structured-data';
 import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
 import { FeatureCards, type Feature } from '@/components/feature-cards';
@@ -146,6 +147,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
                   <div>
                     <div className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Voucher</div>
                     <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{formatPrice(b.priceVoucher!)}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={productHref} className="btn-ghost min-h-[44px] text-sm">Details</Link>

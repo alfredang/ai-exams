@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { formatPrice } from '@/lib/utils';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
-import { STORE_CURRENCY } from '@/lib/currency';
+import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
 import {
   PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT, checkoutHref, displayExamCode, practiceHref, practiceOnSale,
   voucherDescriptionFor, voucherHref, voucherOnSale, voucherSlugFor, voucherTitleFor
@@ -190,7 +190,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
           <div className="relative overflow-hidden rounded-2xl border border-emerald-300/70 bg-white p-5 shadow-lift dark:border-emerald-500/40 dark:bg-slate-900">
             <div className="eyebrow">Exam Voucher</div>
             <div className="mt-1 font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(price)}</div>
-            <div className="text-sm text-muted dark:text-slate-400">Practice exam included — no extra cost</div>
+            <div className="text-sm text-muted dark:text-slate-400">{PRICE_TAX_NOTE} · Practice exam included — no extra cost</div>
             <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm dark:bg-emerald-950/30">
               <div className="flex justify-between"><span>{code} exam voucher</span><span className="font-medium">{formatPrice(price)}</span></div>
               <div className="mt-1 flex justify-between"><span>{code} Practice Exam</span><span className="font-medium"><s className="text-muted">{formatPrice(PRACTICE_PRICE_CENTS)}</s> <span className="text-emerald-700 dark:text-emerald-300">FREE</span></span></div>

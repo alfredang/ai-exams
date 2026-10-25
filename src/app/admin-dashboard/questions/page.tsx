@@ -1,62 +1,108 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 import { db } from '@/lib/db';
-import { revalidatePath } from 'next/cache';
+import { auth } from '@/lib/auth';
+import { getSetting } from '@/lib/settings';
+import { DEFAULT_OPENAI_MODEL } from '@/lib/openai';
+import { examBaseTitle } from '@/lib/exam-title';
+import { matchDomain, parseDomains } from '@/lib/question-pool';
+import { QuestionReviewFlow } from '@/components/admin/question-review-flow';
+import { AiGeneratorExamSelect, type GeneratorExam } from '@/components/admin/ai-generator-exam-select';
 
-async function approve(formData: FormData) {
-  'use server';
-  await db.question.update({ where: { id: String(formData.get('id')) }, data: { status: 'PUBLISHED' } });
-  revalidatePath('/admin-dashboard/questions');
-}
-async function archive(formData: FormData) {
-  'use server';
-  await db.question.update({ where: { id: String(formData.get('id')) }, data: { status: 'ARCHIVED' } });
-  revalidatePath('/admin-dashboard/questions');
-}
-async function remove(formData: FormData) {
-  'use server';
-  await db.question.delete({ where: { id: String(formData.get('id')) } });
-  revalidatePath('/admin-dashboard/questions');
-}
+export const dynamic = 'force-dynamic';
 
-export default async function AdminQuestionsPage({ searchParams }: { searchParams: Promise<{ status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' }> }) {
+/**
+ * AI Question Generator: pick an exam, exam domain, question type and number
+ * of questions; OpenAI writes them as drafts into that question bank's review
+ * queue (/admin-dashboard/exams/[id]#review). `?exam=<id>` preselects one.
+ */
+export default async function AiQuestionGeneratorPage({ searchParams }: { searchParams: Promise<{ exam?: string }> }) {
+  const session = await auth();
+  if ((session?.user as any)?.role !== 'ADMIN') redirect('/');
   const sp = await searchParams;
-  const status = sp.status || 'DRAFT';
-  const questions = await db.question.findMany({
-    where: { status },
-    include: { exam: true },
-    orderBy: { createdAt: 'desc' },
-    take: 50
+
+  // Pool exams only — retired variants (poolExamId set) never get new questions.
+  const [exams, counts, openaiKey, openaiModel] = await Promise.all([
+    db.exam.findMany({
+      where: { poolExamId: null },
+      select: { id: true, code: true, title: true, domains: true, vendor: { select: { name: true } } },
+      orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }]
+    }),
+    db.question.groupBy({ by: ['examId', 'domain', 'status'], where: { status: { in: ['PUBLISHED', 'DRAFT'] } }, _count: { _all: true } }),
+    getSetting('OPENAI_API_KEY'),
+    getSetting('OPENAI_MODEL')
+  ]);
+
+  const rows: GeneratorExam[] = exams.map((e) => {
+    const blueprint = parseDomains(e.domains);
+    const mine = counts.filter((c) => c.examId === e.id);
+    const pool = new Map<string, number>();
+    for (const c of mine) {
+      if (c.status !== 'PUBLISHED') continue;
+      const name = matchDomain(c.domain, blueprint);
+      if (name) pool.set(name, (pool.get(name) ?? 0) + c._count._all);
+    }
+    return {
+      id: e.id,
+      code: e.code,
+      title: examBaseTitle(e.title),
+      vendor: e.vendor.name,
+      drafts: mine.filter((c) => c.status === 'DRAFT').reduce((s, c) => s + c._count._all, 0),
+      domains: blueprint.map((d) => ({ name: d.name, weight: d.weight, pool: pool.get(d.name) ?? 0 }))
+    };
   });
+  const totalDrafts = rows.reduce((s, r) => s + r.drafts, 0);
+  const poolIds = new Set(rows.map((r) => r.id));
+  const totalPublished = counts
+    .filter((c) => c.status === 'PUBLISHED' && poolIds.has(c.examId))
+    .reduce((s, c) => s + c._count._all, 0);
+  const withDrafts = rows.filter((r) => r.drafts > 0).sort((a, b) => b.drafts - a.drafts);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Questions</h1>
-      <div className="mt-2 flex gap-2 text-sm">
-        {(['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const).map(s => (
-          <a key={s} href={`?status=${s}`} className={`badge ${status === s ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : ''}`}>{s}</a>
-        ))}
+    <div className="space-y-6">
+      <div>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <Sparkles className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+          AI Question Generator
+        </h1>
+        <p className="text-sm text-slate-500">
+          Choose the exam, exam domain, question type and number of questions. AI writes them as drafts; you review each one in that
+          question bank, and only approved questions join its pool.
+        </p>
       </div>
-      <div className="mt-4 space-y-3">
-        {questions.map(q => {
-          const correctIds = (q.correct as unknown as string[]) || [];
-          const opts = (q.options as any[]) || [];
-          return (
-            <div key={q.id} className="card p-4">
-              <div className="mb-1 text-xs text-slate-500">{q.exam.code} · {q.domain || '—'} · D{q.difficulty} · {q.type} · {q.generatedBy || 'manual'}</div>
-              <p className="font-medium">{q.stem}</p>
-              <ul className="mt-2 space-y-1 text-sm">
-                {opts.map((o, oi) => <li key={`${oi}-${o.id}`} className={correctIds.includes(o.id) ? 'text-green-700 dark:text-green-300' : 'text-slate-700 dark:text-slate-300'}>{correctIds.includes(o.id) ? '✓ ' : '○ '}{o.text}</li>)}
-              </ul>
-              <p className="mt-2 text-sm text-slate-600"><b>Explanation:</b> {q.explanation}</p>
-              <div className="mt-3 flex gap-2">
-                {status !== 'PUBLISHED' && <form action={approve}><input type="hidden" name="id" value={q.id} /><button className="btn-primary">Publish</button></form>}
-                {status !== 'ARCHIVED' && <form action={archive}><input type="hidden" name="id" value={q.id} /><button className="btn-outline">Archive</button></form>}
-                <form action={remove}><input type="hidden" name="id" value={q.id} /><button className="btn-outline">Delete</button></form>
-              </div>
-            </div>
-          );
-        })}
-        {questions.length === 0 && <p className="text-slate-500">No {status.toLowerCase()} questions.</p>}
-      </div>
+
+      <QuestionReviewFlow awaiting={totalDrafts} published={totalPublished} reviewHref="#awaiting" />
+
+      <section className="card p-4">
+        <AiGeneratorExamSelect
+          exams={rows}
+          initialExamId={sp.exam}
+          configured={!!openaiKey}
+          model={openaiModel.trim() || DEFAULT_OPENAI_MODEL}
+        />
+      </section>
+
+      <section id="awaiting" className="card scroll-mt-24 p-4">
+        <h2 className="text-lg font-semibold">Awaiting review ({totalDrafts})</h2>
+        {withDrafts.length === 0 ? (
+          <p className="mt-1 text-sm text-slate-500">No drafts — every question bank is reviewed.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-slate-100 text-sm dark:divide-slate-800">
+            {withDrafts.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span>
+                  <span className="text-slate-500">{r.vendor} · </span>
+                  <span className="font-medium">{r.code}</span> — {r.title}
+                </span>
+                <Link href={`/admin-dashboard/exams/${r.id}#review`} className="text-[13px] font-semibold text-amber-700 hover:underline dark:text-amber-400">
+                  Review {r.drafts} draft{r.drafts === 1 ? '' : 's'} →
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

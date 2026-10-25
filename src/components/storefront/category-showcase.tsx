@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, BadgeCheck, BookOpenCheck, Check, Gift, Ticket } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT } from '@/lib/products';
 
 /**
@@ -20,7 +21,7 @@ export function CategoryShowcase({ voucherFrom, teaserN }: { voucherFrom: number
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Prepare until you’re ready — on your own schedule.</p>
         <div className="mt-5 flex items-baseline gap-2">
           <span className="font-display text-4xl font-extrabold text-brand-700 dark:text-brand-300">{practice}</span>
-          <span className="text-sm text-slate-500 dark:text-slate-400">per Certification · one-time</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">per Certification · one-time · {PRICE_TAX_NOTE}</span>
         </div>
         <ul className="mt-6 space-y-3 text-sm">
           {[
@@ -60,6 +61,7 @@ export function CategoryShowcase({ voucherFrom, teaserN }: { voucherFrom: number
               <>
                 <span className="text-sm text-slate-500 dark:text-slate-400">from</span>
                 <span className="font-display text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">{formatPrice(voucherFrom)}</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</span>
               </>
             )}
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200">

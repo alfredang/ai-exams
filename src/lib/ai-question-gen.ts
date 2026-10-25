@@ -10,11 +10,11 @@ import { z } from 'zod';
 import { aiStructured } from '@/lib/openai';
 import { planAllocation, type BlueprintDomain } from '@/lib/question-pool';
 
-export type GenType = 'MIXED' | 'SINGLE' | 'MULTI' | 'TRUE_FALSE';
+export type GenType = 'MIXED' | 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING';
 
 export type ValidQuestion = {
   stem: string;
-  type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE';
+  type: 'SINGLE' | 'MULTI' | 'TRUE_FALSE' | 'ORDERING';
   options: { id: string; text: string }[];
   correct: string[];
   explanation: string;
@@ -27,7 +27,7 @@ const BatchSchema = z.object({
   questions: z.array(
     z.object({
       stem: z.string(),
-      type: z.enum(['SINGLE', 'MULTI', 'TRUE_FALSE']),
+      type: z.enum(['SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING']),
       options: z.array(z.object({ id: z.string(), text: z.string() })),
       correct: z.array(z.string()),
       explanation: z.string(),
@@ -49,15 +49,17 @@ Rules — these are non-negotiable:
 - Multi-answer questions (MULTI) have 2-3 correct options of 5-6 total options, and the stem says how many to select (e.g. "Select TWO.").
 - TRUE_FALSE questions have exactly two options, {"id":"a","text":"True"} and {"id":"b","text":"False"}, and one correct option.
 - Option ids are lowercase letters in order: a, b, c, d, e, f. "correct" lists the ids of the correct options.
-- The explanation says why the correct answer is right and why each distractor is wrong.
+- Sequencing questions (ORDERING) ask the candidate to put 4-6 steps of a real procedure in the correct order. The stem ends with "Arrange the steps in the correct order." Step ids are "1", "2", "3"… in the order the steps are LISTED, and the steps are listed SHUFFLED (never already in the correct order). "correct" lists EVERY step id in the correct sequence, e.g. ["3","1","4","2"].
+- The explanation says why the correct answer is right and why each distractor is wrong. For ORDERING it leads with the correct sequence by step number (e.g. "Correct sequence: 3 → 1 → 4 → 2.") and explains why each step comes where it does.
 - Scenario-based stems that test applied understanding beat recall of trivia. Vary the correct option's position.
 - difficulty is an integer 1-5.`;
 
 const TYPE_HINT: Record<GenType, string> = {
-  MIXED: 'Mostly SINGLE questions; make about 1 in 5 MULTI.',
+  MIXED: 'A mix: mostly SINGLE, about 1 in 5 MULTI, and about 1 in 10 ORDERING where the domain has a real step-by-step procedure.',
   SINGLE: 'All questions are SINGLE.',
   MULTI: 'All questions are MULTI.',
-  TRUE_FALSE: 'All questions are TRUE_FALSE.'
+  TRUE_FALSE: 'All questions are TRUE_FALSE.',
+  ORDERING: 'All questions are ORDERING (sequencing).'
 };
 
 /** Split `total` across the chosen domains by blueprint weight (largest remainder). */
@@ -81,6 +83,12 @@ export function validate(q: z.infer<typeof BatchSchema>['questions'][number]): V
   if (q.type === 'TRUE_FALSE' && (options.length !== 2 || correct.length !== 1)) return 'bad true/false shape';
   if (q.type === 'SINGLE' && (options.length < 3 || options.length > 6 || correct.length !== 1)) return 'bad single-answer shape';
   if (q.type === 'MULTI' && (options.length < 4 || options.length > 6 || correct.length < 2 || correct.length >= options.length)) return 'bad multi-answer shape';
+  if (q.type === 'ORDERING') {
+    // Steps '1'…'N' as listed; correct = every step, once, in the right order.
+    if (options.length < 3 || options.length > 8) return 'bad sequencing shape';
+    if (ids.some((id, i) => id !== String(i + 1))) return 'sequencing step ids must be 1…N';
+    if (correct.length !== options.length) return 'sequencing answer must order every step';
+  }
   const references = q.references.filter((r) => /^https?:\/\/\S+$/i.test(r.url.trim())).map((r) => ({ label: r.label.trim() || r.url.trim(), url: r.url.trim() }));
   return {
     stem,

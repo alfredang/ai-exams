@@ -50,9 +50,9 @@ Never invent domains — if the vendor publishes none, ask.
 
 ## 3. Fill the pool — pick one path
 
-| | A. AI Assist — bulk generate (in app) | B. `question-bank-generator` agent |
+| | A. Generate questions & answers with AI (in app) | B. `question-bank-generator` agent |
 |---|---|---|
-| Where | Exam page → Question pool → **AI Assist** | Claude Code, `.claude/agents/question-bank-generator.md` (Opus) |
+| Where | Exam page → top card **Generate questions & answers with AI** → Review queue | Claude Code, `.claude/agents/question-bank-generator.md` (Opus) |
 | Model | OpenAI (`OPENAI_MODEL`, admin → Settings → Credentials) | Claude Opus writes the questions |
 | Types | MCQ, Multiple select, True/False | MCQ, Multiple select, **Sequencing** |
 | References | model-supplied, validated as URLs | curated official docs, each URL checked |
@@ -82,7 +82,8 @@ manually** on the exam page.
 - Explanation opens with the suggested answer ("Correct: B.", "Correct
   sequence: 3 → 1 → 4 → 2."), then why, then why the distractors are wrong.
 - Original, scenario-based, blueprint-aligned. Never claim real-exam content.
-- Questions save PUBLISHED (auto-publish). Admins unpublish or edit bad ones
+- Seeded (path B) questions save PUBLISHED. In-app AI (path A) questions save
+  DRAFT and need Approve in the exam page's Review queue. Admins unpublish or edit bad ones
   at `/admin-dashboard/exams/[id]/questions/[qid]`; option ids never change
   on edit so past answers stay valid.
 

@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
 import { productTitle } from '@/lib/products';
+import { formatTaxRate } from '@/lib/invoice/tax';
 import { FileText } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -69,7 +70,7 @@ export default async function MyInvoicesPage() {
                     <div className="font-semibold">{formatPrice(inv.total, inv.currency)}</div>
                     {inv.taxAmount !== 0 && (
                       <div className="text-[10px] text-slate-500">
-                        incl. {inv.taxLabel} {formatPrice(inv.taxAmount, inv.currency)}
+                        incl. {inv.taxLabel} {formatTaxRate(inv.taxRate)} {formatPrice(inv.taxAmount, inv.currency)}
                       </div>
                     )}
                   </div>

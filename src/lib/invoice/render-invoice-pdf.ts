@@ -10,6 +10,7 @@ import {
   newA4Doc
 } from '@/lib/pdf/layout';
 import type { Invoice } from '@prisma/client';
+import { formatTaxRate } from './tax';
 
 export type InvoiceLine = {
   description: string;
@@ -122,9 +123,10 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber, original, 
     rowY -= 18;
   }
 
-  totalRow('Subtotal', moneyLine(invoice.subtotal, invoice.currency));
-  if (invoice.taxAmount !== 0) {
-    totalRow(`${invoice.taxLabel} (${(invoice.taxRate / 100).toFixed(2)}%)`, moneyLine(invoice.taxAmount, invoice.currency));
+  const taxed = invoice.taxAmount !== 0;
+  totalRow(taxed ? `Subtotal (excl. ${invoice.taxLabel})` : 'Subtotal', moneyLine(invoice.subtotal, invoice.currency));
+  if (taxed) {
+    totalRow(`${invoice.taxLabel} ${formatTaxRate(invoice.taxRate)} (included)`, moneyLine(invoice.taxAmount, invoice.currency));
   }
   rowY -= 4;
   page.drawLine({
@@ -133,7 +135,7 @@ export async function renderInvoicePdf({ invoice, lines, orderNumber, original, 
     color: COLORS.borderSoft,
     thickness: 1
   });
-  totalRow('Total', moneyLine(invoice.total, invoice.currency), true);
+  totalRow(taxed ? `Total (incl. ${invoice.taxLabel})` : 'Total', moneyLine(invoice.total, invoice.currency), true);
   if (invoice.fxRateBpsToSgd && invoice.currency.toUpperCase() !== 'SGD') {
     // IRAS: a foreign-currency tax invoice must show the GST and total in SGD.
     const fx = invoice.fxRateBpsToSgd;

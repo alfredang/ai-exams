@@ -25,7 +25,7 @@ export default async function EditQuestionPage({ params }: { params: Promise<{ i
   const { id, qid } = await params;
   const q = await db.question.findUnique({ where: { id: qid }, include: { exam: { select: { id: true, code: true, title: true, domains: true } } } });
   if (!q || q.examId !== id) notFound();
-  const back = `/admin-dashboard/exams/${id}#q-${qid}`;
+  const back = q.status === 'DRAFT' ? `/admin-dashboard/exams/${id}#review-${qid}` : `/admin-dashboard/exams/${id}#q-${qid}`;
   const usedIn = await db.attempt.count({ where: { questionIds: { has: qid } } });
 
   const options = (q.options as { id: string; text: string }[]) ?? [];
@@ -40,7 +40,7 @@ export default async function EditQuestionPage({ params }: { params: Promise<{ i
       <PageHeader
         title="Edit question"
         subtitle={`${q.exam.code} · ${q.exam.title} · ${q.status.toLowerCase()}`}
-        back={{ href: back, label: 'Back to question bank' }}
+        back={{ href: back, label: q.status === 'DRAFT' ? 'Back to review queue' : 'Back to question bank' }}
       />
       {usedIn > 0 && (
         <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">

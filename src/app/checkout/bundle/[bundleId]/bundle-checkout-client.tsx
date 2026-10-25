@@ -8,7 +8,7 @@ import { PaymentMethodsPicker, usePaymentMethods, type MethodId } from '@/compon
 import { PayNowModal } from '@/components/checkout/paynow-modal';
 import { PromoCodeInput, type PromoApplied } from '@/components/checkout/promo-code';
 import { formatPrice } from '@/lib/utils';
-import { STORE_CURRENCY } from '@/lib/currency';
+import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
 
 const TRUST_COPY: Record<MethodId, string> = {
   PAYPAL: 'Encrypted payment via PayPal. We never see your card details.',
@@ -98,7 +98,7 @@ export function BundleCheckoutClient({
           <PromoCodeInput bundleId={bundleId} tier={tier} onApply={setPromo} onClear={() => setPromo(null)} />
         </div>
         <div className="mt-4 flex items-baseline justify-between border-t border-slate-200 pt-4 dark:border-slate-700">
-          <span className="text-sm font-semibold">Total ({STORE_CURRENCY})</span>
+          <span className="text-sm font-semibold">Total ({STORE_CURRENCY}, {PRICE_TAX_NOTE})</span>
           <span className="text-3xl font-bold text-blue-700 dark:text-blue-300">{formatPrice(total)}</span>
         </div>
       </div>

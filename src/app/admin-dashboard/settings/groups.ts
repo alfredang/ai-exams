@@ -179,14 +179,15 @@ export const GROUPS: SettingsGroup[] = [
   },
   {
     slug: 'tax-invoice',
-    title: 'Tax & Invoice',
-    description: 'Tax engine, invoice numbering, and SGD-equivalent FX rates for reporting.',
+    title: 'GST & Invoice',
+    description:
+      'GST on invoices and order emails. Prices are GST inclusive: the customer pays the listed price and the invoice shows the GST within it (9% by default). Blank fields use the defaults shown. Also invoice numbering and SGD-equivalent FX rates for reporting.',
     compact: true,
     fields: [
-      { key: 'TAX_ENABLED', label: 'Tax enabled (true/false)', placeholder: 'true' },
+      { key: 'TAX_ENABLED', label: 'Charge GST? (true/false)', placeholder: 'true' },
       { key: 'TAX_LABEL', label: 'Tax label', placeholder: 'GST' },
-      { key: 'TAX_RATE_BPS', label: 'Tax rate (basis points, 900 = 9%)', placeholder: '900' },
-      { key: 'TAX_INCLUSIVE', label: 'Tax inclusive in price? (true/false)', placeholder: 'false' },
+      { key: 'TAX_RATE_BPS', label: 'GST rate (basis points, 900 = 9%)', placeholder: '900' },
+      { key: 'TAX_INCLUSIVE', label: 'Prices include GST? (true/false)', placeholder: 'true' },
       { key: 'COMPANY_GST_REG', label: 'GST registration number', placeholder: 'M2-1234567-8' },
       { key: 'INVOICE_PREFIX', label: 'Invoice number prefix', placeholder: 'INV' },
       { key: 'FX_TO_SGD_USD_BPS', label: 'USD → SGD FX (basis points, 13500 = 1.3500)', placeholder: '13500' },

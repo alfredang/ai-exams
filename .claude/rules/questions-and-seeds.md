@@ -23,7 +23,9 @@ paths:
   `exam-blueprints.ts` for legacy tags. Official weights live there, keyed by
   product slug, with `sourceUrl` + `verifiedAt` — bump `verifiedAt` when
   re-checked. Never invent domains.
-- **Questions auto-publish** (`PUBLISHED`) on every authoring path.
+- **Human-authored questions auto-publish** (`PUBLISHED`): Add manually, CSV
+  import, seeds. **AI-generated ones are `DRAFT`** and join the pool only when
+  an admin approves them in the exam page's Review queue (`#review`).
 - **Explanations** lead with the suggested answer, explain why, and cite
   official docs. Never claim real-exam content or reproduce vendor samples.
 - **Seed modules are idempotent**: delete-and-recreate only rows tagged with

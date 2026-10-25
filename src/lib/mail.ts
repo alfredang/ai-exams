@@ -335,7 +335,7 @@ export async function sendPurchaseEmail(
     user?: { name?: string | null; email: string };
     paymentMethod?: string;
   },
-  invoice?: { invoicePdf: Buffer; invoiceNumber: string }
+  invoice?: { invoicePdf: Buffer; invoiceNumber: string; tax?: { label: string; rate: string; amount: number; subtotal: number } | null }
 ) {
   const { sendTemplated } = await import('./email/templates');
   const attachments: any[] = [];
@@ -356,7 +356,8 @@ export async function sendPurchaseEmail(
       paymentMethod: extras?.paymentMethod ?? 'PayPal',
       order: extras?.order ?? { id: '', amount: 0, currency: STORE_CURRENCY },
       user: extras?.user ?? { name: '', email: to },
-      invoiceNumber: invoice?.invoiceNumber ?? null
+      invoiceNumber: invoice?.invoiceNumber ?? null,
+      tax: invoice?.tax ?? null
     },
     attachments.length ? attachments : undefined
   );

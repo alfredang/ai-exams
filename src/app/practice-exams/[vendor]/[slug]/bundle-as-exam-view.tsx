@@ -4,7 +4,7 @@ import { StartButton } from './start-attempt-button';
 import { ExamDomains, ExamReferences } from '@/components/exam-domains';
 import { ExamReviews } from '@/components/exam-reviews';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
-import { STORE_CURRENCY } from '@/lib/currency';
+import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
 import { formatPrice } from '@/lib/utils';
 import {
   checkoutHref, displayExamCode, practiceOnSale, voucherHref, voucherOnSale, voucherTitleFor
@@ -173,7 +173,7 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
               <div className="eyebrow">Practice Exam</div>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(bundle.price)}</span>
-                <span className="text-sm text-muted dark:text-slate-400">one-time · lifetime access</span>
+                <span className="text-sm text-muted dark:text-slate-400">one-time · lifetime access · {PRICE_TAX_NOTE}</span>
               </div>
               <div className="mt-4">
                 <CheckList items={['Timed Exam mode + Practice mode', 'Unlimited fresh attempts', 'Instant access after payment']} />

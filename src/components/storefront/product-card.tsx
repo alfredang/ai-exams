@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, BookOpenCheck, Library, Ticket } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { poolCardLabel } from '@/lib/bundle-contents';
 import { displayExamCode, practiceHref, voucherHref, voucherOnSale } from '@/lib/products';
 import { HighlightedText } from './highlighted-text';
@@ -100,6 +101,9 @@ export function ProductCard({ b, query = '', showVendor = true }: { b: ProductCa
                 <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" aria-hidden="true" />
               </span>
             </Link>
+          )}
+          {(b.published || hasVoucher) && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Prices are {PRICE_TAX_NOTE}</p>
           )}
         </div>
       </div>

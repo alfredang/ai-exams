@@ -513,14 +513,14 @@ export default async function AdminExamsPage({
       cell: (e) => {
         const total = e.draftCount + e.publishedCount;
         return (
-          <span className="inline-flex flex-col items-end gap-0.5" title={`${e.publishedCount} published, ${e.draftCount} draft`}>
+          <span className="inline-flex flex-col items-end gap-0.5" title={`${e.publishedCount} published, ${e.draftCount} draft awaiting review`}>
             <span className={total === 0 ? 'text-slate-400' : ''}>{total}</span>
             {e.draftCount > 0 && (
               <Link
-                href={`/admin-dashboard/exams/${e.id}?qstatus=DRAFT#questions`}
+                href={`/admin-dashboard/exams/${e.id}#review`}
                 className="whitespace-nowrap text-[11px] text-rose-700 hover:underline dark:text-rose-400"
               >
-                {e.draftCount} draft
+                {e.draftCount} to review
               </Link>
             )}
           </span>

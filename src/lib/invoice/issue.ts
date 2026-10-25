@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { getAllSettings, getCompanyInfo } from '@/lib/settings';
 import { nextNumber } from '@/lib/numbering';
+import { splitTax, taxConfigFrom } from './tax';
 
 export type IssueInput = {
   orderId: string;
@@ -40,31 +41,14 @@ export async function issueInvoiceForOrder(orderId: string, dbc?: DbClient) {
   const settings = await getAllSettings();
   const company = await getCompanyInfo();
 
-  const taxEnabled = (settings.TAX_ENABLED || 'true').toLowerCase() !== 'false';
-  const taxRateBps = Math.max(0, Math.min(10000, Number(settings.TAX_RATE_BPS || 900) || 0));
-  const taxLabel = settings.TAX_LABEL || 'GST';
-  const taxInclusive = (settings.TAX_INCLUSIVE || 'false').toLowerCase() === 'true';
+  const tax = taxConfigFrom(settings);
+  const taxRateBps = tax.enabled ? tax.rateBps : 0;
+  const taxLabel = tax.label;
   const prefix = settings.INVOICE_PREFIX || 'INV';
 
-  // Compute subtotal & tax from order.amount honoring inclusive/exclusive.
-  // amount = total charged to the customer.
-  let subtotal: number;
-  let taxAmount: number;
+  // order.amount is what the customer paid; GST is carved out of it.
   const total = order.amount;
-  if (!taxEnabled || taxRateBps === 0) {
-    subtotal = total;
-    taxAmount = 0;
-  } else if (taxInclusive) {
-    // total includes tax: tax = total * rate / (10000 + rate)
-    taxAmount = Math.round((total * taxRateBps) / (10000 + taxRateBps));
-    subtotal = total - taxAmount;
-  } else {
-    // total = subtotal + tax (rare for our flow; we always charge inclusive
-    // since the PayPal capture amount IS what the customer paid). Provided
-    // for completeness so the setting toggle works.
-    subtotal = Math.round((total * 10000) / (10000 + taxRateBps));
-    taxAmount = total - subtotal;
-  }
+  const { subtotal, taxAmount } = splitTax(total, tax);
 
   // SGD-equivalent (for reporting in mixed-currency stores)
   let fxRateBpsToSgd: number | null = null;

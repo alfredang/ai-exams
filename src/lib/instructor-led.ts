@@ -3,13 +3,16 @@
  * product (Bundle) slug. Shown as a card on the Practice Exam and Exam
  * Voucher pages; products without an entry show no card.
  *
- * Only WSQ / CASL courses that prepare for the same exam belong here —
- * checked live on 2026-10-25. Scope is CompTIA, Linux Foundation, PMI (PMP),
- * Microsoft and ITIL 4.
+ * Only courses that prepare for the same exam belong here — checked live on
+ * 2026-10-25. Scope is CompTIA, Linux Foundation, PMI (PMP), Microsoft,
+ * ITIL 4 and Anthropic (CCAO-F, CCAR-F).
+ *
+ * `scheme` is set only for funded WSQ / CASL courses; leave it out for a
+ * non-WSQ course so the card makes no funding claim.
  */
 export type InstructorLedCourse = {
   url: string;
-  scheme: 'WSQ' | 'CASL';
+  scheme?: 'WSQ' | 'CASL';
 };
 
 const TC = 'https://www.tertiarycourses.com.sg';
@@ -42,7 +45,10 @@ export const INSTRUCTOR_LED_COURSES: Record<string, InstructorLedCourse> = {
   'microsoft-pl-900': { url: `${TC}/wsq-microsoft-power-platform-fundamentals-pl-900.html`, scheme: 'WSQ' },
   'microsoft-sc-300': { url: `${TC}/wsq-microsoft-identity-and-access-administrator-sc-300.html`, scheme: 'WSQ' },
   // AXELOS
-  'axelos-itil4-foundation': { url: `${TC}/wsq-itil-4-foundation-training.html`, scheme: 'WSQ' }
+  'axelos-itil4-foundation': { url: `${TC}/wsq-itil-4-foundation-training.html`, scheme: 'WSQ' },
+  // Anthropic — non-WSQ (C991, C437), no course fee funding
+  'anthropic-ccao-foundations': { url: `${TC}/claude-certified-associate-foundations-ccao-f-exam-prep.html` },
+  'anthropic-cca-foundations': { url: `${TC}/claude-certified-architect-foundations-ccar-f-exam-prep.html` }
 };
 
 export function instructorLedCourseFor(productSlug: string): InstructorLedCourse | null {
