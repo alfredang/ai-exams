@@ -42,7 +42,12 @@ const nextConfig = {
       // PL-500 (Power Automate RPA Developer) was retired and has no product
       // page; Search Console kept failing 404 validation on the old URL.
       // Send it to the Microsoft catalogue. 2026-10-26.
-      { source: '/practice-exams/microsoft/pl-500', destination: '/practice-exams/microsoft', permanent: true }
+      { source: '/practice-exams/microsoft/pl-500', destination: '/practice-exams/microsoft', permanent: true },
+
+      // Googlebot pulls "/&" and "/$" out of inlined JS and reports them as
+      // 404s on the domain property. 2026-10-26.
+      { source: '/&', destination: '/', permanent: true },
+      { source: '/\\$', destination: '/', permanent: true }
     ];
   }
 };
