@@ -37,7 +37,12 @@ const nextConfig = {
       // bookmarks and old purchase emails still point at /my-content.
       // Redirect so those don't 404.
       { source: '/my-content', destination: '/user-dashboard', permanent: true },
-      { source: '/my-content/:rest*', destination: '/user-dashboard/:rest*', permanent: true }
+      { source: '/my-content/:rest*', destination: '/user-dashboard/:rest*', permanent: true },
+
+      // PL-500 (Power Automate RPA Developer) was retired and has no product
+      // page; Search Console kept failing 404 validation on the old URL.
+      // Send it to the Microsoft catalogue. 2026-10-26.
+      { source: '/practice-exams/microsoft/pl-500', destination: '/practice-exams/microsoft', permanent: true }
     ];
   }
 };
