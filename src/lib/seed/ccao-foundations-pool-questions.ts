@@ -10,10 +10,9 @@
  *   Governance 9 · Troubleshooting 6
  *
  * Question types: MCQ (SINGLE), multiple select (MULTI — "Select TWO", exactly
- * two correct) and sequencing (ORDERING). Sequencing steps are written OUT of
- * order with ids '1'…'5' matching the step numbers the learner sees, and
- * `correct` is the right sequence, e.g. ['5', '3', '2', '4', '1'] →
- * "5 → 3 → 2 → 4 → 1".
+ * two correct) and sequencing MCQs (SINGLE). Sequencing stems list the
+ * scrambled steps as (1)…(5), each on its own line. Four answer choices
+ * contain permutations of those numbers; `correct` identifies one choice.
  *
  * Same audience rule as the rest of CCAO-F: business users of the Claude
  * product — no code, API, SDK, CLI, MCP servers or Claude Code. Original
@@ -67,8 +66,6 @@ const opts4 = (a: string, b: string, c: string, d: string): Opt[] => [
 const opts5 = (a: string, b: string, c: string, d: string, e: string): Opt[] => [
   { id: 'a', text: a }, { id: 'b', text: b }, { id: 'c', text: c }, { id: 'd', text: d }, { id: 'e', text: e }
 ];
-// Sequencing steps, numbered 1…5 in the (scrambled) order written here.
-const steps = (...texts: string[]): Opt[] => texts.map((text, i) => ({ id: String(i + 1), text }));
 
 export const CCAO_POOL: PoolQ[] = [
   // ──────────────── Prompting and Task Execution (8) ────────────────
@@ -153,30 +150,28 @@ export const CCAO_POOL: PoolQ[] = [
     references: [REF_PROMPT_COT]
   },
   {
-    domain: PROMPTING, difficulty: 3, type: QType.ORDERING,
-    stem: 'You are building a prompt that uses examples (few-shot prompting) to get product descriptions in your house format. Arrange the steps in the correct sequence.',
-    options: steps(
-      'Add the new product\'s details and ask for a description in the same format',
-      'Decide exactly what the finished description must contain and how it is laid out',
-      'Put the examples in the prompt, clearly labelled as examples',
-      'Choose two or three real descriptions that match that format, including one unusual product',
-      'Compare the result with your examples and adjust them if the format drifts'
+    domain: PROMPTING, difficulty: 3, type: QType.SINGLE,
+    stem: "You are building a prompt that uses examples (few-shot prompting) to get product descriptions in your house format. Which is the correct order of these steps?\n\n(1) Add the new product's details and ask for a description in the same format\n\n(2) Decide exactly what the finished description must contain and how it is laid out\n\n(3) Put the examples in the prompt, clearly labelled as examples\n\n(4) Choose two or three real descriptions that match that format, including one unusual product\n\n(5) Compare the result with your examples and adjust them if the format drifts",
+    options: opts4(
+      "2, 4, 3, 1, 5",
+      "4, 2, 3, 1, 5",
+      "2, 3, 4, 1, 5",
+      "2, 4, 3, 5, 1"
     ),
-    correct: ['2', '4', '3', '1', '5'],
+    correct: ["a"],
     explanation: 'Correct sequence: 2 → 4 → 3 → 1 → 5. You first define the target format (2), then pick examples that demonstrate it, including an edge case (4), place them in the prompt labelled as examples (3), add the new input and request the same format (1), and finally check the output against the examples and refine them (5). Choosing examples before you know the format, or adding the new item before the examples, leaves Claude without a clear pattern to copy.',
     references: [REF_PROMPT_MULTISHOT, REF_PROMPT_XML]
   },
   {
-    domain: PROMPTING, difficulty: 4, type: QType.ORDERING,
-    stem: 'You need an accurate, checkable summary of a 90-page policy document. Arrange the steps in the correct sequence.',
-    options: steps(
-      'Spot-check several summary points against the quoted passages',
-      'Ask Claude to write the summary using only those quotes',
-      'Upload the complete document rather than pasting excerpts',
-      'Ask Claude to first pull out the passages that are relevant to each topic, quoted word for word',
-      'Share the summary together with the quotes that support it'
+    domain: PROMPTING, difficulty: 4, type: QType.SINGLE,
+    stem: "You need an accurate, checkable summary of a 90-page policy document. Which is the correct order of these steps?\n\n(1) Spot-check several summary points against the quoted passages\n\n(2) Ask Claude to write the summary using only those quotes\n\n(3) Upload the complete document rather than pasting excerpts\n\n(4) Ask Claude to first pull out the passages that are relevant to each topic, quoted word for word\n\n(5) Share the summary together with the quotes that support it",
+    options: opts4(
+      "4, 3, 2, 1, 5",
+      "3, 2, 4, 1, 5",
+      "3, 4, 2, 5, 1",
+      "3, 4, 2, 1, 5"
     ),
-    correct: ['3', '4', '2', '1', '5'],
+    correct: ["d"],
     explanation: 'Correct sequence: 3 → 4 → 2 → 1 → 5. Anthropic\'s long-document guidance is to give Claude the full material (3) and ask it to extract the relevant quotes first (4), then base the summary on those quotes (2). Because every point is tied to a quote, you can spot-check it quickly (1) before sharing the summary with its support (5). Summarising first and looking for quotes afterwards reverses the order that keeps the summary grounded.',
     references: [REF_PROMPT_LONG, REF_HALLUCINATION]
   },
@@ -330,30 +325,28 @@ export const CCAO_POOL: PoolQ[] = [
     references: [REF_CITATIONS, REF_HALLUCINATION]
   },
   {
-    domain: OUTPUT, difficulty: 3, type: QType.ORDERING, isTeaser: true,
-    stem: 'Claude produced a market-size estimate that you plan to put in a board deck. Arrange the validation steps in the correct sequence.',
-    options: steps(
-      'Have the accountable owner sign off the figure',
-      'Recalculate the estimate using the verified inputs',
-      'Check each input against a primary source',
-      'Put the validated figure in the deck, with its sources noted',
-      'Ask Claude to list every assumption and input behind the estimate'
+    domain: OUTPUT, difficulty: 3, type: QType.SINGLE, isTeaser: true,
+    stem: "Claude produced a market-size estimate that you plan to put in a board deck. Which is the correct order of these steps?\n\n(1) Have the accountable owner sign off the figure\n\n(2) Recalculate the estimate using the verified inputs\n\n(3) Check each input against a primary source\n\n(4) Put the validated figure in the deck, with its sources noted\n\n(5) Ask Claude to list every assumption and input behind the estimate",
+    options: opts4(
+      "5, 2, 3, 1, 4",
+      "5, 3, 2, 4, 1",
+      "5, 3, 2, 1, 4",
+      "3, 5, 2, 1, 4"
     ),
-    correct: ['5', '3', '2', '1', '4'],
+    correct: ["c"],
     explanation: 'Correct sequence: 5 → 3 → 2 → 1 → 4. You cannot check what you cannot see, so first make the assumptions and inputs explicit (5), verify each against a primary source (3), and recalculate with the verified inputs (2). The accountable owner then signs off (1) before the figure goes into the deck with its sources (4). Signing off or publishing before the inputs are checked puts an unverified number in front of the board.',
     references: [REF_HALLUCINATION, REF_DEFINE_SUCCESS]
   },
   {
-    domain: OUTPUT, difficulty: 4, type: QType.ORDERING,
-    stem: 'Before rolling out a new prompt template to your team, you want evidence that it works. Arrange the evaluation steps in the correct sequence.',
-    options: steps(
-      'Run the template on every test input',
-      'Gather a set of representative test inputs, including awkward edge cases',
-      'Define what a good output looks like, as criteria you can score',
-      'Decide whether to roll out, revise or drop the template based on the results',
-      'Score each output against the criteria and record the results'
+    domain: OUTPUT, difficulty: 4, type: QType.SINGLE,
+    stem: "Before rolling out a new prompt template to your team, you want evidence that it works. Which is the correct order of these steps?\n\n(1) Run the template on every test input\n\n(2) Gather a set of representative test inputs, including awkward edge cases\n\n(3) Define what a good output looks like, as criteria you can score\n\n(4) Decide whether to roll out, revise or drop the template based on the results\n\n(5) Score each output against the criteria and record the results",
+    options: opts4(
+      "3, 2, 1, 4, 5",
+      "3, 2, 1, 5, 4",
+      "3, 2, 5, 1, 4",
+      "3, 1, 2, 5, 4"
     ),
-    correct: ['3', '2', '1', '5', '4'],
+    correct: ["b"],
     explanation: 'Correct sequence: 3 → 2 → 1 → 5 → 4. Anthropic\'s evaluation guidance starts with success criteria (3), then a representative test set that includes edge cases (2). You run the template on all of them (1), score and record the results against the criteria (5), and only then decide (4). Without criteria set up front, "it looked fine" becomes the test.',
     references: [REF_DEFINE_SUCCESS, REF_DEVELOP_TESTS]
   },
@@ -455,30 +448,28 @@ export const CCAO_POOL: PoolQ[] = [
 
   // ──────────────── Workflow Integration and Solution Design (10) ────────────────
   {
-    domain: WORKFLOW, difficulty: 3, type: QType.ORDERING,
-    stem: 'Your personal Claude workflow for writing client updates works well, and the team wants to adopt it. Arrange the steps in the correct sequence.',
-    options: steps(
-      'Have two colleagues use it on real updates and compare their results with yours',
-      'Write down the prompt, the inputs and the review steps you actually use',
-      'Fix the gaps they found and publish a short how-to that includes the review checkpoint',
-      'Roll it out to the wider team and gather feedback after the first month',
-      'Move the standing instructions and reference documents into a shared Project'
+    domain: WORKFLOW, difficulty: 3, type: QType.SINGLE,
+    stem: "Your personal Claude workflow for writing client updates works well, and the team wants to adopt it. Which is the correct order of these steps?\n\n(1) Have two colleagues use it on real updates and compare their results with yours\n\n(2) Write down the prompt, the inputs and the review steps you actually use\n\n(3) Fix the gaps they found and publish a short how-to that includes the review checkpoint\n\n(4) Roll it out to the wider team and gather feedback after the first month\n\n(5) Move the standing instructions and reference documents into a shared Project",
+    options: opts4(
+      "2, 5, 1, 3, 4",
+      "2, 5, 3, 1, 4",
+      "2, 5, 4, 1, 3",
+      "2, 5, 1, 4, 3"
     ),
-    correct: ['2', '5', '1', '3', '4'],
+    correct: ["a"],
     explanation: 'Correct sequence: 2 → 5 → 1 → 3 → 4. A personal workflow lives partly in your head, so first write it down (2), then put its instructions and references in a shared Project so everyone starts from the same set-up (5). Test it with a couple of colleagues (1), close the gaps and document the review step (3), and only then roll it out widely and collect feedback (4).',
     references: [REF_PROJECTS, REF_DEVELOP_TESTS]
   },
   {
-    domain: WORKFLOW, difficulty: 2, type: QType.ORDERING,
-    stem: 'You are using Claude to help prepare a half-day customer workshop. Arrange the steps in the correct sequence.',
-    options: steps(
-      'Ask Claude to draft an agenda that serves those objectives',
-      'Review the materials with the facilitator and rehearse the timing',
-      'Agree the workshop objectives and audience with the sponsor',
-      'Ask Claude to draft the slides and exercises for each agenda item',
-      'Run the workshop and use Claude to summarise the feedback forms'
+    domain: WORKFLOW, difficulty: 2, type: QType.SINGLE,
+    stem: "You are using Claude to help prepare a half-day customer workshop. Which is the correct order of these steps?\n\n(1) Ask Claude to draft an agenda that serves those objectives\n\n(2) Review the materials with the facilitator and rehearse the timing\n\n(3) Agree the workshop objectives and audience with the sponsor\n\n(4) Ask Claude to draft the slides and exercises for each agenda item\n\n(5) Run the workshop and use Claude to summarise the feedback forms",
+    options: opts4(
+      "1, 3, 4, 2, 5",
+      "3, 4, 1, 2, 5",
+      "3, 1, 4, 5, 2",
+      "3, 1, 4, 2, 5"
     ),
-    correct: ['3', '1', '4', '2', '5'],
+    correct: ["d"],
     explanation: 'Correct sequence: 3 → 1 → 4 → 2 → 5. Each stage builds on the one before. Objectives and audience come first (3) because everything else serves them, then the agenda (1), then materials for each agenda item (4), then human review and rehearsal (2), and finally delivery and the feedback summary (5). Drafting materials before the agenda exists produces content that does not fit together.',
     references: [REF_PROMPT_CHAIN]
   },
@@ -592,16 +583,15 @@ export const CCAO_POOL: PoolQ[] = [
 
   // ──────────────── Configuration and Knowledge Management (7) ────────────────
   {
-    domain: CONFIG, difficulty: 3, type: QType.ORDERING,
-    stem: 'You are setting up a new Claude Project that your team will use to draft sales proposals. Arrange the steps in the correct sequence.',
-    options: steps(
-      'Test it with a real proposal request and refine the instructions',
-      'Add the current rate card, templates and case studies to the Project knowledge',
-      'Share the Project with the team, together with a short note on how to use it',
-      'Decide what the Project is for and who will use it',
-      'Write instructions covering role, tone and proposal structure'
+    domain: CONFIG, difficulty: 3, type: QType.SINGLE,
+    stem: "You are setting up a new Claude Project that your team will use to draft sales proposals. Which is the correct order of these steps?\n\n(1) Test it with a real proposal request and refine the instructions\n\n(2) Add the current rate card, templates and case studies to the Project knowledge\n\n(3) Share the Project with the team, together with a short note on how to use it\n\n(4) Decide what the Project is for and who will use it\n\n(5) Write instructions covering role, tone and proposal structure",
+    options: opts4(
+      "4, 5, 1, 2, 3",
+      "4, 5, 2, 3, 1",
+      "4, 5, 2, 1, 3",
+      "5, 4, 2, 1, 3"
     ),
-    correct: ['4', '5', '2', '1', '3'],
+    correct: ["c"],
     explanation: 'Correct sequence: 4 → 5 → 2 → 1 → 3. Purpose and users come first (4) because they shape everything else, then the standing instructions (5) and the reference knowledge (2). A real test request (1) shows what to refine before you share the Project with guidance (3). Sharing before testing passes unfixed problems on to the whole team.',
     references: [REF_PROJECTS]
   },
@@ -688,16 +678,15 @@ export const CCAO_POOL: PoolQ[] = [
 
   // ──────────────── Governance, Risk, and Responsible Use (9) ────────────────
   {
-    domain: GOVERNANCE, difficulty: 3, type: QType.ORDERING,
-    stem: 'A colleague proposes a new Claude use case that involves customer data. Arrange the steps for deciding whether it can go ahead.',
-    options: steps(
-      'Check the AI policy and approved-tool list for that kind of data',
-      'Run the use case with its documented safeguards, and review it at an agreed interval',
-      'Identify exactly what data the use case involves and how sensitive it is',
-      'Get any approval the policy requires from the data or policy owner',
-      'Document the safeguards, such as data minimisation and human review'
+    domain: GOVERNANCE, difficulty: 3, type: QType.SINGLE,
+    stem: "A colleague proposes a new Claude use case that involves customer data. Which is the correct order of these steps?\n\n(1) Check the AI policy and approved-tool list for that kind of data\n\n(2) Run the use case with its documented safeguards, and review it at an agreed interval\n\n(3) Identify exactly what data the use case involves and how sensitive it is\n\n(4) Get any approval the policy requires from the data or policy owner\n\n(5) Document the safeguards, such as data minimisation and human review",
+    options: opts4(
+      "3, 1, 4, 2, 5",
+      "3, 1, 4, 5, 2",
+      "1, 3, 4, 5, 2",
+      "3, 4, 1, 5, 2"
     ),
-    correct: ['3', '1', '4', '5', '2'],
+    correct: ["b"],
     explanation: 'Correct sequence: 3 → 1 → 4 → 5 → 2. You cannot apply a policy until you know what data is involved (3). The policy and approved-tool list then tell you what is allowed (1), the owner approves if required (4), the safeguards are documented (5), and only then does the use case run, with periodic review (2). Starting the work before classification or approval reverses the control.',
     references: [REF_AUP]
   },
@@ -811,16 +800,15 @@ export const CCAO_POOL: PoolQ[] = [
 
   // ──────────────── Troubleshooting and Optimization (6) ────────────────
   {
-    domain: TROUBLESHOOT, difficulty: 3, type: QType.ORDERING, isTeaser: true,
-    stem: 'A prompt template your team relies on has started producing weaker results. Arrange the troubleshooting steps in the correct sequence.',
-    options: steps(
-      'Keep the change that fixes it, and record what was changed and why',
-      'Collect a few failing examples, together with what a good result looks like',
-      'Re-test on the same examples after each change',
-      'Check what changed recently: the inputs, the Project knowledge or the instructions',
-      'Change one thing at a time'
+    domain: TROUBLESHOOT, difficulty: 3, type: QType.SINGLE, isTeaser: true,
+    stem: "A prompt template your team relies on has started producing weaker results. Which is the correct order of these steps?\n\n(1) Keep the change that fixes it, and record what was changed and why\n\n(2) Collect a few failing examples, together with what a good result looks like\n\n(3) Re-test on the same examples after each change\n\n(4) Check what changed recently: the inputs, the Project knowledge or the instructions\n\n(5) Change one thing at a time",
+    options: opts4(
+      "2, 4, 5, 3, 1",
+      "2, 4, 3, 5, 1",
+      "2, 4, 1, 5, 3",
+      "2, 4, 5, 1, 3"
     ),
-    correct: ['2', '4', '5', '3', '1'],
+    correct: ["a"],
     explanation: 'Correct sequence: 2 → 4 → 5 → 3 → 1. Start with concrete failing examples and a picture of success (2), look for what changed (4), then change one variable at a time (5) and re-test on the same examples (3) so you know which change made the difference. Finally keep the fix and record it (1). Changing several things at once, or testing on different examples each time, hides the cause.',
     references: [REF_DEVELOP_TESTS, REF_DEFINE_SUCCESS]
   },

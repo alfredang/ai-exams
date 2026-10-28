@@ -35,7 +35,9 @@
  * Per the source: original questions written against the public CCAO-F
  * blueprint — not items from the live exam.
  *
- * Content is kept verbatim from the source (stems, options, answer key). Two
+ * The recurring-process sequencing question is adapted into a numbered-step
+ * MCQ to match the CCAO-F exam format. Other content is kept verbatim from
+ * the source (stems, options, answer key). Two
  * mechanical adaptations only:
  *   - Each explanation is the answer key's "Why" rationale, prefixed with the
  *     correct option's text so ExplanationView renders it as the titled
@@ -547,15 +549,15 @@ export const CCAO_MOCK3: CcaoMockQ[] = [
   },
   {
     domain: WORKFLOW, difficulty: 2, type: QType.SINGLE,
-    stem: 'Which sequencing is correct when introducing Claude to a recurring team process?',
+    stem: "You are introducing Claude to a recurring team process. Which is the correct order of these steps?\n\n(1) Extend the proven approach to another suitable step and monitor the results.\n\n(2) Choose one bounded task with a checkable output and define success criteria.\n\n(3) Refine the pilot using the review findings, then confirm it meets the success criteria.\n\n(4) Pilot Claude on that task and have a person check the output against the criteria.",
     options: opts4(
-      'Automate the whole process, then refine',
-      'Start with the step that is bounded and checkable, prove it, then extend',
-      'Start with the hardest step, since it has most value',
-      'Let each person adopt it however they prefer'
+      "2, 3, 4, 1",
+      "2, 4, 3, 1",
+      "4, 2, 3, 1",
+      "2, 4, 1, 3"
     ),
     correct: ['b'],
-    explanation: 'Start with the step that is bounded and checkable, prove it, then extend\nA bounded first step produces evidence and trust cheaply. Full automation first risks everything at once, the hardest step is the least likely to succeed early, and uncoordinated adoption produces drift.',
+    explanation: '2, 4, 3, 1\nChoose a bounded task and define success (2), pilot it with human review (4), refine and verify the pilot (3), then extend the proven approach (1). Refining before the pilot produces no review evidence; piloting before defining the task lacks criteria; expanding before verification spreads unproven results.',
     references: [REF_EXAM_INFO, REF_MOCK3]
   },
   {

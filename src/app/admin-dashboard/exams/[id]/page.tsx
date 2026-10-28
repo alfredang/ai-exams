@@ -15,6 +15,7 @@ import { QuestionForm } from '@/components/admin/question-form';
 import { AiGenerateDialog } from '@/components/admin/ai-question-generator';
 import { QuestionReviewFlow } from '@/components/admin/question-review-flow';
 import { examBaseTitle } from '@/lib/exam-title';
+import { questionPresentationType } from '@/lib/question-presentation';
 import { InfoLookupButton } from '@/components/admin/info-lookup-button';
 import { approveQuestion, createQuestion, deleteQuestion, rejectQuestion, toggleQuestionStatus } from './question-actions';
 
@@ -304,7 +305,7 @@ export default async function EditExamPage({
   const fStatus = ['DRAFT', 'PUBLISHED', 'ARCHIVED'].includes(sp.qstatus ?? '') ? sp.qstatus! : '';
   const fType = ['SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING', 'HOTSPOT'].includes(sp.qtype ?? '') ? sp.qtype! : '';
   const shownQuestions = exam.questions.filter(
-    (q) => (!fDomain || q.domain === fDomain) && (!fStatus || q.status === fStatus) && (!fType || q.type === fType)
+    (q) => (!fDomain || q.domain === fDomain) && (!fStatus || q.status === fStatus) && (!fType || questionPresentationType(q) === fType)
   );
   // 30 questions per page (?qpage=); changing a filter drops back to page 1.
   const Q_PAGE_SIZE = 30;
@@ -763,7 +764,7 @@ export default async function EditExamPage({
                   <tr key={q.id} id={`q-${q.id}`} className={`scroll-mt-24 align-top ${sp.edited === q.id ? 'bg-emerald-50 dark:bg-emerald-950/20' : ''}`}>
                     <td className="px-2 py-2 text-xs text-slate-500">{idx + 1}</td>
                     <td className="px-2 py-2">
-                      <div className="font-medium">{q.stem}</div>
+                      <div className="whitespace-pre-wrap font-medium">{q.stem}</div>
                       {q.type === 'ORDERING' ? (
                         <>
                           <ol className="mt-1 space-y-0.5 text-xs text-slate-600 dark:text-slate-400">
@@ -783,7 +784,7 @@ export default async function EditExamPage({
                         </ul>
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-2 py-2 text-slate-500">{TYPE_NAMES[q.type] ?? q.type}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-slate-500">{TYPE_NAMES[questionPresentationType(q)] ?? q.type}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-slate-500">{q.domain}</td>
                     <td className="whitespace-nowrap px-2 py-2">
                       {q.status === 'PUBLISHED' ? (

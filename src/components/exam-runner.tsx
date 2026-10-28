@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Flag, LayoutGrid, ListChecks, Loader2, LogOut, X } from 'lucide-react';
 import { ExplanationView } from '@/components/explanation-view';
 import { shuffleSeeded } from '@/lib/shuffle';
+import { isSequencingChoice } from '@/lib/question-presentation';
 import { startFromDashboard } from '@/app/user-dashboard/actions';
 
 export type RunnerQuestion = {
@@ -53,7 +54,7 @@ const COUNT_WORDS = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 const typeHint = (q: RunnerQuestion) =>
   q.type === 'MULTI' && q.selectCount && q.selectCount > 1
     ? `Select ${COUNT_WORDS[q.selectCount] ?? q.selectCount} answers`
-    : TYPE_HINT[q.type];
+    : isSequencingChoice(q) ? 'Select the correct sequence' : TYPE_HINT[q.type];
 
 // Types where one click is not "I'm done": the user confirms with an explicit
 // button before the answer is checked (PRACTICE) — see checkAnswer().
