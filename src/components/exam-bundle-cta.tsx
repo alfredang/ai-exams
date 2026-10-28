@@ -1,6 +1,6 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { db } from '@/lib/db';
-import { formatPrice } from '@/lib/utils';
 import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { ShoppingCart, Ticket } from 'lucide-react';
 import { checkoutHref, voucherOnSale } from '@/lib/products';
@@ -37,7 +37,7 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
       <p className="text-xs text-slate-500 dark:text-slate-300">Unlimited retakes, each drawn fresh from the question pool.</p>
       <div className="mt-3 space-y-2">
         <Link href={checkoutHref(product.id, 'PRACTICE')} className="btn-secondary w-full">
-          Practice exam · {formatPrice(product.price)}
+          Practice exam · <Price cents={product.price} />
         </Link>
         {voucherOnSale(product) && (
           <Link
@@ -45,7 +45,7 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
             className="btn-primary-grad inline-flex w-full items-center justify-center gap-1.5"
           >
             <Ticket className="h-3.5 w-3.5" />
-            Exam voucher + practice exam · {formatPrice(product.priceVoucher!)}
+            Exam voucher + practice exam · <Price cents={product.priceVoucher!} />
           </Link>
         )}
       </div>

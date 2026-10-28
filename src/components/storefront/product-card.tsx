@@ -1,6 +1,6 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { ArrowRight, BookOpenCheck, Library, Ticket } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
 import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { poolCardLabel } from '@/lib/bundle-contents';
 import { displayExamCode, practiceHref, voucherHref, voucherOnSale } from '@/lib/products';
@@ -81,7 +81,7 @@ export function ProductCard({ b, query = '', showVendor = true }: { b: ProductCa
                 <BookOpenCheck className="h-4 w-4 text-brand-600 dark:text-brand-300" aria-hidden="true" />
                 Practice Exam
               </span>
-              <span className="font-display font-bold text-brand-700 dark:text-brand-300">{formatPrice(b.price)}</span>
+              <span className="font-display font-bold text-brand-700 dark:text-brand-300"><Price cents={b.price} /></span>
             </Link>
           )}
           {hasVoucher && (
@@ -97,7 +97,7 @@ export function ProductCard({ b, query = '', showVendor = true }: { b: ProductCa
                 </span>
               </span>
               <span className="inline-flex shrink-0 items-center gap-1 font-display font-bold text-emerald-700 dark:text-emerald-300">
-                {formatPrice(b.priceVoucher!)}
+                <Price cents={b.priceVoucher!} />
                 <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" aria-hidden="true" />
               </span>
             </Link>

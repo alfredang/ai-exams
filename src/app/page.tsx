@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatPrice } from '@/lib/utils';
+import { Price } from '@/components/price';
 import { DotPattern } from '@/components/dot-pattern';
 import { Search, ShieldCheck, Sparkles, Award, ChevronDown, ArrowRight, BookOpenCheck, Ticket, MousePointerClick, Trophy, ListChecks } from 'lucide-react';
 import { LandingTestimonials } from '@/components/landing-testimonials';
@@ -100,7 +101,7 @@ export default async function HomePage() {
               <span className="gradient-text">Get certified.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base text-slate-600 motion-safe:animate-fade-up motion-safe:[animation-delay:160ms] dark:text-slate-300 sm:text-lg">
-              Realistic timed Practice Exams for just <b className="text-ink dark:text-white">{practicePrice}</b> — and official Exam Vouchers that include the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b>. Start with a free {TEASER_N}-question teaser — no card needed.
+              Realistic timed Practice Exams for just <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — and official Exam Vouchers that include the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b>. Start with a free {TEASER_N}-question teaser — no card needed.
             </p>
             <div className="mt-6 flex flex-col gap-3 motion-safe:animate-fade-up motion-safe:[animation-delay:240ms] sm:flex-row">
               <Link href="/practice-exams" className="btn-primary group min-h-[48px] px-6 text-base">

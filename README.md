@@ -56,14 +56,14 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 
 ## Screenshot
 
-![Tertiary Exams — home screen](screenshot.png)
+![Tertiary Exams — home screen](docs/images/screenshot.png)
 
 ## Features
 
 - **Two product categories:** every Certification is sold as a **Practice Exam** (always US$20, unlimited retakes) and, where available, an **Exam Voucher** (official vendor voucher with the Practice Exam included free). Each has its own page, URL, title and description — `/practice-exams/<vendor>/<slug>` and `/exam-vouchers/<vendor>/<voucher-slug>` — and buying the voucher grants the linked Practice Exam automatically.
 - **Marketing homepage:** animated hero, a two-category showcase (Practice Exams vs. the "Best value" Exam Vouchers), popular certifications showing both prices, a vendor strip, how it works, testimonials and FAQ. Mobile menu, sticky phone buy bars, and `prefers-reduced-motion` support.
 - **Public Catalogs:** `/practice-exams` and `/exam-vouchers` with Vendor/level search and pagination; each card shows the Practice Exam price and the Exam Voucher option. The voucher pages carry how it works and a voucher FAQ (with FAQ structured data for search).
-- **Admin Catalog:** **Practice Exams** and **Exam Vouchers** lists with their own edit pages (price, title, URL slug, description, on-sale switch), **Create Practice Exam** (creates the question bank and its Practice Exam together), and **Question Banks** for questions, domains and timers.
+- **Admin Catalog:** **Practice Exams** and **Exam Vouchers** lists with their own edit pages (price, title, URL slug, description, on-sale switch), **+ Create Practice Exam** on the Practice Exams list (creates the question bank and its Practice Exam together; AI generation then fills it), and **Question Banks** for questions, domains and timers.
 - **Exam Domains & References:** Each Practice Exam and Exam Voucher page shows the official domain percentages as an accordion that expands to the subtopics covered, plus a References section linking the vendor's official exam page and study guide.
 - **Instructor-Led Exam Prep:** CompTIA, Linux Foundation, PMP, Microsoft and ITIL 4 Practice Exam and Exam Voucher pages carry a card linking to the matching WSQ or CASL classroom course on [tertiarycourses.com.sg](https://www.tertiarycourses.com.sg/) (`src/lib/instructor-led.ts`); certifications without a matching course show no card.
 - **Domain-Weighted Question Pool:** Each certification's questions form a pool grouped by exam domain. Every attempt (Practice, Exam mode, teaser, retake) is a fresh random draw in proportion to the official domain percentages, verified against each vendor's exam guide (`src/lib/exam-blueprints.ts`); a short domain's seats are re-apportioned to the others.
@@ -80,6 +80,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Question Authoring — two modes:** in each question bank, **Add manually** (one form for adding and editing: MCQ, multiple select, true/false and sequencing, with the domain picked from the blueprint and clear validation) or **Generate questions & answers with AI** (the **AI Generate** button on each question bank page, or on the **AI Question Generator** page in the admin sidebar, opens a pop-up: pick the exam, the number of questions — default 10 — all question types or any of MCQ / Multiple select / Sequencing, and all exam domains or any of them; the AI writes questions, answers and explanations split by blueprint weight). AI questions follow a three-step process map — **AI generates → Human review → Added to the pool**: they land as drafts in the **Review queue**, where an admin approves, edits or rejects each one; only approved questions are drawn into attempts. **Find official page** fills the Exam Info URL from the vendor site (OpenAI web search) and SEO AI Assist writes meta tags. AI calls try **OpenAI → DeepSeek V4.1 Flash → MiniMax M3.1 Flash**, falling through on any failure.
 - **Voucher Fulfillment & Invoicing:** Automated invoice minting, voucher inventory management, and scheduled email delivery via background workers.
 - **Invoices, Refunds & Credit Notes:** Every paid order gets a sequential GST tax invoice (PDF marked PAID) showing Subtotal (excl. GST), GST 9% (included) and Total (incl. GST), emailed with an order confirmation that lists the same GST breakdown, CC'd to the business. Refunds — through the provider's API or recorded as "already refunded" in the provider dashboard — mint a `CN-` credit note that references the original invoice, email it to the customer, cancel undelivered vouchers and revoke access on a full refund.
+- **USD / SGD Prices:** A header currency switcher shows storefront prices in US$ or S$ at the live USD→SGD rate (ECB via Frankfurter, with a fallback feed). Card checkouts still charge USD and show the SGD equivalent; PayNow QR charges SGD at the live rate, snapshotted on the order.
 - **Sales Order Alerts:** Each paid order also emails the sales inbox the buyer's name, email, phone, exam title and code, payment method and date.
 - **Question Pool Admin:** Each exam's admin page shows the exam % per domain, questions in the pool, and questions drawn per attempt, with editable weights and the official source link.
 - **Comprehensive Admin Dashboard:** Manage catalog, orders, users (RBAC), refunds, coupons, API tokens, dynamic settings, and CMS content (FAQ, Banners).
@@ -244,6 +245,7 @@ flowchart TD
 - `scripts/`: Bulk question seeding, content generation, and utility scripts.
 - `.claude/`: Project-specific Claude Code setup — path-scoped rules (`.claude/rules/`: API, payments, exam runtime, questions/seeds, storefront copy, auth/security, schema/deploy), skills (`custom-practice-exam`, `seo-audit`) and agents (`question-bank-generator` — Opus-authored MCQ / multiple-select / sequencing questions per exam domain; `security-scanner` — writes a local Word security assessment to the git-ignored `docs/security/`).
 - `public/`: Static assets and logos.
+- `docs/`: API spec for partners, PRD, audits and session notes; `docs/images/` holds the README screenshots. Root-level images, decks and scratch output are git-ignored — keep the repo root for config and source only.
 
 ## Prerequisites
 

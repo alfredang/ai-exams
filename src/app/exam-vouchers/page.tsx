@@ -1,7 +1,7 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { ArrowRight, BadgeCheck, BookOpen, ChevronDown, Gift, Mail, ReceiptText, ShoppingCart, CalendarCheck, Ticket } from 'lucide-react';
 import { db } from '@/lib/db';
-import { formatPrice } from '@/lib/utils';
 import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { serializeJsonLd } from '@/lib/structured-data';
 import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
@@ -105,7 +105,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
         <p className="eyebrow mb-2">Exam Vouchers</p>
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Official Exam Vouchers — <span className="text-emerald-700 dark:text-emerald-300">Practice Exam included free</span></h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Book your Certification exam with a genuine Vendor-issued Exam Voucher, and prepare for it with the Practice Exam (worth {formatPrice(PRACTICE_PRICE_CENTS)}) at no extra cost.
+          Book your Certification exam with a genuine Vendor-issued Exam Voucher, and prepare for it with the Practice Exam (worth <Price cents={PRACTICE_PRICE_CENTS} />) at no extra cost.
         </p>
       </div>
 
@@ -140,13 +140,13 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
                   <li className="flex gap-2"><Ticket className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />Official voucher, emailed in {VOUCHER_DELIVERY_TEXT}</li>
                   <li className="flex gap-2">
                     <Gift className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />
-                    <span>Practice Exam included <b className="text-emerald-700 dark:text-emerald-300">FREE</b> (worth {formatPrice(PRACTICE_PRICE_CENTS)})</span>
+                    <span>Practice Exam included <b className="text-emerald-700 dark:text-emerald-300">FREE</b> (worth <Price cents={PRACTICE_PRICE_CENTS} />)</span>
                   </li>
                 </ul>
                 <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5">
                   <div>
                     <div className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Voucher</div>
-                    <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{formatPrice(b.priceVoucher!)}</div>
+                    <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300"><Price cents={b.priceVoucher!} /></div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
           ))}
         </div>
         <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-          Only need practice? <Link href="/practice-exams" className="inline-flex items-center gap-0.5 text-blue-700 hover:underline dark:text-blue-300">Browse Practice Exams — {formatPrice(PRACTICE_PRICE_CENTS)} each <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link> · More questions? <Link href="/p/support" className="text-blue-700 hover:underline dark:text-blue-300">Contact support</Link> · <Link href="/p/refund-policy" className="text-blue-700 hover:underline dark:text-blue-300">Refund Policy</Link>
+          Only need practice? <Link href="/practice-exams" className="inline-flex items-center gap-0.5 text-blue-700 hover:underline dark:text-blue-300">Browse Practice Exams — <Price cents={PRACTICE_PRICE_CENTS} /> each <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link> · More questions? <Link href="/p/support" className="text-blue-700 hover:underline dark:text-blue-300">Contact support</Link> · <Link href="/p/refund-policy" className="text-blue-700 hover:underline dark:text-blue-300">Refund Policy</Link>
         </p>
       </section>
     </div>

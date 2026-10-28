@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, BadgeCheck, BookOpenCheck, Check, Gift, Ticket } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { Price } from '@/components/price';
 import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT } from '@/lib/products';
 
@@ -9,7 +9,6 @@ import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT } from '@/lib/products';
  * Exam Vouchers is the highlighted "Best value" card.
  */
 export function CategoryShowcase({ voucherFrom, teaserN }: { voucherFrom: number | null; teaserN: number }) {
-  const practice = formatPrice(PRACTICE_PRICE_CENTS);
   return (
     <div className="grid items-stretch gap-5 md:grid-cols-2 lg:gap-8">
       {/* Practice Exams */}
@@ -20,7 +19,7 @@ export function CategoryShowcase({ voucherFrom, teaserN }: { voucherFrom: number
         <h3 className="mt-5 font-display text-2xl font-extrabold tracking-tight">Practice Exams</h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Prepare until you’re ready — on your own schedule.</p>
         <div className="mt-5 flex items-baseline gap-2">
-          <span className="font-display text-4xl font-extrabold text-brand-700 dark:text-brand-300">{practice}</span>
+          <span className="font-display text-4xl font-extrabold text-brand-700 dark:text-brand-300"><Price cents={PRACTICE_PRICE_CENTS} /></span>
           <span className="text-sm text-slate-500 dark:text-slate-400">per Certification · one-time · {PRICE_TAX_NOTE}</span>
         </div>
         <ul className="mt-6 space-y-3 text-sm">
@@ -60,12 +59,12 @@ export function CategoryShowcase({ voucherFrom, teaserN }: { voucherFrom: number
             {voucherFrom != null && (
               <>
                 <span className="text-sm text-slate-500 dark:text-slate-400">from</span>
-                <span className="font-display text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">{formatPrice(voucherFrom)}</span>
+                <span className="font-display text-4xl font-extrabold text-emerald-700 dark:text-emerald-300"><Price cents={voucherFrom} /></span>
                 <span className="text-sm text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</span>
               </>
             )}
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200">
-              <Gift className="h-3.5 w-3.5" aria-hidden="true" /> Practice Exam FREE (worth {practice})
+              <Gift className="h-3.5 w-3.5" aria-hidden="true" /> Practice Exam FREE (worth <Price cents={PRACTICE_PRICE_CENTS} />)
             </span>
           </div>
           <ul className="mt-6 space-y-3 text-sm">

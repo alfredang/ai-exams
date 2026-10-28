@@ -24,8 +24,11 @@ paths:
 - **Price only through `productSale(bundle, tier)`** — null means not on sale
   → 404. No fallback price, no client-supplied amount. Names come from
   `productTitle(bundle, tier)`.
-- **Store currency is USD** (`STORE_CURRENCY`). Only PayNow converts to SGD
-  via the `FX_TO_SGD_USD_BPS` setting and refuses when it is unset.
+- **Store currency is USD** (`STORE_CURRENCY`). Only PayNow converts to SGD,
+  at the live USD→SGD rate from `getUsdToSgdQuote()` (`src/lib/fx.ts`:
+  ECB/Frankfurter → exchangerate-api, cached 1h; the `FX_TO_SGD_USD_BPS`
+  setting is a fallback and ignored below 1.05). It refuses with 503 when no
+  rate is known — never charge SGD at parity.
 - **Every paid path ends in `fulfillOrder()`** — idempotent on
   `status === 'PAID'`. Inline capture and webhooks both call it; webhooks are
   the safety net. Fulfil only on a completed capture/payment event, and check

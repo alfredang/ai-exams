@@ -8,10 +8,15 @@ type Props = {
   reference: string;
   amount: number;
   currency: string;
+  /** The USD list price this SGD amount was converted from. */
+  storeAmount?: number;
+  storeCurrency?: string;
+  /** USD→SGD rate in basis points (12806 = 1.2806). */
+  fxRateBps?: number;
   onClose: () => void;
 };
 
-export function PayNowModal({ orderId, qrDataUrl, reference, amount, currency, onClose }: Props) {
+export function PayNowModal({ orderId, qrDataUrl, reference, amount, currency, storeAmount, storeCurrency, fxRateBps, onClose }: Props) {
   const router = useRouter();
   const [polled, setPolled] = useState(0);
 
@@ -49,6 +54,11 @@ export function PayNowModal({ orderId, qrDataUrl, reference, amount, currency, o
           <div className="mt-2 text-center">
             <div className="text-xs text-slate-500">Amount</div>
             <div className="text-lg font-semibold">{currency} {(amount / 100).toFixed(2)}</div>
+            {storeAmount != null && fxRateBps ? (
+              <div className="mt-1 text-xs text-slate-500">
+                {storeCurrency ?? 'USD'} {(storeAmount / 100).toFixed(2)} converted at 1 USD = {(fxRateBps / 10000).toFixed(4)} SGD (today&apos;s rate)
+              </div>
+            ) : null}
           </div>
         </div>
         <div className="mt-5 flex justify-between text-xs text-slate-500">

@@ -1,6 +1,6 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { ChevronRight, Check, ExternalLink, Gift, GraduationCap, Ticket } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
 import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 import type { InstructorLedCourse } from '@/lib/instructor-led';
@@ -75,7 +75,7 @@ export function VoucherUpsell({ href, buyHref, price, code, compact = false }: {
           Ready to sit the real {code} exam?
         </h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Get the official exam voucher and this practice exam is <b className="text-emerald-700 dark:text-emerald-300">included free</b> (worth {formatPrice(PRACTICE_PRICE_CENTS)}).
+          Get the official exam voucher and this practice exam is <b className="text-emerald-700 dark:text-emerald-300">included free</b> (worth <Price cents={PRACTICE_PRICE_CENTS} />).
         </p>
         {!compact && (
           <div className="mt-3">
@@ -85,7 +85,7 @@ export function VoucherUpsell({ href, buyHref, price, code, compact = false }: {
         <div className="mt-4 flex items-end justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-wide text-muted dark:text-slate-400">Voucher + practice</div>
-            <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{formatPrice(price)}</div>
+            <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300"><Price cents={price} /></div>
             <div className="text-[11px] text-muted dark:text-slate-400">{PRICE_TAX_NOTE}</div>
           </div>
           <Ticket className="h-8 w-8 text-emerald-500/70" aria-hidden="true" />
@@ -136,7 +136,7 @@ export function MobileBuyBar({ label, price, href, cta }: { label: string; price
         <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="truncate text-xs text-muted dark:text-slate-400">{label}</div>
-            <div className="font-display text-xl font-extrabold text-ink dark:text-white">{formatPrice(price)} <span className="text-[11px] font-sans font-normal text-muted dark:text-slate-400">{PRICE_TAX_NOTE}</span></div>
+            <div className="font-display text-xl font-extrabold text-ink dark:text-white"><Price cents={price} /> <span className="text-[11px] font-sans font-normal text-muted dark:text-slate-400">{PRICE_TAX_NOTE}</span></div>
           </div>
           <Link href={href} className="btn-primary-grad min-h-[44px] shrink-0 px-5">{cta}</Link>
         </div>

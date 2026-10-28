@@ -1,7 +1,7 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { formatPrice } from '@/lib/utils';
 import { PUBLISHED_QUESTION_COUNT } from '@/lib/bundle-contents';
 import { ChevronRight, Search } from 'lucide-react';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
@@ -84,7 +84,7 @@ export default async function VendorCatalogPage({
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">{vendor.name} Practice Exams</h1>
         {vendor.description && <p className="mt-2 text-slate-600 dark:text-slate-300">{vendor.description}</p>}
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-          Every Practice Exam is {formatPrice(PRACTICE_PRICE_CENTS)}. Booking the real exam? The Exam Voucher includes the Practice Exam free.
+          Every Practice Exam is <Price cents={PRACTICE_PRICE_CENTS} />. Booking the real exam? The Exam Voucher includes the Practice Exam free.
         </p>
       </div>
 

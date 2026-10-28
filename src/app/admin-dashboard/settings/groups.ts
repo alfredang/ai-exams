@@ -190,7 +190,7 @@ export const GROUPS: SettingsGroup[] = [
       { key: 'TAX_INCLUSIVE', label: 'Prices include GST? (true/false)', placeholder: 'true' },
       { key: 'COMPANY_GST_REG', label: 'GST registration number', placeholder: 'M2-1234567-8' },
       { key: 'INVOICE_PREFIX', label: 'Invoice number prefix', placeholder: 'INV' },
-      { key: 'FX_TO_SGD_USD_BPS', label: 'USD → SGD FX (basis points, 13500 = 1.3500)', placeholder: '13500' },
+      { key: 'FX_TO_SGD_USD_BPS', label: 'USD → SGD fallback rate (basis points, 12800 = 1.2800). The live ECB rate is used automatically; this only applies when the feed is down, and values below 1.05 are ignored', placeholder: '12800' },
       { key: 'FX_TO_SGD_EUR_BPS', label: 'EUR → SGD FX (basis points)' },
       { key: 'FX_TO_SGD_GBP_BPS', label: 'GBP → SGD FX (basis points)' },
       { key: 'FX_TO_SGD_AUD_BPS', label: 'AUD → SGD FX (basis points)' }

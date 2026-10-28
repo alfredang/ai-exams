@@ -32,7 +32,7 @@ invariants and Seeding sections if anything here disagrees.
 
 Find the product by slug (`aws-saa-c03`), code or title → its PRACTICE item →
 the pool exam (`resolvePoolExam()` maps a variant id to it). A brand-new
-certification is created in admin at **Create Practice Exam**
+certification is created in admin with **+ Create Practice Exam** (Practice Exams or Question Banks list)
 (`/admin-dashboard/exams/new`, which makes the Question Bank and a draft
 product), or by a seed module listed in `prisma/seed.ts` `BUNDLES`
 (see CLAUDE.md "Seeding a new exam bundle to production").

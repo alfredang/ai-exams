@@ -5,7 +5,7 @@ import { auth } from '@/lib/auth';
 import { buildSgqrPayload, getMerchantConfig, isEnabled, renderQrDataUrl } from '@/lib/payments/paynow';
 import { nextNumber } from '@/lib/numbering';
 import { evaluateCoupon, recordCouponRedemption } from '@/lib/coupons';
-import { getSetting } from '@/lib/settings';
+import { getUsdToSgdQuote, usdToSgdCents } from '@/lib/fx';
 import { STORE_CURRENCY } from '@/lib/currency';
 import { productSale } from '@/lib/products';
 
@@ -67,12 +67,19 @@ export async function POST(req: Request) {
   }
 
   // Catalogue prices are in STORE_CURRENCY (USD) but SGQR can only carry SGD,
-  // so convert at the admin-configured rate. Refuse rather than guess a rate.
-  const fxBps = Number((await getSetting('FX_TO_SGD_USD_BPS')) || 0);
-  if (!(fxBps > 0)) return NextResponse.json({ error: 'paynow-fx-not-configured' }, { status: 500 });
+  // so convert at today's USD→SGD rate (live feed, cached; the admin setting
+  // is only a plausible-rate fallback). Refuse rather than guess a rate.
+  const fx = await getUsdToSgdQuote();
+  if (!fx) {
+    return NextResponse.json(
+      { error: 'paynow-fx-unavailable', message: 'The USD→SGD exchange rate is unavailable right now. Please pay by card or try again shortly.' },
+      { status: 503 }
+    );
+  }
+  const fxBps = fx.bps;
   const storeAmount = amount;
-  amount = Math.round((amount * fxBps) / 10000);
-  discount = Math.round((discount * fxBps) / 10000);
+  amount = usdToSgdCents(amount, fxBps);
+  discount = usdToSgdCents(discount, fxBps);
 
   const number = await nextNumber('ORDER', 'ORD');
   const order = await db.$transaction(async (tx) => {
@@ -109,7 +116,7 @@ export async function POST(req: Request) {
 
   await db.order.update({
     where: { id: order.id },
-    data: { providerOrderId: order.id, providerPayload: { sgqr: payload } }
+    data: { providerOrderId: order.id, providerPayload: { sgqr: payload, fx: { usdToSgdBps: fxBps, source: fx.source, asOf: fx.asOf, usdAmount: storeAmount } } }
   });
 
   return NextResponse.json({
@@ -119,6 +126,8 @@ export async function POST(req: Request) {
     storeAmount,
     storeCurrency: STORE_CURRENCY,
     fxRateBps: fxBps,
+    fxSource: fx.source,
+    fxAsOf: fx.asOf,
     reference: order.id,
     sgqr: payload,
     qrDataUrl: dataUrl

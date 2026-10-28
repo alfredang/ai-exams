@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
+import { formatPrice } from '@/lib/utils';
 import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { Award, BadgeCheck, BookOpen, CalendarCheck, Gift, Mail, ReceiptText, ShieldCheck, ShoppingCart, Ticket, Timer } from 'lucide-react';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { formatPrice } from '@/lib/utils';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
 import {
@@ -120,7 +121,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
           <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">{description}</p>
           <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-xl border border-emerald-300/70 bg-white/80 px-4 py-2.5 text-sm shadow-card dark:border-emerald-500/40 dark:bg-slate-900/70">
             <Gift className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-            <span><b>Practice exam included free</b> — worth {formatPrice(PRACTICE_PRICE_CENTS)}, unlocked the moment you pay.</span>
+            <span><b>Practice exam included free</b> — worth <Price cents={PRACTICE_PRICE_CENTS} />, unlocked the moment you pay.</span>
           </div>
         </div>
       </section>
@@ -180,7 +181,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             <h2 className="font-display text-xl font-bold">Voucher questions</h2>
             <div className="mt-4"><FaqList items={FAQS} /></div>
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-              {practicePage && <>Only need practice? <Link href={practicePage} className="text-brand hover:underline dark:text-brand-300">{code} Practice Exam · {formatPrice(product.price)}</Link> · </>}
+              {practicePage && <>Only need practice? <Link href={practicePage} className="text-brand hover:underline dark:text-brand-300">{code} Practice Exam · <Price cents={product.price} /></Link> · </>}
               <Link href="/p/refund-policy" className="text-brand hover:underline dark:text-brand-300">Refund Policy</Link> · <Link href="/p/support" className="text-brand hover:underline dark:text-brand-300">Contact support</Link>
             </p>
           </section>
@@ -190,12 +191,12 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
           <div className="relative overflow-hidden rounded-2xl border border-emerald-300/70 bg-white p-5 shadow-lift dark:border-emerald-500/40 dark:bg-slate-900">
             <div className="eyebrow">Exam Voucher</div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
-              <span className="font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(price)}</span>
+              <span className="font-display text-3xl font-extrabold text-ink dark:text-white"><Price cents={price} /></span>
               <span className="whitespace-nowrap text-lg font-semibold text-ink dark:text-slate-100">({PRICE_TAX_NOTE})</span>
             </div>
             <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm dark:bg-emerald-950/30">
-              <div className="flex justify-between"><span>{code} exam voucher</span><span className="font-medium">{formatPrice(price)}</span></div>
-              <div className="mt-1 flex justify-between"><span>{code} Practice Exam</span><span className="font-medium"><s className="text-muted">{formatPrice(PRACTICE_PRICE_CENTS)}</s> <span className="text-emerald-700 dark:text-emerald-300">FREE</span></span></div>
+              <div className="flex justify-between"><span>{code} exam voucher</span><span className="font-medium"><Price cents={price} /></span></div>
+              <div className="mt-1 flex justify-between"><span>{code} Practice Exam</span><span className="font-medium"><s className="text-muted"><Price cents={PRACTICE_PRICE_CENTS} /></s> <span className="text-emerald-700 dark:text-emerald-300">FREE</span></span></div>
             </div>
             {ownsVoucher ? (
               <Link href="/user-dashboard/vouchers" className="btn-outline mt-5 min-h-[44px] w-full">You own this voucher — view it</Link>

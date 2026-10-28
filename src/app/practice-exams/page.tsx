@@ -1,7 +1,7 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { BarChart3, Library, RefreshCw, Timer } from 'lucide-react';
 import { db } from '@/lib/db';
-import { formatPrice } from '@/lib/utils';
 import { PUBLISHED_QUESTION_COUNT } from '@/lib/bundle-contents';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 import { ProductCard } from '@/components/storefront/product-card';
@@ -101,7 +101,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         <p className="eyebrow mb-2">Practice Exams</p>
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Practice Exams for leading Certifications</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Every Practice Exam is <b className="text-ink dark:text-white">{formatPrice(PRACTICE_PRICE_CENTS)}</b> — timed Exam mode, Practice mode with explanations and unlimited retakes. Start with the free 10-question teaser on any Practice Exam.
+          Every Practice Exam is <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — timed Exam mode, Practice mode with explanations and unlimited retakes. Start with the free 10-question teaser on any Practice Exam.
         </p>
       </div>
 

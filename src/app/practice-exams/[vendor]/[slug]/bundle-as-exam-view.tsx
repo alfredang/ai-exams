@@ -1,11 +1,11 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { Timer, BookOpen, Award, BookOpenCheck, Hourglass, Library, Sparkles, ShieldCheck, RefreshCw } from 'lucide-react';
 import { StartButton } from './start-attempt-button';
 import { ExamDomains, ExamReferences } from '@/components/exam-domains';
 import { ExamReviews } from '@/components/exam-reviews';
 import { PUBLIC_SITE_URL, serializeJsonLd } from '@/lib/structured-data';
 import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
-import { formatPrice } from '@/lib/utils';
 import {
   checkoutHref, displayExamCode, practiceOnSale, voucherHref, voucherOnSale, voucherTitleFor
 } from '@/lib/products';
@@ -172,7 +172,7 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
             <div className="card p-5">
               <div className="eyebrow">Practice Exam</div>
               <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
-                <span className="font-display text-3xl font-extrabold text-ink dark:text-white">{formatPrice(bundle.price)}</span>
+                <span className="font-display text-3xl font-extrabold text-ink dark:text-white"><Price cents={bundle.price} /></span>
                 <span className="whitespace-nowrap text-lg font-semibold text-ink dark:text-slate-100">({PRICE_TAX_NOTE})</span>
               </div>
               <div className="mt-4">

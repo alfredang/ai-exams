@@ -1,6 +1,6 @@
 import Link from 'next/link';
+import { Price } from '@/components/price';
 import { ArrowRight, Ticket } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 
 /** Slim cross-sell strip: book the real exam, get the practice exam free. */
@@ -17,7 +17,7 @@ export function VoucherUpsellBanner({ className = '' }: { className?: string }) 
         <span>
           <span className="block font-semibold text-ink dark:text-white">Booking the real exam?</span>
           <span className="block text-sm text-slate-600 dark:text-slate-300">
-            Buy the official Exam Voucher and get the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b> (worth {formatPrice(PRACTICE_PRICE_CENTS)}).
+            Buy the official Exam Voucher and get the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b> (worth <Price cents={PRACTICE_PRICE_CENTS} />).
           </span>
         </span>
       </span>

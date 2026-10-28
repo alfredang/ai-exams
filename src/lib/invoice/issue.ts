@@ -1,3 +1,4 @@
+import { getToSgdBps } from '@/lib/fx';
 import { db } from '@/lib/db';
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { getAllSettings, getCompanyInfo } from '@/lib/settings';
@@ -10,9 +11,6 @@ export type IssueInput = {
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
-function fxKeyFor(currency: string): string {
-  return `FX_TO_SGD_${currency.toUpperCase()}_BPS`;
-}
 
 /**
  * Issue (or return existing) Invoice for the given paid Order.
@@ -53,17 +51,13 @@ export async function issueInvoiceForOrder(orderId: string, dbc?: DbClient) {
   // SGD-equivalent (for reporting in mixed-currency stores)
   let fxRateBpsToSgd: number | null = null;
   let totalSgd: number | null = null;
+  // USD uses the live USD→SGD rate (lib/fx.ts); SGD is 1.0; other currencies
+  // need their FX_TO_SGD_<CUR>_BPS setting. Left null when no rate is known.
   const currency = order.currency || 'SGD';
-  if (currency.toUpperCase() === 'SGD') {
-    fxRateBpsToSgd = 10000; // 1.0000
-    totalSgd = total;
-  } else {
-    const fxStr = settings[fxKeyFor(currency) as keyof typeof settings];
-    const fxBps = Number(fxStr || 0);
-    if (fxBps > 0) {
-      fxRateBpsToSgd = fxBps;
-      totalSgd = Math.round((total * fxBps) / 10000);
-    }
+  const fxBps = await getToSgdBps(currency);
+  if (fxBps) {
+    fxRateBpsToSgd = fxBps;
+    totalSgd = Math.round((total * fxBps) / 10000);
   }
 
   // Sequential number across all years

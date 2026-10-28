@@ -20,8 +20,11 @@ paths:
 - **URLs come from helpers** in `src/lib/products.ts` (`practiceHref`,
   `voucherHref`, `checkoutHref`, …) — don't build them by hand.
 - **Promises must be true**: teaser is 10 questions, voucher delivery is
-  `VOUCHER_DELIVERY_TEXT`, Practice Exam is `formatPrice(PRACTICE_PRICE_CENTS)`.
-  Import the constants instead of retyping numbers. Every displayed price
+  `VOUCHER_DELIVERY_TEXT`, Practice Exam is `PRACTICE_PRICE_CENTS`.
+  Import the constants instead of retyping numbers. Render storefront prices
+  with `<Price cents={…} />` (`components/price.tsx`) so the header USD/SGD
+  switcher converts them; `formatPrice()` only inside plain strings (FAQ
+  answers, JSON-LD, emails), which stay USD. Every displayed price
   carries `PRICE_TAX_NOTE` ("GST inclusive", `src/lib/currency.ts`) — the
   amount charged is the listed price and the invoice carves GST out of it.
 - **Theme**: light by default. Neutrals are the blue-tinted `slate` ramp;
