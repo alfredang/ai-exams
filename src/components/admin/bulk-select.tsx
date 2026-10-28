@@ -132,12 +132,15 @@ export function SelectAllMatchingBanner({
   formId,
   pageCount,
   totalCount,
-  checkboxName = 'ids'
+  checkboxName = 'ids',
+  noun = 'exams'
 }: {
   formId: string;
   pageCount: number;
   totalCount: number;
   checkboxName?: string;
+  /** Plural shown in "All N matching <noun> selected." */
+  noun?: string;
 }) {
   const [selectionState, setSelectionState] = useState<{ allOnPage: boolean; matchAll: boolean }>({
     allOnPage: false,
@@ -192,7 +195,7 @@ export function SelectAllMatchingBanner({
   if (matchAll) {
     return (
       <span className="inline-flex items-center gap-2 rounded bg-amber-100 px-2 py-0.5 text-[12px] text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
-        All <strong>{totalCount}</strong> matching exams selected.
+        All <strong>{totalCount}</strong> matching {noun} selected.
         <button
           type="button"
           onClick={onClear}

@@ -533,7 +533,7 @@ export default async function AdminExamsPage({
       align: 'right',
       cell: (e) =>
         e.domainCount > 0 ? (
-          <Link href={`/admin-dashboard/exams/${e.id}#pool`} className="hover:underline" title="Exam domains (blueprint)">
+          <Link href={`/admin-dashboard/certifications/${e.poolExamId ?? e.id}#domains`} className="hover:underline" title="Exam domains (blueprint)">
             {e.domainCount}
           </Link>
         ) : (

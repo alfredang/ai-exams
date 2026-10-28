@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { validateQuestion, type QuestionInput } from '@/lib/question-input';
 import type { QuestionFormState } from '@/components/admin/question-form';
+import { QUESTION_STATUS_FILTERS, QUESTION_TYPE_FILTERS, matchesQuestionFilter } from '@/lib/question-presentation';
 
 async function adminId(): Promise<string | null> {
   const session = await auth();
@@ -128,16 +129,79 @@ export async function deleteQuestion(fd: FormData) {
   refresh(q.examId);
 }
 
+/**
+ * Publish / Unpublish one question. Unpublishing sets ARCHIVED (shown as
+ * "Unpublished"): out of the pool, but not back in the AI review queue.
+ */
 export async function toggleQuestionStatus(fd: FormData) {
   const admin = await adminId();
   if (!admin) return;
   const id = String(fd.get('id') || '');
   const q = await db.question.findUnique({ where: { id }, select: { examId: true, status: true } });
   if (!q) return;
-  const status = q.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+  const status = q.status === 'PUBLISHED' ? 'ARCHIVED' : 'PUBLISHED';
   await db.question.update({ where: { id }, data: { status } });
   await db.adminLog.create({
     data: { adminId: admin, action: status === 'PUBLISHED' ? 'question.publish' : 'question.unpublish', targetType: 'Question', targetId: id, metadata: { examId: q.examId } }
   });
   refresh(q.examId);
+}
+
+const BULK_OPS = ['publish', 'unpublish', 'delete'] as const;
+
+/**
+ * Question list "With selected": publish, unpublish or delete the ticked
+ * questions — or, after "Select all N matching", every question matching the
+ * list filters (re-resolved here from the hidden filter inputs).
+ */
+export async function bulkQuestionAction(fd: FormData) {
+  const admin = await adminId();
+  if (!admin) return;
+  const examId = String(fd.get('examId') || '');
+  const op = String(fd.get('op') || '') as (typeof BULK_OPS)[number];
+  if (!examId || !BULK_OPS.includes(op)) return;
+  const filter = {
+    domain: String(fd.get('filterDomain') || ''),
+    status: QUESTION_STATUS_FILTERS.includes(String(fd.get('filterStatus'))) ? String(fd.get('filterStatus')) : '',
+    type: QUESTION_TYPE_FILTERS.includes(String(fd.get('filterType'))) ? String(fd.get('filterType')) : ''
+  };
+  const questions = await db.question.findMany({
+    where: { examId },
+    select: { id: true, type: true, stem: true, options: true, domain: true, status: true }
+  });
+  const picked = new Set(fd.getAll('ids').map(String));
+  const targets = fd.get('selectAllMatching') === '1'
+    ? questions.filter((q) => matchesQuestionFilter(q, filter))
+    : questions.filter((q) => picked.has(q.id));
+
+  let ids: string[];
+  if (op === 'delete') {
+    ids = targets.map((q) => q.id);
+    if (ids.length) await db.question.deleteMany({ where: { examId, id: { in: ids } } });
+  } else if (op === 'publish') {
+    ids = targets.filter((q) => q.status !== 'PUBLISHED').map((q) => q.id);
+    if (ids.length) await db.question.updateMany({ where: { examId, id: { in: ids } }, data: { status: 'PUBLISHED' } });
+  } else {
+    // Drafts stay in the review queue; only published questions are taken out.
+    ids = targets.filter((q) => q.status === 'PUBLISHED').map((q) => q.id);
+    if (ids.length) await db.question.updateMany({ where: { examId, id: { in: ids } }, data: { status: 'ARCHIVED' } });
+  }
+  if (ids.length) {
+    await db.adminLog.create({
+      data: {
+        adminId: admin,
+        action: `question.bulk_${op}`,
+        targetType: 'Exam',
+        targetId: examId,
+        metadata: { count: ids.length, ids: ids.slice(0, 500) }
+      }
+    });
+  }
+  refresh(examId);
+  const qs = new URLSearchParams();
+  if (filter.domain) qs.set('domain', filter.domain);
+  if (filter.status) qs.set('qstatus', filter.status);
+  if (filter.type) qs.set('qtype', filter.type);
+  qs.set('bulk', `${op}:${ids.length}`);
+  redirect(`/admin-dashboard/exams/${examId}?${qs}#questions`);
 }

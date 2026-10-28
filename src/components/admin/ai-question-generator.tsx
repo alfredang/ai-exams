@@ -42,7 +42,9 @@ export function AiGenerateDialog({
   initialExamId,
   defaultOpen = false,
   configured,
-  providers
+  providers,
+  triggerLabel = 'AI Generate',
+  triggerClassName = 'inline-flex h-10 items-center gap-1.5 rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700'
 }: {
   exams: GeneratorExam[];
   initialExamId?: string;
@@ -50,6 +52,8 @@ export function AiGenerateDialog({
   configured: boolean;
   /** Provider chain for the footer, e.g. "OpenAI gpt-6.1-sol → DeepSeek deepseek-flash". */
   providers: string;
+  triggerLabel?: string;
+  triggerClassName?: string;
 }) {
   const router = useRouter();
   const single = exams.length === 1;
@@ -345,9 +349,9 @@ export function AiGenerateDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-10 items-center gap-1.5 rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700"
+        className={triggerClassName}
       >
-        <Sparkles className="h-3.5 w-3.5" /> AI Generate
+        <Sparkles className="h-4 w-4" /> {triggerLabel}
       </button>
       {/* Portalled: the admin header's backdrop-blur would trap a fixed overlay. */}
       {open && mounted && createPortal(dialog, document.body)}

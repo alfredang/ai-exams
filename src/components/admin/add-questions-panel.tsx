@@ -1,34 +1,30 @@
 'use client';
 import { useState, type ReactNode } from 'react';
-import { PenLine, Sparkles } from 'lucide-react';
+import { PenLine } from 'lucide-react';
 
 /**
  * The question pool's "Add questions" bar: type one in manually (opens the
- * form here), or jump to the AI generator at the top of the page.
+ * form here), or open the AI generator pop-up (`ai` is its trigger button).
  */
-export function AddQuestionsPanel({ manual, aiHref, defaultOpen }: { manual: ReactNode; aiHref: string; defaultOpen?: boolean }) {
+export function AddQuestionsPanel({ manual, ai, defaultOpen }: { manual: ReactNode; ai: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(!!defaultOpen);
-  const cls = 'inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-[13px] font-medium transition';
-  const idle = 'border-slate-200 text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200';
   return (
-    <div className="mt-4 rounded-md border border-slate-200 p-3 dark:border-slate-700">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-[13px] font-semibold text-slate-800 dark:text-slate-100">Add questions:</span>
+    <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50/60 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="mr-1 text-sm font-semibold text-slate-800 dark:text-slate-100">Add questions:</span>
         <button
           type="button"
           onClick={() => setOpen(!open)}
           aria-pressed={open}
-          className={`${cls} ${open ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : idle}`}
+          className={`inline-flex h-10 items-center gap-1.5 rounded-md px-4 text-[13px] font-medium text-white shadow-sm transition ${open ? 'bg-blue-800 ring-2 ring-blue-300 dark:ring-blue-700' : 'bg-blue-600 hover:bg-blue-700'}`}
         >
-          <PenLine className="h-3.5 w-3.5" />
-          Add manually
+          <PenLine className="h-4 w-4" />
+          {open ? 'Close manual form' : 'Add manually'}
         </button>
-        <a href={aiHref} className={`${cls} ${idle}`}>
-          <Sparkles className="h-3.5 w-3.5" />
-          Generate with AI ↑
-        </a>
+        {ai}
+        <span className="text-xs text-slate-500">AI questions arrive as drafts in the review queue; nothing reaches learners until you approve it.</span>
       </div>
-      {open && <div className="mt-4">{manual}</div>}
+      {open && <div className="mt-4 rounded-md border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">{manual}</div>}
     </div>
   );
 }

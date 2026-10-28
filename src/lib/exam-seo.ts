@@ -1,6 +1,6 @@
 // Default SEO meta for a product's practice exam. The pool fold fills any
 // empty metaTitle / metaDescription / metaKeywords with these on every
-// deploy; an admin edit (or AI Assist) on /admin-dashboard/exams/[id]#seo
+// deploy; an admin edit (or AI Assist) on the Certification page (/admin-dashboard/certifications/[id]#seo)
 // wins because only empty fields are filled.
 
 const SITE = 'Tertiary Exams';

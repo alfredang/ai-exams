@@ -5,7 +5,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { PageHeader } from '@/components/admin/page-header';
 import { ConfirmButton } from '@/components/admin/confirm-button';
-import { ExternalLink, Library, Ticket, Trash2 } from 'lucide-react';
+import { Award, ExternalLink, Library, Ticket, Trash2 } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import { ExamPicker } from '@/components/admin/exam-picker';
 import {
@@ -25,19 +25,23 @@ function slugify(s: string) {
   return s.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// The title and description are edited on the Certification page (they are
+// also the question bank's exam title and description); this form only has
+// them while no question bank is linked.
 async function updatePracticeExam(formData: FormData) {
   'use server';
   const user = await requireAdmin();
   const id = String(formData.get('id'));
-  const title = String(formData.get('title') || '').trim();
   const slug = slugify(String(formData.get('slug') || ''));
-  const description = String(formData.get('description') || '').trim();
   const published = formData.get('published') === 'on';
-  if (!title || !slug) redirect(`/admin-dashboard/bundles/${id}?error=required`);
+  const copy = formData.has('title')
+    ? { title: String(formData.get('title') || '').trim(), description: String(formData.get('description') || '').trim() }
+    : null;
+  if (!slug || (copy && !copy.title)) redirect(`/admin-dashboard/bundles/${id}?error=required`);
   const clash = await db.bundle.findFirst({ where: { slug, NOT: { id } }, select: { id: true } });
   if (clash) redirect(`/admin-dashboard/bundles/${id}?error=slug`);
   // The price is not editable: every Practice Exam is PRACTICE_PRICE_CENTS.
-  await db.bundle.update({ where: { id }, data: { title, slug, description, published, price: PRACTICE_PRICE_CENTS } });
+  await db.bundle.update({ where: { id }, data: { ...copy, slug, published, price: PRACTICE_PRICE_CENTS } });
   await db.adminLog.create({
     data: { adminId: user.id, action: 'bundle.update', targetType: 'Bundle', targetId: id, metadata: { slug, published } }
   });
@@ -134,6 +138,11 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
         back={{ href: '/admin-dashboard/bundles', label: 'Back to Practice Exams' }}
         actions={
           <div className="flex items-center gap-2">
+            {bank && (
+              <Link href={`/admin-dashboard/certifications/${bank.id}`} className="inline-flex h-8 items-center gap-1 rounded-md bg-violet-600 px-3 text-[12px] font-medium text-white hover:bg-violet-700">
+                <Award className="h-3.5 w-3.5" /> Certification
+              </Link>
+            )}
             {vendorSlug && bundle.published && (
               <Link href={practiceHref(vendorSlug, bundle)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-md border border-slate-300 px-3 text-[12px] text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                 <ExternalLink className="h-3 w-3" /> View on site
@@ -164,14 +173,27 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
         <form action={updatePracticeExam} className="card space-y-3 p-4 lg:col-span-2">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Practice Exam listing</h2>
           <input type="hidden" name="id" value={bundle.id} />
-          <Field label="Title" hint="Shown on the catalog, the practice exam page, checkout and invoices.">
-            <input name="title" defaultValue={bundle.title} required className="input-sm" />
-          </Field>
+          {!bank && (
+            <>
+              <Field label="Title" hint="Link a question bank to edit this on the Certification page.">
+                <input name="title" defaultValue={bundle.title} required className="input-sm" />
+              </Field>
+              <Field label="Description">
+                <textarea name="description" rows={4} defaultValue={bundle.description} className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+              </Field>
+            </>
+          )}
+          {bank && (
+            <div className="rounded-md border border-violet-200 bg-violet-50/60 p-3 dark:border-violet-900 dark:bg-violet-950/20">
+              <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{bank.title}</div>
+              <p className="mt-1 line-clamp-2 text-[12px] text-slate-600 dark:text-slate-300">{bundle.description}</p>
+              <Link href={`/admin-dashboard/certifications/${bank.id}`} className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-violet-700 hover:underline dark:text-violet-300">
+                <Award className="h-3.5 w-3.5" /> Edit exam title, description, duration, domains &amp; SEO on the Certification page →
+              </Link>
+            </div>
+          )}
           <Field label="URL slug" hint={`Page address: /practice-exams/${vendorSlug ?? '<vendor>'}/${bundle.slug}`}>
             <input name="slug" defaultValue={bundle.slug} required className="input-sm font-mono" />
-          </Field>
-          <Field label="Description">
-            <textarea name="description" rows={4} defaultValue={bundle.description} className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
           </Field>
           <Field label="Price" hint="Every Practice Exam is the same price.">
             <div className="flex h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-2 text-[12px] font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">

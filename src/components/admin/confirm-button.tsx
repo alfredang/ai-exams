@@ -12,6 +12,8 @@ export function ConfirmButton({
   className,
   disabled,
   title,
+  name,
+  value,
   variant = 'danger'
 }: {
   message: string;
@@ -19,6 +21,9 @@ export function ConfirmButton({
   className?: string;
   disabled?: boolean;
   title?: string;
+  /** Submitted with the form, like a plain submit button's name/value. */
+  name?: string;
+  value?: string;
   variant?: 'danger' | 'neutral' | 'primary';
 }) {
   const [armed, setArmed] = useState(false);
@@ -50,6 +55,8 @@ export function ConfirmButton({
       type="submit"
       disabled={disabled}
       title={title}
+      name={name}
+      value={value}
       onClick={handleClick}
       className={`${base} ${variantCls} disabled:cursor-not-allowed ${className ?? ''}`}
     >

@@ -19,3 +19,23 @@ export function isSequencingChoice(question: QuestionShape): boolean {
 export function questionPresentationType(question: QuestionShape): string {
   return isSequencingChoice(question) ? 'ORDERING' : question.type;
 }
+
+/** Question-bank list filters (?domain=&qstatus=&qtype=); '' means any. */
+export type QuestionListFilter = { domain: string; status: string; type: string };
+
+export const QUESTION_STATUS_FILTERS = ['PUBLISHED', 'DRAFT', 'ARCHIVED'];
+export const QUESTION_TYPE_FILTERS = ['SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING', 'HOTSPOT'];
+
+/** Admin label for a question status: ARCHIVED reads "Unpublished". */
+export const QUESTION_STATUS_LABEL: Record<string, string> = {
+  PUBLISHED: 'Published',
+  DRAFT: 'Awaiting review',
+  ARCHIVED: 'Unpublished'
+};
+
+/** Shared by the question list and its "select all matching" bulk action. */
+export function matchesQuestionFilter(question: QuestionShape & { domain: string; status: string }, f: QuestionListFilter): boolean {
+  return (!f.domain || question.domain === f.domain)
+    && (!f.status || question.status === f.status)
+    && (!f.type || questionPresentationType(question) === f.type);
+}
