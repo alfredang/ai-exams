@@ -37,28 +37,23 @@ practice-exams-pdfs-*/
 .claude/skills/frontend-design
 .claude/skills/ui-ux-designer
 
-# Local debug screenshots from playwright-mcp runs
-/ai-assist-before.png
-/edit-ai-assist.png
-/page-editor.png
-/page-editor-v2.png
-/faq-admin.png
-/admin-ckad.png
-/ckad-page.png
-/screenshot.png
+# Root stays code-only: debug screenshots, decks and scratch output never
+# belong here. Images for the README live in docs/images/; site images in public/.
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/*.gif
+/*.pptx
+/*.docx
+/*.xlsx
+/artifacts/
 
 # Reference repositories cloned locally for question authoring
 /ckad-prep-master/
 
 # transient audit artifacts
 scripts/_*
-/bundles-after.png
-/ckad-runner.png
-/home-after.png
-/home-final.png
-/home-light.png
-/login-icons-row.png
-/login-social.png
 
 # Vendor course material / exam-objective source PDFs dropped in for
 # authoring reference. Third-party copyrighted courseware — never commit.

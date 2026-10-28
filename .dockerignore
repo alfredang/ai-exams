@@ -8,3 +8,13 @@ README.md
 
 # Confidential security reports
 docs/security
+
+# Not needed to build or run the site
+docs
+reference
+artifacts
+.playwright-mcp
+.agents
+.claude
+*.pptx
+*.tsbuildinfo
