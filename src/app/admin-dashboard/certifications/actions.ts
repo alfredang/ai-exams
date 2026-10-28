@@ -5,9 +5,9 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { parseDomains } from '@/lib/question-pool';
 
-// Server actions for the Certification page (/admin-dashboard/certifications/[id]):
-// the exam's certification details, domain weights and SEO meta, all stored
-// on the question bank's Exam row.
+// Server actions for the certification sections on the Practice Exam page
+// (/admin-dashboard/bundles/[id]): the exam's certification details, domain
+// weights and SEO meta, all stored on the question bank's Exam row.
 
 async function adminId(): Promise<string> {
   const session = await auth();
@@ -16,11 +16,19 @@ async function adminId(): Promise<string> {
   return user.id as string;
 }
 
-const certHref = (examId: string) => `/admin-dashboard/certifications/${examId}`;
+// Where a save lands: the Practice Exam page selling this question bank, or the
+// fallback certification page while no Practice Exam is linked to it yet.
+async function certHref(examId: string): Promise<string> {
+  const item = await db.bundleItem.findFirst({
+    where: { examId, tier: 'PRACTICE' },
+    orderBy: { bundle: { published: 'desc' } },
+    select: { bundleId: true }
+  });
+  return item ? `/admin-dashboard/bundles/${item.bundleId}` : `/admin-dashboard/certifications/${examId}`;
+}
 
 function refresh(examId: string) {
-  revalidatePath(certHref(examId));
-  revalidatePath('/admin-dashboard/certifications');
+  revalidatePath(`/admin-dashboard/certifications/${examId}`);
   revalidatePath(`/admin-dashboard/exams/${examId}`);
   revalidatePath('/admin-dashboard/exams');
   revalidatePath('/admin-dashboard/bundles', 'layout');
@@ -29,7 +37,7 @@ function refresh(examId: string) {
 export async function updateCertificationDetails(fd: FormData) {
   const admin = await adminId();
   const id = String(fd.get('id') || '');
-  const back = certHref(id);
+  const back = await certHref(id);
   const before = await db.exam.findUnique({ where: { id } });
   if (!before) return;
   const title = String(fd.get('title') || '').trim();
@@ -116,7 +124,7 @@ export async function autoFillFromWeb(fd: FormData) {
 export async function updateDomainWeights(fd: FormData) {
   const admin = await adminId();
   const id = String(fd.get('id') || '');
-  const back = certHref(id);
+  const back = await certHref(id);
   const exam = await db.exam.findUnique({ where: { id }, select: { domains: true } });
   if (!exam) return;
   const before = parseDomains(exam.domains);
@@ -180,5 +188,5 @@ export async function saveSeoMeta(fd: FormData) {
     data: { adminId: admin, action: 'exam.seo.update', targetType: 'Exam', targetId: id, metadata: data }
   });
   refresh(id);
-  redirect(`${certHref(id)}?seo=saved#seo`);
+  redirect(`${await certHref(id)}?seo=saved#seo`);
 }

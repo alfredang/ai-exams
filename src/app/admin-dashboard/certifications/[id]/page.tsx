@@ -1,23 +1,25 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ExternalLink, FileText, ShoppingBag } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { PageHeader } from '@/components/admin/page-header';
 import { CertificationSections } from '@/components/admin/certification-sections';
 import { examBaseTitle } from '@/lib/exam-title';
-import { practiceHref } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
 const linkBtn =
   'inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800';
 
-// One certification: its exam details, domain weights and SEO meta. Keyed by
-// the question bank (Exam) id, since that is where these fields are stored.
+// Certification details, domain weights and SEO meta now live on the Practice
+// Exam page (/admin-dashboard/bundles/[id]). This route forwards there (old
+// links and bookmarks keep working; the #fragment survives the redirect) and
+// only renders the sections itself for a question bank no Practice Exam sells
+// yet. Keyed by the question bank (Exam) id, where these fields are stored.
 export default async function CertificationPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ cert?: string }>;
+  searchParams: Promise<{ cert?: string; seo?: string }>;
 }) {
   const session = await auth();
   if ((session?.user as any)?.role !== 'ADMIN') redirect('/');
@@ -33,8 +35,14 @@ export default async function CertificationPage({ params, searchParams }: {
   const product = (await db.bundleItem.findFirst({
     where: { examId: exam.id, tier: 'PRACTICE' },
     orderBy: { bundle: { published: 'desc' } },
-    select: { bundle: { select: { id: true, slug: true, published: true } } }
+    select: { bundle: { select: { id: true } } }
   }))?.bundle;
+  if (product) {
+    const qs = new URLSearchParams();
+    if (sp.cert) qs.set('cert', sp.cert);
+    if (sp.seo) qs.set('seo', sp.seo);
+    redirect(`/admin-dashboard/bundles/${product.id}${qs.size ? `?${qs}` : ''}`);
+  }
 
   return (
     <div>
@@ -46,25 +54,18 @@ export default async function CertificationPage({ params, searchParams }: {
             <span>{exam.vendor.name} · {exam.code}</span>
           </span>
         }
-        back={{ href: '/admin-dashboard/certifications', label: 'Back to Certifications' }}
+        back={{ href: '/admin-dashboard/exams', label: 'Back to Question Banks' }}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            {product?.published && (
-              <Link href={practiceHref(exam.vendor.slug, product)} target="_blank" rel="noreferrer" className={linkBtn}>
-                <ExternalLink className="h-4 w-4" /> View on site
-              </Link>
-            )}
-            {product && (
-              <Link href={`/admin-dashboard/bundles/${product.id}`} className={linkBtn}>
-                <ShoppingBag className="h-4 w-4" /> Practice Exam
-              </Link>
-            )}
             <Link href={`/admin-dashboard/exams/${exam.id}`} className={linkBtn}>
               <FileText className="h-4 w-4" /> Question Bank
             </Link>
           </div>
         }
       />
+      <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-800 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
+        No Practice Exam sells this question bank yet. Once one is linked, these settings are edited on its Practice Exam page.
+      </p>
       <CertificationSections examId={exam.id} flash={sp.cert} />
     </div>
   );

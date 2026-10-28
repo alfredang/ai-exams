@@ -5,9 +5,10 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { PageHeader } from '@/components/admin/page-header';
 import { ConfirmButton } from '@/components/admin/confirm-button';
-import { Award, ExternalLink, Library, Ticket, Trash2 } from 'lucide-react';
+import { ExternalLink, Library, Ticket, Trash2 } from 'lucide-react';
 import { formatMoney } from '@/lib/utils';
 import { ExamPicker } from '@/components/admin/exam-picker';
+import { CertificationSections } from '@/components/admin/certification-sections';
 import {
   PRACTICE_PRICE_CENTS, displayExamCode, practiceHref, syncProductItems, voucherOnSale, voucherTitleFor
 } from '@/lib/products';
@@ -25,8 +26,8 @@ function slugify(s: string) {
   return s.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-// The title and description are edited on the Certification page (they are
-// also the question bank's exam title and description); this form only has
+// The title and description are edited in Certification details below (they
+// are also the question bank's exam title and description); this form only has
 // them while no question bank is linked.
 async function updatePracticeExam(formData: FormData) {
   'use server';
@@ -91,7 +92,8 @@ async function deleteProduct(formData: FormData) {
 
 export default async function PracticeExamDetailPage({ params, searchParams }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  /** `cert` is the certification sections' flash: saved | weights | slug | required. */
+  searchParams: Promise<{ saved?: string; error?: string; cert?: string }>;
 }) {
   const session = await auth();
   if ((session?.user as any)?.role !== 'ADMIN') redirect('/');
@@ -138,11 +140,6 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
         back={{ href: '/admin-dashboard/bundles', label: 'Back to Practice Exams' }}
         actions={
           <div className="flex items-center gap-2">
-            {bank && (
-              <Link href={`/admin-dashboard/certifications/${bank.id}`} className="inline-flex h-8 items-center gap-1 rounded-md bg-violet-600 px-3 text-[12px] font-medium text-white hover:bg-violet-700">
-                <Award className="h-3.5 w-3.5" /> Certification
-              </Link>
-            )}
             {vendorSlug && bundle.published && (
               <Link href={practiceHref(vendorSlug, bundle)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-md border border-slate-300 px-3 text-[12px] text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                 <ExternalLink className="h-3 w-3" /> View on site
@@ -175,7 +172,7 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
           <input type="hidden" name="id" value={bundle.id} />
           {!bank && (
             <>
-              <Field label="Title" hint="Link a question bank to edit this on the Certification page.">
+              <Field label="Title" hint="Once a question bank is linked, edit this in Certification details on this page.">
                 <input name="title" defaultValue={bundle.title} required className="input-sm" />
               </Field>
               <Field label="Description">
@@ -184,13 +181,9 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
             </>
           )}
           {bank && (
-            <div className="rounded-md border border-violet-200 bg-violet-50/60 p-3 dark:border-violet-900 dark:bg-violet-950/20">
-              <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{bank.title}</div>
-              <p className="mt-1 line-clamp-2 text-[12px] text-slate-600 dark:text-slate-300">{bundle.description}</p>
-              <Link href={`/admin-dashboard/certifications/${bank.id}`} className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-violet-700 hover:underline dark:text-violet-300">
-                <Award className="h-3.5 w-3.5" /> Edit exam title, description, duration, domains &amp; SEO on the Certification page →
-              </Link>
-            </div>
+            <p className="text-[12px] text-slate-500">
+              Title and description: <a href="#certification" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Certification details</a> below.
+            </p>
           )}
           <Field label="URL slug" hint={`Page address: /practice-exams/${vendorSlug ?? '<vendor>'}/${bundle.slug}`}>
             <input name="slug" defaultValue={bundle.slug} required className="input-sm font-mono" />
@@ -275,6 +268,13 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
           </section>
         </div>
       </div>
+
+      {bank && (
+        <div className="mt-4">
+          {/* A retired variant's settings live on its pool exam. */}
+          <CertificationSections examId={bank.poolExamId ?? bank.id} flash={sp.cert} />
+        </div>
+      )}
     </div>
   );
 }

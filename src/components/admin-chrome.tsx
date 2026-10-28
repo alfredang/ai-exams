@@ -28,7 +28,6 @@ import {
   ChevronRight,
   Sparkles,
   Wand2,
-  Award,
   MessageSquare,
   Quote,
   Menu,
@@ -58,7 +57,6 @@ const SECTIONS: NavSection[] = [
       // The two products customers buy, then the question banks behind them.
       { href: '/admin-dashboard/bundles', label: 'Practice Exams', icon: BookOpen, exact: true },
       { href: '/admin-dashboard/bundles/vouchers', label: 'Exam Vouchers', icon: Ticket },
-      { href: '/admin-dashboard/certifications', label: 'Certifications', icon: Award },
       { href: '/admin-dashboard/exams', label: 'Question Banks', icon: FileText, exact: true },
       { href: '/admin-dashboard/questions', label: 'AI Question Generator', icon: Wand2 },
       { href: '/admin-dashboard/vendors', label: 'Vendors', icon: Building2 }

@@ -11,10 +11,11 @@ import {
 const LEVELS = ['Foundational', 'Associate', 'Professional', 'Specialty'];
 
 /**
- * The Certification page body (/admin-dashboard/certifications/[id]): exam
- * title, code, timer, pass mark, questions per exam, official page and
+ * The certification sections of the Practice Exam page (/admin-dashboard/bundles/[id]):
+ * exam title, code, timer, pass mark, questions per exam, official page and
  * description, then domain weights and SEO meta — all stored on the question
- * bank's Exam row.
+ * bank's Exam row. /admin-dashboard/certifications/[id] forwards to that page
+ * (and renders these sections only for a bank no Practice Exam sells yet).
  */
 export async function CertificationSections({
   examId,
