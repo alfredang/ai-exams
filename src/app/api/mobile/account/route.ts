@@ -13,6 +13,9 @@ export async function DELETE(req: Request) {
   if (!user || user.anonymizedAt) return NextResponse.json({ ok: true });
 
   const tag = `deleted-${user.id.slice(0, 8)}@example.invalid`;
+  // Unlink Google/Apple so signing in with them again starts a fresh account
+  // instead of landing on this deactivated one.
+  await db.account.deleteMany({ where: { userId: user.id } });
   await db.user.update({
     where: { id: user.id },
     data: {
