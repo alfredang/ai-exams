@@ -482,6 +482,34 @@ export async function sendRefundEmail(orderId: string, creditNoteId: string, amo
   );
 }
 
+/**
+ * Welcome email an admin sends from the user page: sign-in steps (Google or
+ * email code) plus the practice exams the account can open. Throws when every
+ * transport fails; returns null when the template is disabled.
+ */
+export async function sendWelcomeEmail(userId: string) {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      email: true,
+      name: true,
+      entitlements: { orderBy: { grantedAt: 'asc' }, select: { exam: { select: { id: true, title: true } } } }
+    }
+  });
+  if (!user) return null;
+  const seen = new Set<string>();
+  const exams = user.entitlements
+    .map((e) => e.exam)
+    .filter((e) => !seen.has(e.id) && seen.add(e.id))
+    .map((e) => ({ title: e.title }));
+  const { sendTemplated } = await import('./email/templates');
+  return sendTemplated('WELCOME', user.email, {
+    user: { name: user.name && user.name !== 'user' ? user.name : 'there', email: user.email },
+    exams,
+    loginUrl: `${process.env.APP_URL || ''}/login?next=/user-dashboard`
+  });
+}
+
 export async function sendVoucherDeliveredEmail(
   to: string,
   examName: string,

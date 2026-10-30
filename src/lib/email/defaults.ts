@@ -88,6 +88,34 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       refund: { amount: 43900, currency: 'SGD' }
     }
   },
+  WELCOME: {
+    displayName: 'Welcome',
+    description: 'Sent by an admin from the user page: how to sign in, and the practice exams assigned to the account.',
+    subject: 'Welcome to {{brand.name}} — your practice exams are ready',
+    bodyHtml: wrap(`  <h2 style="margin:0 0 12px">Welcome to {{brand.name}}</h2>
+  <p>Hi {{user.name}},</p>
+  <p>Your {{brand.name}} account has been created for <b>{{user.email}}</b>.</p>
+  {{#if exams.length}}
+  <p style="margin:16px 0 6px">These practice exams are ready on your dashboard:</p>
+  <ul style="margin:0 0 16px;padding-left:20px">
+    {{#each exams}}<li style="margin:4px 0"><b>{{this.title}}</b></li>{{/each}}
+  </ul>
+  <p style="color:#475569;font-size:14px">Each one has a timed <b>Exam mode</b> and a <b>Practice mode</b> with explanations, and you can retake it as often as you like.</p>
+  {{/if}}
+  <p style="margin:16px 0 6px"><b>How to sign in</b></p>
+  <ul style="margin:0 0 16px;padding-left:20px;color:#475569;font-size:14px">
+    <li style="margin:4px 0"><b>Continue with Google</b> using {{user.email}} — no password needed.</li>
+    <li style="margin:4px 0">Or choose <b>Email code</b> on the sign-in page and enter the one-time code we email you.</li>
+  </ul>
+  <p style="margin-top:24px"><a href="{{loginUrl}}" style="background:{{brand.primaryColor}};color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">Sign in and start →</a></p>`),
+    sampleVars: {
+      brand: sampleBrand,
+      appUrl: 'https://example.com',
+      loginUrl: 'https://example.com/login?next=/user-dashboard',
+      exams: [{ title: 'CompTIA Security+ (SY0-701)' }],
+      user: { name: 'Alex Tan', email: 'alex@example.com' }
+    }
+  },
   VOUCHER_DELIVERY: {
     displayName: 'Voucher Delivery',
     description: 'Sent when a voucher code is delivered (5 days after purchase).',

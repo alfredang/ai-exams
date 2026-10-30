@@ -82,6 +82,7 @@ enum EmailTemplateKey {
   OTP_TEASER_GATE
   PASSWORD_RESET
   REFUND_ISSUED
+  WELCOME
 }
 
 // =========== Models ===========

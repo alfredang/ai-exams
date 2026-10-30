@@ -251,6 +251,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           account.provider === 'microsoft-entra-id')
       ) {
         await markInboxVerified(user.id!).catch(() => {});
+        // An admin-created account that signs in with Google already has a
+        // sign-in method, so don't force it through /set-password.
+        await db.user
+          .updateMany({ where: { id: user.id!, passwordSetupRequired: true }, data: { passwordSetupRequired: false } })
+          .catch(() => {});
       }
     }
   }

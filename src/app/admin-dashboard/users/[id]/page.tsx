@@ -16,6 +16,7 @@ import {
   LogOut,
   ShieldOff,
   Send,
+  Mail,
   Eye as EyeIcon,
   Pin,
   Trash2,
@@ -77,6 +78,21 @@ async function resendLoginOtp(formData: FormData) {
     data: { adminId: me.id, action: 'user.resend-login-otp', targetType: 'User', targetId: id, metadata: { email: user.email } }
   });
   redirect(`/admin-dashboard/users/${id}?otp=sent`);
+}
+
+async function sendWelcome(formData: FormData) {
+  'use server';
+  const me = await requireAdmin();
+  const id = bump(formData, 'id');
+  const user = await db.user.findUnique({ where: { id }, select: { email: true, active: true } });
+  if (!user || !user.active) return;
+  const { sendWelcomeEmail } = await import('@/lib/mail');
+  const info = await sendWelcomeEmail(id).catch(() => null);
+  if (!info) redirect(`/admin-dashboard/users/${id}?welcome=failed`);
+  await db.adminLog.create({
+    data: { adminId: me.id, action: 'user.welcome_email', targetType: 'User', targetId: id, metadata: { email: user.email } }
+  });
+  redirect(`/admin-dashboard/users/${id}?welcome=sent`);
 }
 
 async function anonymizeUser(formData: FormData) {
@@ -232,7 +248,7 @@ export default async function AdminUserDetailPage({
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; otp?: string }>;
+  searchParams: Promise<{ tab?: string; otp?: string; welcome?: string }>;
 }) {
   const session = await auth();
   const me = session?.user as any;
@@ -325,6 +341,11 @@ export default async function AdminUserDetailPage({
         back={{ href: '/admin-dashboard/users', label: 'Back to users' }}
       />
 
+      {(sp.welcome === 'sent' || sp.welcome === 'failed') && (
+        <p role="status" className={`mb-4 rounded-md p-3 text-sm ${sp.welcome === 'sent' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'}`}>
+          {sp.welcome === 'sent' ? 'Welcome email sent to the user.' : 'Could not send the welcome email. Check email delivery, or whether the Welcome template is disabled.'}
+        </p>
+      )}
       {(sp.otp === 'sent' || sp.otp === 'failed') && (
         <p role="status" className={`mb-4 rounded-md p-3 text-sm ${sp.otp === 'sent' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'}`}>
           {sp.otp === 'sent' ? 'Login code sent to the user.' : 'Could not send a login code. Check email delivery or try again later.'}
@@ -768,6 +789,14 @@ export default async function AdminUserDetailPage({
                   <input type="hidden" name="id" value={user.id} />
                   <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                     <Send className="h-3 w-3" /> Send login OTP
+                  </button>
+                </form>
+              )}
+              {user.active && !user.anonymizedAt && (
+                <form action={sendWelcome}>
+                  <input type="hidden" name="id" value={user.id} />
+                  <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                    <Mail className="h-3 w-3" /> Send welcome email
                   </button>
                 </form>
               )}
