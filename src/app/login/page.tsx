@@ -15,7 +15,7 @@ function LoginInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/post-login';
-  const [tab, setTab] = useState<'password' | 'otp'>('password');
+  const [tab, setTab] = useState<'password' | 'otp'>('otp');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -57,8 +57,8 @@ function LoginInner() {
         <p className="mt-1 text-sm text-slate-600">Sign in to continue your practice.</p>
 
         <div className="mt-6 inline-flex rounded-lg border border-slate-200 p-1 text-sm">
-          <button onClick={() => setTab('password')} className={`rounded-md px-3 py-1.5 ${tab === 'password' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Password</button>
           <button onClick={() => setTab('otp')} className={`rounded-md px-3 py-1.5 ${tab === 'otp' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Email code</button>
+          <button onClick={() => setTab('password')} className={`rounded-md px-3 py-1.5 ${tab === 'password' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Password</button>
         </div>
 
         {tab === 'password' ? (
@@ -83,7 +83,7 @@ function LoginInner() {
             {!otpSent ? (
               <>
                 {captcha.widget}
-                <button type="button" onClick={sendOtp} className="btn-outline w-full" disabled={busy || !email || !captcha.ready}>{busy ? 'Sending…' : 'Send 6-digit code'}</button>
+                <button type="button" onClick={sendOtp} className="btn-primary w-full" disabled={busy || !email || !captcha.ready}>{busy ? 'Sending…' : 'Send 6-digit code'}</button>
               </>
             ) : (
               <>

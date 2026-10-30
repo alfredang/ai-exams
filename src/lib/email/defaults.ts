@@ -105,7 +105,7 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
   <p style="margin:16px 0 6px"><b>How to sign in</b></p>
   <ul style="margin:0 0 16px;padding-left:20px;color:#475569;font-size:14px">
     <li style="margin:4px 0"><b>Continue with Google</b> using {{user.email}} — no password needed.</li>
-    <li style="margin:4px 0">Or choose <b>Email code</b> on the sign-in page and enter the one-time code we email you.</li>
+    <li style="margin:4px 0">Or enter your email on the sign-in page and we'll send you a <b>one-time code</b>. You can also choose <b>Password</b> there once you have set one.</li>
   </ul>
   <p style="margin-top:24px"><a href="{{loginUrl}}" style="background:{{brand.primaryColor}};color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">Sign in and start →</a></p>`),
     sampleVars: {
