@@ -17,6 +17,11 @@ import { StorefrontMotionStyles } from '@/components/storefront/motion-styles';
 // Avoids per-visit DB hits while keeping seed/publish changes visible quickly.
 export const revalidate = 300;
 
+// Only the homepage is canonical at "/". This used to sit in the root layout,
+// where every page without its own canonical inherited it and told Google it
+// was a copy of the homepage.
+export const metadata = { alternates: { canonical: '/' } };
+
 const VOUCHER_ON_SALE = { priceVoucher: { not: null }, voucherPublished: true } as const;
 
 export default async function HomePage() {

@@ -8,10 +8,10 @@ const Schema = z.object({
 });
 export type SeoMeta = z.infer<typeof Schema>;
 
-const SYSTEM = `You write SEO meta for an exam-prep platform called Tertiary Exams.
-- title: 50-70 chars, includes the exam code if relevant
-- description: 120-180 chars, friendly + factual, mentions practice + free teaser
-- keywords: comma-separated, 5-10 terms, no quotes`;
+const SYSTEM = `You write SEO meta for an exam-prep platform called Tertiary Exams, a Singapore company targeting searchers in Singapore.
+- title: 50-70 chars, leads with "<exam code> Practice Exam in Singapore" (or the certification name when there is no code)
+- description: 120-180 chars, friendly + factual, contains "<exam code> practice exam in Singapore" once, names the certification, mentions practice + free teaser
+- keywords: comma-separated, 5-10 terms, no quotes; include "<code> practice exam in Singapore", "<certification name> practice exam in Singapore" and "<code> exam voucher in Singapore"`;
 
 // Unconstrained shape for structured output; Schema above enforces lengths.
 const OutputSchema = z.object({ title: z.string(), description: z.string(), keywords: z.string() });

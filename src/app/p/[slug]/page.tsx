@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const page = await loadPage(slug);
   if (!page) return { title: 'Not found' };
-  return { title: page.title, description: page.excerpt ?? undefined };
+  return { title: page.title, description: page.excerpt ?? undefined, alternates: { canonical: `/p/${slug}` } };
 }
 
 /**

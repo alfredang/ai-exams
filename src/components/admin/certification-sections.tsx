@@ -173,7 +173,7 @@ export async function CertificationSections({
         <form action={saveSeoMeta} className="grid gap-3 md:grid-cols-2">
           <input type="hidden" name="id" value={exam.id} />
             <Field label="Meta title (≤70 chars)" className="md:col-span-2">
-            <input name="metaTitle" defaultValue={exam.metaTitle ?? ''} className="input" placeholder="AWS SAA-C03 Practice Exam | Tertiary Exams" />
+            <input name="metaTitle" defaultValue={exam.metaTitle ?? ''} className="input" placeholder="SAA-C03 Practice Exam in Singapore | Tertiary Exams" />
           </Field>
           <Field label="Meta description (120–180 chars)" className="md:col-span-2">
             <textarea name="metaDescription" defaultValue={exam.metaDescription ?? ''} rows={2} className="input" />

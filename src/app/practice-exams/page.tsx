@@ -10,6 +10,21 @@ import { CatalogFilters } from './filters';
 import { FeatureCards, type Feature } from '@/components/feature-cards';
 import { bundleSearchAliases, catalogSearchRank, catalogSearchSuggestions, matchesCatalogSearch } from '@/lib/catalog-search';
 
+// A catalog filtered only by Vendor duplicates that Vendor's landing page
+// (/practice-exams/[vendor]), so it names that page as canonical.
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string; level?: string; vendor?: string }> }) {
+  const sp = await searchParams;
+  const vendorOnly = sp.vendor && !sp.q && !sp.level && /^[a-z0-9-]+$/.test(sp.vendor);
+  return { ...metadata, alternates: { canonical: vendorOnly ? `/practice-exams/${sp.vendor}` : '/practice-exams' } };
+}
+
+const metadata = {
+  title: 'Practice Exams in Singapore | Tertiary Exams',
+  description:
+    'Certification practice exams in Singapore for Microsoft, AWS, Claude, CKA, CKAD, CompTIA and more — timed exam mode, explanations by exam domain, unlimited retakes and 10 free questions.',
+  keywords: 'practice exam Singapore, certification practice exam Singapore, practice exams for Microsoft certifications, practice exams for AWS certifications, practice exams for Claude certifications, CKA practice exam, CKAD practice exam, CompTIA practice exam Singapore'
+};
+
 const PAGE_SIZE = 9;
 
 const FEATURES: Feature[] = [
@@ -101,7 +116,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         <p className="eyebrow mb-2">Practice Exams</p>
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Practice Exams for leading Certifications</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Every Practice Exam is <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — timed Exam mode, Practice mode with explanations and unlimited retakes. Start with the free 10-question teaser on any Practice Exam.
+          <b className="text-ink dark:text-white">Certification practice exams in Singapore</b>, each <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — timed Exam mode, Practice mode with explanations and unlimited retakes. Start with the free 10-question teaser on any Practice Exam.
         </p>
       </div>
 

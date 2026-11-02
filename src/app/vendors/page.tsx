@@ -7,6 +7,12 @@ import { db } from '@/lib/db';
 // publish counts shift on the same cadence as the homepage at most).
 export const revalidate = 600;
 
+export const metadata = {
+  title: 'Certification Vendors — Practice Exams & Exam Vouchers in Singapore',
+  description: 'Browse practice exams and exam vouchers by Vendor: Microsoft, AWS, Claude (Anthropic), CKA and CKAD (Linux Foundation), CompTIA, Google Cloud, Cisco and more.',
+  alternates: { canonical: '/vendors' }
+};
+
 export default async function VendorsPage() {
   const [vendors, products] = await Promise.all([
     db.vendor.findMany({ orderBy: { name: 'asc' }, select: { id: true, slug: true, name: true, description: true } }),

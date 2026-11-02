@@ -1,26 +1,28 @@
 import Link from 'next/link';
 import { Price } from '@/components/price';
-import { ArrowRight, BadgeCheck, BookOpen, ChevronDown, Gift, Mail, ReceiptText, ShoppingCart, CalendarCheck, Ticket } from 'lucide-react';
+import { ArrowRight, BookOpen, ChevronDown, ShoppingCart, CalendarCheck } from 'lucide-react';
 import { db } from '@/lib/db';
-import { PRICE_TAX_NOTE } from '@/lib/currency';
 import { serializeJsonLd } from '@/lib/structured-data';
 import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
 import { FeatureCards, type Feature } from '@/components/feature-cards';
+import { VOUCHER_PROMISES, VoucherCard } from '@/components/storefront/voucher-card';
 import { CatalogFilters } from '../practice-exams/filters';
-import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT, checkoutHref, displayExamCode, voucherHref, voucherTitleFor } from '@/lib/products';
+import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT, voucherTitleFor } from '@/lib/products';
 
-export const metadata = {
-  title: 'Exam Vouchers | Tertiary Exams',
+// A catalog filtered only by Vendor duplicates that Vendor's landing page
+// (/exam-vouchers/[vendor]), so it names that page as canonical.
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string; level?: string; vendor?: string }> }) {
+  const sp = await searchParams;
+  const vendorOnly = sp.vendor && !sp.q && !sp.level && /^[a-z0-9-]+$/.test(sp.vendor);
+  return { ...metadata, alternates: { canonical: vendorOnly ? `/exam-vouchers/${sp.vendor}` : '/exam-vouchers' } };
+}
+
+const metadata = {
+  title: 'Exam Vouchers in Singapore | Tertiary Exams',
   description:
-    'Buy official Exam Vouchers for CompTIA, Microsoft, AWS, Google Cloud and more — every Exam Voucher includes the Practice Exam for that Certification at no extra cost, with a GST tax invoice.'
+    'Buy official exam vouchers in Singapore for Microsoft, AWS, Claude, CKA, CKAD, CompTIA and more — every Exam Voucher includes the Practice Exam for that Certification free, with a GST tax invoice.',
+  keywords: 'exam voucher Singapore, certification exam voucher Singapore, exam vouchers for Microsoft certifications, exam vouchers for AWS certifications, exam vouchers for Claude certifications, CKA exam voucher, CKAD exam voucher, CompTIA exam voucher Singapore'
 };
-
-const PROMISES: Feature[] = [
-  { icon: BadgeCheck, t: 'Official Exam Vouchers', d: 'Genuine Vendor-issued codes, redeemable for the real Certification exam.' },
-  { icon: BookOpen, t: 'Practice Exam included', d: 'Unlimited Exam mode and Practice mode attempts unlock the moment you pay.' },
-  { icon: Mail, t: 'Delivered by email', d: `Your voucher code arrives within ${VOUCHER_DELIVERY_TEXT}.` },
-  { icon: ReceiptText, t: 'Tax invoice', d: 'Secure checkout and a GST tax invoice for every order.' }
-];
 
 const STEPS = [
   { icon: ShoppingCart, t: 'Buy the Exam Voucher', d: 'Pick your Certification and check out securely online.' },
@@ -105,11 +107,11 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
         <p className="eyebrow mb-2">Exam Vouchers</p>
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Official Exam Vouchers — <span className="text-emerald-700 dark:text-emerald-300">Practice Exam included free</span></h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Book your Certification exam with a genuine Vendor-issued Exam Voucher, and prepare for it with the Practice Exam (worth <Price cents={PRACTICE_PRICE_CENTS} />) at no extra cost.
+          Book your Certification exam with a genuine Vendor-issued <b className="text-ink dark:text-white">exam voucher in Singapore</b>, and prepare for it with the Practice Exam (worth <Price cents={PRACTICE_PRICE_CENTS} />) at no extra cost.
         </p>
       </div>
 
-      <FeatureCards items={PROMISES} tone="emerald" />
+      <FeatureCards items={VOUCHER_PROMISES} tone="emerald" />
 
       <CatalogFilters
         q={q}
@@ -121,48 +123,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {visible.map((b) => {
-          const exam = b.items[0].exam;
-          const productHref = voucherHref(exam.vendor.slug, b);
-          return (
-            <article key={b.id} className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lift dark:hover:border-emerald-500/40 dark:hover:shadow-glow">
-              <div aria-hidden="true" className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 opacity-70 transition group-hover:opacity-100" />
-              <div className="flex flex-1 flex-col p-5">
-                <div className="eyebrow mb-2 flex flex-wrap items-center gap-x-1.5 text-[11px]">
-                  <span>{exam.vendor.name}</span>
-                  <span aria-hidden="true">·</span><span>{displayExamCode(exam.code)}</span>
-                  <span aria-hidden="true">·</span><span>{exam.level}</span>
-                </div>
-                <h3 className="font-display text-lg font-bold leading-snug">
-                  <Link href={productHref} className="hover:text-emerald-700 dark:hover:text-emerald-300">{voucherTitleFor(b)}</Link>
-                </h3>
-                <ul className="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-slate-300">
-                  <li className="flex gap-2"><Ticket className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />Official voucher, emailed in {VOUCHER_DELIVERY_TEXT}</li>
-                  <li className="flex gap-2">
-                    <Gift className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />
-                    <span>Practice Exam included <b className="text-emerald-700 dark:text-emerald-300">FREE</b> (worth <Price cents={PRACTICE_PRICE_CENTS} />)</span>
-                  </li>
-                </ul>
-                <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Voucher</div>
-                    <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300"><Price cents={b.priceVoucher!} /></div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={productHref} className="btn-ghost min-h-[44px] text-sm">Details</Link>
-                    <Link
-                      href={checkoutHref(b.id, 'VOUCHER')}
-                      className="btn min-h-[44px] bg-gradient-to-r from-emerald-600 to-teal-600 text-sm text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 dark:from-emerald-500 dark:to-teal-500"
-                    >
-                      Buy voucher
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+        {visible.map((b) => <VoucherCard key={b.id} b={{ ...b, exam: b.items[0].exam }} />)}
         {visible.length === 0 && (
           <div className="rounded-lg border border-line bg-white p-5 text-sm sm:col-span-2 lg:col-span-3 dark:border-slate-800 dark:bg-slate-900/80">
             <p className="font-medium">{priced.length === 0 ? 'No Exam Vouchers are available right now.' : 'No Exam Vouchers match your search.'}</p>

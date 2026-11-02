@@ -12,8 +12,9 @@
  *   - the official blueprint weights are applied when they are newer than
  *     the exam's `domainsVerifiedAt` (so an admin edit survives until the
  *     next official re-check);
- *   - empty SEO meta (title / description / keywords) is filled from the
- *     product (`buildExamSeo()`); admin-entered meta is never overwritten.
+ *   - SEO meta (title / description / keywords) is regenerated from the
+ *     product (`buildExamSeo()`, Singapore-targeted) unless an admin saved
+ *     it or ran AI Assist — then only empty fields are filled.
  *
  * Imported by prisma/seed.ts — keep imports relative and edge-free.
  */
@@ -38,6 +39,13 @@ const questionKey = (stem: string, options: unknown) =>
 
 export async function consolidateExamPools(db: PrismaClient, plans: PoolPlan[]) {
   const totals = { variants: 0, moved: 0, archived: 0, relabelled: 0, blueprints: 0, seo: 0 };
+  // Exams whose SEO meta an admin owns (saved by hand or via AI Assist).
+  const seoOwned = new Set(
+    (await db.adminLog.findMany({
+      where: { targetType: 'Exam', action: { in: ['exam.seo.update', 'exam.seo.assist'] } },
+      select: { targetId: true }
+    })).map((l) => l.targetId)
+  );
   for (const plan of plans) {
     const pool = await db.exam.findUnique({ where: { slug: plan.poolExamSlug }, include: { vendor: { select: { name: true } } } });
     if (!pool) continue;
@@ -125,8 +133,10 @@ export async function consolidateExamPools(db: PrismaClient, plans: PoolPlan[]) 
       await db.exam.update({ where: { id: pool.id }, data: { title: plan.bundleTitle, label: 'Practice Exam', code, description: plan.bundleDescription } });
     }
 
-    // SEO meta for the product page — fill only what is still empty.
-    if (!pool.metaTitle || !pool.metaDescription || !pool.metaKeywords) {
+    // SEO meta for the product page — kept in step with buildExamSeo() until
+    // an admin saves it or runs AI Assist; after that only empty fields fill.
+    const adminSeo = seoOwned.has(pool.id);
+    if (!adminSeo || !pool.metaTitle || !pool.metaDescription || !pool.metaKeywords) {
       const product = await db.bundle.findUnique({ where: { slug: plan.bundleSlug }, select: { priceVoucher: true } });
       const seo = buildExamSeo({
         title: plan.bundleTitle,
@@ -135,15 +145,17 @@ export async function consolidateExamPools(db: PrismaClient, plans: PoolPlan[]) 
         domainCount: domains.length,
         hasVoucher: product?.priceVoucher != null
       });
-      await db.exam.update({
-        where: { id: pool.id },
-        data: {
-          metaTitle: pool.metaTitle || seo.metaTitle,
-          metaDescription: pool.metaDescription || seo.metaDescription,
-          metaKeywords: pool.metaKeywords || seo.metaKeywords
-        }
-      });
-      totals.seo++;
+      const data = adminSeo
+        ? {
+            metaTitle: pool.metaTitle || seo.metaTitle,
+            metaDescription: pool.metaDescription || seo.metaDescription,
+            metaKeywords: pool.metaKeywords || seo.metaKeywords
+          }
+        : seo;
+      if (data.metaTitle !== pool.metaTitle || data.metaDescription !== pool.metaDescription || data.metaKeywords !== pool.metaKeywords) {
+        await db.exam.update({ where: { id: pool.id }, data });
+        totals.seo++;
+      }
     }
   }
   return totals;

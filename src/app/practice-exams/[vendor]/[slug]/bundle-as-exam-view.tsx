@@ -11,6 +11,7 @@ import {
 } from '@/lib/products';
 import { Breadcrumbs, CheckList, InstructorLedCard, MobileBuyBar, StatTile, VoucherUpsell } from '@/components/product/product-parts';
 import { instructorLedCourseFor } from '@/lib/instructor-led';
+import { PracticeSeoCopy } from '@/components/product/seo-copy';
 
 type BundleItem = {
   id: string;
@@ -141,6 +142,13 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
               ]} />
             </div>
           </div>
+
+          <PracticeSeoCopy
+            cert={{ title: bundle.title, code: displayCode, vendor: vendor.name }}
+            poolSize={poolSize}
+            perAttempt={perAttempt}
+            voucherHref={hasVoucher ? voucherPage : null}
+          />
 
           {hasVoucher && !owned && (
             <div className="lg:hidden">

@@ -43,6 +43,10 @@ export async function GET(req: Request) {
     `${base}/exam-vouchers`,
     `${base}/vendors`,
     ...vendors.map((v) => `${base}/practice-exams/${v.slug}`),
+    // Vendor Exam Voucher landing pages — only Vendors with a voucher on sale
+    // (the others redirect to /exam-vouchers).
+    ...[...new Set(products.filter(voucherOnSale).map((p) => p.items[0]?.exam.vendor.slug).filter(Boolean))]
+      .map((v) => `${base}/exam-vouchers/${v}`),
     ...products.flatMap((p) => {
       const vendor = p.items[0]?.exam.vendor.slug;
       if (!vendor) return [];

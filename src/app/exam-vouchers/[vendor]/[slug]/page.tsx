@@ -15,6 +15,8 @@ import {
 import { ExamDomains } from '@/components/exam-domains';
 import { Breadcrumbs, CheckList, FaqList, InstructorLedCard, MobileBuyBar, StatTile } from '@/components/product/product-parts';
 import { instructorLedCourseFor } from '@/lib/instructor-led';
+import { buildVoucherSeo } from '@/lib/exam-seo';
+import { VoucherSeoCopy } from '@/components/product/seo-copy';
 
 const FAQS = [
   { q: 'Is this an official exam voucher?', a: 'Yes. It is a genuine code issued by the certification vendor, redeemed on the vendor’s own registration site or testing partner (for example Pearson VUE).' },
@@ -44,9 +46,17 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
   const p = await loadVoucher(slug);
   if (!p || !voucherOnSale(p)) return {};
   const exam = (p.items.find((i) => i.tier === 'PRACTICE') ?? p.items[0])?.exam;
-  const title = `${voucherTitleFor(p)} | Tertiary Exams`;
-  const description = voucherDescriptionFor(p, { vendorName: exam?.vendor.name, code: displayExamCode(exam?.code) }).slice(0, 170);
-  return { title, description, openGraph: { title, description }, alternates: { canonical: `/exam-vouchers/${vendor}/${voucherSlugFor(p)}` } };
+  if (!exam) return {};
+  const seo = buildVoucherSeo({ title: p.title, code: displayExamCode(exam.code), vendor: exam.vendor.name });
+  const title = seo.metaTitle;
+  const description = seo.metaDescription;
+  return {
+    title,
+    description,
+    keywords: seo.metaKeywords,
+    openGraph: { title, description },
+    alternates: { canonical: `/exam-vouchers/${vendor}/${voucherSlugFor(p)}` }
+  };
 }
 
 export default async function ExamVoucherPage({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
@@ -108,7 +118,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
         <div className="container-app relative py-8 md:py-10">
           <Breadcrumbs items={[
             { href: '/exam-vouchers', label: 'Exam Vouchers' },
-            { href: `/exam-vouchers?vendor=${vendor.slug}`, label: vendor.name },
+            { href: `/exam-vouchers/${vendor.slug}`, label: vendor.name },
             { label: code }
           ]} />
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -146,6 +156,8 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
               </div>
             </div>
           </section>
+
+          <VoucherSeoCopy cert={{ title: product.title, code, vendor: vendor.name }} poolSize={poolSize} practiceHref={practicePage} />
 
           <section>
             <h2 className="font-display text-xl font-bold">How it works</h2>

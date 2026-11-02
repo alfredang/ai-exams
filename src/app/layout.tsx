@@ -43,7 +43,6 @@ export async function generateMetadata(): Promise<Metadata> {
     const ogDescription = s.SITE_HOME_DESCRIPTION || fallbackOgDescription;
     return {
       metadataBase: new URL(SITE_URL),
-      alternates: { canonical: '/' },
       title,
       description: s.SITE_HOME_DESCRIPTION || fallbackDescription,
       keywords: s.SITE_HOME_KEYWORDS || fallbackKeywords,
@@ -67,7 +66,6 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch {
     return {
       metadataBase: new URL(SITE_URL),
-      alternates: { canonical: '/' },
       title: fallbackTitle,
       description: fallbackDescription,
       keywords: fallbackKeywords,
