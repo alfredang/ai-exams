@@ -13,6 +13,7 @@ import { STORE_CURRENCY } from '@/lib/currency';
 import { hasPracticeAccess } from '@/lib/question-pool';
 import { StartButton } from './start-attempt-button';
 import { ExamDomains, ExamReferences } from '@/components/exam-domains';
+import { digitalOfferPolicies, productImageUrl, ratingJsonLd } from '@/lib/product-jsonld';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { slug } = await params;
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
     title,
     description,
     keywords: exam.metaKeywords ?? undefined,
-    openGraph: { title, description, images: exam.ogImage ? [exam.ogImage] : undefined },
+    openGraph: { title, description, images: [productImageUrl(slug, 'practice', exam.ogImage)] },
     alternates: { canonical: `/practice-exams/${(await params).vendor}/${slug}` }
   };
 }
@@ -152,49 +153,38 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
     sku: exam.code,
     category: 'Certification practice exam',
     url: productUrl,
+    image: [productImageUrl(productSlug, 'practice', exam.ogImage)],
     brand: { '@type': 'Brand', name: 'Tertiary Exams' },
     manufacturer: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' }
   };
   const offers = purchaseBundles.flatMap((bundle) => {
-    const checkoutUrl = `${PUBLIC_SITE_URL}/checkout/bundle/${bundle.id}`;
     const values: any[] = [{
       '@type': 'Offer',
       name: 'Practice Exam',
-      url: `${checkoutUrl}?tier=PRACTICE`,
+      url: productUrl,
       priceCurrency: STORE_CURRENCY,
       price: (bundle.price / 100).toFixed(2),
-      availability: 'https://schema.org/InStock'
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      ...digitalOfferPolicies('practice')
     }];
     if (bundle.priceVoucher != null) {
       values.push({
         '@type': 'Offer',
         name: 'Exam Voucher (practice exam included)',
-        url: `${checkoutUrl}?tier=VOUCHER`,
+        url: productUrl,
         priceCurrency: STORE_CURRENCY,
         price: (bundle.priceVoucher / 100).toFixed(2),
-        availability: 'https://schema.org/InStock'
+        availability: 'https://schema.org/InStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        ...digitalOfferPolicies('voucher')
       });
     }
     return values;
   });
   if (offers.length > 0) jsonLd.offers = offers;
-  if (ratingSummary.count > 0) {
-    jsonLd.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: ratingSummary.average,
-      reviewCount: ratingSummary.count
-    };
-  }
-  if (structuredReviews.length > 0) {
-    jsonLd.review = structuredReviews.map((review) => ({
-      '@type': 'Review',
-      name: review.title || `Review of ${exam.title}`,
-      reviewBody: review.body || undefined,
-      datePublished: review.createdAt.toISOString().slice(0, 10),
-      author: { '@type': 'Person', name: review.user.name || 'Anonymous learner' },
-      reviewRating: { '@type': 'Rating', ratingValue: review.rating, bestRating: 5, worstRating: 1 }
-    }));
-  }
+  Object.assign(jsonLd, ratingJsonLd(ratingSummary, structuredReviews, exam.title));
+
 
   // Entitlement check for showing "You have access — Start your attempt"
   // sidebar. userIsEntitled was already computed above for unpublished

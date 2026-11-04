@@ -17,6 +17,7 @@ import { Breadcrumbs, CheckList, FaqList, InstructorLedCard, MobileBuyBar, StatT
 import { instructorLedCourseFor } from '@/lib/instructor-led';
 import { buildVoucherSeo } from '@/lib/exam-seo';
 import { VoucherSeoCopy } from '@/components/product/seo-copy';
+import { digitalOfferPolicies, productImageUrl } from '@/lib/product-jsonld';
 
 const FAQS = [
   { q: 'Is this an official exam voucher?', a: 'Yes. It is a genuine code issued by the certification vendor, redeemed on the vendor’s own registration site or testing partner (for example Pearson VUE).' },
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
     title,
     description,
     keywords: seo.metaKeywords,
-    openGraph: { title, description },
+    openGraph: { title, description, images: [productImageUrl(p.slug, 'voucher')] },
     alternates: { canonical: `/exam-vouchers/${vendor}/${voucherSlugFor(p)}` }
   };
 }
@@ -91,14 +92,19 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
     sku: `${code}-VOUCHER`,
     category: 'Certification exam voucher',
     url: `${PUBLIC_SITE_URL}${voucherHref(vendor.slug, product)}`,
+    image: [productImageUrl(product.slug, 'voucher')],
     brand: { '@type': 'Brand', name: vendor.name },
     offers: {
       '@type': 'Offer',
       name: 'Exam Voucher (practice exam included)',
-      url: `${PUBLIC_SITE_URL}${buyHref}`,
+      // The product page, not /checkout/ (robots-disallowed).
+      url: `${PUBLIC_SITE_URL}${voucherHref(vendor.slug, product)}`,
       priceCurrency: STORE_CURRENCY,
       price: (price / 100).toFixed(2),
-      availability: 'https://schema.org/InStock'
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' },
+      ...digitalOfferPolicies('voucher')
     }
   };
   const faqJsonLd = {

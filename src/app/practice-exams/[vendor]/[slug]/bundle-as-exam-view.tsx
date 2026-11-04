@@ -12,6 +12,9 @@ import {
 import { Breadcrumbs, CheckList, InstructorLedCard, MobileBuyBar, StatTile, VoucherUpsell } from '@/components/product/product-parts';
 import { instructorLedCourseFor } from '@/lib/instructor-led';
 import { PracticeSeoCopy } from '@/components/product/seo-copy';
+import { db } from '@/lib/db';
+import { getExamRatingSummary } from '@/lib/reviews';
+import { APPROVED_REVIEW_SELECT, digitalOfferPolicies, productImageUrl, ratingJsonLd } from '@/lib/product-jsonld';
 
 type BundleItem = {
   id: string;
@@ -28,6 +31,7 @@ type BundleItem = {
     passingScore: number;
     domains: any;
     infoUrl?: string | null;
+    ogImage?: string | null;
     vendor: { slug: string; name: string };
     _count?: { questions: number };
   };
@@ -49,7 +53,7 @@ type Bundle = {
 
 // The Practice Exam product page for one certification: the pool exam (the
 // PRACTICE item) at the flat practice price, cross-selling the Exam Voucher.
-export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bundle; userId?: string; owned?: boolean }) {
+export async function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bundle; userId?: string; owned?: boolean }) {
   // Prefer the PRACTICE item: the VOUCHER row points at the same exam.
   const first = (bundle.items.find((i) => i.tier === 'PRACTICE') ?? bundle.items[0])?.exam;
   if (!first) return null;
@@ -65,24 +69,41 @@ export function BundleAsExamView({ bundle, userId, owned = false }: { bundle: Bu
   const teaserAction = `/practice-exams/${vendor.slug}/${first.slug}/teaser`;
   const course = instructorLedCourseFor(bundle.slug);
 
+  const [ratingSummary, structuredReviews] = await Promise.all([
+    getExamRatingSummary(first.id),
+    db.review.findMany({
+      where: { examId: first.id, status: 'APPROVED', deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: APPROVED_REVIEW_SELECT
+    })
+  ]);
+  const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${vendor.slug}/${bundle.slug}`;
+  const productName = `${bundle.title} Practice Exam`;
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: `${bundle.title} Practice Exam`,
+    name: productName,
     description: bundle.description,
+    image: [productImageUrl(bundle.slug, 'practice', first.ogImage)],
     sku: displayCode,
     category: 'Certification practice exam',
-    url: `${PUBLIC_SITE_URL}/practice-exams/${vendor.slug}/${bundle.slug}`,
+    url: productUrl,
     brand: { '@type': 'Brand', name: 'Tertiary Exams' },
     manufacturer: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' },
     offers: {
       '@type': 'Offer',
       name: 'Practice Exam',
-      url: `${PUBLIC_SITE_URL}${buyHref}`,
+      // The product page, not /checkout/ (robots-disallowed).
+      url: productUrl,
       priceCurrency: STORE_CURRENCY,
       price: (bundle.price / 100).toFixed(2),
-      availability: forSale ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
-    }
+      availability: forSale ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@type': 'Organization', name: 'Tertiary Infotech Academy Pte Ltd' },
+      ...digitalOfferPolicies('practice')
+    },
+    ...ratingJsonLd(ratingSummary, structuredReviews, productName)
   };
 
   return (
