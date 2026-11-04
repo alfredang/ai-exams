@@ -6,6 +6,7 @@ const handlebarsBrowserBuild = require.resolve('handlebars/dist/cjs/handlebars.j
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  allowedDevOrigins: ['127.0.0.1'],
   experimental: { serverActions: { bodySizeLimit: '2mb' } },
   webpack(config) {
     // The package's Node entry registers require.extensions for .hbs files,

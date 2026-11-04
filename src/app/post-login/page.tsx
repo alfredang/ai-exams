@@ -13,9 +13,11 @@ export default async function PostLogin({ searchParams }: { searchParams: Promis
     const user = await db.user.findUnique({ where: { id: userId }, select: { passwordSetupRequired: true } });
     if (user?.passwordSetupRequired) redirect('/set-password');
   }
+  // Administrators should always enter the admin workspace after signing in.
+  // Do this before honoring `next`, which may point at a public or user route.
+  if (role === 'ADMIN') redirect('/admin-dashboard');
   const rawNext = (await searchParams).next;
   if (rawNext && rawNext !== '/post-login' && rawNext.startsWith('/') &&
       !rawNext.startsWith('//') && !rawNext.startsWith('/\\')) redirect(rawNext);
-  if (role === 'ADMIN') redirect('/admin-dashboard');
   redirect('/user-dashboard');
 }

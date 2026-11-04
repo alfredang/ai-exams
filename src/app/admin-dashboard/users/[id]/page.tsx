@@ -8,6 +8,7 @@ import { formatMoney, tierLabel } from '@/lib/utils';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
+import { ExamSearchSelect } from '@/components/admin/exam-search-select';
 import { ScoreTrend } from '@/components/score-trend';
 import { getAttemptHistory, type ExamHistory } from '@/lib/attempt-history';
 import {
@@ -314,7 +315,7 @@ export default async function AdminUserDetailPage({
       _sum: { amount: true },
       _count: true
     }),
-    db.exam.findMany({ orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }], select: { id: true, code: true, vendor: { select: { name: true } } } })
+    db.exam.findMany({ orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }], select: { id: true, code: true, title: true, vendor: { select: { name: true } } } })
   ]);
 
   const ltv = aggregates._sum.amount ?? 0;
@@ -566,15 +567,18 @@ export default async function AdminUserDetailPage({
               )}
               <form action={regrant} className="mt-3 flex flex-wrap items-end gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
                 <input type="hidden" name="userId" value={user.id} />
-                <label className="flex flex-col text-[11px] uppercase tracking-wider text-slate-500">
-                  Grant ADMIN_GRANT for exam
-                  <select name="examId" className="input-sm mt-0.5 w-72" defaultValue="">
-                    <option value="">Select exam…</option>
-                    {exams.map((e) => (
-                      <option key={e.id} value={e.id}>{e.vendor.name} · {e.code}</option>
-                    ))}
-                  </select>
-                </label>
+                <div className="flex flex-col gap-0.5 text-[11px] uppercase tracking-wider text-slate-500">
+                  <span>Grant ADMIN_GRANT for exam</span>
+                  <ExamSearchSelect
+                    name="examId"
+                    options={exams.map((exam) => ({
+                      id: exam.id,
+                      code: exam.code,
+                      title: exam.title,
+                      vendor: exam.vendor.name
+                    }))}
+                  />
+                </div>
                 <button className="inline-flex h-8 items-center rounded-md bg-emerald-600 px-3 text-[12px] font-medium text-white hover:bg-emerald-700">
                   Grant
                 </button>

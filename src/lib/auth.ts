@@ -134,7 +134,19 @@ const providers: NextAuthConfig['providers'] = [
       const user = await db.user.findUnique({ where: { email } });
       if (!user) return null;
       if (!user.active) return null;
+      // Email-code sign-in may be the first successful login for a user who
+      // registered without choosing a password (including teaser signups and
+      // admin-created accounts). Verification can also intentionally discard
+      // a password that was set before inbox ownership was proven. In either
+      // case, require password creation immediately after this OTP login.
+      const needsPasswordSetup = !user.emailVerified || !user.passwordHash;
       if (!user.emailVerified) await markInboxVerified(user.id);
+      if (needsPasswordSetup) {
+        await db.user.updateMany({
+          where: { id: user.id, passwordHash: null },
+          data: { passwordSetupRequired: true }
+        });
+      }
       return { id: user.id, email: user.email, name: user.name ?? undefined, role: user.role } as any;
     }
   })
