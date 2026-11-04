@@ -184,7 +184,9 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   });
   if (offers.length > 0) jsonLd.offers = offers;
   Object.assign(jsonLd, ratingJsonLd(ratingSummary, structuredReviews, exam.title));
-
+  // Google rejects a Product with no offers, review or aggregateRating — an
+  // exam no product sells yet (and with no reviews) gets no Product markup.
+  const emitProductJsonLd = !!(jsonLd.offers || jsonLd.aggregateRating || jsonLd.review);
 
   // Entitlement check for showing "You have access — Start your attempt"
   // sidebar. userIsEntitled was already computed above for unpublished
@@ -193,7 +195,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
 
   return (
     <div className="container-app py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
+      {emitProductJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />}
       {teaserUnavailable && (
         <div className="mb-6 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
           The free teaser isn't available for this exam yet — it needs at least one teaser question.
