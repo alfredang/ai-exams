@@ -34,7 +34,6 @@ practice-exams-pdfs-*/
 
 # Personal skills symlinked into ignored .agents/ — broken links on GitHub, keep local-only
 .claude/skills/find-skills
-.claude/skills/frontend-design
 .claude/skills/ui-ux-designer
 
 # Root stays code-only: debug screenshots, decks and scratch output never
