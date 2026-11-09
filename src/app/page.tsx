@@ -95,15 +95,14 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute inset-0 text-brand-300/50 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)] dark:text-brand-400/20">
           <DotPattern className="h-full w-full" />
         </div>
-        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 py-6 md:py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] items-center gap-8 py-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1 text-xs font-semibold text-brand-700 shadow-card motion-safe:animate-fade-up dark:border-slate-700 dark:bg-slate-900/70 dark:text-brand-300">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              {certCount}+ Certifications · Practice Exams &amp; Exam Vouchers
+            <p className="flex items-center gap-2 text-sm font-semibold text-brand-700 motion-safe:animate-fade-up dark:text-brand-300">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              Prepare with confidence. {certCount}+ Certifications.
             </p>
-            <h1 className="mt-4 text-[1.75rem] font-extrabold leading-[1.05] tracking-tight motion-safe:animate-fade-up motion-safe:[animation-delay:80ms] sm:text-5xl md:text-[3.5rem] lg:text-[2.25rem] xl:text-5xl 2xl:text-[3.375rem]">
-              <span className="whitespace-nowrap">Prepare with confidence.</span><br />
-              <span className="gradient-text">Get certified.</span>
+            <h1 className="mt-2 text-balance text-[1.75rem] font-extrabold leading-[1.05] tracking-tight motion-safe:animate-fade-up motion-safe:[animation-delay:80ms] sm:text-5xl md:text-[3.5rem] lg:text-[2.25rem] xl:text-5xl 2xl:text-[3.375rem]">
+              Practice Exams &amp; Exam Vouchers <span className="gradient-text">in Singapore.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base text-slate-600 motion-safe:animate-fade-up motion-safe:[animation-delay:160ms] dark:text-slate-300 sm:text-lg">
               Realistic timed Practice Exams for just <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — and official Exam Vouchers that include the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b>. Start with a free {TEASER_N}-question teaser — no card needed.
@@ -143,7 +142,7 @@ export default async function HomePage() {
       </section>
 
       {/* Two product categories — the centrepiece */}
-      <section id="products" className="container-app py-6 md:py-8">
+      <section id="products" className="container-app py-6">
         <div className="mx-auto mb-6 max-w-2xl text-center">
           <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">Practise for it. Then go book it.</h2>
           <p className="mt-3 text-slate-600 dark:text-slate-300">
@@ -157,7 +156,7 @@ export default async function HomePage() {
 
       {/* Popular certifications — each card shows both options */}
       <section className="border-y border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-6 md:py-8">
+        <div className="container-app py-6">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">Start with a top Certification</h2>
@@ -215,7 +214,7 @@ export default async function HomePage() {
 
       {/* How it works */}
       <section id="how" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-6 md:py-8">
+        <div className="container-app py-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">From first question to exam day</h2>
           </div>
@@ -242,7 +241,7 @@ export default async function HomePage() {
 
       {/* FAQ */}
       <section id="faq" className="border-t border-line bg-canvas dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="container-app py-6 md:py-8">
+        <div className="container-app py-6">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">Frequently asked questions</h2>
           </div>

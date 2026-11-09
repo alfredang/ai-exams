@@ -50,12 +50,13 @@ export function VoucherCard({ b, showVendor = true }: { b: VoucherCardData; show
           <div>
             <div className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Voucher</div>
             <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300"><Price cents={b.priceVoucher!} /></div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</div>
+            <div className="text-sm font-medium text-ink dark:text-slate-200">{PRICE_TAX_NOTE}</div>
           </div>
           <div className="flex items-center gap-2">
             <Link href={productHref} className="btn-ghost min-h-[44px] text-sm">Details</Link>
             <Link
               href={checkoutHref(b.id, 'VOUCHER')}
+              rel="nofollow"
               className="btn min-h-[44px] bg-gradient-to-r from-emerald-600 to-teal-600 text-sm text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 dark:from-emerald-500 dark:to-teal-500"
             >
               Buy voucher

@@ -15,7 +15,7 @@ const BUNDLE_SEARCH_ALIASES: Record<string, string[]> = {
   'aws-sap-c02': ['TGS-2025053926'],
   'aws-soa-c03': ['TGS-2024051413'],
   'axelos-itil4-foundation': ['TGS-2024049350'],
-  'anthropic-cca-foundations': ['TGS-2026061312', 'C437'],
+  'anthropic-cca-foundations': ['TGS-2026061312', 'C437', 'CCA-F', 'CCAF'],
   'anthropic-ccar-professional': ['C364'],
   'cisco-ccna': ['TGS-2023037854'],
   'cisco-ccnp-encor': ['TGS-2024044052'],

@@ -138,15 +138,15 @@ export default async function SupportPage() {
         </div>
 
         {/* Phones: headline → form → details. Desktop: intro + details left, form right. */}
-        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] gap-8 py-8 md:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-0">
+        <div className="container-app relative grid grid-cols-[minmax(0,1fr)] gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:grid-rows-[auto_1fr] lg:gap-x-10 lg:gap-y-0">
           <div className="min-w-0 max-lg:order-1 lg:col-start-1 lg:row-start-1 lg:pt-4">
             <nav className="text-sm" aria-label="Breadcrumb">
               <Link href="/" className="text-slate-500 hover:underline dark:text-slate-400">← Home</Link>
             </nav>
-            <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1 text-xs font-semibold text-brand-700 shadow-card dark:border-slate-700 dark:bg-slate-900/70 dark:text-brand-300">
+            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-brand-700 dark:text-brand-300">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Free advice · Reply within one business day
             </p>
-            <h1 className="mt-4 text-[2rem] font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+            <h1 className="mt-2 text-[2rem] font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
               Talk to a<br />
               <span className="gradient-text">certification advisor.</span>
             </h1>
@@ -253,13 +253,12 @@ export default async function SupportPage() {
       </section>
 
       {/* Self-help */}
-      <section className="border-y border-line bg-canvas py-10 md:py-12 dark:border-slate-800">
+      <section className="border-y border-line bg-canvas py-6 dark:border-slate-800">
         <div className="container-app">
-          <p className="eyebrow">Quick answers</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Already a customer? Most answers are one click away.</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Already a customer? Most answers are one click away.</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {QUICK_HELP.map(({ icon: Icon, title, body, href, cta }) => (
-              <Link key={title} href={href} className="card-hover group flex flex-col p-5">
+              <Link key={title} href={href} rel={href.startsWith('/user-dashboard') ? 'nofollow' : undefined} className="card-hover group flex flex-col p-5">
                 <Icon className="h-6 w-6 text-brand dark:text-brand-300" aria-hidden="true" />
                 <h3 className="mt-3 font-semibold text-ink dark:text-white">{title}</h3>
                 <p className="mt-1 flex-1 text-sm text-slate-600 dark:text-slate-400">{body}</p>
@@ -293,7 +292,7 @@ export default async function SupportPage() {
       </section>
 
       {/* Before you write + company */}
-      <section className="container-app grid gap-6 py-10 md:py-12 lg:grid-cols-2">
+      <section className="container-app grid gap-4 py-6 lg:grid-cols-2">
         <div className="card p-6">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-brand dark:text-brand-300" aria-hidden="true" />

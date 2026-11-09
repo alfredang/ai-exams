@@ -1,6 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { db } from '@/lib/db';
 import { displayExamCode, practiceOnSale, voucherOnSale, voucherTitleFor } from '@/lib/products';
+import { SITE_OG_IMAGE } from '@/lib/seo-meta';
+import { PUBLIC_SITE_URL } from '@/lib/structured-data';
 
 // 1200×630 product card used as the Product JSON-LD `image` and the OG image
 // for Practice Exam / Exam Voucher pages. Deliberately NOT under /api/ —
@@ -19,6 +21,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ slug: string }>
   });
   const exam = bundle && (bundle.items.find((i) => i.tier === 'PRACTICE') ?? bundle.items[0])?.exam;
   if (!bundle || !exam || !(voucher ? voucherOnSale(bundle) : practiceOnSale(bundle))) {
+    // A real exam or product with nothing on sale (its page once linked here)
+    // gets the site card rather than a 404 in Search Console; unknown slugs 404.
+    const known = bundle || await db.exam.findUnique({ where: { slug }, select: { id: true } });
+    if (known) return Response.redirect(new URL(SITE_OG_IMAGE, PUBLIC_SITE_URL), 308);
     return new Response('Not found', { status: 404 });
   }
 

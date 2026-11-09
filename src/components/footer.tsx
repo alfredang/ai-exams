@@ -1,3 +1,4 @@
+import { WHATSAPP_DISPLAY, whatsappLink } from '@/lib/enquiry-topics';
 import type { ComponentType, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,8 +9,8 @@ import { getFooterPages } from '@/lib/pages';
 const APP_STORE_URL = 'https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308';
 const APP_STORE_BADGE =
   'https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83';
-const WHATSAPP_URL = 'https://wa.me/6588666375';
-const WHATSAPP_LABEL = '+65 8866 6375';
+const WHATSAPP_URL = whatsappLink();
+const WHATSAPP_LABEL = WHATSAPP_DISPLAY;
 
 function displayPhone(value: string): string {
   const compact = value.replace(/\s+/g, '');

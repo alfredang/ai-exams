@@ -10,9 +10,17 @@ import { drawAttemptQuestions } from '@/lib/question-pool';
 // Starting an attempt is deliberately POST-only: GET links are crawled by
 // search engines and health checkers and must never create database records.
 
+// A GET is an old link or a crawler: one permanent hop straight to the page
+// that sells the exam (a pool exam's or retired variant's slug is not that
+// page), so Google drops the teaser URL instead of chaining two redirects.
 export async function GET(req: NextRequest, { params }: { params: Promise<{ vendor: string; slug: string }> }) {
   const { vendor, slug } = await params;
-  return NextResponse.redirect(publicUrl(req, `/practice-exams/${vendor}/${slug}`));
+  const exam = await db.exam.findUnique({ where: { slug }, select: { id: true, poolExamId: true } });
+  const owner = exam && await db.bundle.findFirst({
+    where: { published: true, items: { some: { examId: exam.poolExamId ?? exam.id, tier: 'PRACTICE' } } },
+    select: { slug: true }
+  });
+  return NextResponse.redirect(publicUrl(req, `/practice-exams/${vendor}/${owner?.slug ?? slug}`), 308);
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ vendor: string; slug: string }> }) {

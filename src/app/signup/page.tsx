@@ -50,8 +50,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="container-app grid gap-6 pb-12 pt-4 md:grid-cols-2 md:pb-20 md:pt-6">
-      <div className="card p-8">
+    <div className="container-app grid gap-4 py-4 md:grid-cols-2">
+      <div className="card p-6">
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
         <p className="mt-1 text-sm text-slate-600">Free to start. No credit card required.</p>
 
@@ -76,7 +76,7 @@ export default function SignupPage() {
         <SocialLoginButtons callbackUrl="/post-login" />
       </div>
 
-      <div className="card p-8">
+      <div className="card p-6">
         <h2 className="text-xl font-semibold">Already have an account?</h2>
         <p className="mt-1 text-sm text-slate-600">Sign in with email and password, or with a one-time email code.</p>
         <Link href="/login" className="btn-outline mt-4 inline-flex w-full">Sign in →</Link>

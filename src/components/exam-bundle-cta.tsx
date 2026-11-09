@@ -36,12 +36,13 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-300">Unlimited retakes, each drawn fresh from the question pool.</p>
       <div className="mt-3 space-y-2">
-        <Link href={checkoutHref(product.id, 'PRACTICE')} className="btn-secondary w-full">
+        <Link href={checkoutHref(product.id, 'PRACTICE')} rel="nofollow" className="btn-secondary w-full">
           Practice exam · <Price cents={product.price} />
         </Link>
         {voucherOnSale(product) && (
           <Link
             href={checkoutHref(product.id, 'VOUCHER')}
+            rel="nofollow"
             className="btn-primary-grad inline-flex w-full items-center justify-center gap-1.5"
           >
             <Ticket className="h-3.5 w-3.5" />
@@ -49,7 +50,7 @@ export async function ExamBundleCTA({ examId }: { examId: string }) {
           </Link>
         )}
       </div>
-      <p className="mt-2 text-center text-[11px] text-slate-500 dark:text-slate-300">Prices are {PRICE_TAX_NOTE}</p>
+      <p className="mt-2 text-center text-sm font-medium text-ink dark:text-slate-200">Prices are {PRICE_TAX_NOTE}</p>
       {voucherOnSale(product) && (
         <p className="mt-3 text-[11px] leading-relaxed text-slate-500 dark:text-slate-300">
           Practice access is immediate; voucher codes arrive by email within 3–5 business days. The voucher portion is non-refundable after issue. <Link href="/p/refund-policy" className="text-blue-600 underline dark:text-blue-300">Refund details</Link>

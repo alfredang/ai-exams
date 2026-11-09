@@ -14,10 +14,19 @@ import { hasPracticeAccess } from '@/lib/question-pool';
 import { StartButton } from './start-attempt-button';
 import { ExamDomains, ExamReferences } from '@/components/exam-domains';
 import { digitalOfferPolicies, productImageUrl, ratingJsonLd } from '@/lib/product-jsonld';
+import { displayExamCode, isExtraVariantSlug } from '@/lib/products';
+import { buildExamSeo, certNames, headingWithCode } from '@/lib/exam-seo';
+import { examBaseTitle } from '@/lib/exam-title';
+import { pageMeta } from '@/lib/seo-meta';
+import { parseDomains } from '@/lib/question-pool';
+import { Breadcrumbs, FaqList, ProductMeta } from '@/components/product/product-parts';
+import { PracticeSeoCopy, RelatedCerts } from '@/components/product/seo-copy';
+import { faqJsonLd, practiceFaqs } from '@/lib/product-faqs';
+import { breadcrumbJsonLd } from '@/lib/vendor-landing';
 
 export async function generateMetadata({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
-  const { slug } = await params;
-  const select = { title: true, code: true, description: true, published: true, poolExamId: true, metaTitle: true, metaDescription: true, metaKeywords: true, ogImage: true, vendor: { select: { name: true } } } as const;
+  const { slug, vendor } = await params;
+  const select = { title: true, code: true, description: true, domains: true, published: true, poolExamId: true, metaTitle: true, metaDescription: true, metaKeywords: true, ogImage: true, vendor: { select: { name: true } } } as const;
   // The Practice Exam product wins its slug; its SEO meta lives on the
   // product's practice (pool) exam. Mirror the page's routing here.
   const product = await db.bundle.findUnique({
@@ -25,17 +34,28 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
     select: { published: true, title: true, description: true, items: { where: { tier: 'PRACTICE' }, take: 1, select: { exam: { select } } } }
   });
   const pool = product?.published ? product.items[0]?.exam : null;
-  let exam = pool ? { ...pool, title: product!.title, description: product!.description } : await db.exam.findUnique({ where: { slug }, select });
+  const exam = pool ? { ...pool, title: product!.title, description: product!.description } : await db.exam.findUnique({ where: { slug }, select });
   if (!exam) return {};
-  const title = exam.metaTitle || `${exam.vendor.name} ${exam.code} — ${exam.title} | Tertiary Exams`;
-  const description = exam.metaDescription || (exam.description ? exam.description.slice(0, 170) : `Practice questions and exam voucher for ${exam.code}.`);
-  return {
-    title,
-    description,
-    keywords: exam.metaKeywords ?? undefined,
-    openGraph: { title, description, images: [productImageUrl(slug, 'practice', exam.ogImage)] },
-    alternates: { canonical: `/practice-exams/${(await params).vendor}/${slug}` }
-  };
+  // An exam no product sells (AZ-900 today) has no stored SEO from the pool
+  // fold, so build it here rather than falling back to "Vendor CODE — Title".
+  const fallback = buildExamSeo({
+    title: examBaseTitle(exam.title),
+    code: displayExamCode(exam.code),
+    vendor: exam.vendor.name,
+    domainCount: parseDomains(exam.domains).length,
+    hasVoucher: false
+  });
+  return pageMeta({
+    title: exam.metaTitle || fallback.metaTitle,
+    description: exam.metaDescription || fallback.metaDescription,
+    keywords: exam.metaKeywords || fallback.metaKeywords,
+    path: `/practice-exams/${vendor}/${slug}`,
+    // /og/product/<slug> only renders for a Practice Exam on sale; an exam page
+    // with nothing for sale would point Google at a 404, so it gets the site card.
+    ...(pool || exam.ogImage ? { image: productImageUrl(slug, 'practice', exam.ogImage) } : {}),
+    // "Practice Exam 2…N" leftovers repeat their first variant: thin duplicates.
+    noindex: !pool && isExtraVariantSlug(slug)
+  });
 }
 
 export default async function ExamDetailPage({ params, searchParams }: { params: Promise<{ vendor: string; slug: string }>; searchParams: Promise<{ teaser?: string }> }) {
@@ -145,12 +165,27 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   // Subtopics and reference links are keyed by product (Bundle) slug.
   const productSlug = purchaseBundles[0]?.slug ?? exam.slug;
   const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${exam.vendor.slug}/${exam.slug}`;
+  const displayCode = displayExamCode(exam.code);
+  const baseTitle = examBaseTitle(exam.title);
+  const cert = { title: baseTitle, code: displayCode, vendor: exam.vendor.name };
+  const { key } = certNames(cert);
+  const heading = `${headingWithCode(baseTitle, cert)} Practice Exam`;
+  const perAttempt = Math.min(exam.questionCount, exam._count.questions);
+  const faqs = practiceFaqs({
+    cert,
+    poolSize: exam._count.questions,
+    perAttempt,
+    durationMinutes: exam.durationMinutes,
+    passingScore: exam.passingScore,
+    priceCents: purchaseBundles[0]?.price ?? null,
+    voucherPriceCents: null
+  });
   const jsonLd: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: exam.title,
+    name: heading,
     description: exam.description,
-    sku: exam.code,
+    sku: displayCode,
     category: 'Certification practice exam',
     url: productUrl,
     image: [productImageUrl(productSlug, 'practice', exam.ogImage)],
@@ -194,31 +229,33 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
   const entitled = userIsEntitled || (userId ? await hasPracticeAccess(db, userId, exam.id) : false);
 
   return (
-    <div className="container-app py-10">
+    <div className="container-app py-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd(faqs)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd([
+        { name: 'Practice Exams', path: '/practice-exams' },
+        { name: exam.vendor.name, path: `/practice-exams/${exam.vendor.slug}` },
+        { name: `${key} Practice Exam`, path: `/practice-exams/${exam.vendor.slug}/${exam.slug}` }
+      ])) }} />
       {emitProductJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />}
       {teaserUnavailable && (
         <div className="mb-6 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
           The free teaser isn't available for this exam yet — it needs at least one teaser question.
         </div>
       )}
-      <div className="mb-2 text-sm">
-        <Link href="/practice-exams" className="text-blue-600 hover:underline">All exams</Link>
-        <span className="text-slate-400"> / </span>
-        <Link href={`/practice-exams/${exam.vendor.slug}`} className="text-blue-600 hover:underline">{exam.vendor.name}</Link>
-      </div>
+      <Breadcrumbs items={[
+        { href: '/practice-exams', label: 'Practice Exams' },
+        { href: `/practice-exams/${exam.vendor.slug}`, label: exam.vendor.name },
+        { label: displayCode }
+      ]} />
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <div className="mb-3 flex items-center gap-2 text-sm">
-            <span className="badge-brand">{exam.vendor.name}</span>
-            <span className="badge">{exam.code}</span>
-            <span className="badge">{exam.level}</span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">{exam.title}</h1>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
+          <ProductMeta lead="Practice Exam" items={[exam.vendor.name, displayCode, exam.level]} />
+          <h1 className="mt-2 text-balance text-3xl font-bold tracking-tight">{heading}</h1>
           <p className="mt-2 text-slate-600 dark:text-slate-100">{exam.description}</p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <Stat icon={BookOpen} label="Questions per attempt" value={`${Math.min(exam.questionCount, exam._count.questions)}`} />
+            <Stat icon={BookOpen} label="Questions per attempt" value={`${perAttempt}`} />
             <Stat icon={Timer} label="Duration" value={`${exam.durationMinutes} min`} />
             <Stat icon={Award} label="Pass score" value={`${exam.passingScore}%`} />
           </div>
@@ -242,7 +279,7 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
             <h2 className="font-semibold">What you get</h2>
             <ul className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-100">
               {[
-                `A ${exam._count.questions}-question pool — every attempt draws ${Math.min(exam.questionCount, exam._count.questions)} fresh questions weighted by the official exam domains`,
+                `A ${exam._count.questions}-question pool — every attempt draws ${perAttempt} fresh questions weighted by the official exam domains`,
                 'Unlimited retakes',
                 'Practice mode with immediate explanations',
                 'Timed Exam mode that simulates the real test',
@@ -257,9 +294,20 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
 
           <ExamReferences productSlug={productSlug} fallbackExamUrl={exam.infoUrl} />
 
-          <ShareExam vendorSlug={exam.vendor.slug} examSlug={exam.slug} title={`${exam.vendor.name} ${exam.code} — ${exam.title}`} />
+          <div className="mt-6">
+            <PracticeSeoCopy cert={cert} poolSize={exam._count.questions} perAttempt={perAttempt} onSale={purchaseBundles.length > 0} />
+          </div>
 
-          <ExamReviews examId={exam.id} examTitle={exam.title} />
+          <section className="mt-6">
+            <h2 className="font-display text-xl font-bold">{key} practice exam questions answered</h2>
+            <div className="mt-3"><FaqList items={faqs} /></div>
+          </section>
+
+          <ShareExam vendorSlug={exam.vendor.slug} examSlug={exam.slug} title={heading} />
+
+          <ExamReviews examId={exam.id} examTitle={baseTitle} />
+
+          <div className="mt-6"><RelatedCerts kind="practice" vendor={exam.vendor} /></div>
 
           <p className="mt-6 text-xs text-slate-500 dark:text-slate-400">
             This platform provides original practice questions for learning. We are not affiliated with {exam.vendor.name}, and we do not provide real exam dumps.
@@ -270,11 +318,11 @@ export default async function ExamDetailPage({ params, searchParams }: { params:
           <div className="card p-5">
             <h3 className="text-sm font-semibold uppercase text-slate-500 dark:text-slate-300">2026 Practice Exam Details</h3>
             <dl className="mt-3 space-y-1 text-sm">
-              <Row k="Exam code" v={exam.code} />
+              <Row k="Exam code" v={displayCode} />
               <Row k="Level" v={exam.level} />
               <Row k="Duration" v={`${exam.durationMinutes} min`} />
               <Row k="Pass score" v={`${exam.passingScore}%`} />
-              <Row k="Question count" v={`${exam.questionCount}`} />
+              <Row k="Question count" v={`${perAttempt}`} />
             </dl>
           </div>
 

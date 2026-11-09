@@ -25,6 +25,16 @@ export function Breadcrumbs({ items }: { items: { href?: string; label: string }
   );
 }
 
+/** "Practice Exam · Anthropic · CCAR-F · Foundational": plain text, not a row of chips. */
+export function ProductMeta({ items, lead, leadClass = 'text-brand-700 dark:text-brand-300' }: { items: string[]; lead: string; leadClass?: string }) {
+  return (
+    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+      <span className={`font-semibold ${leadClass}`}>{lead}</span>
+      {items.filter(Boolean).map((item) => <span key={item}> · {item}</span>)}
+    </p>
+  );
+}
+
 export function StatTile({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-line bg-white/80 px-4 py-3 shadow-card backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/60">
@@ -68,8 +78,8 @@ export function VoucherUpsell({ href, buyHref, price, code, compact = false }: {
     <div className="relative overflow-hidden rounded-2xl border border-emerald-300/70 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-card dark:border-emerald-500/40 dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900">
       <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-emerald-300/30 blur-2xl dark:bg-emerald-500/20" aria-hidden="true" />
       <div className="relative">
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
-          <Gift className="h-3 w-3" aria-hidden="true" /> Best value
+        <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+          <Gift className="h-3.5 w-3.5" aria-hidden="true" /> Best value
         </span>
         <h3 className="mt-2 font-display text-lg font-extrabold leading-snug text-ink dark:text-white">
           Ready to sit the real {code} exam?
@@ -86,12 +96,12 @@ export function VoucherUpsell({ href, buyHref, price, code, compact = false }: {
           <div>
             <div className="text-[11px] uppercase tracking-wide text-muted dark:text-slate-400">Voucher + practice</div>
             <div className="font-display text-2xl font-extrabold text-emerald-700 dark:text-emerald-300"><Price cents={price} /></div>
-            <div className="text-[11px] text-muted dark:text-slate-400">{PRICE_TAX_NOTE}</div>
+            <div className="text-sm font-medium text-ink dark:text-slate-200">{PRICE_TAX_NOTE}</div>
           </div>
           <Ticket className="h-8 w-8 text-emerald-500/70" aria-hidden="true" />
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <Link href={buyHref} className="btn inline-flex w-full items-center justify-center bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400">
+          <Link href={buyHref} rel="nofollow" className="btn inline-flex w-full items-center justify-center bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400">
             Buy voucher
           </Link>
           <Link href={href} className="btn-outline w-full">Voucher details</Link>
@@ -112,7 +122,7 @@ export function InstructorLedCard({ course, code }: { course: InstructorLedCours
         <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase text-brand-700 dark:text-brand-300">
           <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Instructor-Led Exam Prep
         </span>
-        {course.scheme && <span className="badge">{course.scheme}</span>}
+        {course.scheme && <span className="text-xs font-semibold uppercase text-muted dark:text-slate-400">{course.scheme}</span>}
       </div>
       <h3 className="mt-2 font-semibold">Prefer a trainer-led class?</h3>
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -136,9 +146,9 @@ export function MobileBuyBar({ label, price, href, cta }: { label: string; price
         <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="truncate text-xs text-muted dark:text-slate-400">{label}</div>
-            <div className="font-display text-xl font-extrabold text-ink dark:text-white"><Price cents={price} /> <span className="text-[11px] font-sans font-normal text-muted dark:text-slate-400">{PRICE_TAX_NOTE}</span></div>
+            <div className="font-display text-xl font-extrabold text-ink dark:text-white"><Price cents={price} /> <span className="font-sans text-sm font-medium text-ink dark:text-slate-200">{PRICE_TAX_NOTE}</span></div>
           </div>
-          <Link href={href} className="btn-primary-grad min-h-[44px] shrink-0 px-5">{cta}</Link>
+          <Link href={href} rel="nofollow" className="btn-primary-grad min-h-[44px] shrink-0 px-5">{cta}</Link>
         </div>
       </div>
     </>

@@ -63,7 +63,7 @@ export default async function PublicPage({ params }: { params: Promise<{ slug: s
   const bodyHtml = await renderPlaceholders(page.bodyHtml);
 
   return (
-    <div className="container-app max-w-3xl py-12">
+    <div className="container-app max-w-3xl py-8">
       <div className="mb-6 text-sm">
         <Link href="/" className="text-slate-500 hover:underline">← Home</Link>
       </div>

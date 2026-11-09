@@ -51,14 +51,14 @@ function LoginInner() {
   }
 
   return (
-    <div className="container-app grid gap-6 pb-12 pt-4 md:grid-cols-2 md:pb-20 md:pt-6">
-      <div className="card p-8">
+    <div className="container-app grid gap-4 py-4 md:grid-cols-2">
+      <div className="card p-6">
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="mt-1 text-sm text-slate-600">Sign in to continue your practice.</p>
 
         <div className="mt-6 inline-flex rounded-lg border border-slate-200 p-1 text-sm">
-          <button onClick={() => setTab('otp')} className={`rounded-md px-3 py-1.5 ${tab === 'otp' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Email code</button>
-          <button onClick={() => setTab('password')} className={`rounded-md px-3 py-1.5 ${tab === 'password' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Password</button>
+          <button onClick={() => setTab('otp')} className={`rounded-md px-3 py-1.5 ${tab === 'otp' ? 'bg-slate-900 text-white dark:bg-brand-500' : 'text-slate-600 dark:text-slate-300'}`}>Email code</button>
+          <button onClick={() => setTab('password')} className={`rounded-md px-3 py-1.5 ${tab === 'password' ? 'bg-slate-900 text-white dark:bg-brand-500' : 'text-slate-600 dark:text-slate-300'}`}>Password</button>
         </div>
 
         {tab === 'password' ? (
@@ -98,8 +98,8 @@ function LoginInner() {
         <SocialLoginButtons callbackUrl={next} />
       </div>
 
-      <div className="card p-8">
-        <h1 className="text-2xl font-bold tracking-tight">New to Tertiary Exams?</h1>
+      <div className="card p-6">
+        <h2 className="text-2xl font-bold tracking-tight">New to Tertiary Exams?</h2>
         <p className="mt-1 text-sm text-slate-600">Create a free account to save progress, retake teasers unlimited times, and unlock paid practice exams.</p>
         <ul className="mt-4 space-y-2 text-sm text-slate-700">
           <li>✓ Free practice teaser on every exam</li>

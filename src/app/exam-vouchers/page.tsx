@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { serializeJsonLd } from '@/lib/structured-data';
 import { bundleSearchAliases, catalogSearchRank, matchesCatalogSearch } from '@/lib/catalog-search';
 import { FeatureCards, type Feature } from '@/components/feature-cards';
+import { pageMeta } from '@/lib/seo-meta';
 import { VOUCHER_PROMISES, VoucherCard } from '@/components/storefront/voucher-card';
 import { CatalogFilters } from '../practice-exams/filters';
 import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT, voucherTitleFor } from '@/lib/products';
@@ -14,13 +15,13 @@ import { PRACTICE_PRICE_CENTS, VOUCHER_DELIVERY_TEXT, voucherTitleFor } from '@/
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string; level?: string; vendor?: string }> }) {
   const sp = await searchParams;
   const vendorOnly = sp.vendor && !sp.q && !sp.level && /^[a-z0-9-]+$/.test(sp.vendor);
-  return { ...metadata, alternates: { canonical: vendorOnly ? `/exam-vouchers/${sp.vendor}` : '/exam-vouchers' } };
+  return pageMeta({ ...metadata, path: vendorOnly ? `/exam-vouchers/${sp.vendor}` : '/exam-vouchers' });
 }
 
 const metadata = {
-  title: 'Exam Vouchers in Singapore | Tertiary Exams',
+  title: 'Official Exam Vouchers in Singapore | Tertiary Exams',
   description:
-    'Buy official exam vouchers in Singapore for Microsoft, AWS, Claude, CKA, CKAD, CompTIA and more — every Exam Voucher includes the Practice Exam for that Certification free, with a GST tax invoice.',
+    'Buy official exam vouchers in Singapore for AWS, Microsoft, Claude CCAR-F, CKA, CompTIA Security+ and more. Practice exam included free, GST tax invoice.',
   keywords: 'exam voucher Singapore, certification exam voucher Singapore, exam vouchers for Microsoft certifications, exam vouchers for AWS certifications, exam vouchers for Claude certifications, CKA exam voucher, CKAD exam voucher, CompTIA exam voucher Singapore'
 };
 
@@ -104,8 +105,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
     <div className="container-app py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
       <div className="mb-8 max-w-3xl">
-        <p className="eyebrow mb-2">Exam Vouchers</p>
-        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Official Exam Vouchers — <span className="text-emerald-700 dark:text-emerald-300">Practice Exam included free</span></h1>
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Official Exam Vouchers in Singapore — <span className="text-emerald-700 dark:text-emerald-300">Practice Exam included free</span></h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
           Book your Certification exam with a genuine Vendor-issued <b className="text-ink dark:text-white">exam voucher in Singapore</b>, and prepare for it with the Practice Exam (worth <Price cents={PRACTICE_PRICE_CENTS} />) at no extra cost.
         </p>
@@ -134,7 +134,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
         )}
       </div>
 
-      <section className="mt-14">
+      <section className="mt-6">
         <h2 className="text-2xl font-bold tracking-tight">How it works</h2>
         <ol className="mt-4 grid gap-4 md:grid-cols-3">
           {STEPS.map(({ icon: Icon, t, d }, i) => (
@@ -150,7 +150,7 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
         </ol>
       </section>
 
-      <section className="mt-14 max-w-3xl">
+      <section className="mt-6">
         <h2 className="text-2xl font-bold tracking-tight">Exam Voucher questions</h2>
         <div className="mt-4 divide-y divide-line rounded-lg border border-line bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/80">
           {FAQS.map((f) => (

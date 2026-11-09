@@ -9,6 +9,7 @@ import { PRACTICE_PRICE_CENTS, displayExamCode, practiceHref } from '@/lib/produ
 import { buildVendorSeo, certNames, sortForVendorSeo } from '@/lib/exam-seo';
 import { serializeJsonLd } from '@/lib/structured-data';
 import { vendorLandingJsonLd } from '@/lib/vendor-landing';
+import { pageMeta } from '@/lib/seo-meta';
 import { VendorSeoCopy } from '@/components/product/seo-copy';
 import { ProductCard } from '@/components/storefront/product-card';
 import { VoucherUpsellBanner } from '@/components/storefront/voucher-upsell-banner';
@@ -62,13 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
   const data = await loadVendor(slug);
   if (!data) return {};
   const { metaTitle: title, metaDescription: description, metaKeywords: keywords } = data.seo;
-  return {
-    title,
-    description,
-    keywords,
-    openGraph: { title, description },
-    alternates: { canonical: `/practice-exams/${slug}` }
-  };
+  return pageMeta({ title, description, keywords, path: `/practice-exams/${slug}` });
 }
 
 export default async function VendorCatalogPage({
@@ -126,11 +121,10 @@ export default async function VendorCatalogPage({
         <span className="text-ink dark:text-slate-200">{vendor.name}</span>
       </nav>
       <div className="max-w-3xl">
-        <p className="eyebrow mb-2">{bundles.length} Certification{bundles.length === 1 ? '' : 's'}</p>
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">{seo.heading}</h1>
         {vendor.description && <p className="mt-2 text-slate-600 dark:text-slate-300">{vendor.description}</p>}
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-          Every Practice Exam is <Price cents={PRACTICE_PRICE_CENTS} />. Booking the real exam? The Exam Voucher includes the Practice Exam free.
+          {bundles.length} Certification{bundles.length === 1 ? '' : 's'}, every Practice Exam <Price cents={PRACTICE_PRICE_CENTS} />. Booking the real exam? The Exam Voucher includes the Practice Exam free.
         </p>
       </div>
 
@@ -164,7 +158,7 @@ export default async function VendorCatalogPage({
       </div>
 
       {!query && (
-        <div className="mt-10 max-w-3xl">
+        <div className="mt-6">
           <VendorSeoCopy
             kind="practice"
             brand={seo.brand}
@@ -175,7 +169,7 @@ export default async function VendorCatalogPage({
         </div>
       )}
 
-      <VoucherUpsellBanner className="mt-10" />
+      <VoucherUpsellBanner className="mt-6" />
     </div>
   );
 }

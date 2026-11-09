@@ -172,7 +172,7 @@ export const GROUPS: SettingsGroup[] = [
     description: 'Public homepage meta tags. Used by Google + social previews. Use the AI Assist button on individual exam pages for per-exam SEO.',
     compact: true,
     fields: [
-      { key: 'SITE_HOME_TITLE', label: 'Home title (50–70 chars)', placeholder: 'Tertiary Exams — Practice Smarter for Your Next Certification' },
+      { key: 'SITE_HOME_TITLE', label: 'Home title (50–70 chars)', placeholder: 'Practice Exams & Exam Vouchers in Singapore | Tertiary Exams' },
       { key: 'SITE_HOME_DESCRIPTION', label: 'Home description (120–180 chars)', placeholder: 'Original practice questions for AWS, Microsoft, Cisco…', fullWidth: true },
       { key: 'SITE_HOME_KEYWORDS', label: 'Home keywords (comma-separated)', placeholder: 'AWS practice exam, Microsoft AZ-900 practice, Cisco CCNA quiz' }
     ]

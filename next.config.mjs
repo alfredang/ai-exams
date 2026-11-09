@@ -17,6 +17,14 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Bare parents of real routes: anyone trimming a URL lands somewhere useful.
+      { source: '/p', destination: '/p/support', permanent: false },
+      { source: '/exam', destination: '/user-dashboard/attempts', permanent: false },
+      { source: '/results', destination: '/user-dashboard/attempts', permanent: false },
+      { source: '/checkout', destination: '/practice-exams', permanent: false },
+      { source: '/checkout/bundle', destination: '/practice-exams', permanent: false },
+      { source: '/bundles', destination: '/practice-exams', permanent: false },
+
       // The app uses OTP-based password reset (/forgot-password issues
       // an OTP, /verify-otp consumes it), not a magic-link `/reset-password/<token>`
       // pattern. Anyone landing on /reset-password (from an old bookmark

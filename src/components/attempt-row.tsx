@@ -39,15 +39,15 @@ export function AttemptRow({ a, showExam = true }: { a: HistoryAttempt; showExam
 
       <div>
         {a.inProgress ? (
-          <span className="inline-flex w-28 justify-center rounded-full border border-amber-600 bg-amber-50 px-2.5 py-0.5 font-mono text-xs text-amber-800 dark:border-amber-500 dark:bg-amber-950/50 dark:text-amber-300">
+          <span className="inline-flex w-28 justify-center font-mono text-xs font-semibold text-amber-700 dark:text-amber-300">
             In progress
           </span>
         ) : a.passed ? (
-          <span className="inline-flex w-28 justify-center rounded-full border border-emerald-700 bg-emerald-50 px-2.5 py-0.5 font-mono text-xs text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300">
+          <span className="inline-flex w-28 justify-center font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-300">
             ✓ Pass
           </span>
         ) : (
-          <span className="inline-flex w-28 justify-center rounded-full border border-red-600 bg-red-50 px-2.5 py-0.5 font-mono text-xs text-red-700 dark:border-red-500 dark:bg-red-950/50 dark:text-red-300">
+          <span className="inline-flex w-28 justify-center font-mono text-xs font-semibold text-red-700 dark:text-red-300">
             ✗ Fail
           </span>
         )}

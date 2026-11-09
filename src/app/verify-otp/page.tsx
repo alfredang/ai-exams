@@ -34,7 +34,7 @@ function VerifyOtpInner() {
   }
 
   return (
-    <div className="container-app max-w-md py-16">
+    <div className="container-app max-w-md py-8">
       <h1 className="text-2xl font-bold">Enter the code we sent</h1>
       <p className="mt-1 text-sm text-slate-600">A 6-digit code was sent to <b>{email}</b>.</p>
       <form onSubmit={submit} className="mt-6 space-y-4">

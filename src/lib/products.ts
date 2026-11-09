@@ -52,6 +52,12 @@ export function displayExamCode(code: string | null | undefined): string {
   return (code || '').replace(/-(?:P|PRACTICE-)\d+$/i, '');
 }
 
+/** "…-p2" and up: leftover "Practice Exam N" rows, which repeat their first variant. */
+export function isExtraVariantSlug(slug: string): boolean {
+  const n = slug.match(/-p(\d+)$/)?.[1];
+  return !!n && Number(n) >= 2;
+}
+
 export function practiceOnSale(b: VoucherSale): boolean {
   return b.published;
 }

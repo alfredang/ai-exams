@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="container-app max-w-md py-16">
+    <div className="container-app max-w-md py-8">
       <h1 className="text-2xl font-bold">Reset password</h1>
       {step === 'email' ? (
         <form onSubmit={send} className="mt-6 space-y-4">

@@ -103,7 +103,7 @@ export function ProductCard({ b, query = '', showVendor = true }: { b: ProductCa
             </Link>
           )}
           {(b.published || hasVoucher) && (
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Prices are {PRICE_TAX_NOTE}</p>
+            <p className="text-sm font-medium text-ink dark:text-slate-200">Prices are {PRICE_TAX_NOTE}</p>
           )}
         </div>
       </div>

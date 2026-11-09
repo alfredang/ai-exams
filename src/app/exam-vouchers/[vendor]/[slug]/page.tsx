@@ -13,10 +13,13 @@ import {
   voucherDescriptionFor, voucherHref, voucherOnSale, voucherSlugFor, voucherTitleFor
 } from '@/lib/products';
 import { ExamDomains } from '@/components/exam-domains';
-import { Breadcrumbs, CheckList, FaqList, InstructorLedCard, MobileBuyBar, StatTile } from '@/components/product/product-parts';
+import { Breadcrumbs, CheckList, FaqList, InstructorLedCard, MobileBuyBar, ProductMeta, StatTile } from '@/components/product/product-parts';
 import { instructorLedCourseFor } from '@/lib/instructor-led';
-import { buildVoucherSeo } from '@/lib/exam-seo';
-import { VoucherSeoCopy } from '@/components/product/seo-copy';
+import { buildVoucherSeo, certNames, headingWithCode } from '@/lib/exam-seo';
+import { RelatedCerts, VoucherSeoCopy } from '@/components/product/seo-copy';
+import { faqJsonLd, voucherFaqs } from '@/lib/product-faqs';
+import { pageMeta } from '@/lib/seo-meta';
+import { breadcrumbJsonLd } from '@/lib/vendor-landing';
 import { digitalOfferPolicies, productImageUrl } from '@/lib/product-jsonld';
 
 const FAQS = [
@@ -49,15 +52,13 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
   const exam = (p.items.find((i) => i.tier === 'PRACTICE') ?? p.items[0])?.exam;
   if (!exam) return {};
   const seo = buildVoucherSeo({ title: p.title, code: displayExamCode(exam.code), vendor: exam.vendor.name });
-  const title = seo.metaTitle;
-  const description = seo.metaDescription;
-  return {
-    title,
-    description,
+  return pageMeta({
+    title: seo.metaTitle,
+    description: seo.metaDescription,
     keywords: seo.metaKeywords,
-    openGraph: { title, description, images: [productImageUrl(p.slug, 'voucher')] },
-    alternates: { canonical: `/exam-vouchers/${vendor}/${voucherSlugFor(p)}` }
-  };
+    path: `/exam-vouchers/${vendor}/${voucherSlugFor(p)}`,
+    image: productImageUrl(p.slug, 'voucher')
+  });
 }
 
 export default async function ExamVoucherPage({ params }: { params: Promise<{ vendor: string; slug: string }> }) {
@@ -75,7 +76,9 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
 
   const vendor = exam.vendor;
   const code = displayExamCode(exam.code);
-  const title = voucherTitleFor(product);
+  const cert = { title: product.title, code, vendor: vendor.name };
+  const { key } = certNames(cert);
+  const title = headingWithCode(voucherTitleFor(product), cert);
   const description = voucherDescriptionFor(product, { vendorName: vendor.name, code });
   const price = product.priceVoucher!;
   const buyHref = checkoutHref(product.id, 'VOUCHER');
@@ -107,16 +110,17 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
       ...digitalOfferPolicies('voucher')
     }
   };
-  const faqJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } }))
-  };
+  const faqs = [...voucherFaqs({ cert, priceCents: price }), ...FAQS];
 
   return (
     <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd(faqs)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd([
+        { name: 'Exam Vouchers', path: '/exam-vouchers' },
+        { name: vendor.name, path: `/exam-vouchers/${vendor.slug}` },
+        { name: `${key} Exam Voucher`, path: voucherHref(vendor.slug, product) }
+      ])) }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line bg-gradient-to-br from-emerald-50 via-sky-50 to-page dark:border-slate-800 dark:from-[#062a26] dark:via-slate-950 dark:to-slate-950">
@@ -127,13 +131,8 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             { href: `/exam-vouchers/${vendor.slug}`, label: vendor.name },
             { label: code }
           ]} />
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-xs font-semibold text-white"><Ticket className="h-3 w-3" aria-hidden="true" /> Official Exam Voucher</span>
-            <span className="badge">{vendor.name}</span>
-            <span className="badge">{code}</span>
-            <span className="badge">{exam.level}</span>
-          </div>
-          <h1 className="mt-3 text-balance font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">{title}</h1>
+          <ProductMeta lead="Official Exam Voucher" leadClass="text-emerald-700 dark:text-emerald-300" items={[vendor.name, code, exam.level]} />
+          <h1 className="mt-2 text-balance font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">{title}</h1>
           <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">{description}</p>
           <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-xl border border-emerald-300/70 bg-white/80 px-4 py-2.5 text-sm shadow-card dark:border-emerald-500/40 dark:bg-slate-900/70">
             <Gift className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
@@ -154,7 +153,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
               </div>
               <div className="card p-5">
                 <BookOpen className="h-6 w-6 text-brand dark:text-brand-300" aria-hidden="true" />
-                <h3 className="mt-3 font-semibold">{code} Practice Exam <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">FREE</span></h3>
+                <h3 className="mt-3 font-semibold">{code} Practice Exam <span className="ml-1 text-emerald-700 dark:text-emerald-300">· FREE</span></h3>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   {poolSize}-question pool, {perAttempt} per attempt, timed Exam mode + Practice mode, unlimited retakes.
                   {practicePage && <> <Link href={practicePage} className="font-medium text-brand hover:underline dark:text-brand-300">See the practice exam</Link></>}
@@ -163,7 +162,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             </div>
           </section>
 
-          <VoucherSeoCopy cert={{ title: product.title, code, vendor: vendor.name }} poolSize={poolSize} practiceHref={practicePage} />
+          <VoucherSeoCopy cert={cert} poolSize={poolSize} practiceHref={practicePage} />
 
           <section>
             <h2 className="font-display text-xl font-bold">How it works</h2>
@@ -196,13 +195,15 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
           </section>
 
           <section>
-            <h2 className="font-display text-xl font-bold">Voucher questions</h2>
-            <div className="mt-4"><FaqList items={FAQS} /></div>
+            <h2 className="font-display text-xl font-bold">{key} exam voucher questions answered</h2>
+            <div className="mt-4"><FaqList items={faqs} /></div>
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
               {practicePage && <>Only need practice? <Link href={practicePage} className="text-brand hover:underline dark:text-brand-300">{code} Practice Exam · <Price cents={product.price} /></Link> · </>}
               <Link href="/p/refund-policy" className="text-brand hover:underline dark:text-brand-300">Refund Policy</Link> · <Link href="/p/support" className="text-brand hover:underline dark:text-brand-300">Contact support</Link>
             </p>
           </section>
+
+          <RelatedCerts kind="voucher" vendor={vendor} excludeId={product.id} />
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
@@ -219,7 +220,7 @@ export default async function ExamVoucherPage({ params }: { params: Promise<{ ve
             {ownsVoucher ? (
               <Link href="/user-dashboard/vouchers" className="btn-outline mt-5 min-h-[44px] w-full">You own this voucher — view it</Link>
             ) : (
-              <Link href={buyHref} className="btn mt-5 inline-flex min-h-[44px] w-full items-center justify-center bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400">Buy Exam Voucher</Link>
+              <Link href={buyHref} rel="nofollow" className="btn mt-5 inline-flex min-h-[44px] w-full items-center justify-center bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400">Buy Exam Voucher</Link>
             )}
             <div className="mt-4">
               <CheckList tone="emerald" items={[

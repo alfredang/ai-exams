@@ -11,6 +11,7 @@ import { PRACTICE_PRICE_CENTS, displayExamCode, voucherHref, voucherTitleFor } f
 import { buildVendorSeo, certNames, sortForVendorSeo } from '@/lib/exam-seo';
 import { serializeJsonLd } from '@/lib/structured-data';
 import { vendorLandingJsonLd } from '@/lib/vendor-landing';
+import { pageMeta } from '@/lib/seo-meta';
 
 // The Exam Voucher landing page for one Vendor — "Exam Vouchers for AWS
 // Certifications". Used to redirect to /exam-vouchers?vendor=…, which gave
@@ -52,13 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ vendor: s
   const data = await loadVendorVouchers(slug);
   if (!data || data.vouchers.length === 0) return {};
   const { metaTitle: title, metaDescription: description, metaKeywords: keywords } = data.seo;
-  return {
-    title,
-    description,
-    keywords,
-    openGraph: { title, description },
-    alternates: { canonical: `/exam-vouchers/${slug}` }
-  };
+  return pageMeta({ title, description, keywords, path: `/exam-vouchers/${slug}` });
 }
 
 export default async function VendorVouchersPage({ params }: { params: Promise<{ vendor: string }> }) {
@@ -86,10 +81,9 @@ export default async function VendorVouchersPage({ params }: { params: Promise<{
         <span className="text-ink dark:text-slate-200">{vendor.name}</span>
       </nav>
       <div className="mb-8 max-w-3xl">
-        <p className="eyebrow mb-2">{vouchers.length} Exam Voucher{vouchers.length === 1 ? '' : 's'}</p>
         <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">{seo.heading}</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Genuine {vendor.name}-issued Exam Vouchers, each with the Practice Exam for that Certification
+          {vouchers.length} genuine {vendor.name}-issued Exam Voucher{vouchers.length === 1 ? '' : 's'}, each with the Practice Exam for that Certification
           (worth <Price cents={PRACTICE_PRICE_CENTS} />) <b className="text-emerald-700 dark:text-emerald-300">included free</b>.
         </p>
       </div>
@@ -100,7 +94,7 @@ export default async function VendorVouchersPage({ params }: { params: Promise<{
         {vouchers.map((v) => <VoucherCard key={v.id} b={v} showVendor={false} />)}
       </div>
 
-      <div className="mt-10 max-w-3xl">
+      <div className="mt-6">
         <VendorSeoCopy
           kind="voucher"
           brand={seo.brand}

@@ -1,9 +1,9 @@
 ---
 name: seo-audit
-description: Audit and improve the SEO of the ExamNova marketing surface. Checks meta tags on every public page, validates sitemap.xml, ensures structured data is present where applicable, and proposes per-page improvements. Use when the user asks to "improve SEO", "audit SEO", "check meta tags", "boost search rankings", or runs an SEO review.
+description: Audit and improve the SEO of the Tertiary Exams storefront, targeting certification, practice exam and exam voucher searches in Singapore. Checks meta tags on every public page, validates sitemap.xml, ensures structured data is present where applicable, and proposes per-page improvements. Use when the user asks to "improve SEO", "audit SEO", "check meta tags", "boost search rankings", or runs an SEO review.
 ---
 
-# SEO audit skill for ExamNova
+# SEO audit skill for Tertiary Exams
 
 When invoked, run the following audit sequence and produce an actionable report.
 
@@ -21,7 +21,7 @@ Enumerate every public route reachable without auth:
 For each route, fetch the rendered HTML at `http://127.0.0.1:3040<path>` and extract:
 - `<title>` (length + presence)
 - `<meta name="description">` (length 120–180 chars ideal)
-- `<meta name="keywords">` (optional but populated by ExamNova)
+- `<meta name="keywords">` (optional, populated by `src/lib/exam-seo.ts`)
 - `<meta property="og:title">`, `og:description`, `og:image`
 - Presence of structured data (`<script type="application/ld+json">`)
 - Number of `<h1>` (should be exactly 1)
@@ -41,12 +41,9 @@ Use the Prisma client (`tsx scripts/<name>.ts`) to compute:
 
 ## 4. Per-exam structured data
 
-Each exam detail page should expose `Course` JSON-LD with at minimum:
-- `@type: Course`, `name`, `description`, `provider.name`
-- `aggregateRating` when ≥10 attempts have been submitted with scores
-- `offers` reflecting the Practice + Voucher tiers and prices
+Each page on sale exposes `Product` JSON-LD (`src/lib/product-jsonld.ts`), `BreadcrumbList` and `FAQPage`. `aggregateRating` comes from real reviews only. An exam nothing sells gets no `Product` markup.
 
-Verify the exam detail rendering includes a `<script type="application/ld+json">` block. If missing, propose adding it next to the existing tier price card.
+Check that every title holds the exam code or name plus "in Singapore", stays within 66 characters and is never cut mid-word, and that every `h1` holds the exam code. `/exam-vouchers/[vendor]/[slug]` builds its meta on render; practice meta is stored on the pool exam by the deploy seed unless an admin saved it.
 
 ## 5. Output format
 

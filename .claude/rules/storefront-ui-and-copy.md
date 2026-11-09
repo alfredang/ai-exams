@@ -34,7 +34,10 @@ paths:
 - **Mobile first**: no horizontal scroll at 375px, tap targets ≥ 44px,
   `motion-safe:` on animations.
 - Fonts: Archivo for h1–h3 (`font-display`), IBM Plex Sans body, Plex Mono
-  for `.eyebrow` labels.
+  for `.eyebrow` labels. `.eyebrow` labels data only, never a section heading.
+- **SEO**: public pages build metadata with `pageMeta()` (`src/lib/seo-meta.ts`),
+  and product meta comes from `src/lib/exam-seo.ts`. Keep the exam code and
+  "in Singapore" searchable; don't hand-write titles.
 - `useSearchParams()` needs a `<Suspense>` boundary at page level.
 - Contact details: email from `getCompanyInfo()`, WhatsApp from
   `src/lib/enquiry-topics.ts` (`whatsappLink()`). Leads go through the

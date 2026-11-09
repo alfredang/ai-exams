@@ -9,17 +9,16 @@ import { WhatsAppWidget } from '@/components/whatsapp-widget';
 import { AuthProvider } from '@/components/session-provider';
 import { CurrencyProvider } from '@/components/currency-provider';
 import { getAllSettings } from '@/lib/settings';
+import { SITE_OG_IMAGE } from '@/lib/seo-meta';
+import { HOME_SEO } from '@/lib/exam-seo';
 
 const display = Archivo({ subsets: ['latin'], weight: ['500', '700', '800'], variable: '--font-display' });
 const body = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-body' });
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-mono' });
 
-// Social card image used by openGraph + twitter metadata. Defaults to
-// /hero.webp (already in /public, 200 on prod). When a dedicated
-// 1200×630 PNG lands at /public/og-image.png, social scrapers will
-// prefer it via array order (Next.js emits both <meta> tags).
-const SOCIAL_IMAGE_PRIMARY = '/og-image.png';
-const SOCIAL_IMAGE_FALLBACK = '/hero.webp';
+// Social card image used by openGraph + twitter metadata: the generated
+// 1200×630 site card, so it can't go missing the way /og-image.png did.
+const SOCIAL_IMAGE = SITE_OG_IMAGE;
 
 // Absolute base for OG/Twitter image URLs and canonical links. Without this,
 // Next emits relative image paths and some social scrapers fail to resolve
@@ -28,18 +27,16 @@ const SITE_URL =
   process.env.NEXTAUTH_URL?.replace(/\/$/, '') || 'https://exams.tertiaryinfotech.com';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const fallbackTitle = 'Tertiary Exams — Practice Smarter for Your Next Certification';
-  const fallbackDescription =
-    'Original, blueprint-aligned practice questions for AWS, Microsoft, Cisco, CompTIA, Google Cloud, Kubernetes, Anthropic and more. By Tertiary Infotech Academy.';
-  const fallbackOgDescription = 'Original practice exams for IT certifications by Tertiary Infotech Academy.';
-  const fallbackKeywords =
-    'IT certification practice exams, AWS practice exam, Azure practice exam, CompTIA practice exam, Cisco practice exam, Google Cloud practice exam, Kubernetes practice exam, CKAD, CKA, SAA-C03, AZ-900, exam voucher, Tertiary Infotech Academy, Tertiary Exams';
+  const fallbackTitle = HOME_SEO.SITE_HOME_TITLE;
+  const fallbackDescription = HOME_SEO.SITE_HOME_DESCRIPTION;
+  const fallbackOgDescription = fallbackDescription;
+  const fallbackKeywords = HOME_SEO.SITE_HOME_KEYWORDS;
   const siteName = 'Tertiary Exams';
 
   try {
     const s = await getAllSettings();
     const title = s.SITE_HOME_TITLE || fallbackTitle;
-    const ogTitle = s.SITE_HOME_TITLE || siteName;
+    const ogTitle = s.SITE_HOME_TITLE || fallbackTitle;
     const ogDescription = s.SITE_HOME_DESCRIPTION || fallbackOgDescription;
     return {
       metadataBase: new URL(SITE_URL),
@@ -51,16 +48,14 @@ export async function generateMetadata(): Promise<Metadata> {
         description: ogDescription,
         type: 'website',
         siteName,
-        images: [
-          { url: SOCIAL_IMAGE_PRIMARY, width: 1200, height: 630, alt: ogTitle },
-          { url: SOCIAL_IMAGE_FALLBACK, width: 1200, height: 630, alt: ogTitle }
-        ]
+        locale: 'en_SG',
+        images: [{ url: SOCIAL_IMAGE, width: 1200, height: 630, alt: ogTitle }]
       },
       twitter: {
         card: 'summary_large_image',
         title: ogTitle,
         description: ogDescription,
-        images: [SOCIAL_IMAGE_PRIMARY, SOCIAL_IMAGE_FALLBACK]
+        images: [SOCIAL_IMAGE]
       }
     };
   } catch {
@@ -74,16 +69,14 @@ export async function generateMetadata(): Promise<Metadata> {
         description: fallbackOgDescription,
         type: 'website',
         siteName,
-        images: [
-          { url: SOCIAL_IMAGE_PRIMARY, width: 1200, height: 630, alt: siteName },
-          { url: SOCIAL_IMAGE_FALLBACK, width: 1200, height: 630, alt: siteName }
-        ]
+        locale: 'en_SG',
+        images: [{ url: SOCIAL_IMAGE, width: 1200, height: 630, alt: siteName }]
       },
       twitter: {
         card: 'summary_large_image',
         title: siteName,
         description: fallbackOgDescription,
-        images: [SOCIAL_IMAGE_PRIMARY, SOCIAL_IMAGE_FALLBACK]
+        images: [SOCIAL_IMAGE]
       }
     };
   }
@@ -108,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
 
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en-SG" className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-page font-sans text-ink dark:text-slate-100">
         <Script id="theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
         <script

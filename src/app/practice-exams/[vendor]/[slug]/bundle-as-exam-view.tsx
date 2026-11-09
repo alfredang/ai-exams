@@ -9,9 +9,12 @@ import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
 import {
   checkoutHref, displayExamCode, practiceOnSale, voucherHref, voucherOnSale, voucherTitleFor
 } from '@/lib/products';
-import { Breadcrumbs, CheckList, InstructorLedCard, MobileBuyBar, StatTile, VoucherUpsell } from '@/components/product/product-parts';
+import { Breadcrumbs, CheckList, FaqList, InstructorLedCard, MobileBuyBar, ProductMeta, StatTile, VoucherUpsell } from '@/components/product/product-parts';
 import { instructorLedCourseFor } from '@/lib/instructor-led';
-import { PracticeSeoCopy } from '@/components/product/seo-copy';
+import { PracticeSeoCopy, RelatedCerts } from '@/components/product/seo-copy';
+import { certNames, headingWithCode } from '@/lib/exam-seo';
+import { faqJsonLd, practiceFaqs } from '@/lib/product-faqs';
+import { breadcrumbJsonLd } from '@/lib/vendor-landing';
 import { db } from '@/lib/db';
 import { getExamRatingSummary } from '@/lib/reviews';
 import { APPROVED_REVIEW_SELECT, digitalOfferPolicies, productImageUrl, ratingJsonLd } from '@/lib/product-jsonld';
@@ -79,7 +82,19 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
     })
   ]);
   const productUrl = `${PUBLIC_SITE_URL}/practice-exams/${vendor.slug}/${bundle.slug}`;
-  const productName = `${bundle.title} Practice Exam`;
+  const cert = { title: bundle.title, code: displayCode, vendor: vendor.name };
+  const { key } = certNames(cert);
+  const heading = `${headingWithCode(bundle.title, cert)} Practice Exam`;
+  const productName = heading;
+  const faqs = practiceFaqs({
+    cert,
+    poolSize,
+    perAttempt,
+    durationMinutes: first.durationMinutes,
+    passingScore: first.passingScore,
+    priceCents: forSale ? bundle.price : null,
+    voucherPriceCents: hasVoucher ? bundle.priceVoucher : null
+  });
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -109,6 +124,12 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
   return (
     <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd(faqs)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd([
+        { name: 'Practice Exams', path: '/practice-exams' },
+        { name: vendor.name, path: `/practice-exams/${vendor.slug}` },
+        { name: `${key} Practice Exam`, path: `/practice-exams/${vendor.slug}/${bundle.slug}` }
+      ])) }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line bg-gradient-to-br from-brand-100 via-sky-50 to-page dark:border-slate-800 dark:from-[#0a1838] dark:via-slate-950 dark:to-slate-950">
@@ -119,13 +140,8 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
             { href: `/practice-exams/${vendor.slug}`, label: vendor.name },
             { label: displayCode }
           ]} />
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="badge-brand">Practice Exam</span>
-            <span className="badge">{vendor.name}</span>
-            <span className="badge">{displayCode}</span>
-            <span className="badge">{first.level}</span>
-          </div>
-          <h1 className="mt-3 max-w-3xl font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">{bundle.title}</h1>
+          <ProductMeta lead="Practice Exam" items={[vendor.name, displayCode, first.level]} />
+          <h1 className="mt-2 max-w-3xl text-balance font-display text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">{heading}</h1>
           <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">{bundle.description}</p>
           <div className="mt-6 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-4">
             <StatTile icon={Library} label="Question pool" value={`${poolSize}`} />
@@ -141,7 +157,7 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="card p-5">
               <Hourglass className="h-6 w-6 text-brand dark:text-brand-300" aria-hidden="true" />
-              <h2 className="mt-3 font-semibold">Exam mode <span className="ml-1 rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">Default</span></h2>
+              <h2 className="mt-3 font-semibold">Exam mode <span className="ml-1 text-sm font-medium text-brand-700 dark:text-brand-300">· Default</span></h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{first.durationMinutes}-minute timer, flag for review and a review screen before you submit — just like test day.</p>
             </div>
             <div className="card p-5">
@@ -165,7 +181,7 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
           </div>
 
           <PracticeSeoCopy
-            cert={{ title: bundle.title, code: displayCode, vendor: vendor.name }}
+            cert={cert}
             poolSize={poolSize}
             perAttempt={perAttempt}
             voucherHref={hasVoucher ? voucherPage : null}
@@ -179,7 +195,14 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
 
           <ExamDomains domains={first.domains} productSlug={bundle.slug} />
           <ExamReferences productSlug={bundle.slug} fallbackExamUrl={first.infoUrl} />
+
+          <section>
+            <h2 className="font-display text-xl font-bold">{key} practice exam questions answered</h2>
+            <div className="mt-3"><FaqList items={faqs} /></div>
+          </section>
+
           <ExamReviews examId={first.id} examTitle={bundle.title} />
+          <RelatedCerts kind="practice" vendor={vendor} excludeId={bundle.id} />
 
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Tertiary Exams provides original practice questions for learning. We are not affiliated with {vendor.name}, and we do not provide real exam dumps.
@@ -207,7 +230,7 @@ export async function BundleAsExamView({ bundle, userId, owned = false }: { bund
               <div className="mt-4">
                 <CheckList items={['One-time payment · lifetime access', 'Timed Exam mode + Practice mode', 'Unlimited fresh attempts', 'Instant access after payment']} />
               </div>
-              <Link href={buyHref} className="btn-primary-grad mt-5 min-h-[44px] w-full">Buy Practice Exam</Link>
+              <Link href={buyHref} rel="nofollow" className="btn-primary-grad mt-5 min-h-[44px] w-full">Buy Practice Exam</Link>
               <div className="mt-3 flex items-center justify-center gap-3 text-[11px] text-muted dark:text-slate-400">
                 <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> 7-day refund</span>
                 <span className="inline-flex items-center gap-1"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Unlimited retakes</span>

@@ -48,7 +48,7 @@ export default async function ShareResultPage({ params }: { params: Promise<{ at
         <h1 className="mt-1 text-3xl font-bold">{attempt.exam.title}</h1>
         <div className={`mt-6 inline-flex flex-col items-center rounded-full ${passed ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'} px-8 py-6`}>
           <span className="text-5xl font-bold">{score}%</span>
-          <span className="text-sm font-semibold uppercase tracking-wide">{passed ? 'Pass' : 'In progress'}</span>
+          <span className="text-sm font-semibold uppercase tracking-wide">{passed ? 'Pass' : 'Fail'}</span>
         </div>
         <p className="mt-4 text-slate-600 dark:text-slate-200">{correctCount} correct out of {total} · pass mark {attempt.exam.passingScore}%</p>
         <p className="mt-2 text-xs text-slate-500">Practiced on Tertiary Exams — original questions, never real exam dumps.</p>

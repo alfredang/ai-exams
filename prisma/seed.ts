@@ -2,6 +2,8 @@ import { PrismaClient, QStatus, Role, Tier } from '@prisma/client';
 import argon2 from 'argon2';
 import { consolidateExamPools, type PoolPlan } from '../src/lib/pool-consolidation';
 import { normalizeProducts } from '../src/lib/products';
+import { HOME_SEO, LEGACY_HOME_SEO } from '../src/lib/exam-seo';
+import { decrypt, encrypt } from '../src/lib/settings-crypto';
 
 const db = new PrismaClient();
 
@@ -2512,6 +2514,17 @@ async function main() {
     });
   }
   console.log(`✓ Ensured ${stubPages.length} stub CMS pages exist (terms, contact, support)`);
+  // Homepage meta written by the old set-site-meta script moves to the Singapore
+  // copy. Only an untouched value changes: an admin's own text wins.
+  for (const [key, legacy] of Object.entries(LEGACY_HOME_SEO)) {
+    const row = await db.setting.findUnique({ where: { key } });
+    // A rotated SETTINGS_KEY makes decrypt throw; that must not stop the boot seed.
+    let current: string | null = null;
+    try { current = row ? decrypt(row.value) : null; } catch { current = null; }
+    if (current === legacy) {
+      await db.setting.update({ where: { key }, data: { value: encrypt(HOME_SEO[key as keyof typeof LEGACY_HOME_SEO]) } });
+    }
+  }
 
   console.log(`Seed complete. Vendors: ${VENDORS.length}, Exams: ${EXAMS.length}, Bundles: ${BUNDLES.length}. Admins: ${admins.map(a => a.email).join(', ')}`);
 }
