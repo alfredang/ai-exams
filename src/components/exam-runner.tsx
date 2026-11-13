@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Flag, LayoutGrid, ListChecks, Loader2, LogOut, X } from 'lucide-react';
 import { ExplanationView } from '@/components/explanation-view';
 import { shuffleSeeded } from '@/lib/shuffle';
-import { isSequencingChoice } from '@/lib/question-presentation';
+import { isSequencingChoice, splitQuestionScenario } from '@/lib/question-presentation';
 import { startFromDashboard } from '@/app/user-dashboard/actions';
 
 export type RunnerQuestion = {
@@ -128,6 +128,7 @@ export function ExamRunner(props: ExamRunnerProps) {
   }, []);
 
   const q = props.questions[idx];
+  const scenario = splitQuestionScenario(q.stem);
   const stored = answers[q.id];
   const a: RunnerResponse = { ...stored, answer: stored?.answer ?? [] };
 
@@ -488,7 +489,7 @@ export function ExamRunner(props: ExamRunnerProps) {
       {/* Workspace */}
       <div className="flex-1 overflow-y-auto bg-canvas">
         {view === 'question' ? (
-          <div className={`mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 ${navOpen && !isExam ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'max-w-4xl'}`}>
+          <div className={`mx-auto grid gap-6 px-4 py-6 sm:px-6 ${navOpen && !isExam ? 'max-w-7xl lg:grid-cols-[minmax(0,1fr)_240px]' : scenario ? 'max-w-6xl' : 'max-w-4xl'}`}>
             <div className="min-w-0">
               {timed && remaining < 300 && remaining > 0 && (
                 <div className={`mb-4 flex items-center gap-2 rounded-md border p-3 text-sm ${remaining < 60 ? 'border-red-300 bg-red-50 text-red-800' : 'border-amber-300 bg-amber-50 text-amber-900'}`}>
@@ -542,7 +543,16 @@ export function ExamRunner(props: ExamRunnerProps) {
                     {a.flagged ? 'Flagged for review' : 'Flag for review'}
                   </button>
                 </div>
-                <p id="q-stem" className="whitespace-pre-wrap text-[17px] font-medium leading-relaxed sm:text-[19px]">{q.stem}</p>
+                <div className={scenario ? 'grid min-w-0 gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]' : undefined}>
+                  {scenario && (
+                    <aside className="min-w-0 rounded-md border border-blue-200 bg-blue-50 p-4 [overflow-wrap:anywhere] sm:p-5" aria-labelledby="q-scenario-title">
+                      <p className="eyebrow mb-2">Scenario</p>
+                      <h2 id="q-scenario-title" className="mb-3 text-lg font-semibold text-slate-900">{scenario.title}</h2>
+                      <p className="whitespace-pre-wrap text-base leading-relaxed text-slate-700">{scenario.scenario}</p>
+                    </aside>
+                  )}
+                  <div className="min-w-0">
+                <p id="q-stem" className="whitespace-pre-wrap text-[17px] font-medium leading-relaxed sm:text-[19px]">{scenario?.question ?? q.stem}</p>
                 <p className="eyebrow mb-2 mt-5">{typeHint(q)}</p>
 
                 {q.type === 'ORDERING' ? (
@@ -695,6 +705,8 @@ export function ExamRunner(props: ExamRunnerProps) {
                       {isExam ? 'Submit exam' : 'Submit'}
                     </button>
                   )}
+                </div>
+                  </div>
                 </div>
               </section>
               <p className="mt-3 hidden text-center text-xs text-muted lg:block">

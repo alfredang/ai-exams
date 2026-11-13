@@ -1,5 +1,13 @@
 type QuestionShape = { type: string; stem: string; options: unknown };
 
+/** Explicit scenario envelope stays in the stored stem so older/mobile
+ * clients, answer reviews, and PDF exports retain the full question. */
+export function splitQuestionScenario(stem: string): { title: string; scenario: string; question: string } | null {
+  const match = /^Scenario: ([^\r\n]+)\r?\n([\s\S]+?)\r?\n\r?\nQuestion:\r?\n([\s\S]+)$/.exec(stem);
+  if (!match || !match[2].trim() || !match[3].trim()) return null;
+  return { title: match[1].trim(), scenario: match[2].trim(), question: match[3].trim() };
+}
+
 /** Numbered steps with permutation choices are sequencing MCQs. Their stored
  * type stays SINGLE so existing option ids, responses and scoring stay valid.
  */

@@ -4,6 +4,7 @@ import { consolidateExamPools, type PoolPlan } from '../src/lib/pool-consolidati
 import { normalizeProducts } from '../src/lib/products';
 import { HOME_SEO, LEGACY_HOME_SEO } from '../src/lib/exam-seo';
 import { decrypt, encrypt } from '../src/lib/settings-crypto';
+import { importCcarFoundationsPptx } from '../src/lib/seed/import-ccar-foundations-pptx';
 
 const db = new PrismaClient();
 
@@ -2364,6 +2365,10 @@ async function main() {
   // Fold legacy "Practice Exam N" variants into each product's single pool
   // exam and apply the official domain weights. Idempotent.
   const pools = await consolidateExamPools(db, POOL_PLANS);
+  // User-requested CCAR-F additions: append once; preserve all existing rows,
+  // admin review decisions, and exam settings on subsequent boots.
+  const ccarPptx = await importCcarFoundationsPptx(db);
+  console.log(`✓ CCAR-F presentation questions: ${ccarPptx.created} added, ${ccarPptx.imported} source records present`);
   // Practice Exam = USD 20, every product has a voucher slug, and every
   // voucher is linked to its practice exam.
   await normalizeProducts(db);
