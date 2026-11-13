@@ -12,6 +12,7 @@ import { UserChrome } from '@/components/user-chrome';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { canUserReview } from '@/lib/reviews';
 import { sequencingSteps, optionsForAttempt } from '@/lib/shuffle';
+import { explanationForDisplay } from '@/lib/explanation-format';
 import { createAttempt } from '@/lib/start-attempt';
 import { requireProfileToStart } from '@/lib/full-name';
 
@@ -367,7 +368,7 @@ export default async function ResultsPage({
                     </div>
                     <div className="eyebrow mb-1">Why</div>
                     <ExplanationView
-                      text={q.explanation}
+                      text={explanationForDisplay(q.explanation, q.type, opts, displayOptions)}
                       options={displayOptions}
                       correctIds={correctIds}
                       references={q.references}

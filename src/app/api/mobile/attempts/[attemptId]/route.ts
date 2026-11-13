@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { requireMobileUser } from '@/lib/mobile-auth';
 import { scoreAttempt, type Responses } from '@/lib/attempts';
 import { optionsForAttempt, sequencingSteps } from '@/lib/shuffle';
+import { explanationForDisplay } from '@/lib/explanation-format';
 
 export async function GET(req: Request, { params }: { params: Promise<{ attemptId: string }> }) {
   const auth = await requireMobileUser(req);
@@ -59,16 +60,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ attemptI
       vendorName: attempt.exam.vendor.name,
       passingScore: attempt.exam.passingScore
     },
-    questions: ordered.map((question) => ({
+    questions: ordered.map((question) => {
+      const authored = question!.options as { id: string; text: string }[];
+      const shown = optionsForAttempt(
+        authored, question!.type, question!.correct as string[], attempt.id, question!.id, attempt.optionShuffleVersion
+      );
+      return {
       id: question!.id,
       stem: question!.stem,
       type: question!.type,
       domain: question!.domain,
       // Same per-attempt order as the web runner.
-      options: optionsForAttempt(
-        question!.options as { id: string; text: string }[], question!.type,
-        question!.correct as string[], attempt.id, question!.id, attempt.optionShuffleVersion
-      ),
+      options: shown,
       // MULTI: how many options to pick ("Select TWO answers").
       selectCount: question!.type === 'MULTI' ? (question!.correct as string[]).length : null,
       // ORDERING: steps in their fixed Step 1…N labelling; the answer is the
@@ -79,11 +82,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ attemptI
       ...(includeReview
         ? {
             correct: question!.correct,
-            explanation: question!.explanation,
+            // Letters rewritten to match the shuffled options above.
+            explanation: explanationForDisplay(question!.explanation, question!.type, authored, shown),
             references: question!.references
           }
         : {})
-    })),
+      };
+    }),
     result: scored
   });
 }

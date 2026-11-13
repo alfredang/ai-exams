@@ -2,6 +2,7 @@ import { PDFDocument, type PDFPage, type RGB } from 'pdf-lib';
 import { A4, COLORS, newA4Doc, type Fonts } from './layout';
 import { isAnswerCorrect, type Responses } from '../attempts';
 import { sequencingSteps, optionsForAttempt } from '../shuffle';
+import { explanationForDisplay, explanationParagraphs } from '../explanation-format';
 
 /**
  * Downloadable practice-exam summary: score, per-domain breakdown, then every
@@ -187,7 +188,11 @@ export async function renderAttemptReportPdf(r: AttemptReport): Promise<Uint8Arr
 
     flow.y -= 3;
     flow.text(`Why · Exam domain: ${q.domain}`, { size: 8.5, bold: true, color: COLORS.blue });
-    flow.text(q.explanation, { size: 9.5, color: COLORS.slate });
+    // Option letters follow the shuffled order printed above; long
+    // explanations are printed as paragraphs.
+    const shownForWhy = q.type === 'ORDERING' ? opts : optionsForAttempt(opts, q.type, correctIds, r.attemptId, q.id, r.optionShuffleVersion);
+    const why = explanationParagraphs(explanationForDisplay(q.explanation, q.type, opts, shownForWhy));
+    why.forEach((para, n) => flow.text(para, { size: 9.5, color: COLORS.slate, gap: n < why.length - 1 ? 3 : 0 }));
     const refs = (Array.isArray(q.references) ? q.references : []) as (string | { label?: string; url?: string })[];
     const refText = refs
       .map((ref) => (typeof ref === 'string' ? ref : [ref.label, ref.url].filter(Boolean).join(' — ')))

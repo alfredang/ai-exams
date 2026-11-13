@@ -4,6 +4,8 @@ import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { isAnswerCorrect, type Responses } from '@/lib/attempts';
+import { optionsForAttempt } from '@/lib/shuffle';
+import { explanationForDisplay } from '@/lib/explanation-format';
 
 const Body = z.object({
   attemptId: z.string(),
@@ -59,11 +61,15 @@ export async function POST(req: Request) {
   });
 
   if (attempt.mode === 'PRACTICE') {
+    // The explanation's option letters are written against the authored
+    // order; rewrite them to the shuffled order this attempt shows.
+    const authored = (question.options as { id: string; text: string }[]) || [];
+    const shown = optionsForAttempt(authored, question.type, (question.correct as string[]) || [], attempt.id, question.id, attempt.optionShuffleVersion);
     return NextResponse.json({
       saved: true,
       isCorrect: correct,
       correct: question.correct,
-      explanation: question.explanation,
+      explanation: explanationForDisplay(question.explanation, question.type, authored, shown),
       references: question.references
     });
   }

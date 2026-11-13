@@ -1,3 +1,5 @@
+import { explanationParagraphs, isAnswerLead } from '@/lib/explanation-format';
+
 type Opt = { id: string; text: string };
 
 type Parsed = {
@@ -7,6 +9,10 @@ type Parsed = {
   source?: string;
   incorrectBullets: { title: string; body: string }[];
   trailing?: string;
+  // True only when the text carries "Correct option" / "Incorrect options"
+  // markers. Plain prose is shown as paragraphs, not under a
+  // "Correct option" heading it never had.
+  marked: boolean;
 };
 
 function escapeRegex(s: string) {
@@ -91,7 +97,20 @@ function parseExplanation(text: string, options: Opt[], correctIds: string[]): P
     }
   }
 
-  return { correctTitle, correctBody, intro, source, incorrectBullets: bullets, trailing };
+  return { correctTitle, correctBody, intro, source, incorrectBullets: bullets, trailing, marked: correctIdx >= 0 || incorrectIdx >= 0 };
+}
+
+// A block of prose as paragraphs; a bare "Suggested answer: B." lead is bold.
+function Paragraphs({ text }: { text: string }) {
+  return (
+    <>
+      {explanationParagraphs(text).map((para, i) => (
+        <p key={i} className={i === 0 && isAnswerLead(para) ? 'font-semibold text-slate-900 dark:text-slate-100' : undefined}>
+          {para}
+        </p>
+      ))}
+    </>
+  );
 }
 
 function isLikelyUrl(s: string) {
@@ -116,6 +135,31 @@ function referenceLinks(value: unknown): { label: string; url: string }[] {
   });
 }
 
+function ReferenceList({ links }: { links: { label: string; url: string }[] }) {
+  if (!links.length) return null;
+  return (
+    <div>
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        References
+      </div>
+      <ul className="space-y-0.5 pl-4 text-xs">
+        {links.map((r, i) => (
+          <li key={i} className="list-disc">
+            <a
+              href={r.url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
+            >
+              {r.label || r.url}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function ExplanationView({
   text,
   options,
@@ -134,21 +178,22 @@ export function ExplanationView({
   const p = parseExplanation(text, options, correctIds);
   const links = referenceLinks(references);
   const hasStructure =
-    !!p.correctTitle || !!p.correctBody || p.incorrectBullets.length > 0;
+    p.marked && (!!p.correctTitle || !!p.correctBody || p.incorrectBullets.length > 0);
 
   if (!hasStructure) {
     return (
-      <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-        <p className="whitespace-pre-line">{text}</p>
+      <div className="space-y-2.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+        <Paragraphs text={text} />
+        <ReferenceList links={links} />
       </div>
     );
   }
 
   return (
     <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-      {p.intro && <p>{p.intro}</p>}
+      {p.intro && <Paragraphs text={p.intro} />}
 
-      {hideCorrectTitle && p.correctBody && <p>{p.correctBody}</p>}
+      {hideCorrectTitle && p.correctBody && <Paragraphs text={p.correctBody} />}
 
       {!hideCorrectTitle && (p.correctTitle || p.correctBody) && (
         <div>
@@ -160,7 +205,7 @@ export function ExplanationView({
               {p.correctTitle}
             </div>
           )}
-          {p.correctBody && <p>{p.correctBody}</p>}
+          {p.correctBody && <div className="space-y-2.5"><Paragraphs text={p.correctBody} /></div>}
         </div>
       )}
 
@@ -198,29 +243,9 @@ export function ExplanationView({
         </div>
       )}
 
-      {p.trailing && <p>{p.trailing}</p>}
+      {p.trailing && <Paragraphs text={p.trailing} />}
 
-      {links.length > 0 && (
-        <div>
-          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            References
-          </div>
-          <ul className="space-y-0.5 pl-4 text-xs">
-            {links.map((r, i) => (
-              <li key={i} className="list-disc">
-                <a
-                  href={r.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
-                >
-                  {r.label || r.url}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <ReferenceList links={links} />
     </div>
   );
 }

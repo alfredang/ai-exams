@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { isAnswerCorrect, type Responses } from '@/lib/attempts';
+import { optionsForAttempt } from '@/lib/shuffle';
+import { explanationForDisplay } from '@/lib/explanation-format';
 import { mobileError, requireMobileUser } from '@/lib/mobile-auth';
 
 const Body = z.object({
@@ -38,11 +40,14 @@ export async function POST(req: Request) {
     await db.attempt.update({ where: { id: attempt.id }, data: { responses: next as any, lastSavedAt: new Date() } });
 
     if (attempt.mode === 'PRACTICE') {
+      // Option letters in the explanation follow this attempt's shuffle.
+      const authored = (question.options as { id: string; text: string }[]) || [];
+      const shown = optionsForAttempt(authored, question.type, (question.correct as string[]) || [], attempt.id, question.id, attempt.optionShuffleVersion);
       return NextResponse.json({
         saved: true,
         isCorrect: isAnswerCorrect(question, data.answer),
         correct: question.correct,
-        explanation: question.explanation,
+        explanation: explanationForDisplay(question.explanation, question.type, authored, shown),
         references: question.references
       });
     }

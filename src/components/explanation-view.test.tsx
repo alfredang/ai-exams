@@ -35,3 +35,16 @@ test('legacy URL strings and labeled references remain usable', () => {
   assert.match(html, />Study objectives</);
   assert.doesNotMatch(html, /Unsafe link|javascript:|No URL/);
 });
+
+test('plain prose renders as paragraphs with a bold answer lead and no "Correct option" label', () => {
+  const html = renderToStaticMarkup(
+    <ExplanationView
+      text="Suggested answer: B. Splitting the review isolates each objective. Option A adds context without fixing interference. Option C overfits a checklist."
+      options={[{ id: 'a', text: 'More context' }, { id: 'b', text: 'Split prompts' }, { id: 'c', text: 'Checklist' }]}
+      correctIds={['b']}
+    />
+  );
+  assert.doesNotMatch(html, /Correct option/);
+  assert.match(html, /<p class="font-semibold[^"]*">Suggested answer: B\.<\/p>/);
+  assert.equal((html.match(/<p\b/g) || []).length, 4);
+});
