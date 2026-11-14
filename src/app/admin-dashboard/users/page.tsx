@@ -98,6 +98,13 @@ async function loadUsers(where: Prisma.UserWhereInput, skip: number, take: numbe
     take,
     include: {
       tags: { include: { tag: true } },
+      // Latest TMS class registration (POST /api/v1/registrations).
+      entitlements: {
+        where: { courseRunId: { not: null } },
+        orderBy: { registeredAt: 'desc' },
+        take: 1,
+        select: { courseRunId: true, registeredAt: true, remark: true }
+      },
       _count: { select: { orders: true, entitlements: true, attempts: true } }
     }
   });
@@ -208,6 +215,41 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
       header: 'Attempts',
       align: 'right',
       cell: (u) => <span className="font-mono text-xs">{u._count.attempts}</span>
+    },
+    {
+      key: 'courseRunId',
+      header: 'Course Run ID',
+      cell: (u) =>
+        u.entitlements[0]?.courseRunId ? (
+          <Link
+            href={`/admin-dashboard/users${buildQS({ ...baseParams, q: u.entitlements[0].courseRunId, page: undefined })}`}
+            className="font-mono text-xs text-slate-700 hover:underline dark:text-slate-200"
+          >
+            {u.entitlements[0].courseRunId}
+          </Link>
+        ) : (
+          <span className="text-slate-400">—</span>
+        )
+    },
+    {
+      key: 'registeredAt',
+      header: 'Register Date',
+      cell: (u) =>
+        u.entitlements[0]?.registeredAt ? (
+          <span className="whitespace-nowrap text-xs text-slate-500">{u.entitlements[0].registeredAt.toISOString().slice(0, 10)}</span>
+        ) : (
+          <span className="text-slate-400">—</span>
+        )
+    },
+    {
+      key: 'remark',
+      header: 'Remark',
+      cell: (u) =>
+        u.entitlements[0]?.remark ? (
+          <span className="whitespace-nowrap text-xs text-slate-600 dark:text-slate-300">{u.entitlements[0].remark}</span>
+        ) : (
+          <span className="text-slate-400">—</span>
+        )
     },
     {
       key: 'joined',

@@ -475,8 +475,14 @@ model Entitlement {
   expiresAt DateTime?
   delivery  VoucherDelivery?
   inventoryClaim VoucherInventory? @relation("InventoryClaim")
+  // Set when the LMS/TMS registers a class's learners (POST /api/v1/registrations):
+  // the SSG course run ID, when it was registered, and "Registered from TMS".
+  courseRunId  String?
+  registeredAt DateTime?
+  remark       String?
   @@unique([userId, examId, tier])
   @@index([userId])
+  @@index([courseRunId])
 }
 
 model Attempt {

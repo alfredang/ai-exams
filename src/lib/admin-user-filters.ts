@@ -28,7 +28,8 @@ export function buildUserWhere(params: UserFilterParams): Prisma.UserWhereInput 
 
   if (q) where.OR = [
     { email: { contains: q, mode: 'insensitive' } },
-    { name: { contains: q, mode: 'insensitive' } }
+    { name: { contains: q, mode: 'insensitive' } },
+    { entitlements: { some: { courseRunId: q } } }
   ];
   if (status === 'active') Object.assign(where, { active: true, anonymizedAt: null });
   if (status === 'suspended') Object.assign(where, { active: false, anonymizedAt: null });
@@ -56,5 +57,7 @@ export const PURGEABLE_UNVERIFIED_WHERE: Prisma.UserWhereInput = {
   attempts: { none: {} },
   orders: { none: {} },
   invoices: { none: {} },
-  couponRedemptions: { none: {} }
+  couponRedemptions: { none: {} },
+  // Learners registered by the TMS for a class often sign in days later; keep them.
+  entitlements: { none: { courseRunId: { not: null } } }
 };

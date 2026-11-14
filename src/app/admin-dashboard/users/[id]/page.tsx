@@ -559,6 +559,13 @@ export default async function AdminUserDetailPage({
                         <span className="ml-2 text-slate-500">{e.exam.title}</span>
                         <span className="ml-2 text-[11px] text-slate-400">{e.tier}</span>
                         {e.voucher && <span className="ml-2 rounded bg-violet-100 px-1.5 py-0.5 font-mono text-[11px] text-violet-800 dark:bg-violet-950/40 dark:text-violet-200">{e.voucher}</span>}
+                        {(e.courseRunId || e.registeredAt || e.remark) && (
+                          <div className="mt-0.5 text-[11px] text-slate-500">
+                            Course Run ID <span className="font-mono text-slate-700 dark:text-slate-200">{e.courseRunId || '—'}</span>
+                            {' · '}Register Date {e.registeredAt ? e.registeredAt.toISOString().slice(0, 10) : '—'}
+                            {e.remark && <> · <span className="text-sky-700 dark:text-sky-300">{e.remark}</span></>}
+                          </div>
+                        )}
                       </div>
                       {e.delivery && <StatusBadge status={e.delivery.status} />}
                     </li>

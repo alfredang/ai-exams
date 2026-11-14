@@ -133,6 +133,42 @@ Remove an assignment. The body is the same as for `POST`. Only `ADMIN_GRANT` acc
 
 `stillHasAccess: true` means the user keeps the exam because they paid for it.
 
+### `POST /registrations` (LMS/TMS class registration)
+
+Register a class's learner for a practice exam. Unlike `POST /assignments`, this
+**creates the account** when the email is new (with the name, no password; the
+learner signs in with Google or an email code and gets the Welcome email).
+The grant records the course run ID, the register date and a remark.
+
+```bash
+curl -X POST https://exams.tertiaryinfotech.com/api/v1/registrations \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"Tan Mei Ling","email":"mei@example.com","exam":"CCAR-F","courseRunId":"1387021"}'
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string | Learner's full name. Fills a missing or placeholder name; never overwrites a real one. |
+| `email` | string | Learner's email (case-insensitive). |
+| `exam` | string | Code, slug or exam id. |
+| `courseRunId` | string, optional | The SSG course run ID. |
+| `remark` | string, optional | Defaults to `Registered from TMS`. |
+| `sendWelcomeEmail` | boolean, optional | Default `true`; only sent when the account is new. |
+
+**201** for a new grant, **200** otherwise. Calling again for the same course run
+changes nothing; a different `courseRunId` updates the record and its register date.
+
+```json
+{ "ok": true, "accountCreated": true, "created": true, "alreadyHadAccess": false, "welcomeEmailSent": true,
+  "user": { … }, "practiceExam": { … },
+  "registration": { "courseRunId": "1387021", "registeredAt": "2026-11-14T09:39:54.664Z", "remark": "Registered from TMS" } }
+```
+
+### `GET /registrations?courseRunId=<id>[&exam=<ref>]`
+
+Every learner registered for that course run: `email`, `name`, `signedIn`
+(email verified), `courseRunId`, `registeredAt`, `remark`.
+
 ## Errors
 
 Every error returns JSON in the form `{ "error": "message" }`.
@@ -148,6 +184,6 @@ Every error returns JSON in the form `{ "error": "message" }`.
 
 ## Notes for agents
 
-- The user must already have an account. The API does not create accounts. If you get a 404 for the user, ask an admin to create the account at `/admin-dashboard/users` first.
+- `/assignments` needs an existing account and does not create one; use `/registrations` to create it. If you get a 404 for the user, ask an admin to create the account at `/admin-dashboard/users` first.
 - Users without a real full name on their profile are asked for one the first time they start a full exam. Nothing more is needed from the agent.
 - A typical flow is: `GET /practice-exams?q=<code>` to confirm the exam, then `POST /assignments`, then `GET /assignments?email=` to verify.

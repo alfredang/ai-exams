@@ -29,6 +29,12 @@ export async function GET(req: Request) {
     orderBy: { createdAt: 'desc' },
     include: {
       tags: { include: { tag: true } },
+      entitlements: {
+        where: { courseRunId: { not: null } },
+        orderBy: { registeredAt: 'desc' },
+        take: 1,
+        select: { courseRunId: true, registeredAt: true, remark: true }
+      },
       _count: { select: { orders: true, entitlements: true, attempts: true } }
     },
     // We don't paginate the export — admins can refine filters first.
@@ -47,6 +53,9 @@ export async function GET(req: Request) {
     'orders',
     'entitlements',
     'attempts',
+    'courseRunId',
+    'registerDate',
+    'remark',
     'joinedAt'
   ];
   const lines = [header.join(',')];
@@ -64,6 +73,9 @@ export async function GET(req: Request) {
         u._count.orders,
         u._count.entitlements,
         u._count.attempts,
+        csv(u.entitlements[0]?.courseRunId ?? ''),
+        u.entitlements[0]?.registeredAt ? u.entitlements[0].registeredAt.toISOString() : '',
+        csv(u.entitlements[0]?.remark ?? ''),
         u.createdAt.toISOString()
       ].join(',')
     );
