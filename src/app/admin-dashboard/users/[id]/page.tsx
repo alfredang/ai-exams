@@ -21,8 +21,7 @@ import {
   Eye as EyeIcon,
   Pin,
   Trash2,
-  Download,
-  Tag as TagIcon
+  Download
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -203,44 +202,6 @@ async function togglePinNote(formData: FormData) {
   revalidatePath(`/admin-dashboard/users/${note.userId}`);
 }
 
-async function attachTag(formData: FormData) {
-  'use server';
-  const me = await requireAdmin();
-  const userId = bump(formData, 'userId');
-  const tagSlugOrLabel = bump(formData, 'tag').trim();
-  if (!userId || !tagSlugOrLabel) return;
-  const slug = tagSlugOrLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const tag = await db.tag.upsert({
-    where: { slug },
-    create: { slug, label: tagSlugOrLabel },
-    update: {}
-  });
-  await db.userTag.upsert({
-    where: { userId_tagId: { userId, tagId: tag.id } },
-    create: { userId, tagId: tag.id },
-    update: {}
-  });
-  await db.adminLog.create({
-    data: { adminId: me.id, action: 'user.tag.attach', targetType: 'User', targetId: userId, metadata: { tag: slug } }
-  });
-  revalidatePath(`/admin-dashboard/users/${userId}`);
-  revalidatePath('/admin-dashboard/users');
-}
-
-async function detachTag(formData: FormData) {
-  'use server';
-  const me = await requireAdmin();
-  const userId = bump(formData, 'userId');
-  const tagId = bump(formData, 'tagId');
-  if (!userId || !tagId) return;
-  await db.userTag.delete({ where: { userId_tagId: { userId, tagId } } }).catch(() => {});
-  await db.adminLog.create({
-    data: { adminId: me.id, action: 'user.tag.detach', targetType: 'User', targetId: userId, metadata: { tagId } }
-  });
-  revalidatePath(`/admin-dashboard/users/${userId}`);
-  revalidatePath('/admin-dashboard/users');
-}
-
 const TABS = ['overview', 'orders', 'invoices', 'entitlements', 'vouchers', 'attempts', 'emails', 'notes', 'activity'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -262,7 +223,6 @@ export default async function AdminUserDetailPage({
   const user = await db.user.findUnique({
     where: { id },
     include: {
-      tags: { include: { tag: true } },
       billingAddresses: { orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] }
     }
   });
@@ -325,7 +285,6 @@ export default async function AdminUserDetailPage({
   const subtitle = (
     <span className="inline-flex flex-wrap items-center gap-2">
       <Badge variant={user.active ? 'success' : 'danger'}>{user.active ? 'ACTIVE' : 'SUSPENDED'}</Badge>
-      {!user.emailVerified && !user.anonymizedAt && <Badge variant="muted">EMAIL UNVERIFIED</Badge>}
       {user.anonymizedAt && <Badge variant="muted">ANONYMIZED</Badge>}
       <Badge variant={user.role === 'ADMIN' ? 'info' : 'muted'}>{user.role}</Badge>
       <span>· joined {user.createdAt.toLocaleDateString()}</span>
@@ -352,37 +311,6 @@ export default async function AdminUserDetailPage({
           {sp.otp === 'sent' ? 'Login code sent to the user.' : 'Could not send a login code. Check email delivery or try again later.'}
         </p>
       )}
-
-      {/* Tag chips + add */}
-      <div className="card mb-4 flex flex-wrap items-center gap-2 p-3">
-        <TagIcon className="h-3.5 w-3.5 text-slate-400" />
-        {user.tags.length === 0 && <span className="text-xs text-slate-500">No tags yet.</span>}
-        {user.tags.map(({ tag }) => (
-          <form key={tag.id} action={detachTag} className="inline-flex">
-            <input type="hidden" name="userId" value={user.id} />
-            <input type="hidden" name="tagId" value={tag.id} />
-            <button
-              type="submit"
-              title="Click to remove"
-              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 hover:bg-red-100 hover:text-red-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-red-950/40 dark:hover:text-red-300"
-            >
-              {tag.label}
-              <span aria-hidden>×</span>
-            </button>
-          </form>
-        ))}
-        <form action={attachTag} className="ml-auto inline-flex items-center gap-1">
-          <input type="hidden" name="userId" value={user.id} />
-          <input
-            name="tag"
-            placeholder="Add tag…"
-            className="input-sm h-7 w-32 text-xs"
-          />
-          <button className="inline-flex h-7 items-center rounded bg-blue-600 px-2 text-xs font-medium text-white hover:bg-blue-700">
-            Add
-          </button>
-        </form>
-      </div>
 
       {/* Tab nav */}
       <div className="mb-4 flex flex-wrap gap-0.5 border-b border-slate-200 dark:border-slate-700">

@@ -18,12 +18,15 @@ test('invalid calendar dates do not silently constrain results', () => {
   assert.equal(buildUserWhere({ from: '2026-02-30', to: 'junk' }).createdAt, undefined);
 });
 
-test('search and tag combine with email verification status', () => {
-  const where = buildUserWhere({ q: '  Teo  ', tag: 'learner', status: 'unverified' });
-  assert.equal(where.emailVerified, null);
-  assert.deepEqual(where.tags, { some: { tag: { slug: 'learner' } } });
+test('search matches email, name or course run ID', () => {
+  const where = buildUserWhere({ q: '  Teo  ' });
   assert.deepEqual(where.OR, [
     { email: { contains: 'Teo', mode: 'insensitive' } },
-    { name: { contains: 'Teo', mode: 'insensitive' } }
+    { name: { contains: 'Teo', mode: 'insensitive' } },
+    { entitlements: { some: { courseRunId: 'Teo' } } }
   ]);
+});
+
+test('removed tag and email-unverified filters are ignored', () => {
+  assert.deepEqual(buildUserWhere({ status: 'unverified' }), { role: 'USER' });
 });

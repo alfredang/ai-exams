@@ -18,17 +18,15 @@ export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const q = (sp.get('q') || '').trim();
   const status = sp.get('status') || '';
-  const tagSlug = (sp.get('tag') || '').trim();
   const fromStr = (sp.get('from') || '').trim();
   const toStr = (sp.get('to') || '').trim();
 
-  const where = buildUserWhere({ q, status, tag: tagSlug, from: fromStr, to: toStr });
+  const where = buildUserWhere({ q, status, from: fromStr, to: toStr });
 
   const users = await db.user.findMany({
     where,
     orderBy: { createdAt: 'desc' },
     include: {
-      tags: { include: { tag: true } },
       entitlements: {
         where: { courseRunId: { not: null } },
         orderBy: { registeredAt: 'desc' },
@@ -49,7 +47,6 @@ export async function GET(req: Request) {
     'active',
     'anonymizedAt',
     'nationality',
-    'tags',
     'orders',
     'entitlements',
     'attempts',
@@ -69,7 +66,6 @@ export async function GET(req: Request) {
         u.active ? 'true' : 'false',
         u.anonymizedAt ? u.anonymizedAt.toISOString() : '',
         csv(u.nationality ?? ''),
-        csv(u.tags.map((t) => t.tag.slug).join('|')),
         u._count.orders,
         u._count.entitlements,
         u._count.attempts,

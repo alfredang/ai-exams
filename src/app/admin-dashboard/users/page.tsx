@@ -20,7 +20,6 @@ const PAGE_SIZE = 50;
 type SearchParams = Promise<{
   q?: string;
   status?: string;
-  tag?: string;
   from?: string;
   to?: string;
   page?: string;
@@ -103,7 +102,6 @@ async function loadUsers(where: Prisma.UserWhereInput, skip: number, take: numbe
     skip,
     take,
     include: {
-      tags: { include: { tag: true } },
       // Latest TMS class registration (POST /api/v1/registrations).
       entitlements: {
         where: { courseRunId: { not: null } },
@@ -121,16 +119,14 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
   const session = await auth();
   const canCreateUser = (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
   const q = (sp.q || '').trim();
-  const status = ['active', 'suspended', 'anonymized', 'unverified'].includes(sp.status || '') ? sp.status || '' : '';
-  const tagSlug = (sp.tag || '').trim();
+  const status = ['active', 'suspended', 'anonymized'].includes(sp.status || '') ? sp.status || '' : '';
   const fromStr = validUserDate((sp.from || '').trim()) ? (sp.from || '').trim() : '';
   const toStr = validUserDate((sp.to || '').trim()) ? (sp.to || '').trim() : '';
   const requestedPage = Math.max(1, Math.trunc(Number(sp.page) || 1));
 
-  const where = buildUserWhere({ q, status, tag: tagSlug, from: fromStr, to: toStr });
-  const [total, tags, purgeable] = await Promise.all([
+  const where = buildUserWhere({ q, status, from: fromStr, to: toStr });
+  const [total, purgeable] = await Promise.all([
     db.user.count({ where }),
-    db.tag.findMany({ orderBy: { label: 'asc' } }),
     canCreateUser
       ? db.user.findMany({
           where: CLEANUP_WHERE,
@@ -140,7 +136,6 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
             email: true,
             name: true,
             createdAt: true,
-            emailVerified: true,
             active: true,
             anonymizedAt: true,
             entitlements: { where: { courseRunId: { not: null } }, take: 1, select: { courseRunId: true } },
@@ -155,14 +150,13 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
   const page = Math.min(requestedPage, pages);
   const users = await loadUsers(where, (page - 1) * PAGE_SIZE, PAGE_SIZE);
 
-  const baseParams = { q, status, tag: tagSlug, from: fromStr, to: toStr };
+  const baseParams = { q, status, from: fromStr, to: toStr };
   const buildHref = (p: number) =>
     `/admin-dashboard/users${buildQS({ ...baseParams, page: p === 1 ? undefined : p })}`;
 
   const activeFilters = [
     q && { key: 'search', label: q, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, q: undefined })}` },
     status && { key: 'status', label: status, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, status: undefined })}` },
-    tagSlug && { key: 'tag', label: tags.find((t) => t.slug === tagSlug)?.label ?? tagSlug, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, tag: undefined })}` },
     fromStr && { key: 'from', label: fromStr, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, from: undefined })}` },
     toStr && { key: 'to', label: toStr, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, to: undefined })}` }
   ].filter(Boolean) as { key: string; label: string; clearHref: string }[];
@@ -185,26 +179,6 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
       cell: (u) => <span className="text-[12px] text-slate-700 dark:text-slate-200">{u.email}</span>
     },
     {
-      key: 'tags',
-      header: 'Tags',
-      cell: (u) =>
-        u.tags.length === 0 ? (
-          <span className="text-slate-400">—</span>
-        ) : (
-          <div className="flex flex-wrap gap-1">
-            {u.tags.map(({ tag }) => (
-              <Link
-                key={tag.id}
-                href={`/admin-dashboard/users${buildQS({ ...baseParams, tag: tag.slug, page: undefined })}`}
-                className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-700 hover:bg-blue-100 hover:text-blue-700 dark:bg-slate-800 dark:text-slate-300"
-              >
-                {tag.label}
-              </Link>
-            ))}
-          </div>
-        )
-    },
-    {
       key: 'status',
       header: 'Status',
       cell: (u) => (
@@ -212,7 +186,6 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
           <Badge variant={u.anonymizedAt ? 'muted' : u.active ? 'success' : 'danger'}>
             {u.anonymizedAt ? 'ANON' : u.active ? 'ACTIVE' : 'SUSPENDED'}
           </Badge>
-          {!u.emailVerified && !u.anonymizedAt && <Badge variant="muted">EMAIL UNVERIFIED</Badge>}
         </div>
       )
     },
@@ -371,7 +344,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
                   <Link href={`/admin-dashboard/users/${u.id}`} className="hover:underline">{u.email}</Link>
                   <span className="text-slate-500">
                     {' '}· {u.name || 'no name'} · joined {u.createdAt.toISOString().slice(0, 10)}
-                    {u.anonymizedAt ? ' · anonymised' : !u.active ? ' · suspended' : !u.emailVerified ? ' · unverified' : ''}
+                    {u.anonymizedAt ? ' · anonymised' : !u.active ? ' · suspended' : ''}
                     {u.entitlements[0]?.courseRunId && ` · class ${u.entitlements[0].courseRunId}`}
                     {u._count.entitlements > 0 && ` · ${u._count.entitlements} access grant${u._count.entitlements === 1 ? '' : 's'}`}
                   </span>
@@ -392,15 +365,6 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
             <option value="anonymized">Anonymized</option>
-            <option value="unverified">Email unverified</option>
-          </select>
-        </FilterField>
-        <FilterField label="Tag">
-          <select name="tag" defaultValue={tagSlug} className="input-sm">
-            <option value="">All tags</option>
-            {tags.map((t) => (
-              <option key={t.id} value={t.slug}>{t.label}</option>
-            ))}
           </select>
         </FilterField>
         <FilterField label="From">

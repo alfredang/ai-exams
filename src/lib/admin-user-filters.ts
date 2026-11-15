@@ -3,7 +3,6 @@ import type { Prisma } from '@prisma/client';
 export type UserFilterParams = {
   q?: string | null;
   status?: string | null;
-  tag?: string | null;
   from?: string | null;
   to?: string | null;
 };
@@ -21,7 +20,6 @@ export function validUserDate(value: string): boolean {
 export function buildUserWhere(params: UserFilterParams): Prisma.UserWhereInput {
   const q = params.q?.trim() || '';
   const status = params.status || '';
-  const tag = params.tag?.trim() || '';
   const from = validDate(params.from?.trim() || '');
   const to = validDate(params.to?.trim() || '');
   const where: Prisma.UserWhereInput = { role: 'USER' };
@@ -34,8 +32,6 @@ export function buildUserWhere(params: UserFilterParams): Prisma.UserWhereInput 
   if (status === 'active') Object.assign(where, { active: true, anonymizedAt: null });
   if (status === 'suspended') Object.assign(where, { active: false, anonymizedAt: null });
   if (status === 'anonymized') where.anonymizedAt = { not: null };
-  if (status === 'unverified') Object.assign(where, { emailVerified: null, anonymizedAt: null });
-  if (tag) where.tags = { some: { tag: { slug: tag } } };
   if (from || to) {
     const end = to ? new Date(to.getTime() + 86_400_000) : null;
     where.createdAt = { ...(from ? { gte: from } : {}), ...(end ? { lt: end } : {}) };
