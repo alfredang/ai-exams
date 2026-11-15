@@ -9,13 +9,17 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org)
 [![OpenAI](https://img.shields.io/badge/AI-OpenAI-412991?style=flat-square&logo=openai)](https://platform.openai.com)
 [![Download on the App Store](https://img.shields.io/badge/Download_on_the-App_Store-0D96F6?style=flat-square&logo=apple)](https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308)
+[![Get it on Google Play](https://img.shields.io/badge/Get_it_on-Google_Play-34A853?style=flat-square&logo=googleplay)](https://play.google.com/store/apps/details?id=sg.com.tertiarycourses.aiexams)
 
 **Practice smarter for your next certification.**
 
-[Live Site](https://exams.tertiaryinfotech.com) · [Catalog](https://exams.tertiaryinfotech.com/practice-exams) · [iOS App](https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308)
+[Live Site](https://exams.tertiaryinfotech.com) · [Catalog](https://exams.tertiaryinfotech.com/practice-exams) · [iOS App](https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308) · [Android App](https://play.google.com/store/apps/details?id=sg.com.tertiarycourses.aiexams)
 
 <a href="https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308">
   <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" alt="Download Tertiary AI Exams on the App Store" height="48" />
+</a>
+<a href="https://play.google.com/store/apps/details?id=sg.com.tertiarycourses.aiexams">
+  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get Tertiary AI Exams on Google Play" height="71" />
 </a>
 
 </div>
@@ -75,6 +79,8 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Click-to-Start Dashboard:** After login, `/user-dashboard` shows every practice exam the learner owns as a badge with their best and last score and a **Choose a mode** pair — **Exam mode** (timed, primary) or **Practice mode**. One click opens the exam runner directly, resuming an unfinished attempt in that mode. Recent attempts are listed underneath in fixed columns (score, Pass / Fail / In progress, Resume or Review answers), and on phones the sidebar becomes a scrollable tab strip.
 - **Exam History:** `/user-dashboard/attempts` (sidebar: *Exam history*) lists every attempt with its score, correct / total, pass result and time used, filterable by certification. Each certification shows best / average / latest score, a score-per-attempt trend against the pass mark, and performance by exam domain across all attempts (domains below the pass mark are tagged *Focus here*). Every row opens the full answer review, and a trash button (with a confirm dialog) lets learners delete any attempt from their history.
 - **Light-Blue & Premium Navy Themes:** A compact, chip-free layout with a light-blue light theme by default and an opt-in premium deep-navy dark theme with blue glow accents, Archivo / IBM Plex typography, and an animated hero that previews the exam experience. The exam runner stays a light test-centre screen in both.
+- **Fast, Consistent Admin:** The admin dashboard shows a loading skeleton on every navigation, caches decrypted settings for 60 seconds, indexes the columns its lists sort and filter on, and shares one set of light-theme building blocks (page title, section label, table header, KPI tile) across pages.
+- **Mobile Apps:** The storefront footer links to the iOS and Android apps (App Store and Google Play badges) for taking owned practice exams on the move.
 - **Support & Lead Capture:** `/p/support` is a lead page — a "free study plan & quote" enquiry form (study plan, Exam Voucher quote, teams & corporate, order help, question feedback), WhatsApp / email / phone cards, a free-teaser offer and self-help links. Enquiries are stored even if email is down, raise an admin notification, email the sales inbox, and are worked at **Admin → Enquiries** (New → Contacted → Closed). Protected by Turnstile, a honeypot, minimum fill time and rate limits.
 - **WhatsApp Support Avatar:** A friendly animated support avatar (bottom-right on public pages) opens a quick-question panel that links straight to WhatsApp, with a once-per-visit greeting bubble. Hidden on the exam runner, checkout, and admin pages.
 - **Free Teasers:** Guest and authenticated users can take 10 free questions per certification, picked at random from the same domain-weighted pool as the paid exam.
