@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { formatPrice, tierLabel } from '@/lib/utils';
+import { orderUsdCents, usdSnapshotsOf } from '@/lib/order-usd';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,8 @@ export default async function MyOrdersPage() {
     include: { exam: true, bundle: true },
     orderBy: { createdAt: 'desc' }
   });
+  // Prices are always shown in USD (lib/order-usd.ts).
+  const usdSnapshots = usdSnapshotsOf(orders);
 
 
   return (
@@ -40,7 +43,7 @@ export default async function MyOrdersPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="font-semibold">{formatPrice(o.amount, o.currency)}</div>
+                <div className="font-semibold">{formatPrice(orderUsdCents(o.amount, o, usdSnapshots), 'USD')}</div>
                 <span
                   className={`badge ${
                     o.status === 'PAID'

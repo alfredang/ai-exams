@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { orderUsdCents, usdSnapshotsOf } from '@/lib/order-usd';
 
 export type Range = { from: Date; to: Date };
 
@@ -26,24 +27,28 @@ export const Ranges = {
   }
 };
 
-/** Sum + count of PAID orders in a window. */
+/**
+ * Sum + count of PAID orders in a window, in USD. Orders are summed one by one
+ * through orderUsdCents() so a historic SGD order is never added to USD cents
+ * as if it were the same currency (and no FX conversion is applied).
+ */
 export async function paidOrdersIn(range: Range) {
-  const [r, refunds] = await Promise.all([
-    db.order.aggregate({
+  const [orders, refunds] = await Promise.all([
+    db.order.findMany({
       where: { status: 'PAID', capturedAt: { gte: range.from, lte: range.to } },
-      _sum: { amount: true, discount: true, refundAmount: true },
-      _count: true
+      select: { id: true, amount: true, currency: true, discount: true, providerPayload: true }
     }),
-    db.refund.aggregate({
+    db.refund.findMany({
       where: { status: 'SUCCEEDED', createdAt: { gte: range.from, lte: range.to } },
-      _sum: { amount: true },
-      _count: true
+      select: { amount: true, order: { select: { id: true, amount: true, currency: true, providerPayload: true } } }
     })
   ]);
-  const ordersCount = (r._count as unknown as number) ?? 0;
-  const refundCount = (refunds._count as unknown as number) ?? 0;
-  const grossCents = r._sum.amount ?? 0;
-  const refundedCents = refunds._sum.amount ?? 0;
+  const snaps = usdSnapshotsOf([...orders, ...refunds.map((r) => r.order)]);
+  const ordersCount = orders.length;
+  const refundCount = refunds.length;
+  const grossCents = orders.reduce((s, o) => s + orderUsdCents(o.amount, o, snaps), 0);
+  const discountCents = orders.reduce((s, o) => s + orderUsdCents(o.discount, o, snaps), 0);
+  const refundedCents = refunds.reduce((s, r) => s + orderUsdCents(r.amount, r.order, snaps), 0);
   const netCents = grossCents - refundedCents;
   const aovCents = ordersCount ? Math.round(grossCents / ordersCount) : 0;
   return {
@@ -51,7 +56,7 @@ export async function paidOrdersIn(range: Range) {
     grossCents,
     refundedCents,
     netCents,
-    discountCents: r._sum.discount ?? 0,
+    discountCents,
     refundCount,
     aovCents
   };
@@ -103,7 +108,11 @@ export async function taxCollectedIn(range: Range) {
       taxSgdTotal += r.taxAmount;
     }
   }
-  return { byCurrency, taxSgdTotal, totalSgd, invoiceCount: rows.length };
+  // USD view for the admin KPIs: every amount the site lists is USD and no
+  // SGD conversion is applied (lib/order-usd.ts), so amounts are summed as-is.
+  const taxUsdTotal = rows.reduce((s, r) => s + r.taxAmount, 0);
+  const totalUsd = rows.reduce((s, r) => s + r.total, 0);
+  return { byCurrency, taxSgdTotal, totalSgd, taxUsdTotal, totalUsd, invoiceCount: rows.length };
 }
 
 /** Revenue breakdown grouped by a chosen dimension. */
@@ -112,9 +121,11 @@ export async function revenueBy(dim: RevenueBy, range: Range) {
   const orders = await db.order.findMany({
     where: { status: 'PAID', capturedAt: { gte: range.from, lte: range.to } },
     select: {
+      id: true,
       amount: true,
       discount: true,
       currency: true,
+      providerPayload: true,
       capturedAt: true,
       tier: true,
       exam: {
@@ -123,6 +134,7 @@ export async function revenueBy(dim: RevenueBy, range: Range) {
       bundle: { select: { id: true, title: true } }
     }
   });
+  const snaps = usdSnapshotsOf(orders);
   const buckets = new Map<string, { label: string; amount: number; count: number; currency: string }>();
   for (const o of orders) {
     let key: string;
@@ -132,11 +144,11 @@ export async function revenueBy(dim: RevenueBy, range: Range) {
       label = o.exam
         ? `${o.exam.vendor.name} · ${o.exam.code}`
         : o.bundle
-          ? `${o.bundle.title} (bundle)`
+          ? o.bundle.title
           : 'Unknown';
     } else if (dim === 'vendor') {
       key = o.exam?.vendor.id ?? 'bundle-or-unknown';
-      label = o.exam?.vendor.name ?? (o.bundle ? 'Bundle' : 'Unknown');
+      label = o.exam?.vendor.name ?? (o.bundle ? 'Practice Exam / Exam Voucher' : 'Unknown');
     } else if (dim === 'tier') {
       key = o.tier ?? (o.bundle ? 'BUNDLE_PRODUCT' : 'NONE');
       label = key;
@@ -149,8 +161,8 @@ export async function revenueBy(dim: RevenueBy, range: Range) {
       key = d.toISOString().slice(0, 7);
       label = key;
     }
-    const cur = buckets.get(key) ?? { label, amount: 0, count: 0, currency: o.currency };
-    cur.amount += o.amount;
+    const cur = buckets.get(key) ?? { label, amount: 0, count: 0, currency: 'USD' };
+    cur.amount += orderUsdCents(o.amount, o, snaps);
     cur.count += 1;
     buckets.set(key, cur);
   }

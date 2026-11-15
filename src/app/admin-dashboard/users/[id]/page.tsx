@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { auth, isSuperAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { formatMoney, tierLabel } from '@/lib/utils';
+import { formatOrderUsd, loadUsdSnapshots, orderUsdCents } from '@/lib/order-usd';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
@@ -280,7 +281,9 @@ export default async function AdminUserDetailPage({
     db.exam.findMany({ orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }], select: { id: true, code: true, title: true, vendor: { select: { name: true } } } })
   ]);
 
-  const ltv = aggregates._sum.amount ?? 0;
+  // Every order amount is shown in USD (lib/order-usd.ts), so LTV sums USD.
+  const usdSnapshots = await loadUsdSnapshots(orders);
+  const ltv = orders.filter((o) => o.status === 'PAID').reduce((sum, o) => sum + orderUsdCents(o.amount, o, usdSnapshots), 0);
   const paidCount = aggregates._count ?? 0;
   const vouchers = entitlements.filter((e) => e.voucher);
   const attempts = history.attempts;
@@ -291,7 +294,7 @@ export default async function AdminUserDetailPage({
       <Badge variant={user.role === 'ADMIN' ? 'info' : 'muted'}>{user.role}</Badge>
       <span>· joined {user.createdAt.toLocaleDateString()}</span>
       <span>· {paidCount} paid order{paidCount === 1 ? '' : 's'}</span>
-      {ltv > 0 && <span>· LTV {formatMoney(ltv, orders[0]?.currency ?? 'USD')}</span>}
+      {ltv > 0 && <span>· LTV {formatMoney(ltv, 'USD')}</span>}
     </span>
   );
 
@@ -428,7 +431,7 @@ export default async function AdminUserDetailPage({
                         <td className="py-1.5">{o.bundle?.title ?? o.exam?.title ?? '—'}{o.tier && ` · ${tierLabel(o.tier)}`}</td>
                         <td className="py-1.5 text-slate-500">{o.provider}</td>
                         <td className="py-1.5"><StatusBadge status={o.status} /></td>
-                        <td className="py-1.5 text-right font-medium">{formatMoney(o.amount, o.currency)}</td>
+                        <td className="py-1.5 text-right font-medium">{formatOrderUsd(o.amount, o, usdSnapshots)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -42,6 +42,7 @@ const STATUS_VARIANTS: Record<string, BadgeVariant> = {
   ISSUED: 'info',
   FAILED: 'danger',
   CANCELED: 'danger',
+  CANCELLED: 'muted',
   VOID: 'danger',
   ARCHIVED: 'muted',
   REFUNDED: 'warn',

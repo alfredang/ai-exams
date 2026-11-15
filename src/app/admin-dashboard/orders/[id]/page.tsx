@@ -5,7 +5,8 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { fulfillOrder } from '@/lib/fulfill';
 import { sendTemplated } from '@/lib/email/templates';
-import { formatMoney, tierLabel } from '@/lib/utils';
+import { tierLabel } from '@/lib/utils';
+import { formatOrderUsd, orderUsdCents, usdAmountFromPayload } from '@/lib/order-usd';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatusBadge } from '@/components/admin/badge';
 import { productTitle } from '@/lib/products';
@@ -47,9 +48,15 @@ async function issueRefund(formData: FormData) {
     .filter((r) => r.status === 'SUCCEEDED')
     .reduce((sum, r) => sum + r.amount, 0);
   const remaining = order.amount - already;
-  const dollars = amountStr === '' ? remaining / 100 : Number(amountStr);
-  if (!Number.isFinite(dollars) || dollars <= 0) return;
-  const amountCents = Math.round(dollars * 100);
+  // The form is in USD (every amount the admin sees is USD); a PayNow order
+  // that was charged in SGD is refunded in its own currency, so scale back.
+  const usd = usdAmountFromPayload(order.providerPayload);
+  const toOrderCents = (usdCents: number) =>
+    order.currency.toUpperCase() !== 'USD' && usd && usd > 0 ? Math.round((usdCents * order.amount) / usd) : usdCents;
+  const dollars = amountStr === '' ? null : Number(amountStr);
+  if (dollars !== null && (!Number.isFinite(dollars) || dollars <= 0)) return;
+  const amountCents = dollars === null ? remaining : Math.min(remaining, toOrderCents(Math.round(dollars * 100)));
+  if (amountCents <= 0) return;
   const { refundOrder } = await import('@/lib/payments/refund');
   await refundOrder({ orderId: id, amountCents, reason, byAdminId: user.id, manualRef, recordOnly });
   revalidatePath(`/admin-dashboard/orders/${id}`);
@@ -143,6 +150,11 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const refundsSucceeded = order.refunds.filter((r) => r.status === 'SUCCEEDED');
   const totalRefunded = refundsSucceeded.reduce((s, r) => s + r.amount, 0);
   const remaining = order.amount - totalRefunded;
+  // Every amount on this page is shown in USD (see lib/order-usd.ts).
+  const usdSnap = usdAmountFromPayload(order.providerPayload);
+  const usdMap = new Map<string, number>(usdSnap !== null ? [[order.id, usdSnap]] : []);
+  const usdOf = (cents: number) => formatOrderUsd(cents, order, usdMap);
+  const remainingUsd = orderUsdCents(Math.max(0, remaining), order, usdMap);
 
   // Build the merged timeline
   const timeline: TimelineEntry[] = [
@@ -162,7 +174,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
     ...order.refunds.map((r): TimelineEntry => ({
       at: r.createdAt,
       kind: 'refund',
-      title: `Refund ${r.status} ${formatMoney(r.amount, r.currency)}`,
+      title: `Refund ${r.status} ${usdOf(r.amount)}`,
       detail: r.reason || r.providerRefundId || undefined
     })),
     ...order.webhookEvents.map((w): TimelineEntry => ({
@@ -225,10 +237,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               ) : (
                 <div className="mt-1 text-[12px] text-slate-500">No product attached</div>
               )}
-              <div className="mt-2 text-xl font-semibold">{formatMoney(order.amount, order.currency)}</div>
+              <div className="mt-2 text-xl font-semibold">{usdOf(order.amount)}</div>
               {totalRefunded > 0 && (
                 <div className="text-xs text-amber-700 dark:text-amber-400">
-                  Refunded {formatMoney(totalRefunded, order.currency)} · Remaining {formatMoney(Math.max(0, remaining), order.currency)}
+                  Refunded {usdOf(totalRefunded)} · Remaining {usdOf(Math.max(0, remaining))}
                 </div>
               )}
             </section>
@@ -293,7 +305,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                   {order.refunds.map((r) => (
                     <tr key={r.id}>
                       <td className="py-1.5">{r.createdAt.toLocaleString()}</td>
-                      <td className="py-1.5 text-right font-medium">{formatMoney(r.amount, r.currency)}</td>
+                      <td className="py-1.5 text-right font-medium">{usdOf(r.amount)}</td>
                       <td className="py-1.5"><StatusBadge status={r.status} /></td>
                       <td className="py-1.5 text-slate-500">{r.byAdmin.name ?? r.byAdmin.email}</td>
                       <td className="py-1.5 text-slate-500">
@@ -323,14 +335,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <form action={issueRefund} className="mt-3 flex flex-wrap items-end gap-2">
                 <input type="hidden" name="id" value={order.id} />
                 <label className="flex flex-col text-[11px] uppercase tracking-wider text-slate-500">
-                  Amount ({order.currency})
+                  Amount (USD)
                   <input
                     type="number"
                     name="amount"
                     step="0.01"
                     min="0.01"
-                    max={(remaining / 100).toFixed(2)}
-                    placeholder={`Max ${(remaining / 100).toFixed(2)}`}
+                    max={(remainingUsd / 100).toFixed(2)}
+                    placeholder={`Max ${(remainingUsd / 100).toFixed(2)}`}
                     className="input-sm mt-0.5 w-32"
                   />
                 </label>

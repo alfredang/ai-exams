@@ -1,13 +1,9 @@
-'use client';
-import { formatDisplayPrice, useDisplayCurrency } from './currency-provider';
+import { formatPrice } from '@/lib/utils';
 
 /**
- * A storefront price. `cents` is always USD (the store currency); the visitor's
- * USD/SGD switcher decides how it is shown. Server components can render this
- * directly — it is a small client island.
+ * A storefront price. `cents` is USD (the store currency) and every price on
+ * the site is shown in USD — there is no currency switcher.
  */
 export function Price({ cents, className }: { cents: number; className?: string }) {
-  const { currency, usdToSgdBps } = useDisplayCurrency();
-  const text = formatDisplayPrice(cents, currency, usdToSgdBps);
-  return <span className={className} data-currency={currency === 'SGD' && usdToSgdBps ? 'SGD' : 'USD'}>{text}</span>;
+  return <span className={className}>{formatPrice(cents, 'USD')}</span>;
 }

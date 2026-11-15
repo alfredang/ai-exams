@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from 'react';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
-import { CurrencySwitcher } from './currency-switcher';
 import { Price } from './price';
 import { BookOpenCheck, Building2, ChevronRight, HelpCircle, Info, LifeBuoy, ListChecks, Menu, Ticket, X } from 'lucide-react';
 
@@ -82,7 +81,6 @@ export function Nav() {
         )}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {inAdmin && <AdminHeaderTools />}
-          {!inAdmin && <CurrencySwitcher className="hidden sm:inline-flex" />}
           <UserMenu />
           <div className="border-l border-line pl-1 dark:border-slate-800 sm:ml-1 sm:pl-2">
             <ThemeToggle />
@@ -139,10 +137,6 @@ export function Nav() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 flex items-center justify-between px-1 text-xs text-muted dark:text-slate-400 sm:hidden">
-                <span>Show prices in</span>
-                <CurrencySwitcher />
-              </div>
               <div className="mt-3 grid grid-cols-2 gap-2 pb-2">
                 <Link href="/practice-exams" onClick={() => setOpen(false)} className="btn-outline min-h-[44px]">Practice Exams</Link>
                 <Link href="/exam-vouchers" onClick={() => setOpen(false)} className="btn-primary-grad min-h-[44px]">Exam Vouchers</Link>

@@ -6,6 +6,7 @@ import { HOME_SEO, LEGACY_HOME_SEO } from '../src/lib/exam-seo';
 import { decrypt, encrypt } from '../src/lib/settings-crypto';
 import { importCcarFoundationsPptx } from '../src/lib/seed/import-ccar-foundations-pptx';
 import { cleanUpUsersOnce } from '../src/lib/user-cleanup';
+import { cancelPendingOrdersOnce } from '../src/lib/order-cleanup';
 
 const db = new PrismaClient();
 
@@ -2540,6 +2541,15 @@ async function main() {
     if (cleaned !== null) console.log(`✓ User clean-up: ${cleaned} account(s) deleted`);
   } catch (e) {
     console.error('User clean-up skipped:', e);
+  }
+
+  // Abandoned checkouts: every PENDING order older than an hour is cancelled,
+  // once (16 Nov 2026, owner's request). Never blocks the boot seed.
+  try {
+    const cancelled = await cancelPendingOrdersOnce(db, 'cancel-pending-2026-11-16');
+    if (cancelled !== null) console.log(`✓ Pending orders cancelled: ${cancelled}`);
+  } catch (e) {
+    console.error('Pending-order clean-up skipped:', e);
   }
 
   console.log(`Seed complete. Vendors: ${VENDORS.length}, Exams: ${EXAMS.length}, Bundles: ${BUNDLES.length}. Admins: ${admins.map(a => a.email).join(', ')}`);

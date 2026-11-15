@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { formatMoney, tierLabel, genVoucherCode } from '@/lib/utils';
+import { tierLabel, genVoucherCode } from '@/lib/utils';
+import { formatOrderUsd, loadUsdSnapshots } from '@/lib/order-usd';
 import { revalidatePath } from 'next/cache';
 import { fulfillOrder } from '@/lib/fulfill';
 import { auth } from '@/lib/auth';
@@ -163,7 +164,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   const page = Math.max(1, Number(sp.page) || 1);
 
   const where: Prisma.OrderWhereInput = {};
-  if (status && ['PENDING', 'PAID', 'FAILED', 'REFUNDED'].includes(status)) where.status = status;
+  if (status && ['PENDING', 'PAID', 'FAILED', 'REFUNDED', 'CANCELLED'].includes(status)) where.status = status;
   if (examId) where.examId = examId;
   if (vendorId) where.exam = { vendorId };
 
@@ -195,6 +196,8 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       select: { id: true, code: true, title: true, vendor: { select: { name: true } } }
     })
   ]);
+
+  const usdSnapshots = await loadUsdSnapshots(orders);
 
   const orFilters = orders
     .filter((o) => o.userId && o.examId)
@@ -294,7 +297,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       align: 'right',
       cell: (o) => (
         <span className="font-semibold text-slate-900 dark:text-slate-100">
-          {formatMoney(o.amount, o.currency)}
+          {formatOrderUsd(o.amount, o, usdSnapshots)}
         </span>
       )
     },
@@ -459,6 +462,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             <option>PAID</option>
             <option>FAILED</option>
             <option>REFUNDED</option>
+            <option>CANCELLED</option>
           </select>
         </FilterField>
         <FilterField label="From">

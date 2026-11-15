@@ -3,6 +3,7 @@ import { Check, ArrowRight, Mail, Sparkles, Ticket } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { formatPrice, tierLabel } from '@/lib/utils';
+import { orderUsdCents, usdSnapshotsOf } from '@/lib/order-usd';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,7 +67,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Sear
               <div className="text-slate-500 dark:text-slate-400">Payment method</div>
               <div className="text-right">{order.provider}</div>
               <div className="text-slate-500 dark:text-slate-400">Total</div>
-              <div className="text-right text-base font-semibold">{formatPrice(order.amount, order.currency)}</div>
+              <div className="text-right text-base font-semibold">{formatPrice(orderUsdCents(order.amount, order, usdSnapshotsOf([order])), 'USD')}</div>
             </div>
             {order.billingAddress && (
               <div className="mt-3 border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">

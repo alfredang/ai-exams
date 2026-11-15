@@ -7,7 +7,6 @@ import { Footer, PersistentCopyright } from '@/components/footer';
 import { FooterGate } from '@/components/footer-gate';
 import { WhatsAppWidget } from '@/components/whatsapp-widget';
 import { AuthProvider } from '@/components/session-provider';
-import { CurrencyProvider } from '@/components/currency-provider';
 import { getAllSettings } from '@/lib/settings';
 import { SITE_OG_IMAGE } from '@/lib/seo-meta';
 import { HOME_SEO } from '@/lib/exam-seo';
@@ -141,7 +140,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         )}
         <AuthProvider>
-        <CurrencyProvider>
           <Nav />
           <main className="flex-1">{children}</main>
           <FooterGate>
@@ -149,7 +147,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </FooterGate>
           <PersistentCopyright />
           <WhatsAppWidget />
-        </CurrencyProvider>
         </AuthProvider>
       </body>
     </html>

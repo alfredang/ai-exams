@@ -49,6 +49,7 @@ enum OrderStatus {
   PAID
   FAILED
   REFUNDED
+  CANCELLED // abandoned checkout, cancelled by an admin or a deploy clean-up
 }
 
 enum PaymentProvider {

@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import { Badge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
 import { formatMoney } from '@/lib/utils';
+import { formatOrderUsd, loadUsdSnapshots } from '@/lib/order-usd';
 import { Trash2 } from 'lucide-react';
 import { CouponKind, CouponScope } from '@prisma/client';
 
@@ -120,6 +121,7 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
     })
   ]);
   if (!coupon) notFound();
+  const usdSnapshots = await loadUsdSnapshots(redemptions.map((r) => r.order));
 
   return (
     <div>
@@ -275,9 +277,9 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
                       {r.order.number ?? r.order.id.slice(0, 10)}
                     </Link>
                   </td>
-                  <td className="py-1.5 text-right">{formatMoney(r.order.amount, r.order.currency)}</td>
+                  <td className="py-1.5 text-right">{formatOrderUsd(r.order.amount, r.order, usdSnapshots)}</td>
                   <td className="py-1.5 text-right font-medium text-emerald-700 dark:text-emerald-400">
-                    −{formatMoney(r.amount, r.order.currency)}
+                    −{formatOrderUsd(r.amount, r.order, usdSnapshots)}
                   </td>
                   <td className="py-1.5">
                     <Badge variant={r.order.status === 'PAID' ? 'success' : r.order.status === 'REFUNDED' ? 'warn' : 'muted'}>

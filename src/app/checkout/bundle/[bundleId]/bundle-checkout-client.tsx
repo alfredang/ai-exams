@@ -6,7 +6,6 @@ import { Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { BillingAddressCard } from '@/components/checkout/billing-address-card';
 import { PaymentMethodsPicker, usePaymentMethods, type MethodId } from '@/components/checkout/payment-methods';
 import { PayNowModal } from '@/components/checkout/paynow-modal';
-import { formatDisplayPrice, useDisplayCurrency } from '@/components/currency-provider';
 import { PromoCodeInput, type PromoApplied } from '@/components/checkout/promo-code';
 import { formatPrice } from '@/lib/utils';
 import { PRICE_TAX_NOTE, STORE_CURRENCY } from '@/lib/currency';
@@ -35,7 +34,6 @@ export function BundleCheckoutClient({
   const [method, setMethod] = useState<MethodId>('PAYPAL');
   const [busy, setBusy] = useState<MethodId | null>(null);
   const [promo, setPromo] = useState<PromoApplied | null>(null);
-  const display = useDisplayCurrency();
   const [paynowSession, setPaynowSession] = useState<{ orderId: string; qrDataUrl: string; reference: string; amount: number; currency: string; storeAmount?: number; storeCurrency?: string; fxRateBps?: number } | null>(null);
   const data = usePaymentMethods();
   const methods = data?.methods ?? null;
@@ -103,11 +101,6 @@ export function BundleCheckoutClient({
           <span className="text-sm font-semibold">Total ({STORE_CURRENCY}, {PRICE_TAX_NOTE})</span>
           <span className="text-3xl font-bold text-blue-700 dark:text-blue-300">{formatPrice(total)}</span>
         </div>
-        {display.currency === 'SGD' && display.usdToSgdBps ? (
-          <p className="mt-1 text-right text-xs text-slate-500 dark:text-slate-400">
-            ≈ {formatDisplayPrice(total, 'SGD', display.usdToSgdBps)} at 1 USD = {(display.usdToSgdBps / 10000).toFixed(4)} SGD. Card payments are charged in USD; PayNow is charged in SGD at this rate.
-          </p>
-        ) : null}
       </div>
 
       <div className="card space-y-4 p-6">

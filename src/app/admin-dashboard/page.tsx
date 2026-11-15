@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatMoney, tierLabel } from '@/lib/utils';
+import { formatOrderUsd, loadUsdSnapshots } from '@/lib/order-usd';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { StatCard } from '@/components/admin/stat-card';
@@ -64,6 +65,8 @@ export default async function AdminOverview() {
     db.question.count({ where: { status: 'DRAFT' } })
   ]);
 
+  const latestUsd = await loadUsdSnapshots(latestOrders);
+
   const popularExamIds = popularOrders.map((p) => p.examId!).filter(Boolean);
   const popularExams = popularExamIds.length
     ? await db.exam.findMany({
@@ -101,8 +104,8 @@ export default async function AdminOverview() {
       <StatCard
         className="mb-4"
         label="Tax collected · MTD"
-        value={formatMoney(taxMtd.taxSgdTotal, 'SGD')}
-        sub={`${taxMtd.invoiceCount} invoice${taxMtd.invoiceCount === 1 ? '' : 's'} · SGD-equivalent total ${formatMoney(taxMtd.totalSgd, 'SGD')}`}
+        value={formatMoney(taxMtd.taxUsdTotal, 'USD')}
+        sub={`GST included · ${taxMtd.invoiceCount} invoice${taxMtd.invoiceCount === 1 ? '' : 's'} · total ${formatMoney(taxMtd.totalUsd, 'USD')}`}
         action={<Link href="/admin-dashboard/reports/tax" className="btn-sm-quiet shrink-0">GST report →</Link>}
       />
 
@@ -136,7 +139,7 @@ export default async function AdminOverview() {
           </div>
           <ul className="divide-y divide-line/60 text-[13px] dark:divide-slate-800/70">
             {latestOrders.map((o) => {
-              const product = o.bundle ? `${o.bundle.title} (bundle)` : o.exam?.title ?? '—';
+              const product = o.bundle?.title ?? o.exam?.title ?? '—';
               const tier = o.tier ? tierLabel(o.tier) : o.bundle ? 'Practice Exam' : '—';
               return (
                 <li key={o.id} className="flex items-center justify-between gap-2 py-1.5">
@@ -145,7 +148,7 @@ export default async function AdminOverview() {
                     <div className="truncate text-xs text-slate-500">{o.user.email} · {tier}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">{formatMoney(o.amount, o.currency)}</span>
+                    <span className="font-semibold">{formatOrderUsd(o.amount, o, latestUsd)}</span>
                     <StatusBadge status={o.status} />
                   </div>
                 </li>
