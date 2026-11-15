@@ -5,6 +5,7 @@ import { normalizeProducts } from '../src/lib/products';
 import { HOME_SEO, LEGACY_HOME_SEO } from '../src/lib/exam-seo';
 import { decrypt, encrypt } from '../src/lib/settings-crypto';
 import { importCcarFoundationsPptx } from '../src/lib/seed/import-ccar-foundations-pptx';
+import { cleanUpUsersOnce } from '../src/lib/user-cleanup';
 
 const db = new PrismaClient();
 
@@ -2529,6 +2530,16 @@ async function main() {
     if (current === legacy) {
       await db.setting.update({ where: { key }, data: { value: encrypt(HOME_SEO[key as keyof typeof LEGACY_HOME_SEO]) } });
     }
+  }
+
+  // Owner-requested one-time clean-up (16 Nov 2026): accounts that never took
+  // an exam, plus suspended and anonymised ones. Runs once (the audit entry is
+  // the marker) and must never stop the boot seed.
+  try {
+    const cleaned = await cleanUpUsersOnce(db, 'cleanup-2026-11-16');
+    if (cleaned !== null) console.log(`✓ User clean-up: ${cleaned} account(s) deleted`);
+  } catch (e) {
+    console.error('User clean-up skipped:', e);
   }
 
   console.log(`Seed complete. Vendors: ${VENDORS.length}, Exams: ${EXAMS.length}, Bundles: ${BUNDLES.length}. Admins: ${admins.map(a => a.email).join(', ')}`);
