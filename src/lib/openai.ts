@@ -18,6 +18,12 @@ import { getSetting } from '@/lib/settings';
  * is still validated against the caller's zod schema.
  */
 export const DEFAULT_OPENAI_MODEL = 'gpt-6.1-sol';
+/**
+ * The AI Question and Answer Generator and the answer-key check always run on
+ * OpenAI with this model (OpenAI SDK, API key) — never the cheaper fallbacks,
+ * whose answer keys can't be trusted to overrule the pool's.
+ */
+export const QA_MODEL = 'gpt-6.1-sol';
 export const DEEPSEEK_MODEL = 'deepseek-flash';
 export const MINIMAX_MODEL = 'MiniMax-M3.1-Flash';
 
@@ -58,22 +64,43 @@ export function extractJsonObject(text: string): unknown {
   return JSON.parse(t.slice(start, end + 1));
 }
 
-async function callProvider<S extends z.ZodTypeAny>(
-  p: AiProvider,
-  opts: { schema: S; name: string; instructions: string; input: string; webSearch?: boolean }
-): Promise<z.infer<S>> {
+/** A file the model reads alongside the prompt (OpenAI only), e.g. a scanned PDF. */
+export type AiInputFile = { filename: string; base64: string; mime: string };
+
+type CallOpts<S extends z.ZodTypeAny> = {
+  schema: S;
+  name: string;
+  instructions: string;
+  input: string;
+  webSearch?: boolean;
+  file?: AiInputFile;
+};
+
+async function callProvider<S extends z.ZodTypeAny>(p: AiProvider, opts: CallOpts<S>): Promise<z.infer<S>> {
   const format = zodTextFormat(opts.schema, opts.name);
   if (p.id === 'openai') {
-    const res = await new OpenAI({ apiKey: p.apiKey }).responses.parse({
+    const input = opts.file
+      ? [
+          {
+            role: 'user' as const,
+            content: [
+              { type: 'input_file' as const, filename: opts.file.filename, file_data: `data:${opts.file.mime};base64,${opts.file.base64}` },
+              { type: 'input_text' as const, text: opts.input }
+            ]
+          }
+        ]
+      : opts.input;
+    const res = await new OpenAI({ apiKey: p.apiKey, maxRetries: 4, timeout: 10 * 60_000 }).responses.parse({
       model: p.model,
       instructions: opts.instructions,
-      input: opts.input,
+      input,
       tools: opts.webSearch ? [{ type: 'web_search' }] : undefined,
       text: { format }
     });
     if (!res.output_parsed) throw new Error('no structured output');
     return res.output_parsed as z.infer<S>;
   }
+  if (opts.file) throw new Error(`${p.label} cannot read files`);
   const client = new OpenAI({ apiKey: p.apiKey, baseURL: BASE_URL[p.id] });
   const res = await client.chat.completions.create({
     model: p.model,
@@ -96,13 +123,7 @@ async function callProvider<S extends z.ZodTypeAny>(
  * configured provider in turn. `webSearch` calls only go to providers that can
  * browse (OpenAI) — the others would guess URLs. Returns which provider answered.
  */
-export async function aiStructuredWithMeta<S extends z.ZodTypeAny>(opts: {
-  schema: S;
-  name: string;
-  instructions: string;
-  input: string;
-  webSearch?: boolean;
-}): Promise<{ data: z.infer<S>; provider: AiProviderId; model: string }> {
+export async function aiStructuredWithMeta<S extends z.ZodTypeAny>(opts: CallOpts<S>): Promise<{ data: z.infer<S>; provider: AiProviderId; model: string }> {
   const all = await aiProviders();
   if (!all.length) throw new Error('No AI provider configured (admin → Settings → Credentials).');
   const providers = opts.webSearch ? all.filter((p) => p.webSearch) : all;
@@ -118,14 +139,31 @@ export async function aiStructuredWithMeta<S extends z.ZodTypeAny>(opts: {
   throw new Error(`All AI providers failed — ${errors.join(' | ')}`);
 }
 
-export async function aiStructured<S extends z.ZodTypeAny>(opts: {
-  schema: S;
-  name: string;
-  instructions: string;
-  input: string;
-  webSearch?: boolean;
-}): Promise<z.infer<S>> {
+export async function aiStructured<S extends z.ZodTypeAny>(opts: CallOpts<S>): Promise<z.infer<S>> {
   return (await aiStructuredWithMeta(opts)).data;
+}
+
+/** The OpenAI provider pinned to QA_MODEL, or null when no OpenAI key is saved. */
+export async function qaProvider(): Promise<AiProvider | null> {
+  const openai = (await aiProviders()).find((p) => p.id === 'openai');
+  return openai ? { ...openai, model: QA_MODEL } : null;
+}
+
+/**
+ * One structured call on OpenAI QA_MODEL only (no fallback): the AI Question
+ * and Answer Generator and the answer-key check. Throws when no OpenAI key is
+ * saved. Returns `generatedBy`-style "openai:gpt-6.1-sol".
+ */
+export async function qaStructured<S extends z.ZodTypeAny>(opts: CallOpts<S>): Promise<{ data: z.infer<S>; generatedBy: string }> {
+  const p = await qaProvider();
+  if (!p) throw new Error('The AI Question and Answer Generator needs an OpenAI API key (admin → Settings → Credentials).');
+  return { data: await callProvider(p, opts), generatedBy: `openai:${p.model}` };
+}
+
+/** True when an OpenAI API call failed on a rate or usage limit (worth waiting and retrying). */
+export function isRateLimit(e: unknown): boolean {
+  const status = (e as any)?.status;
+  return status === 429 || /rate limit|quota/i.test(String((e as any)?.message ?? ''));
 }
 
 export type AiProviderTest = { id: AiProviderId; label: string; model: string; ok: boolean; ms: number; error?: string };

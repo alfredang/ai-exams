@@ -8,6 +8,16 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     await import('./sentry.server.config');
+    // Resume the background AI answer-key check if it was running when the
+    // previous container stopped (src/lib/answer-check-job.ts). Production
+    // only, and a minute after boot so the server is serving first.
+    if (process.env.NODE_ENV === 'production') {
+      setTimeout(() => {
+        import('./lib/answer-check-job')
+          .then((m) => m.resumeAnswerCheckIfActive())
+          .catch((e) => console.error('answer-check resume failed:', e));
+      }, 60_000);
+    }
   } else if (process.env.NEXT_RUNTIME === 'edge') {
     await import('./sentry.edge.config');
   }

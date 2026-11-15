@@ -24,8 +24,10 @@ paths:
   product slug, with `sourceUrl` + `verifiedAt` — bump `verifiedAt` when
   re-checked. Never invent domains.
 - **Human-authored questions auto-publish** (`PUBLISHED`): Add manually, CSV
-  import, seeds. **AI-generated ones are `DRAFT`** and join the pool only when
-  an admin approves them in the exam page's Review queue (`#review`).
+  import, seeds. **AI-generated ones publish too** — there is no review queue
+  (removed 2026-11-16): the generator validates, runs the AI answer-key check
+  (`checkAnswerKeys()`) and drops anything it can't confirm. Agents add via
+  `/api/v1/question-banks/{ref}/questions`; the auditor only sets `auditFlag`.
 - **Explanations** lead with the suggested answer, explain why, and cite
   official docs. Never claim real-exam content or reproduce vendor samples.
 - **Seed modules are idempotent**: delete-and-recreate only rows tagged with
@@ -36,8 +38,11 @@ paths:
   code isn't slug-derived. List new products in `BUNDLES` or they are taken
   off sale on deploy.
 - Never publish or add a retired variant (`poolExamId` set) to a product.
-- Admin AI generation uses the provider chain in `src/lib/openai.ts` (OpenAI →
-  DeepSeek → MiniMax), always saving DRAFTs; Claude-authored
-  banks go through the `question-bank-generator` agent and a seed module.
+- The AI Question and Answer Generator and the answer-key check use OpenAI
+  `gpt-6.1-sol` only (`qaStructured()`, `QA_MODEL` in `src/lib/openai.ts`) and
+  save PUBLISHED; other admin AI features keep the OpenAI → DeepSeek → MiniMax
+  chain. Source URLs are read through providers, never fetched directly (SSRF).
+  Claude-authored banks go through the `question-bank-generator` agent and a
+  seed module.
 - Seeding production: `npm run seed:prod -- <name> <expected-slug>` after the
   deploy is confirmed live; stop after one failed login.

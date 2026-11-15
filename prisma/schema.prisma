@@ -277,9 +277,23 @@ model Question {
   version     Int       @default(1)
   sourceId    String?
   source      ExamSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  // AI answer-key check (src/lib/answer-check.ts): when it ran and its verdict
+  // { verdict: 'ok'|'fixed'|'unsure'|'skipped', model, note?, before? }.
+  aiCheckedAt DateTime?
+  aiCheck     Json?
+  // Question audit (exam-question-auditor agent via /api/v1/questions/audit):
+  // auditFlag is null when fine, else 'wrong' | 'outdated' | 'ambiguous' — the
+  // question is highlighted in admin until someone fixes or clears it.
+  // audit = { verdict, note, suggestedAnswer?, sources[], by, at }.
+  auditedAt   DateTime?
+  auditFlag   String?
+  audit       Json?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   @@index([examId, status])
+  @@index([status, aiCheckedAt])
+  @@index([auditFlag])
+  @@index([status, auditedAt])
   @@index([examId, isTeaser])
   @@index([status])
   @@index([sourceId])
@@ -294,7 +308,8 @@ model ExamSource {
   kind        ExamSourceKind
   label       String                                            // human label e.g. "AWS exam guide v3 (PDF)"
   storagePath String?                                            // local path under /uploads when kind=PDF or EPUB
-  urls        Json?                                              // string[] when kind=URL
+  urls        Json?                                              // string[] when kind=URL or YOUTUBE
+  content     String?                                            // text the AI reads (PDF text, page markdown, video transcript)
   importedById String
   importedBy  User             @relation(fields: [importedById], references: [id])
   createdAt   DateTime         @default(now())
@@ -306,6 +321,7 @@ enum ExamSourceKind {
   PDF
   EPUB
   URL
+  YOUTUBE
 }
 
 // Immutable schema snapshot of an Exam on every save, so admins can audit

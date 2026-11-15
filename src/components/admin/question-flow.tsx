@@ -1,24 +1,24 @@
-import { ArrowRight, CheckCircle2, Sparkles, UserCheck } from 'lucide-react';
+import { ArrowRight, CheckCircle2, FileText, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 /**
- * The question bank's AI workflow as a three-step process map:
- * AI generates drafts → an admin reviews each one → approved questions join
- * the pool that attempts draw from. Counts are live.
+ * The AI Question and Answer Generator as a three-step map: choose a source
+ * (AI generation, YouTube, web link or PDF) → AI extracts or generates the
+ * questions and checks every answer key → published into the pool. There is
+ * no human review step; audit flags highlight questions that need a look.
  */
-export function QuestionReviewFlow({
-  awaiting,
+export function QuestionFlow({
   published,
+  checked,
   perAttempt,
-  reviewHref = '#review',
   poolHref,
   generate
 }: {
-  awaiting: number;
   published: number;
+  /** Published questions whose answer key AI has checked. */
+  checked: number;
   /** Questions each attempt draws; omitted on the all-exams generator page. */
   perAttempt?: number;
-  reviewHref?: string;
   poolHref?: string;
   /** Step 1's action — the AI Generate button that opens the pop-up form. */
   generate?: ReactNode;
@@ -27,29 +27,29 @@ export function QuestionReviewFlow({
     <ol className="grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
       <Step
         n={1}
-        icon={<Sparkles className="h-4 w-4" />}
+        icon={<FileText className="h-4 w-4" />}
         tone="violet"
-        title="AI generates"
-        body="Questions, answers, explanations and references for the domains you choose. Saved as drafts."
+        title="Choose a source"
+        body="A YouTube link, a web link, a PDF upload — or AI generation for the exam domains you choose."
         status={generate ?? 'Use the form below'}
       />
       <Arrow />
       <Step
         n={2}
-        icon={<UserCheck className="h-4 w-4" />}
-        tone="amber"
-        title="Human review"
-        body="An admin checks each draft: edit it, approve it, or reject it. Drafts are never shown to learners."
-        status={awaiting > 0 ? <a href={reviewHref} className="font-semibold underline">{awaiting} awaiting review →</a> : 'Nothing to review'}
+        icon={<ShieldCheck className="h-4 w-4" />}
+        tone="sky"
+        title="AI extracts, generates & checks"
+        body="OpenAI gpt-6.1-sol extracts (optionally rephrased) or writes questions with answers and explanations, then checks every answer key."
+        status={`${checked.toLocaleString()} of ${published.toLocaleString()} answer keys AI-checked`}
       />
       <Arrow />
       <Step
         n={3}
         icon={<CheckCircle2 className="h-4 w-4" />}
         tone="emerald"
-        title="Added to the pool"
-        body={`Approved questions are published.${perAttempt ? ` Every attempt draws ${perAttempt} of them by domain weight.` : ' Attempts draw from them by domain weight.'}`}
-        status={poolHref ? <a href={poolHref} className="underline">{published} in the pool</a> : `${published} in the pool`}
+        title="Published to the pool"
+        body={`Questions that pass go straight into the pool.${perAttempt ? ` Every attempt draws ${perAttempt} of them by domain weight.` : ' Attempts draw from them by domain weight.'}`}
+        status={poolHref ? <a href={poolHref} className="underline">{published.toLocaleString()} in the pool</a> : `${published.toLocaleString()} in the pool`}
       />
     </ol>
   );
@@ -57,7 +57,7 @@ export function QuestionReviewFlow({
 
 const TONES = {
   violet: { ring: 'border-violet-200 dark:border-violet-900/60', badge: 'bg-violet-600 text-white', text: 'text-violet-700 dark:text-violet-300' },
-  amber: { ring: 'border-amber-200 dark:border-amber-900/60', badge: 'bg-amber-400 text-amber-950', text: 'text-amber-800 dark:text-amber-300' },
+  sky: { ring: 'border-sky-200 dark:border-sky-900/60', badge: 'bg-sky-600 text-white', text: 'text-sky-700 dark:text-sky-300' },
   emerald: { ring: 'border-emerald-200 dark:border-emerald-900/60', badge: 'bg-emerald-600 text-white', text: 'text-emerald-700 dark:text-emerald-300' }
 };
 

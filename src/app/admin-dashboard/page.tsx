@@ -26,7 +26,7 @@ export default async function AdminOverview() {
     latestUsers,
     latestOrders,
     popularOrders,
-    questionDrafts
+    questionFlags
   ] = await Promise.all([
     paidOrdersIn(today),
     paidOrdersIn(last7),
@@ -62,7 +62,7 @@ export default async function AdminOverview() {
       orderBy: { _count: { examId: 'desc' } },
       take: 5
     }),
-    db.question.count({ where: { status: 'DRAFT' } })
+    db.question.count({ where: { status: 'PUBLISHED', auditFlag: { not: null } } })
   ]);
 
   const latestUsd = await loadUsdSnapshots(latestOrders);
@@ -97,7 +97,7 @@ export default async function AdminOverview() {
         <StatCard label="Refund rate · 30d" value={`${(refundRate30 * 100).toFixed(1)}%`} sub={`${last30Stats.refundCount} refunds`} accent="amber" href="/admin-dashboard/orders?status=REFUNDED" />
         <StatCard label="Signups · 30d" value={signups30.toLocaleString()} sub="new users" accent="brand" href="/admin-dashboard/users" />
         <StatCard label="Active learners · 30d" value={activeLearners30.toLocaleString()} sub="unique attempts" accent="brand" href="/admin-dashboard/users" />
-        <StatCard label="DRAFT questions" value={questionDrafts.toLocaleString()} sub="awaiting review" accent={questionDrafts > 0 ? 'rose' : 'slate'} href="/admin-dashboard/exams" />
+        <StatCard label="Flagged questions" value={questionFlags.toLocaleString()} sub="may be wrong or outdated" accent={questionFlags > 0 ? 'rose' : 'slate'} href="/admin-dashboard/questions#audit-flags" />
       </div>
 
       {/* Tax (MTD) helper */}

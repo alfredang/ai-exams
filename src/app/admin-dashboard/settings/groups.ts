@@ -210,12 +210,13 @@ export const GROUPS: SettingsGroup[] = [
     slug: 'credentials',
     title: 'Credentials',
     description:
-      'AI keys, tried in order: OpenAI → DeepSeek → MiniMax. If one fails or hits a usage limit, the next configured key takes over. Find official page needs OpenAI (web search).',
+      'AI keys, tried in order: OpenAI → DeepSeek → MiniMax. If one fails or hits a usage limit, the next configured key takes over. Find official page needs OpenAI (web search). The AI Question and Answer Generator and the answer-key check always use OpenAI gpt-6.1-sol. Firecrawl reads web links and YouTube transcripts for the generator (without it, web links are read by OpenAI web search and YouTube captions are fetched directly).',
     fields: [
       { key: 'OPENAI_API_KEY', label: '1 · OpenAI — API Key (primary)', secret: true },
       { key: 'OPENAI_MODEL', label: 'OpenAI — Model', placeholder: 'gpt-6.1-sol' },
       { key: 'DEEPSEEK_API_KEY', label: '2 · DeepSeek — API Key (fallback, V4.1 Flash)', secret: true },
-      { key: 'MINIMAX_API_KEY', label: '3 · MiniMax — API Key (fallback, M3.1 Flash)', secret: true }
+      { key: 'MINIMAX_API_KEY', label: '3 · MiniMax — API Key (fallback, M3.1 Flash)', secret: true },
+      { key: 'FIRECRAWL_API_KEY', label: 'Firecrawl — API Key (reads web links and YouTube for the Q&A generator)', secret: true }
     ]
   }
 ];

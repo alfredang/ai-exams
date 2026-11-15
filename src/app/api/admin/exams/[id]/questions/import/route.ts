@@ -81,7 +81,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           explanation,
           options: opts,
           correct,
-          status: (cols[idx.status]?.trim() as any) || 'PUBLISHED',
+          // No review queue: a blank status publishes; an exported DRAFT comes back Unpublished.
+          status: (cols[idx.status]?.trim() === 'DRAFT' ? 'ARCHIVED' : (cols[idx.status]?.trim() as any)) || 'PUBLISHED',
           isTeaser: cols[idx.isTeaser]?.trim().toLowerCase() === 'true',
           generatedBy: 'csv-import'
         }

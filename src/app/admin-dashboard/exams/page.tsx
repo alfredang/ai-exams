@@ -48,8 +48,8 @@ function searchClause(q: string) {
  *  the lifecycle View (active/inactive/archived) — this tracks whether the
  *  exam's *questions* are ready.
  *    ''       → any (no constraint)
- *    'clean'  → has ≥1 PUBLISHED question and 0 DRAFT (ready to ship)
- *    'drafts' → has ≥1 DRAFT question (work outstanding)
+ *    'clean'  → has ≥1 PUBLISHED question and no open audit flag
+ *    'flagged' → has ≥1 published question the auditor agent flagged
  *    'empty'  → has 0 questions at all (a bare shell)
  */
 // Lifecycle views. A practice exam sold by a published product is Active even
@@ -85,9 +85,9 @@ function examWhere(view: string, vendor: string, level: string, q: string, qs: s
 function qstatusClause(qs: string) {
   switch (qs) {
     case 'clean':
-      return { questions: { some: { status: 'PUBLISHED' as const }, none: { status: 'DRAFT' as const } } };
-    case 'drafts':
-      return { questions: { some: { status: 'DRAFT' as const } } };
+      return { questions: { some: { status: 'PUBLISHED' as const }, none: { status: 'PUBLISHED' as const, auditFlag: { not: null } } } };
+    case 'flagged':
+      return { questions: { some: { status: 'PUBLISHED' as const, auditFlag: { not: null } } } };
     case 'empty':
       return { questions: { none: {} } };
     default:
@@ -272,33 +272,33 @@ async function loadExams(where: any, skip: number, take: number) {
     skip,
     take
   });
-  // Per-exam draft/published question counts for the Questions column.
+  // Per-exam published / audit-flagged question counts for the Questions column.
   const examIds = exams.map((e) => e.id);
   // Attempt / order counts per exam (what blocks a hard delete) come from two
   // grouped queries on indexed columns rather than a per-row relation count.
-  const [statusCounts, attemptCounts, orderCounts] = examIds.length
+  const [statusCounts, flagCounts, attemptCounts, orderCounts] = examIds.length
     ? await Promise.all([
         db.question.groupBy({
           by: ['examId', 'status'],
           where: { examId: { in: examIds } },
           _count: { _all: true }
         }),
+        db.question.groupBy({ by: ['examId'], where: { examId: { in: examIds }, status: 'PUBLISHED', auditFlag: { not: null } }, _count: { _all: true } }),
         db.attempt.groupBy({ by: ['examId'], where: { examId: { in: examIds } }, _count: { _all: true } }),
         db.order.groupBy({ by: ['examId'], where: { examId: { in: examIds } }, _count: { _all: true } })
       ])
-    : [[], [], []];
+    : [[], [], [], []];
   const attemptsByExam = new Map(attemptCounts.map((r) => [r.examId, r._count._all]));
   const ordersByExam = new Map(orderCounts.map((r) => [r.examId, r._count._all]));
-  const draftByExam = new Map<string, number>();
+  const flaggedByExam = new Map(flagCounts.map((r) => [r.examId, r._count._all]));
   const publishedByExam = new Map<string, number>();
   for (const r of statusCounts) {
-    if (r.status === 'DRAFT') draftByExam.set(r.examId, r._count._all);
-    else if (r.status === 'PUBLISHED') publishedByExam.set(r.examId, r._count._all);
+    if (r.status === 'PUBLISHED') publishedByExam.set(r.examId, r._count._all);
   }
   return exams.map((e) => ({
     ...e,
     _count: { attempts: attemptsByExam.get(e.id) ?? 0, orders: ordersByExam.get(e.id) ?? 0 },
-    draftCount: draftByExam.get(e.id) ?? 0,
+    flaggedCount: flaggedByExam.get(e.id) ?? 0,
     publishedCount: publishedByExam.get(e.id) ?? 0,
     domainCount: Array.isArray(e.domains) ? e.domains.length : 0
   }));
@@ -339,8 +339,8 @@ export default async function AdminExamsPage({
 
   // Question-readiness dimension, orthogonal to the lifecycle View. Surfaced
   // both as a "Questions" dropdown and as clickable tracker chips up top.
-  type QStatus = '' | 'clean' | 'drafts' | 'empty';
-  const qstatus: QStatus = (['clean', 'drafts', 'empty'] as const).includes(sp.qstatus as any)
+  type QStatus = '' | 'clean' | 'flagged' | 'empty';
+  const qstatus: QStatus = (['clean', 'flagged', 'empty'] as const).includes(sp.qstatus as any)
     ? (sp.qstatus as QStatus)
     : '';
 
@@ -361,11 +361,11 @@ export default async function AdminExamsPage({
   // The first page of rows is fetched in the same round trip; it is only
   // re-read when the requested page turns out to be past the end.
   const firstSkip = (requestedPage - 1) * PAGE_SIZE;
-  const [trkActive, trkInactive, trkArchived, trkDrafts, trkEmpty, vendors, totalCount, firstRows] = await Promise.all([
+  const [trkActive, trkInactive, trkArchived, trkFlagged, trkEmpty, vendors, totalCount, firstRows] = await Promise.all([
     db.exam.count({ where: buildWhere('active', '') }),
     db.exam.count({ where: buildWhere('inactive', '') }),
     db.exam.count({ where: buildWhere('archived', '') }),
-    db.exam.count({ where: buildWhere('all', 'drafts') }),
+    db.exam.count({ where: buildWhere('all', 'flagged') }),
     db.exam.count({ where: buildWhere('all', 'empty') }),
     db.vendor.findMany({ orderBy: { name: 'asc' } }),
     db.exam.count({ where }),
@@ -401,7 +401,7 @@ export default async function AdminExamsPage({
     `/admin-dashboard/exams${buildQS({ vendor: vendorFilter, level: levelFilter, q, view: v === 'active' ? undefined : v, qstatus: qs || undefined })}`;
   const QSTATUS_LABEL: Record<Exclude<QStatus, ''>, string> = {
     clean: 'all published',
-    drafts: 'has draft Qs',
+    flagged: 'has audit flags',
     empty: 'no questions'
   };
   const activeFilters = [
@@ -517,19 +517,18 @@ export default async function AdminExamsPage({
       key: 'questions',
       header: 'Questions',
       align: 'right',
-      // Bank size = published + draft (archived duplicates excluded). Drafts
-      // are not drawn into attempts until published, so they're called out.
+      // Published pool size; questions the auditor agent flagged are called out.
       cell: (e) => {
-        const total = e.draftCount + e.publishedCount;
+        const total = e.publishedCount;
         return (
-          <span className="inline-flex flex-col items-end gap-0.5" title={`${e.publishedCount} published, ${e.draftCount} draft awaiting review`}>
+          <span className="inline-flex flex-col items-end gap-0.5" title={`${e.publishedCount} published, ${e.flaggedCount} with an audit flag`}>
             <span className={total === 0 ? 'text-slate-400' : ''}>{total}</span>
-            {e.draftCount > 0 && (
+            {e.flaggedCount > 0 && (
               <Link
-                href={`/admin-dashboard/exams/${e.id}#review`}
+                href={`/admin-dashboard/exams/${e.id}?qflag=audit#questions`}
                 className="whitespace-nowrap text-[11px] text-rose-700 hover:underline dark:text-rose-400"
               >
-                {e.draftCount} to review
+                {e.flaggedCount} flagged
               </Link>
             )}
           </span>
@@ -669,7 +668,7 @@ export default async function AdminExamsPage({
             { key: 'active', label: 'Active', count: trkActive, href: chipHref('active', ''), on: view === 'active' && !qstatus, dot: 'bg-emerald-500' },
             { key: 'inactive', label: 'Inactive', count: trkInactive, href: chipHref('inactive', ''), on: view === 'inactive' && !qstatus, dot: 'bg-amber-500' },
             { key: 'archived', label: 'Archived', count: trkArchived, href: chipHref('archived', ''), on: view === 'archived' && !qstatus, dot: 'bg-slate-400' },
-            { key: 'drafts', label: 'Draft questions', count: trkDrafts, href: chipHref('all', 'drafts'), on: qstatus === 'drafts', dot: 'bg-rose-500' },
+            { key: 'flagged', label: 'Audit flags', count: trkFlagged, href: chipHref('all', 'flagged'), on: qstatus === 'flagged', dot: 'bg-rose-500' },
             { key: 'empty', label: 'No questions', count: trkEmpty, href: chipHref('all', 'empty'), on: qstatus === 'empty', dot: 'bg-slate-300 dark:bg-slate-600' }
           ] as const
         ).map((c) => (
@@ -728,7 +727,7 @@ export default async function AdminExamsPage({
           <select name="qstatus" defaultValue={qstatus} className="input-sm">
             <option value="">Any</option>
             <option value="clean">All published</option>
-            <option value="drafts">Has drafts</option>
+            <option value="flagged">Has audit flags</option>
             <option value="empty">No questions</option>
           </select>
         </FilterField>

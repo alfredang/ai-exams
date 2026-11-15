@@ -76,7 +76,7 @@ export default async function ApiTokensPage({ searchParams }: { searchParams: Pr
         </label>
         <label className="flex-1 min-w-[14rem]">
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Scopes (comma-separated, optional)</span>
-          <input name="scopes" placeholder="assign:practice-exams" className="input-sm" />
+          <input name="scopes" placeholder="assign:practice-exams questions:write" className="input-sm" />
         </label>
         <button className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
           Create token

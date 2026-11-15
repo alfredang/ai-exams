@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Sparkles, X } from 'lucide-react';
+import { FileText, Globe, Search, Sparkles, X, Youtube } from 'lucide-react';
 import { planAllocation } from '@/lib/question-pool';
 
 export type GeneratorExam = {
@@ -11,11 +11,21 @@ export type GeneratorExam = {
   code: string;
   title: string;
   vendor: string;
-  drafts: number;
+  /** Published questions in the pool. */
+  pool: number;
   domains: { name: string; weight: number; pool: number }[];
 };
 type Kind = 'SINGLE' | 'MULTI' | 'ORDERING';
-type Made = { id: string; stem: string; domain: string };
+type Made = { id: string; stem: string; domain: string; verdict: string };
+type SourceKind = 'AI' | 'YOUTUBE' | 'URL' | 'PDF';
+type ReadSource = { id: string; label: string; chars: number; key: string };
+
+const SOURCES: { value: SourceKind; label: string; icon: typeof Sparkles; hint: string }[] = [
+  { value: 'AI', label: 'AI generation', icon: Sparkles, hint: 'AI writes new questions for the exam domains' },
+  { value: 'YOUTUBE', label: 'YouTube link', icon: Youtube, hint: "from the video's transcript" },
+  { value: 'URL', label: 'Web link', icon: Globe, hint: 'from a web page (docs, study guide, quiz)' },
+  { value: 'PDF', label: 'Upload PDF', icon: FileText, hint: 'up to 25 MB; scanned PDFs are read by AI' }
+];
 
 const KINDS: { value: Kind; label: string; hint: string }[] = [
   { value: 'SINGLE', label: 'MCQ', hint: 'one correct answer of 4' },
@@ -31,11 +41,13 @@ function preview(domains: GeneratorExam['domains'], total: number): Record<strin
 }
 
 /**
- * "AI Generate" button + pop-up form: exam (when more than one is offered),
- * number of questions, question types (all, or any of MCQ / Multiple select /
- * Sequencing) and exam domains (all, or any). Streams from
- * /api/admin/exams/[id]/ai-generate; every valid question is saved as a draft
- * in that question bank's review queue and joins the pool only once approved.
+ * "AI Generate" button + pop-up form for the AI Question and Answer Generator:
+ * exam (when more than one is offered), source (AI generation, YouTube link,
+ * web link or PDF upload — a source is read first via
+ * /api/admin/exams/[id]/sources), Extract / Generate mode with an optional
+ * Rephrase, number of questions, question types and exam domains. Streams
+ * from /api/admin/exams/[id]/ai-generate: every question is validated, its
+ * answer key checked by AI, and it is published straight into the pool.
  */
 export function AiGenerateDialog({
   exams,
@@ -49,8 +61,9 @@ export function AiGenerateDialog({
   exams: GeneratorExam[];
   initialExamId?: string;
   defaultOpen?: boolean;
+  /** An OpenAI API key is saved. */
   configured: boolean;
-  /** Provider chain for the footer, e.g. "OpenAI gpt-6.1-sol → DeepSeek deepseek-flash". */
+  /** Model label for the footer, e.g. "OpenAI gpt-6.1-sol". */
   providers: string;
   triggerLabel?: string;
   triggerClassName?: string;
@@ -63,6 +76,14 @@ export function AiGenerateDialog({
   const [examId, setExamId] = useState(single ? exams[0].id : exams.some((e) => e.id === initialExamId) ? initialExamId! : '');
   const [filter, setFilter] = useState('');
   const [count, setCount] = useState(10);
+  const [sourceKind, setSourceKind] = useState<SourceKind>('AI');
+  const [link, setLink] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [mode, setMode] = useState<'generate' | 'extract'>('generate');
+  const [rephrase, setRephrase] = useState(true);
+  const [read, setRead] = useState<ReadSource | null>(null);
+  const [phase, setPhase] = useState<'' | 'reading' | 'generating'>('');
+  const [fixed, setFixed] = useState(0);
   const [allTypes, setAllTypes] = useState(true);
   const [kinds, setKinds] = useState<Kind[]>([]);
   const [allDomains, setAllDomains] = useState(true);
@@ -96,6 +117,32 @@ export function AiGenerateDialog({
     setPicked([]);
     setMade([]);
     setCreated(null);
+    setRead(null);
+  }
+
+  // What the current source inputs are, so an already-read source is reused.
+  const sourceKey = sourceKind === 'PDF' ? (file ? `${examId}:pdf:${file.name}:${file.size}:${file.lastModified}` : '') : `${examId}:${sourceKind}:${link.trim()}`;
+
+  async function readSource(): Promise<ReadSource> {
+    if (read && read.key === sourceKey) return read;
+    setPhase('reading');
+    let res: Response;
+    if (sourceKind === 'PDF') {
+      const fd = new FormData();
+      fd.append('file', file!);
+      res = await fetch(`/api/admin/exams/${examId}/sources`, { method: 'POST', body: fd });
+    } else {
+      res = await fetch(`/api/admin/exams/${examId}/sources`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ kind: sourceKind, url: link.trim() })
+      });
+    }
+    const j = await res.json().catch(() => null);
+    if (!res.ok || !j?.id) throw new Error(j?.error || `Could not read the source (${res.status})`);
+    const out = { id: j.id as string, label: j.label as string, chars: j.chars as number, key: sourceKey };
+    setRead(out);
+    return out;
   }
 
   function toggleKind(k: Kind) {
@@ -119,14 +166,25 @@ export function AiGenerateDialog({
     setMade([]);
     if (!exam) return setError('Select an exam.');
     if (!count || count < 1 || count > 200) return setError('Enter between 1 and 200 questions.');
+    if ((sourceKind === 'YOUTUBE' || sourceKind === 'URL') && !/^https?:\/\/\S+\.\S+/.test(link.trim())) return setError('Paste the full link, starting with https://');
+    if (sourceKind === 'PDF' && !file) return setError('Choose a PDF file.');
+    if (sourceKind === 'PDF' && file && file.size > 25 * 1024 * 1024) return setError('PDFs up to 25 MB, please.');
     if (!allTypes && !kinds.length) return setError('Tick at least one question type, or choose All types.');
     if (!allDomains && !picked.length) return setError('Tick at least one exam domain, or choose All exam domains.');
     setBusy(true);
+    setFixed(0);
     try {
+      const source = sourceKind === 'AI' ? null : await readSource();
+      setPhase('generating');
       const res = await fetch(`/api/admin/exams/${exam.id}/ai-generate`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ count, types: allTypes ? [] : kinds, domains: allDomains ? [] : picked })
+        body: JSON.stringify({
+          count,
+          types: allTypes ? [] : kinds,
+          domains: allDomains ? [] : picked,
+          ...(source ? { sourceId: source.id, mode, rephrase } : {})
+        })
       });
       if (!res.ok || !res.body) {
         const j = await res.json().catch(() => null);
@@ -144,10 +202,13 @@ export function AiGenerateDialog({
         for (const block of events) {
           const event = /^event: (.*)$/m.exec(block)?.[1];
           const data = JSON.parse(/^data: (.*)$/m.exec(block)?.[1] ?? 'null');
-          if (event === 'question') setMade((m) => [{ id: data.id, stem: data.stem, domain: data.domain }, ...m]);
+          if (event === 'question') setMade((m) => [{ id: data.id, stem: data.stem, domain: data.domain, verdict: data.verdict }, ...m]);
           else if (event === 'warn') setWarnings((w) => [...w, data.message]);
           else if (event === 'error') setError(data.message);
-          else if (event === 'done') setCreated(data.created);
+          else if (event === 'done') {
+            setCreated(data.created);
+            setFixed(data.fixed ?? 0);
+          }
         }
       }
       router.refresh();
@@ -155,11 +216,12 @@ export function AiGenerateDialog({
       setError(e?.message ?? 'Generation failed');
     } finally {
       setBusy(false);
+      setPhase('');
     }
   }
 
   const chip = (on: boolean) =>
-    `inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] transition ${
+    `inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] transition focus-within:ring-2 focus-within:ring-violet-400 ${
       on
         ? 'border-violet-600 bg-violet-50 text-violet-800 dark:bg-violet-950/40 dark:text-violet-200'
         : 'border-slate-200 text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200'
@@ -175,7 +237,7 @@ export function AiGenerateDialog({
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
           <h2 id="ai-gen-title" className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">
             <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-            AI Generate questions &amp; answers
+            AI Question and Answer Generator
           </h2>
           <button
             type="button"
@@ -190,7 +252,7 @@ export function AiGenerateDialog({
 
         {!configured ? (
           <p className="px-5 py-6 text-sm text-slate-600 dark:text-slate-300">
-            AI generation needs at least one AI key (OpenAI, DeepSeek or MiniMax). Add it under{' '}
+            The AI Question and Answer Generator runs on OpenAI gpt-6.1-sol. Add an OpenAI API key under{' '}
             <Link href="/admin-dashboard/settings/credentials" className="text-brand-600 hover:underline dark:text-brand-400">
               Settings → Credentials
             </Link>
@@ -216,8 +278,7 @@ export function AiGenerateDialog({
                       <optgroup key={v} label={v}>
                         {shownExams.filter((e) => e.vendor === v).map((e) => (
                           <option key={e.id} value={e.id}>
-                            {e.code} — {e.title}
-                            {e.drafts ? ` · ${e.drafts} awaiting review` : ''}
+                            {e.code} — {e.title} · {e.pool} in pool
                           </option>
                         ))}
                       </optgroup>
@@ -227,13 +288,73 @@ export function AiGenerateDialog({
               </div>
             )}
 
+            <div>
+              <span className="label">Source</span>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {SOURCES.map((src) => {
+                  const Icon = src.icon;
+                  return (
+                    <label key={src.value} className={chip(sourceKind === src.value)} title={src.hint}>
+                      <input type="radio" name="ai-source" className="sr-only" checked={sourceKind === src.value} onChange={() => setSourceKind(src.value)} />
+                      <Icon className="h-4 w-4 shrink-0" /> {src.label}
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-[12px] text-slate-500 dark:text-slate-400">{SOURCES.find((x) => x.value === sourceKind)!.hint}.</p>
+              {(sourceKind === 'YOUTUBE' || sourceKind === 'URL') && (
+                <input
+                  type="url"
+                  className="input mt-2"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder={sourceKind === 'YOUTUBE' ? 'https://www.youtube.com/watch?v=…' : 'https://learn.microsoft.com/…'}
+                  aria-label={sourceKind === 'YOUTUBE' ? 'YouTube link' : 'Web link'}
+                />
+              )}
+              {sourceKind === 'PDF' && (
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="mt-2 block w-full text-[13px] text-slate-700 file:mr-3 file:h-10 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:text-[13px] file:font-medium dark:text-slate-200 dark:file:bg-slate-800 dark:file:text-slate-100"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  aria-label="PDF file"
+                />
+              )}
+              {read && read.key === sourceKey && (
+                <p className="mt-1 text-[12px] text-emerald-700 dark:text-emerald-400">
+                  Read: {read.label} · {read.chars.toLocaleString()} characters
+                </p>
+              )}
+            </div>
+
+            {sourceKind !== 'AI' && (
+              <div>
+                <span className="label">From this source, AI should</span>
+                <div className="flex flex-wrap gap-2">
+                  <label className={chip(mode === 'extract')}>
+                    <input type="radio" name="ai-mode" checked={mode === 'extract'} onChange={() => setMode('extract')} /> Extract its questions &amp; answers
+                  </label>
+                  <label className={chip(mode === 'generate')}>
+                    <input type="radio" name="ai-mode" checked={mode === 'generate'} onChange={() => setMode('generate')} /> Generate new questions from it
+                  </label>
+                </div>
+                {mode === 'extract' && (
+                  <label className="mt-2 flex min-h-10 cursor-pointer items-center gap-2 text-[13px] text-slate-700 dark:text-slate-200">
+                    <input type="checkbox" checked={rephrase} onChange={(e) => setRephrase(e.target.checked)} />
+                    Rephrase the questions (same meaning and answer, new wording)
+                  </label>
+                )}
+              </div>
+            )}
+
             <label className="block max-w-[12rem]">
-              <span className="label"># of questions</span>
+              <span className="label">{sourceKind !== 'AI' && mode === 'extract' ? 'Up to # of questions' : '# of questions'}</span>
               <input type="number" min={1} max={200} className="input" value={count} onChange={(e) => setCount(Number(e.target.value))} />
             </label>
 
             <div>
-              <span className="label">Question types</span>
+              <span className="label">Question types{sourceKind !== 'AI' && mode === 'extract' ? ' (extracted questions keep their own type)' : ''}</span>
               <div className="flex flex-wrap gap-2">
                 <label className={chip(allTypes)}>
                   <input type="radio" checked={allTypes} onChange={() => setAllTypes(true)} /> All types
@@ -294,9 +415,13 @@ export function AiGenerateDialog({
               </div>
             )}
             {error && <p className="text-sm text-red-600 dark:text-red-400" role="alert">{error}</p>}
+            {busy && phase === 'reading' && (
+              <p className="text-sm text-slate-600 dark:text-slate-300" role="status">Reading the source…</p>
+            )}
             {created !== null && (
               <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
-                {created} of {count} question{count === 1 ? '' : 's'} generated and waiting for review.
+                {created} question{created === 1 ? '' : 's'} added to the pool
+                {fixed > 0 ? ` (${fixed} answer key${fixed === 1 ? '' : 's'} corrected by the AI check)` : ''}.
               </p>
             )}
             {warnings.length > 0 && (
@@ -310,6 +435,7 @@ export function AiGenerateDialog({
                 {made.map((q) => (
                   <li key={q.id} className="truncate">
                     <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">{q.domain}</span>
+                    {q.verdict === 'fixed' && <span className="mr-2 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">key corrected</span>}
                     {q.stem}
                   </li>
                 ))}
@@ -317,15 +443,15 @@ export function AiGenerateDialog({
             )}
             <div className="flex flex-wrap items-center justify-end gap-2">
               <p className="mr-auto text-[11px] text-slate-500 dark:text-slate-400">
-                AI: <span className="font-mono">{providers}</span>. Saved as drafts — nothing reaches learners until you approve it.
+                AI: <span className="font-mono">{providers}</span>. Each answer key is checked by AI, then the question is published to the pool.
               </p>
               {exam && created !== null && created > 0 && (
                 <a
-                  href={`/admin-dashboard/exams/${exam.id}#review`}
+                  href={`/admin-dashboard/exams/${exam.id}#questions`}
                   onClick={() => setOpen(false)}
-                  className="inline-flex h-10 items-center rounded-md bg-amber-400 px-4 text-[13px] font-semibold text-amber-950 hover:bg-amber-500"
+                  className="inline-flex h-10 items-center rounded-md border border-slate-300 px-4 text-[13px] font-medium text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200"
                 >
-                  Review {created} draft{created === 1 ? '' : 's'} →
+                  View in question bank →
                 </a>
               )}
               <button
@@ -335,7 +461,13 @@ export function AiGenerateDialog({
                 className="inline-flex h-10 items-center gap-1.5 rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-violet-400"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                {busy ? `Generating… ${done}/${count}` : `Generate ${count || ''} question${count === 1 ? '' : 's'}`}
+                {busy
+                  ? phase === 'reading'
+                    ? 'Reading source…'
+                    : `Working… ${done}/${count}`
+                  : sourceKind !== 'AI' && mode === 'extract'
+                    ? `Extract up to ${count || ''} question${count === 1 ? '' : 's'}`
+                    : `Generate ${count || ''} question${count === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>

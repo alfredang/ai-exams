@@ -58,7 +58,7 @@ const SECTIONS: NavSection[] = [
       { href: '/admin-dashboard/bundles', label: 'Practice Exams', icon: BookOpen, exact: true },
       { href: '/admin-dashboard/bundles/vouchers', label: 'Exam Vouchers', icon: Ticket },
       { href: '/admin-dashboard/exams', label: 'Question Banks', icon: FileText, exact: true },
-      { href: '/admin-dashboard/questions', label: 'AI Question Generator', icon: Wand2 },
+      { href: '/admin-dashboard/questions', label: 'AI Question and Answer Generator', icon: Wand2 },
       { href: '/admin-dashboard/vendors', label: 'Vendors', icon: Building2 }
     ]
   },

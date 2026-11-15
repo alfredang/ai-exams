@@ -7,6 +7,7 @@ import { decrypt, encrypt } from '../src/lib/settings-crypto';
 import { importCcarFoundationsPptx } from '../src/lib/seed/import-ccar-foundations-pptx';
 import { cleanUpUsersOnce } from '../src/lib/user-cleanup';
 import { cancelPendingOrdersOnce } from '../src/lib/order-cleanup';
+import { queueAnswerCheckOnce, removeReviewQueueOnce } from '../src/lib/review-cleanup';
 
 const db = new PrismaClient();
 
@@ -2550,6 +2551,17 @@ async function main() {
     if (cancelled !== null) console.log(`✓ Pending orders cancelled: ${cancelled}`);
   } catch (e) {
     console.error('Pending-order clean-up skipped:', e);
+  }
+
+  // The human review queue is gone (16 Nov 2026): AI drafts still waiting are
+  // deleted, other drafts become Unpublished; then the pool-wide AI answer-key
+  // check is queued once (the web server runs it). Both run once per runId.
+  try {
+    const removed = await removeReviewQueueOnce(db, 'review-queue-2026-11-16');
+    if (removed) console.log(`✓ Review queue removed: ${removed.deleted} AI draft(s) deleted, ${removed.archived} unpublished`);
+    if (await queueAnswerCheckOnce(db, 'answer-check-2026-11-16')) console.log('✓ AI answer-key check queued');
+  } catch (e) {
+    console.error('Review-queue clean-up skipped:', e);
   }
 
   console.log(`Seed complete. Vendors: ${VENDORS.length}, Exams: ${EXAMS.length}, Bundles: ${BUNDLES.length}. Admins: ${admins.map(a => a.email).join(', ')}`);

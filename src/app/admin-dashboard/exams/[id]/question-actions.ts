@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { validateQuestion, type QuestionInput } from '@/lib/question-input';
 import type { QuestionFormState } from '@/components/admin/question-form';
-import { QUESTION_STATUS_FILTERS, QUESTION_TYPE_FILTERS, matchesQuestionFilter } from '@/lib/question-presentation';
+import { QUESTION_FLAG_FILTERS, QUESTION_STATUS_FILTERS, QUESTION_TYPE_FILTERS, matchesQuestionFilter } from '@/lib/question-presentation';
 
 async function adminId(): Promise<string | null> {
   const session = await auth();
@@ -47,7 +47,7 @@ export async function createQuestion(_prev: QuestionFormState, fd: FormData): Pr
   return { ok: true, message: 'Question added to the pool. Add another, or close this panel.', at: Date.now() };
 }
 
-/** Save an edited question; keeps its status, then returns to the bank list. */
+/** Save an edited question; keeps its status, clears any audit flag (the admin dealt with it), then returns to the bank list. */
 export async function updateQuestion(_prev: QuestionFormState, fd: FormData): Promise<QuestionFormState> {
   const admin = await adminId();
   if (!admin) return { error: 'Only admins can edit questions.' };
@@ -57,7 +57,7 @@ export async function updateQuestion(_prev: QuestionFormState, fd: FormData): Pr
   const res = readPayload(fd);
   if (!res.ok) return { error: res.error };
   const q = res.value;
-  await db.question.update({ where: { id }, data: q });
+  await db.question.update({ where: { id }, data: { ...q, ...(before.auditFlag ? { auditFlag: null } : {}) } });
   await db.adminLog.create({
     data: {
       adminId: admin,
@@ -71,47 +71,19 @@ export async function updateQuestion(_prev: QuestionFormState, fd: FormData): Pr
     }
   });
   refresh(before.examId);
-  // A draft goes back to the review queue; anything else to its row in the pool.
-  if (before.status === 'DRAFT') redirect(`/admin-dashboard/exams/${before.examId}?edited=${id}#review-${id}`);
   redirect(`/admin-dashboard/exams/${before.examId}?edited=${id}#q-${id}`);
 }
 
-/** Review queue: an admin approves a draft, which publishes it into the pool. */
-export async function approveQuestion(fd: FormData) {
+/** Clear an audit flag without editing the question (the auditor was wrong, or it was fixed elsewhere). */
+export async function clearAuditFlag(fd: FormData) {
   const admin = await adminId();
   if (!admin) return;
   const id = String(fd.get('id') || '');
-  const q = await db.question.findUnique({ where: { id }, select: { examId: true, status: true } });
-  if (!q || q.status !== 'DRAFT') return;
-  await db.question.update({ where: { id }, data: { status: 'PUBLISHED' } });
+  const q = await db.question.findUnique({ where: { id }, select: { examId: true, auditFlag: true, audit: true } });
+  if (!q?.auditFlag) return;
+  await db.question.update({ where: { id }, data: { auditFlag: null } });
   await db.adminLog.create({
-    data: { adminId: admin, action: 'question.approve', targetType: 'Question', targetId: id, metadata: { examId: q.examId } }
-  });
-  refresh(q.examId);
-}
-
-/**
- * Review queue: reject a draft. It is deleted, unless an earlier attempt drew
- * it (it was published before), in which case it is archived so that
- * attempt's results still open.
- */
-export async function rejectQuestion(fd: FormData) {
-  const admin = await adminId();
-  if (!admin) return;
-  const id = String(fd.get('id') || '');
-  const q = await db.question.findUnique({ where: { id }, select: { examId: true, status: true, stem: true, generatedBy: true } });
-  if (!q || q.status !== 'DRAFT') return;
-  const usedIn = await db.attempt.count({ where: { questionIds: { has: id } } });
-  if (usedIn > 0) await db.question.update({ where: { id }, data: { status: 'ARCHIVED' } });
-  else await db.question.delete({ where: { id } });
-  await db.adminLog.create({
-    data: {
-      adminId: admin,
-      action: 'question.reject',
-      targetType: 'Question',
-      targetId: id,
-      metadata: { examId: q.examId, stem: q.stem, generatedBy: q.generatedBy, archived: usedIn > 0 }
-    }
+    data: { adminId: admin, action: 'question.audit_clear', targetType: 'Question', targetId: id, metadata: { examId: q.examId, flag: q.auditFlag, audit: q.audit as any } }
   });
   refresh(q.examId);
 }
@@ -131,7 +103,7 @@ export async function deleteQuestion(fd: FormData) {
 
 /**
  * Publish / Unpublish one question. Unpublishing sets ARCHIVED (shown as
- * "Unpublished"): out of the pool, but not back in the AI review queue.
+ * "Unpublished"): out of the pool until someone publishes it again.
  */
 export async function toggleQuestionStatus(fd: FormData) {
   const admin = await adminId();
@@ -163,11 +135,12 @@ export async function bulkQuestionAction(fd: FormData) {
   const filter = {
     domain: String(fd.get('filterDomain') || ''),
     status: QUESTION_STATUS_FILTERS.includes(String(fd.get('filterStatus'))) ? String(fd.get('filterStatus')) : '',
-    type: QUESTION_TYPE_FILTERS.includes(String(fd.get('filterType'))) ? String(fd.get('filterType')) : ''
+    type: QUESTION_TYPE_FILTERS.includes(String(fd.get('filterType'))) ? String(fd.get('filterType')) : '',
+    flag: String(fd.get('filterFlag') || '') in QUESTION_FLAG_FILTERS ? String(fd.get('filterFlag')) : ''
   };
   const questions = await db.question.findMany({
     where: { examId },
-    select: { id: true, type: true, stem: true, options: true, domain: true, status: true }
+    select: { id: true, type: true, stem: true, options: true, domain: true, status: true, auditFlag: true, aiCheck: true, generatedBy: true }
   });
   const picked = new Set(fd.getAll('ids').map(String));
   const targets = fd.get('selectAllMatching') === '1'
@@ -182,7 +155,6 @@ export async function bulkQuestionAction(fd: FormData) {
     ids = targets.filter((q) => q.status !== 'PUBLISHED').map((q) => q.id);
     if (ids.length) await db.question.updateMany({ where: { examId, id: { in: ids } }, data: { status: 'PUBLISHED' } });
   } else {
-    // Drafts stay in the review queue; only published questions are taken out.
     ids = targets.filter((q) => q.status === 'PUBLISHED').map((q) => q.id);
     if (ids.length) await db.question.updateMany({ where: { examId, id: { in: ids } }, data: { status: 'ARCHIVED' } });
   }
@@ -202,6 +174,7 @@ export async function bulkQuestionAction(fd: FormData) {
   if (filter.domain) qs.set('domain', filter.domain);
   if (filter.status) qs.set('qstatus', filter.status);
   if (filter.type) qs.set('qtype', filter.type);
+  if (filter.flag) qs.set('qflag', filter.flag);
   qs.set('bulk', `${op}:${ids.length}`);
   redirect(`/admin-dashboard/exams/${examId}?${qs}#questions`);
 }

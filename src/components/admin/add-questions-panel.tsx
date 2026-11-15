@@ -22,7 +22,7 @@ export function AddQuestionsPanel({ manual, ai, defaultOpen }: { manual: ReactNo
           {open ? 'Close manual form' : 'Add manually'}
         </button>
         {ai}
-        <span className="text-xs text-slate-500">AI questions arrive as drafts in the review queue; nothing reaches learners until you approve it.</span>
+        <span className="text-xs text-slate-500">AI extracts or writes questions from a YouTube link, web link, PDF or the exam domains, checks each answer key, and publishes them to the pool.</span>
       </div>
       {open && <div className="mt-4 rounded-md border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">{manual}</div>}
     </div>

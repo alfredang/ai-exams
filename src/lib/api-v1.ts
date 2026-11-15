@@ -13,6 +13,8 @@ import { displayExamCode } from '@/lib/products';
  * is still an active ADMIN, and its mutations are audited as that admin.
  */
 export const SCOPE_ASSIGN_PRACTICE_EXAMS = 'assign:practice-exams';
+/** Question banks: read questions, add sources and questions, record audits (exam-question-scout / -auditor agents). */
+export const SCOPE_QUESTIONS_WRITE = 'questions:write';
 
 const FAIL_LIMIT = 20;
 const FAIL_WINDOW_MS = 15 * 60_000;

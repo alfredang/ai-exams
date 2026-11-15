@@ -6,6 +6,9 @@ const handlebarsBrowserBuild = require.resolve('handlebars/dist/cjs/handlebars.j
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // pdf-parse (AI Question and Answer Generator PDF uploads) loads pdf.js and
+  // its worker at runtime; bundling them breaks the worker path.
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
   allowedDevOrigins: ['127.0.0.1'],
   experimental: { serverActions: { bodySizeLimit: '2mb' } },
   webpack(config) {

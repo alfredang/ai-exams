@@ -1,36 +1,44 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
+import { Flag, Sparkles, Youtube } from 'lucide-react';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { aiProviders, providerChainLabel } from '@/lib/openai';
+import { qaProvider } from '@/lib/openai';
 import { examBaseTitle } from '@/lib/exam-title';
 import { matchDomain, parseDomains } from '@/lib/question-pool';
-import { QuestionReviewFlow } from '@/components/admin/question-review-flow';
+import { answerCheckProgress } from '@/lib/answer-check-job';
+import { QuestionFlow } from '@/components/admin/question-flow';
+import { AnswerCheckPanel } from '@/components/admin/answer-check-panel';
 import { AiGenerateDialog, type GeneratorExam } from '@/components/admin/ai-question-generator';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * AI Question Generator: pick an exam, exam domain, question type and number
- * of questions in the AI Generate pop-up; the AI provider chain writes them as
- * drafts into that question bank's review queue
- * (/admin-dashboard/exams/[id]#review). `?exam=<id>` opens the pop-up on that exam.
+ * AI Question and Answer Generator: pick an exam and a source (AI generation,
+ * YouTube link, web link or PDF) in the AI Generate pop-up; OpenAI gpt-6.1-sol
+ * extracts or writes the questions, checks each answer key and publishes them
+ * into that bank's pool (no review queue). Below: the pool-wide answer-key
+ * check, the auditor agent's open flags and the YouTube scout's recent adds.
+ * `?exam=<id>` opens the pop-up on that exam.
  */
 export default async function AiQuestionGeneratorPage({ searchParams }: { searchParams: Promise<{ exam?: string }> }) {
   const session = await auth();
   if ((session?.user as any)?.role !== 'ADMIN') redirect('/');
   const sp = await searchParams;
+  const weekAgo = new Date(Date.now() - 7 * 86_400_000);
 
   // Pool exams only — retired variants (poolExamId set) never get new questions.
-  const [exams, counts, providers] = await Promise.all([
+  const [exams, counts, provider, progress, flags, scout] = await Promise.all([
     db.exam.findMany({
       where: { poolExamId: null },
       select: { id: true, code: true, title: true, domains: true, vendor: { select: { name: true } } },
       orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }]
     }),
-    db.question.groupBy({ by: ['examId', 'domain', 'status'], where: { status: { in: ['PUBLISHED', 'DRAFT'] } }, _count: { _all: true } }),
-    aiProviders()
+    db.question.groupBy({ by: ['examId', 'domain'], where: { status: 'PUBLISHED' }, _count: { _all: true } }),
+    qaProvider(),
+    answerCheckProgress(null),
+    db.question.groupBy({ by: ['examId', 'auditFlag'], where: { status: 'PUBLISHED', auditFlag: { not: null } }, _count: { _all: true } }),
+    db.question.groupBy({ by: ['examId'], where: { generatedBy: { startsWith: 'agent:youtube-scout' }, createdAt: { gte: weekAgo } }, _count: { _all: true }, _max: { createdAt: true } })
   ]);
 
   const rows: GeneratorExam[] = exams.map((e) => {
@@ -38,7 +46,6 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
     const mine = counts.filter((c) => c.examId === e.id);
     const pool = new Map<string, number>();
     for (const c of mine) {
-      if (c.status !== 'PUBLISHED') continue;
       const name = matchDomain(c.domain, blueprint);
       if (name) pool.set(name, (pool.get(name) ?? 0) + c._count._all);
     }
@@ -47,27 +54,35 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
       code: e.code,
       title: examBaseTitle(e.title),
       vendor: e.vendor.name,
-      drafts: mine.filter((c) => c.status === 'DRAFT').reduce((s, c) => s + c._count._all, 0),
+      pool: mine.reduce((s, c) => s + c._count._all, 0),
       domains: blueprint.map((d) => ({ name: d.name, weight: d.weight, pool: pool.get(d.name) ?? 0 }))
     };
   });
-  const totalDrafts = rows.reduce((s, r) => s + r.drafts, 0);
-  const poolIds = new Set(rows.map((r) => r.id));
-  const totalPublished = counts
-    .filter((c) => c.status === 'PUBLISHED' && poolIds.has(c.examId))
-    .reduce((s, c) => s + c._count._all, 0);
-  const withDrafts = rows.filter((r) => r.drafts > 0).sort((a, b) => b.drafts - a.drafts);
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const flagRows = [...new Set(flags.map((f) => f.examId))]
+    .map((examId) => ({
+      exam: byId.get(examId),
+      examId,
+      byFlag: Object.fromEntries(flags.filter((f) => f.examId === examId).map((f) => [f.auditFlag!, f._count._all])) as Record<string, number>
+    }))
+    .map((r) => ({ ...r, total: Object.values(r.byFlag).reduce((s, n) => s + n, 0) }))
+    .sort((a, b) => b.total - a.total);
+  const totalFlags = flagRows.reduce((s, r) => s + r.total, 0);
+  const scoutRows = scout
+    .map((s) => ({ exam: byId.get(s.examId), examId: s.examId, added: s._count._all, last: s._max.createdAt }))
+    .sort((a, b) => (b.last?.getTime() ?? 0) - (a.last?.getTime() ?? 0));
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="admin-h1 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-          AI Question Generator
+          AI Question and Answer Generator
         </h1>
         <p className="text-sm text-slate-500">
-          Click AI Generate, then choose the exam, number of questions, question types and exam domains. AI writes them as drafts; you
-          review each one in that question bank, and only approved questions join its pool. Certification not listed?{' '}
+          Click AI Generate, pick the exam and a source — a YouTube link, a web link, a PDF, or AI generation alone. AI extracts the
+          questions in the source (and can rephrase them) or writes new ones, checks every answer key, and publishes them straight into
+          the pool. Certification not listed?{' '}
           <Link href="/admin-dashboard/exams/new" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
             + Create Practice Exam
           </Link>{' '}
@@ -75,35 +90,72 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
         </p>
       </div>
 
-      <QuestionReviewFlow
-        awaiting={totalDrafts}
-        published={totalPublished}
-        reviewHref="#awaiting"
+      <QuestionFlow
+        published={progress.total}
+        checked={progress.checked}
         generate={
           <AiGenerateDialog
             exams={rows}
             initialExamId={sp.exam}
             defaultOpen={!!sp.exam}
-            configured={providers.length > 0}
-            providers={providerChainLabel(providers)}
+            configured={!!provider}
+            providers={provider ? `OpenAI ${provider.model}` : 'OpenAI (no key)'}
           />
         }
       />
 
-      <section id="awaiting" className="card scroll-mt-24 p-4">
-        <h2 className="text-lg font-semibold">Awaiting review ({totalDrafts})</h2>
-        {withDrafts.length === 0 ? (
-          <p className="mt-1 text-sm text-slate-500">No drafts — every question bank is reviewed.</p>
+      <AnswerCheckPanel initial={progress} configured={!!provider} />
+
+      <section id="audit-flags" className="card scroll-mt-24 p-4">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <Flag className="h-5 w-5 text-rose-600 dark:text-rose-400" /> Audit flags ({totalFlags.toLocaleString()})
+        </h2>
+        <p className="text-xs text-slate-500">
+          The exam-question-auditor agent (daily) highlights questions that may be wrong, outdated or ambiguous. Flags never change a
+          question — edit it (which clears the flag) or clear the flag on the question bank page.
+        </p>
+        {flagRows.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">No open flags.</p>
         ) : (
           <ul className="mt-2 divide-y divide-slate-100 text-sm dark:divide-slate-800">
-            {withDrafts.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+            {flagRows.map((r) => (
+              <li key={r.examId} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span>
-                  <span className="text-slate-500">{r.vendor} · </span>
-                  <span className="font-medium">{r.code}</span> — {r.title}
+                  <span className="text-slate-500">{r.exam?.vendor ?? ''} · </span>
+                  <span className="font-medium">{r.exam?.code ?? r.examId}</span> — {r.exam?.title ?? ''}
+                  <span className="ml-2 text-[12px] text-slate-500">
+                    {Object.entries(r.byFlag).map(([f, n]) => `${n} ${f}`).join(' · ')}
+                  </span>
                 </span>
-                <Link href={`/admin-dashboard/exams/${r.id}#review`} className="text-[13px] font-semibold text-amber-700 hover:underline dark:text-amber-400">
-                  Review {r.drafts} draft{r.drafts === 1 ? '' : 's'} →
+                <Link href={`/admin-dashboard/exams/${r.examId}?qflag=audit#questions`} className="text-[13px] font-semibold text-rose-700 hover:underline dark:text-rose-400">
+                  Review {r.total} flagged →
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="card p-4">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <Youtube className="h-5 w-5 text-red-600" /> YouTube scout — last 7 days
+        </h2>
+        <p className="text-xs text-slate-500">
+          The exam-question-scout agent runs every morning at 7:00, finds a YouTube course for one certification and adds 10–20 questions
+          and answers from it.
+        </p>
+        {scoutRows.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">Nothing added in the last 7 days.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-slate-100 text-sm dark:divide-slate-800">
+            {scoutRows.map((r) => (
+              <li key={r.examId} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span>
+                  <span className="font-medium">{r.exam?.code ?? r.examId}</span> — {r.exam?.title ?? ''}
+                  <span className="ml-2 text-[12px] text-slate-500">{r.last?.toISOString().slice(0, 10)}</span>
+                </span>
+                <Link href={`/admin-dashboard/exams/${r.examId}?qsource=scout#questions`} className="text-[13px] font-medium text-brand-600 hover:underline dark:text-brand-400">
+                  {r.added} added →
                 </Link>
               </li>
             ))}

@@ -28,22 +28,46 @@ export function questionPresentationType(question: QuestionShape): string {
   return isSequencingChoice(question) ? 'ORDERING' : question.type;
 }
 
-/** Question-bank list filters (?domain=&qstatus=&qtype=); '' means any. */
-export type QuestionListFilter = { domain: string; status: string; type: string };
+/** Question-bank list filters (?domain=&qstatus=&qtype=&qflag=); '' means any. */
+export type QuestionListFilter = { domain: string; status: string; type: string; flag?: string };
 
-export const QUESTION_STATUS_FILTERS = ['PUBLISHED', 'DRAFT', 'ARCHIVED'];
+/** No review queue any more: DRAFT only survives on rows from before 16 Nov 2026. */
+export const QUESTION_STATUS_FILTERS = ['PUBLISHED', 'ARCHIVED'];
+
+/**
+ * ?qflag= filters: the auditor agent's flags, the AI answer-key check's
+ * corrections and unsure cases, and the YouTube scout's additions.
+ */
+export const QUESTION_FLAG_FILTERS: Record<string, string> = {
+  audit: 'Audit flags',
+  'ai-fixed': 'AI corrected key',
+  'ai-unsure': 'AI unsure',
+  scout: 'YouTube scout'
+};
+
+type FlagShape = { auditFlag?: string | null; aiCheck?: unknown; generatedBy?: string | null };
+
+export function matchesFlag(q: FlagShape, flag: string): boolean {
+  const verdict = (q.aiCheck as { verdict?: string } | null | undefined)?.verdict;
+  if (flag === 'audit') return !!q.auditFlag;
+  if (flag === 'ai-fixed') return verdict === 'fixed';
+  if (flag === 'ai-unsure') return verdict === 'unsure';
+  if (flag === 'scout') return !!q.generatedBy?.startsWith('agent:youtube-scout');
+  return true;
+}
 export const QUESTION_TYPE_FILTERS = ['SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING', 'HOTSPOT'];
 
 /** Admin label for a question status: ARCHIVED reads "Unpublished". */
 export const QUESTION_STATUS_LABEL: Record<string, string> = {
   PUBLISHED: 'Published',
-  DRAFT: 'Awaiting review',
+  DRAFT: 'Draft',
   ARCHIVED: 'Unpublished'
 };
 
 /** Shared by the question list and its "select all matching" bulk action. */
-export function matchesQuestionFilter(question: QuestionShape & { domain: string; status: string }, f: QuestionListFilter): boolean {
+export function matchesQuestionFilter(question: QuestionShape & FlagShape & { domain: string; status: string }, f: QuestionListFilter): boolean {
   return (!f.domain || question.domain === f.domain)
     && (!f.status || question.status === f.status)
-    && (!f.type || questionPresentationType(question) === f.type);
+    && (!f.type || questionPresentationType(question) === f.type)
+    && (!f.flag || matchesFlag(question, f.flag));
 }
