@@ -137,8 +137,10 @@ Remove an assignment. The body is the same as for `POST`. Only `ADMIN_GRANT` acc
 
 Register a class's learner for a practice exam. Unlike `POST /assignments`, this
 **creates the account** when the email is new (with the name, no password; the
-learner signs in with Google or an email code and gets the Welcome email).
-The grant records the course run ID, the register date and a remark.
+learner signs in with an email code or Google).
+The grant records the course run ID, the register date and a remark. The learner is
+emailed the **Practice Exam Registration** template: a link to the registered practice
+exam (through the sign-in page) and the steps to sign in with a one-time email code.
 
 ```bash
 curl -X POST https://exams.tertiaryinfotech.com/api/v1/registrations \
@@ -153,13 +155,16 @@ curl -X POST https://exams.tertiaryinfotech.com/api/v1/registrations \
 | `exam` | string | Code, slug or exam id. |
 | `courseRunId` | string, optional | The SSG course run ID. |
 | `remark` | string, optional | Defaults to `Registered from TMS`. |
-| `sendWelcomeEmail` | boolean, optional | Default `true`; only sent when the account is new. |
+| `sendWelcomeEmail` | boolean, optional | Default `true`. `false` sends no email. |
+| `resendEmail` | boolean, optional | Default `false`. `true` emails the learner again even when nothing changed. |
 
 **201** for a new grant, **200** otherwise. Calling again for the same course run
-changes nothing; a different `courseRunId` updates the record and its register date.
+changes nothing and sends no email; a different `courseRunId` updates the record and
+its register date and emails the learner again. `registrationEmailSent` says whether the
+email went out (`welcomeEmailSent` is kept for older callers: true when it went to a new account).
 
 ```json
-{ "ok": true, "accountCreated": true, "created": true, "alreadyHadAccess": false, "welcomeEmailSent": true,
+{ "ok": true, "accountCreated": true, "created": true, "alreadyHadAccess": false, "welcomeEmailSent": true, "registrationEmailSent": true,
   "user": { … }, "practiceExam": { … },
   "registration": { "courseRunId": "1387021", "registeredAt": "2026-11-14T09:39:54.664Z", "remark": "Registered from TMS" } }
 ```

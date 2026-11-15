@@ -510,6 +510,36 @@ export async function sendWelcomeEmail(userId: string) {
   });
 }
 
+/**
+ * Email for a learner the LMS/TMS registered for a practice exam: a link to
+ * that exam (through the sign-in page, which opens on the email-code tab) and
+ * the steps to sign in with a one-time code. Throws when every transport
+ * fails; returns null when the template is disabled or the user is gone.
+ */
+export async function sendPracticeExamRegistrationEmail(
+  userId: string,
+  exam: { slug: string; title: string; code: string },
+  courseRunId?: string | null
+) {
+  const [user, bundle] = await Promise.all([
+    db.user.findUnique({ where: { id: userId }, select: { email: true, name: true } }),
+    db.bundle.findUnique({
+      where: { slug: exam.slug },
+      select: { items: { where: { tier: 'PRACTICE' }, orderBy: { position: 'asc' }, take: 1, select: { exam: { select: { vendor: { select: { slug: true } } } } } } }
+    })
+  ]);
+  if (!user) return null;
+  const vendorSlug = bundle?.items[0]?.exam.vendor.slug;
+  const next = vendorSlug ? `/practice-exams/${vendorSlug}/${exam.slug}` : '/user-dashboard';
+  const { sendTemplated } = await import('./email/templates');
+  return sendTemplated('PRACTICE_EXAM_REGISTRATION', user.email, {
+    user: { name: user.name && user.name !== 'user' ? user.name : 'there', email: user.email },
+    exam: { title: exam.title, code: exam.code },
+    courseRunId: courseRunId || '',
+    examUrl: `${process.env.APP_URL || ''}/login?next=${encodeURIComponent(next)}`
+  });
+}
+
 export async function sendVoucherDeliveredEmail(
   to: string,
   examName: string,

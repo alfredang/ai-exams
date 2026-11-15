@@ -116,6 +116,39 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       user: { name: 'Alex Tan', email: 'alex@example.com' }
     }
   },
+  PRACTICE_EXAM_REGISTRATION: {
+    displayName: 'Practice Exam Registration',
+    description: 'Sent when the LMS/TMS registers a learner for a practice exam: the exam link and how to sign in with an email code.',
+    subject: 'Your practice exam is ready: {{exam.title}}',
+    bodyHtml: wrap(`  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px">
+    <tr><td style="background:{{brand.primaryColor}};border-radius:12px;padding:24px">
+      <p style="margin:0 0 6px;color:#dbeafe;font-size:12px;letter-spacing:1px;text-transform:uppercase">Practice exam registered</p>
+      <h2 style="margin:0;color:#ffffff;font-size:22px;line-height:1.3">{{exam.title}}</h2>
+    </td></tr>
+  </table>
+  <p>Hi {{user.name}},</p>
+  <p>You have been registered for the <b>{{exam.title}}</b> practice exam on {{brand.name}}{{#if courseRunId}} as part of your class (Course Run ID {{courseRunId}}){{/if}}. It is ready for you now, at no cost.</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0">
+    <tr><td style="border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;background:#f8fafc">
+      <p style="margin:0 0 12px;font-weight:bold">How to start</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;color:#334155">
+        <tr><td style="padding:5px 12px 5px 0;vertical-align:top;font-weight:bold;color:{{brand.primaryColor}}">1</td><td style="padding:5px 0">Open your practice exam with the button below.</td></tr>
+        <tr><td style="padding:5px 12px 5px 0;vertical-align:top;font-weight:bold;color:{{brand.primaryColor}}">2</td><td style="padding:5px 0">Enter <b>{{user.email}}</b> on the sign-in page and choose <b>Email code</b>. We send a one-time code (OTP) to this inbox; no password is needed.</td></tr>
+        <tr><td style="padding:5px 12px 5px 0;vertical-align:top;font-weight:bold;color:{{brand.primaryColor}}">3</td><td style="padding:5px 0">Start practising: <b>Practice mode</b> shows the explanation after each question, and <b>Exam mode</b> is timed like the real exam.</td></tr>
+      </table>
+    </td></tr>
+  </table>
+  <p style="margin:24px 0;text-align:center"><a href="{{examUrl}}" style="display:inline-block;background:{{brand.primaryColor}};color:#ffffff;padding:13px 26px;border-radius:8px;text-decoration:none;font-weight:bold">Sign in and start practising →</a></p>
+  <p style="color:#64748b;font-size:13px">You can retake the practice exam as often as you like, and your scores are kept under Exam history. If the button does not work, copy this link into your browser:<br><a href="{{examUrl}}" style="color:#2563eb;word-break:break-all">{{examUrl}}</a></p>`),
+    sampleVars: {
+      brand: sampleBrand,
+      appUrl: 'https://example.com',
+      examUrl: 'https://example.com/login?next=%2Fpractice-exams%2Fcomptia%2Fcomptia-security-plus',
+      exam: { title: 'CompTIA Security+ (SY0-701)', code: 'SY0-701' },
+      courseRunId: '1363049',
+      user: { name: 'Alex Tan', email: 'alex@example.com' }
+    }
+  },
   VOUCHER_DELIVERY: {
     displayName: 'Voucher Delivery',
     description: 'Sent when a voucher code is delivered (5 days after purchase).',

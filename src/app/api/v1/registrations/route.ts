@@ -22,18 +22,22 @@ const Body = z.object({
   exam: z.string().min(1),
   courseRunId: z.string().trim().max(100).optional().default(''),
   remark: z.string().trim().max(200).optional(),
-  sendWelcomeEmail: z.boolean().optional().default(true)
+  sendWelcomeEmail: z.boolean().optional().default(true),
+  resendEmail: z.boolean().optional().default(false)
 });
 
 /**
- * POST /api/v1/registrations { name, email, exam, courseRunId?, remark?, sendWelcomeEmail? }
+ * POST /api/v1/registrations { name, email, exam, courseRunId?, remark?, sendWelcomeEmail?, resendEmail? }
  *
  * The LMS/TMS registers a class's learners for the course's practice exam.
  * Unlike /assignments it creates the account when the email is new (with the
  * name, no password — the learner signs in with Google or an email code), then
  * grants ADMIN_GRANT and records the course run ID, register date and remark
- * on that grant. Idempotent: calling again for the same course run changes
- * nothing; a different course run updates the record.
+ * on that grant, and emails the learner the exam link with the email-code
+ * sign-in steps (PRACTICE_EXAM_REGISTRATION). Idempotent: calling again for the
+ * same course run changes nothing and sends nothing (unless `resendEmail`); a
+ * different course run updates the record and emails again.
+ * `sendWelcomeEmail: false` suppresses the email.
  */
 export async function POST(req: Request) {
   const auth = await requireApiToken(req, SCOPE_ASSIGN_PRACTICE_EXAMS);
@@ -87,6 +91,7 @@ export async function POST(req: Request) {
 
   let grant = existing;
   let created = false;
+  let reRegistered = false;
   if (!existing) {
     grant = await db.entitlement.create({
       data: { userId: user.id, examId: exam.examId, tier: 'ADMIN_GRANT', courseRunId, registeredAt: new Date(), remark },
@@ -103,13 +108,17 @@ export async function POST(req: Request) {
       data: { courseRunId, registeredAt: new Date(), remark },
       select: { id: true, courseRunId: true, registeredAt: true, remark: true }
     });
+    reRegistered = true;
   }
 
-  let welcomeEmailSent = false;
-  if (accountCreated && body.sendWelcomeEmail) {
-    const { sendWelcomeEmail } = await import('@/lib/mail');
-    welcomeEmailSent = !!(await sendWelcomeEmail(user.id).catch(() => null));
+  // One email per registration event: a new grant, a new class, or an explicit resend.
+  let registrationEmailSent = false;
+  if (body.sendWelcomeEmail && (created || reRegistered || body.resendEmail)) {
+    const { sendPracticeExamRegistrationEmail } = await import('@/lib/mail');
+    registrationEmailSent = !!(await sendPracticeExamRegistrationEmail(user.id, exam, courseRunId).catch(() => null));
   }
+  // Kept for older callers: the registration email replaces the separate welcome email.
+  const welcomeEmailSent = accountCreated && registrationEmailSent;
 
   return NextResponse.json(
     {
@@ -118,6 +127,7 @@ export async function POST(req: Request) {
       created,
       alreadyHadAccess,
       welcomeEmailSent,
+      registrationEmailSent,
       user,
       practiceExam: exam,
       registration: { courseRunId: grant!.courseRunId, registeredAt: grant!.registeredAt, remark: grant!.remark }
