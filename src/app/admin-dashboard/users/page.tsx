@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
-import { buildUserWhere, validUserDate, PURGEABLE_UNVERIFIED_WHERE } from '@/lib/admin-user-filters';
+import { buildUserWhere, validUserDate, CLEANUP_WHERE, CLEANUP_UNREGISTERED_WHERE } from '@/lib/admin-user-filters';
 import { ConfirmButton } from '@/components/admin/confirm-button';
 import { PageHeader } from '@/components/admin/page-header';
 import { FilterBar, FilterField } from '@/components/admin/filter-bar';
@@ -59,10 +59,12 @@ async function createUser(formData: FormData) {
   redirect(`/admin-dashboard/users/${userId}`);
 }
 
-// Delete every account that never verified its email and never took an exam
-// (PURGEABLE_UNVERIFIED_WHERE). The match is recomputed here, not taken from
-// the form, so a stale page can't widen it.
-async function purgeUnverified() {
+// Delete every customer account that has never taken an exam, plus suspended
+// and anonymised accounts (CLEANUP_WHERE). "all" also
+// removes learners the TMS registered for a class; the default keeps them.
+// The match is recomputed here, not taken from the form, so a stale page can't
+// widen it. Accounts with orders, invoices or coupon redemptions never match.
+async function cleanUpUsers(formData: FormData) {
   'use server';
   const session = await auth();
   const actorId = (session?.user as { id?: string } | undefined)?.id;
@@ -70,22 +72,26 @@ async function purgeUnverified() {
   const actor = await db.user.findUnique({ where: { id: actorId }, select: { id: true, role: true, active: true } });
   if (!actor?.active || actor.role !== 'ADMIN' || (session?.user as any)?.impersonatedBy) redirect('/');
 
-  const doomed = await db.user.findMany({ where: PURGEABLE_UNVERIFIED_WHERE, select: { id: true, email: true } });
+  const includeRegistered = formData.get('scope') === 'all';
+  const scope = includeRegistered ? CLEANUP_WHERE : CLEANUP_UNREGISTERED_WHERE;
+  const doomed = await db.user.findMany({ where: scope, select: { id: true, email: true } });
+  let deleted = 0;
   if (doomed.length > 0) {
     await db.$transaction(async (tx) => {
-      const { count } = await tx.user.deleteMany({ where: { id: { in: doomed.map((u) => u.id) }, ...PURGEABLE_UNVERIFIED_WHERE } });
+      const { count } = await tx.user.deleteMany({ where: { id: { in: doomed.map((u) => u.id) }, ...scope } });
+      deleted = count;
       await tx.adminLog.create({
         data: {
           adminId: actor.id,
-          action: 'user.purge_unverified',
+          action: 'user.cleanup',
           targetType: 'User',
           targetId: 'bulk',
-          metadata: { count, emails: doomed.map((u) => u.email).slice(0, 500) }
+          metadata: { count, includeRegistered, emails: doomed.map((u) => u.email).slice(0, 1000) }
         }
       });
     });
   }
-  redirect(`/admin-dashboard/users?purged=${doomed.length}`);
+  redirect(`/admin-dashboard/users?purged=${deleted}`);
 }
 
 type UserRow = Awaited<ReturnType<typeof loadUsers>>[number];
@@ -127,12 +133,24 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
     db.tag.findMany({ orderBy: { label: 'asc' } }),
     canCreateUser
       ? db.user.findMany({
-          where: PURGEABLE_UNVERIFIED_WHERE,
+          where: CLEANUP_WHERE,
           orderBy: { createdAt: 'desc' },
-          select: { id: true, email: true, name: true, createdAt: true, _count: { select: { entitlements: true } } }
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            createdAt: true,
+            emailVerified: true,
+            active: true,
+            anonymizedAt: true,
+            entitlements: { where: { courseRunId: { not: null } }, take: 1, select: { courseRunId: true } },
+            _count: { select: { entitlements: true } }
+          }
         })
       : Promise.resolve([])
   ]);
+  const registeredCount = purgeable.filter((u) => u.entitlements.length > 0).length;
+  const unregisteredCount = purgeable.length - registeredCount;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const page = Math.min(requestedPage, pages);
   const users = await loadUsers(where, (page - 1) * PAGE_SIZE, PAGE_SIZE);
@@ -311,23 +329,39 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
 
       {sp.purged && (
         <p role="status" className="mb-4 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
-          Deleted {Number(sp.purged) || 0} unverified user{sp.purged === '1' ? '' : 's'} with no attempts.
+          Deleted {Number(sp.purged) || 0} user{sp.purged === '1' ? '' : 's'}.
         </p>
       )}
 
       {purgeable.length > 0 && (
-        <form action={purgeUnverified} className="card mb-4 p-4">
+        <form action={cleanUpUsers} className="card mb-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-slate-700 dark:text-slate-200">
-              <b>{purgeable.length}</b> user{purgeable.length === 1 ? ' has' : 's have'} never verified their email and never taken an exam
-              <span className="text-slate-500"> (no orders or invoices).</span>
+              <b>{purgeable.length}</b> user{purgeable.length === 1 ? '' : 's'} can be cleaned up
+              <span className="text-slate-500">
+                {' '}(never took an exam, suspended or anonymised; no orders or invoices{registeredCount > 0 ? `; ${registeredCount} registered for a class` : ''}).
+              </span>
             </p>
-            <ConfirmButton
-              message={`Permanently delete ${purgeable.length} unverified user${purgeable.length === 1 ? '' : 's'} with no attempts? Any access grants they hold are removed too. This cannot be undone.`}
-              className="h-8 px-3"
-            >
-              Delete {purgeable.length} unverified user{purgeable.length === 1 ? '' : 's'}
-            </ConfirmButton>
+            <div className="flex flex-wrap items-center gap-2">
+              {unregisteredCount > 0 && registeredCount > 0 && (
+                <ConfirmButton
+                  message={`Permanently delete ${unregisteredCount} user${unregisteredCount === 1 ? '' : 's'}, keeping the ${registeredCount} registered for a class? Listed are accounts that never took an exam, or are suspended or anonymised. Any access grants they hold are removed too. This cannot be undone.`}
+                  className="h-8 px-3"
+                  name="scope"
+                  value="unregistered"
+                >
+                  Delete {unregisteredCount}, keep class learners
+                </ConfirmButton>
+              )}
+              <ConfirmButton
+                message={`Permanently delete all ${purgeable.length} user${purgeable.length === 1 ? '' : 's'}${registeredCount > 0 ? `, including ${registeredCount} registered for a class` : ''}? Listed are accounts that never took an exam, or are suspended or anonymised. Any access grants they hold are removed too. This cannot be undone.`}
+                className="h-8 px-3"
+                name="scope"
+                value="all"
+              >
+                Delete all {purgeable.length}
+              </ConfirmButton>
+            </div>
           </div>
           <details className="mt-2 text-[12px]">
             <summary className="cursor-pointer text-slate-500">Show who will be deleted</summary>
@@ -337,6 +371,8 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
                   <Link href={`/admin-dashboard/users/${u.id}`} className="hover:underline">{u.email}</Link>
                   <span className="text-slate-500">
                     {' '}· {u.name || 'no name'} · joined {u.createdAt.toISOString().slice(0, 10)}
+                    {u.anonymizedAt ? ' · anonymised' : !u.active ? ' · suspended' : !u.emailVerified ? ' · unverified' : ''}
+                    {u.entitlements[0]?.courseRunId && ` · class ${u.entitlements[0].courseRunId}`}
                     {u._count.entitlements > 0 && ` · ${u._count.entitlements} access grant${u._count.entitlements === 1 ? '' : 's'}`}
                   </span>
                 </li>

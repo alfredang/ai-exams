@@ -44,20 +44,29 @@ export function buildUserWhere(params: UserFilterParams): Prisma.UserWhereInput 
 }
 
 /**
- * Customer accounts that never verified their email and never took an exam —
- * the "Delete unverified users" clean-up on /admin-dashboard/users. Accounts
- * with any money trail (orders, invoices, coupon redemptions) are always kept
- * for revenue history, as are staff and anonymised rows. Access grants are
- * deleted with the account (the admin sees them listed before confirming).
+ * The "Clean up users" panel on /admin-dashboard/users: customer accounts
+ * that have never taken an exam (verified or not), plus suspended and
+ * anonymised accounts. Accounts with any money trail (orders, invoices,
+ * coupon redemptions) are always kept: those records must stay for GST and
+ * revenue history, and the database refuses to delete a user that still owns
+ * them. Staff are kept too. Access grants are deleted with the account; a
+ * suspended or anonymised account's attempts stay as ownerless rows.
  */
-export const PURGEABLE_UNVERIFIED_WHERE: Prisma.UserWhereInput = {
+export const CLEANUP_WHERE: Prisma.UserWhereInput = {
   role: 'USER',
-  emailVerified: null,
-  anonymizedAt: null,
-  attempts: { none: {} },
   orders: { none: {} },
   invoices: { none: {} },
   couponRedemptions: { none: {} },
-  // Learners registered by the TMS for a class often sign in days later; keep them.
+  OR: [{ attempts: { none: {} } }, { active: false }, { anonymizedAt: { not: null } }]
+};
+
+/** Learners the TMS registered for a class (POST /api/v1/registrations). */
+export const CLASS_REGISTERED_WHERE: Prisma.UserWhereInput = {
+  entitlements: { some: { courseRunId: { not: null } } }
+};
+
+/** The same clean-up, keeping learners registered for a class. */
+export const CLEANUP_UNREGISTERED_WHERE: Prisma.UserWhereInput = {
+  ...CLEANUP_WHERE,
   entitlements: { none: { courseRunId: { not: null } } }
 };
