@@ -19,6 +19,7 @@
  * make no claim of being official or actual PL-300 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2851,7 +2852,7 @@ export async function seedPl300(db: PrismaClient): Promise<SeedResult> {
       title: PL300_BUNDLE.title,
       description: PL300_BUNDLE.description,
       price: PL300_BUNDLE.price,
-      priceVoucher: PL300_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PL300_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2859,7 +2860,7 @@ export async function seedPl300(db: PrismaClient): Promise<SeedResult> {
       title: PL300_BUNDLE.title,
       description: PL300_BUNDLE.description,
       price: PL300_BUNDLE.price,
-      priceVoucher: PL300_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PL300_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -22,6 +22,7 @@
  * make no claim of being official or actual SC-200 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2836,7 +2837,7 @@ export async function seedSc200(db: PrismaClient): Promise<SeedResult> {
       title: SC200_BUNDLE.title,
       description: SC200_BUNDLE.description,
       price: SC200_BUNDLE.price,
-      priceVoucher: SC200_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC200_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2844,7 +2845,7 @@ export async function seedSc200(db: PrismaClient): Promise<SeedResult> {
       title: SC200_BUNDLE.title,
       description: SC200_BUNDLE.description,
       price: SC200_BUNDLE.price,
-      priceVoucher: SC200_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC200_BUNDLE.priceVoucher),
       published: true
     }
   });

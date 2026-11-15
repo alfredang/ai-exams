@@ -21,6 +21,7 @@
  *   - Optimizing Service Performance                         — 18% (12)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2805,7 +2806,7 @@ export async function seedGcpPcdoe(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PCDOE_BUNDLE.title,
       description: GCP_PCDOE_BUNDLE.description,
       price: GCP_PCDOE_BUNDLE.price,
-      priceVoucher: GCP_PCDOE_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PCDOE_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2813,7 +2814,7 @@ export async function seedGcpPcdoe(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PCDOE_BUNDLE.title,
       description: GCP_PCDOE_BUNDLE.description,
       price: GCP_PCDOE_BUNDLE.price,
-      priceVoucher: GCP_PCDOE_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PCDOE_BUNDLE.priceVoucher),
       published: true
     }
   });

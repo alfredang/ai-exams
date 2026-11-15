@@ -20,6 +20,7 @@
  *   - Data Processing and Aggregations          — 10% (2)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2740,7 +2741,7 @@ export async function seedElastic(db: PrismaClient): Promise<SeedResult> {
       title: ELASTIC_BUNDLE.title,
       description: ELASTIC_BUNDLE.description,
       price: ELASTIC_BUNDLE.price,
-      priceVoucher: ELASTIC_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(ELASTIC_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2748,7 +2749,7 @@ export async function seedElastic(db: PrismaClient): Promise<SeedResult> {
       title: ELASTIC_BUNDLE.title,
       description: ELASTIC_BUNDLE.description,
       price: ELASTIC_BUNDLE.price,
-      priceVoucher: ELASTIC_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(ELASTIC_BUNDLE.priceVoucher),
       published: true
     }
   });

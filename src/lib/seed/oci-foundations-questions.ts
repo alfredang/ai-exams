@@ -21,6 +21,7 @@
  *   - Security and Observability        — 15% (9/variant)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2688,7 +2689,7 @@ export async function seedOciFoundations(db: PrismaClient): Promise<SeedResult> 
       title: OCI_FOUNDATIONS_BUNDLE.title,
       description: OCI_FOUNDATIONS_BUNDLE.description,
       price: OCI_FOUNDATIONS_BUNDLE.price,
-      priceVoucher: OCI_FOUNDATIONS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(OCI_FOUNDATIONS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2696,7 +2697,7 @@ export async function seedOciFoundations(db: PrismaClient): Promise<SeedResult> 
       title: OCI_FOUNDATIONS_BUNDLE.title,
       description: OCI_FOUNDATIONS_BUNDLE.description,
       price: OCI_FOUNDATIONS_BUNDLE.price,
-      priceVoucher: OCI_FOUNDATIONS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(OCI_FOUNDATIONS_BUNDLE.priceVoucher),
       published: true
     }
   });

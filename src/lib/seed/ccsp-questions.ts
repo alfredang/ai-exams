@@ -22,6 +22,7 @@
  * exam items.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2535,7 +2536,7 @@ export async function seedCcsp(db: PrismaClient): Promise<SeedResult> {
       title: CCSP_BUNDLE.title,
       description: CCSP_BUNDLE.description,
       price: CCSP_BUNDLE.price,
-      priceVoucher: CCSP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CCSP_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2543,7 +2544,7 @@ export async function seedCcsp(db: PrismaClient): Promise<SeedResult> {
       title: CCSP_BUNDLE.title,
       description: CCSP_BUNDLE.description,
       price: CCSP_BUNDLE.price,
-      priceVoucher: CCSP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CCSP_BUNDLE.priceVoucher),
       published: true
     }
   });

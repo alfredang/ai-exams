@@ -18,6 +18,7 @@
  *   - Empiricism and Agility       — 15% (~10)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2662,7 +2663,7 @@ export async function seedPspo(db: PrismaClient): Promise<SeedResult> {
       title: PSPO_BUNDLE.title,
       description: PSPO_BUNDLE.description,
       price: PSPO_BUNDLE.price,
-      priceVoucher: PSPO_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PSPO_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2670,7 +2671,7 @@ export async function seedPspo(db: PrismaClient): Promise<SeedResult> {
       title: PSPO_BUNDLE.title,
       description: PSPO_BUNDLE.description,
       price: PSPO_BUNDLE.price,
-      priceVoucher: PSPO_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PSPO_BUNDLE.priceVoucher),
       published: true
     }
   });

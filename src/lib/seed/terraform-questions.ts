@@ -21,6 +21,7 @@
  *   - Read, Generate, and Modify Configuration             — 10% (2)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2759,7 +2760,7 @@ export async function seedTerraform(db: PrismaClient): Promise<SeedResult> {
       title: TERRAFORM_BUNDLE.title,
       description: TERRAFORM_BUNDLE.description,
       price: TERRAFORM_BUNDLE.price,
-      priceVoucher: TERRAFORM_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(TERRAFORM_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2767,7 +2768,7 @@ export async function seedTerraform(db: PrismaClient): Promise<SeedResult> {
       title: TERRAFORM_BUNDLE.title,
       description: TERRAFORM_BUNDLE.description,
       price: TERRAFORM_BUNDLE.price,
-      priceVoucher: TERRAFORM_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(TERRAFORM_BUNDLE.priceVoucher),
       published: true
     }
   });

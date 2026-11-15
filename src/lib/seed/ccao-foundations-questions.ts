@@ -48,6 +48,7 @@
 import { PrismaClient, QStatus, QType } from '@prisma/client';
 import { CCAO_MOCK1, CCAO_MOCK2, CCAO_MOCK3 } from './ccao-foundations-mock-questions';
 import { CCAO_POOL } from './ccao-foundations-pool-questions';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -1074,8 +1075,8 @@ export async function seedCcaoFoundations(db: PrismaClient): Promise<SeedResult>
   const existingBundle = await db.bundle.findUnique({ where: { slug: CCAO_BUNDLE.slug } });
   const bundle = await db.bundle.upsert({
     where: { slug: CCAO_BUNDLE.slug },
-    update: { title: CCAO_BUNDLE.title, description: CCAO_BUNDLE.description, price: CCAO_BUNDLE.price, priceVoucher: CCAO_BUNDLE.priceVoucher, published: true },
-    create: { slug: CCAO_BUNDLE.slug, title: CCAO_BUNDLE.title, description: CCAO_BUNDLE.description, price: CCAO_BUNDLE.price, priceVoucher: CCAO_BUNDLE.priceVoucher, published: true }
+    update: { title: CCAO_BUNDLE.title, description: CCAO_BUNDLE.description, price: CCAO_BUNDLE.price, priceVoucher: voucherPriceWithGst(CCAO_BUNDLE.priceVoucher), published: true },
+    create: { slug: CCAO_BUNDLE.slug, title: CCAO_BUNDLE.title, description: CCAO_BUNDLE.description, price: CCAO_BUNDLE.price, priceVoucher: voucherPriceWithGst(CCAO_BUNDLE.priceVoucher), published: true }
   });
   // One product, one practice exam; the voucher tier sits on the same exam.
   await db.bundleItem.deleteMany({ where: { bundleId: bundle.id } });

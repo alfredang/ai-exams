@@ -19,6 +19,7 @@
  *   - Manage Security                             — 10% (2)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2785,7 +2786,7 @@ export async function seedRhcsa(db: PrismaClient): Promise<SeedResult> {
       title: RHCSA_BUNDLE.title,
       description: RHCSA_BUNDLE.description,
       price: RHCSA_BUNDLE.price,
-      priceVoucher: RHCSA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(RHCSA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2793,7 +2794,7 @@ export async function seedRhcsa(db: PrismaClient): Promise<SeedResult> {
       title: RHCSA_BUNDLE.title,
       description: RHCSA_BUNDLE.description,
       price: RHCSA_BUNDLE.price,
-      priceVoucher: RHCSA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(RHCSA_BUNDLE.priceVoucher),
       published: true
     }
   });

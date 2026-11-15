@@ -34,6 +34,7 @@
 import { PrismaClient, QStatus, QType } from '@prisma/client';
 import { CYSA_P2 } from './cysa-p2-questions';
 import { CYSA_P3 } from './cysa-p3-questions';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 export type CysaQ = {
@@ -1056,7 +1057,7 @@ export async function seedCySA(db: PrismaClient): Promise<SeedResult> {
       title: CYSA_BUNDLE.title,
       description: CYSA_BUNDLE.description,
       price: CYSA_BUNDLE.price,
-      priceVoucher: CYSA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CYSA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -1064,7 +1065,7 @@ export async function seedCySA(db: PrismaClient): Promise<SeedResult> {
       title: CYSA_BUNDLE.title,
       description: CYSA_BUNDLE.description,
       price: CYSA_BUNDLE.price,
-      priceVoucher: CYSA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CYSA_BUNDLE.priceVoucher),
       published: true
     }
   });

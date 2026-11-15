@@ -19,6 +19,7 @@
  * make no claim of being official or actual MS-102 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2830,7 +2831,7 @@ export async function seedMs102(db: PrismaClient): Promise<SeedResult> {
       title: MS102_BUNDLE.title,
       description: MS102_BUNDLE.description,
       price: MS102_BUNDLE.price,
-      priceVoucher: MS102_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(MS102_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2838,7 +2839,7 @@ export async function seedMs102(db: PrismaClient): Promise<SeedResult> {
       title: MS102_BUNDLE.title,
       description: MS102_BUNDLE.description,
       price: MS102_BUNDLE.price,
-      priceVoucher: MS102_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(MS102_BUNDLE.priceVoucher),
       published: true
     }
   });

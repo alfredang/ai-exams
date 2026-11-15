@@ -23,6 +23,7 @@
  *   - Continuous Improvement                  — 9  (6)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2672,7 +2673,7 @@ export async function seedPmiAcp(db: PrismaClient): Promise<SeedResult> {
       title: PMIACP_BUNDLE.title,
       description: PMIACP_BUNDLE.description,
       price: PMIACP_BUNDLE.price,
-      priceVoucher: PMIACP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PMIACP_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2680,7 +2681,7 @@ export async function seedPmiAcp(db: PrismaClient): Promise<SeedResult> {
       title: PMIACP_BUNDLE.title,
       description: PMIACP_BUNDLE.description,
       price: PMIACP_BUNDLE.price,
-      priceVoucher: PMIACP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PMIACP_BUNDLE.priceVoucher),
       published: true
     }
   });

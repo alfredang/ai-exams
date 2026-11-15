@@ -17,6 +17,7 @@
  *   - Describe the capabilities of Microsoft compliance solutions   — 25% (16)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2710,7 +2711,7 @@ export async function seedSc900(db: PrismaClient): Promise<SeedResult> {
       title: SC900_BUNDLE.title,
       description: SC900_BUNDLE.description,
       price: SC900_BUNDLE.price,
-      priceVoucher: SC900_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC900_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2718,7 +2719,7 @@ export async function seedSc900(db: PrismaClient): Promise<SeedResult> {
       title: SC900_BUNDLE.title,
       description: SC900_BUNDLE.description,
       price: SC900_BUNDLE.price,
-      priceVoucher: SC900_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC900_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -27,6 +27,7 @@
  * and must never be presented as actual exam items.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2695,7 +2696,7 @@ export async function seedJava17(db: PrismaClient): Promise<SeedResult> {
       title: JAVA17_BUNDLE.title,
       description: JAVA17_BUNDLE.description,
       price: JAVA17_BUNDLE.price,
-      priceVoucher: JAVA17_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(JAVA17_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2703,7 +2704,7 @@ export async function seedJava17(db: PrismaClient): Promise<SeedResult> {
       title: JAVA17_BUNDLE.title,
       description: JAVA17_BUNDLE.description,
       price: JAVA17_BUNDLE.price,
-      priceVoucher: JAVA17_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(JAVA17_BUNDLE.priceVoucher),
       published: true
     }
   });

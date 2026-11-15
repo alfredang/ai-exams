@@ -20,6 +20,7 @@
  *   - Consul Security                        — 15% (10)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2718,7 +2719,7 @@ export async function seedConsul(db: PrismaClient): Promise<SeedResult> {
       title: CONSUL_BUNDLE.title,
       description: CONSUL_BUNDLE.description,
       price: CONSUL_BUNDLE.price,
-      priceVoucher: CONSUL_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CONSUL_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2726,7 +2727,7 @@ export async function seedConsul(db: PrismaClient): Promise<SeedResult> {
       title: CONSUL_BUNDLE.title,
       description: CONSUL_BUNDLE.description,
       price: CONSUL_BUNDLE.price,
-      priceVoucher: CONSUL_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CONSUL_BUNDLE.priceVoucher),
       published: true
     }
   });

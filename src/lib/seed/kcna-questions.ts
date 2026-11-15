@@ -20,6 +20,7 @@
  * exam and not affiliated with or endorsed by the CNCF / Linux Foundation.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2529,7 +2530,7 @@ export async function seedKcna(db: PrismaClient): Promise<SeedResult> {
       title: KCNA_BUNDLE.title,
       description: KCNA_BUNDLE.description,
       price: KCNA_BUNDLE.price,
-      priceVoucher: KCNA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(KCNA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2537,7 +2538,7 @@ export async function seedKcna(db: PrismaClient): Promise<SeedResult> {
       title: KCNA_BUNDLE.title,
       description: KCNA_BUNDLE.description,
       price: KCNA_BUNDLE.price,
-      priceVoucher: KCNA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(KCNA_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { voucherPriceWithGst } from '@/lib/currency';
 
 export const runtime = 'nodejs';
 
@@ -85,7 +86,7 @@ export async function POST() {
     alreadyPublished: wasPublished,
     nowPublished: true,
     price: bundle.price,
-    priceVoucher: bundle.priceVoucher,
+    priceVoucher: voucherPriceWithGst(bundle.priceVoucher),
     items: bundle.items.map((it) => ({ slug: it.exam.slug, tier: it.tier, publishedQuestions: it.exam._count.questions }))
   });
 }

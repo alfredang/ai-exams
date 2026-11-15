@@ -22,6 +22,7 @@
  *   - Systems and Application Security                      — 15% (10)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2771,7 +2772,7 @@ export async function seedSscp(db: PrismaClient): Promise<SeedResult> {
       title: SSCP_BUNDLE.title,
       description: SSCP_BUNDLE.description,
       price: SSCP_BUNDLE.price,
-      priceVoucher: SSCP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SSCP_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2779,7 +2780,7 @@ export async function seedSscp(db: PrismaClient): Promise<SeedResult> {
       title: SSCP_BUNDLE.title,
       description: SSCP_BUNDLE.description,
       price: SSCP_BUNDLE.price,
-      priceVoucher: SSCP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SSCP_BUNDLE.priceVoucher),
       published: true
     }
   });

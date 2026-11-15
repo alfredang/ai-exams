@@ -18,6 +18,7 @@
  *   - Basics of IT and Governance      — 18% (12)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2407,7 +2408,7 @@ export async function seedProjectPlus(db: PrismaClient): Promise<SeedResult> {
       title: PROJECT_PLUS_BUNDLE.title,
       description: PROJECT_PLUS_BUNDLE.description,
       price: PROJECT_PLUS_BUNDLE.price,
-      priceVoucher: PROJECT_PLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PROJECT_PLUS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2415,7 +2416,7 @@ export async function seedProjectPlus(db: PrismaClient): Promise<SeedResult> {
       title: PROJECT_PLUS_BUNDLE.title,
       description: PROJECT_PLUS_BUNDLE.description,
       price: PROJECT_PLUS_BUNDLE.price,
-      priceVoucher: PROJECT_PLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PROJECT_PLUS_BUNDLE.priceVoucher),
       published: true
     }
   });

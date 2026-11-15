@@ -18,6 +18,7 @@
  *   - Monitoring, Logging and Runtime Security       — 20% (13)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2683,7 +2684,7 @@ export async function seedCks(db: PrismaClient): Promise<SeedResult> {
       title: CKS_BUNDLE.title,
       description: CKS_BUNDLE.description,
       price: CKS_BUNDLE.price,
-      priceVoucher: CKS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CKS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2691,7 +2692,7 @@ export async function seedCks(db: PrismaClient): Promise<SeedResult> {
       title: CKS_BUNDLE.title,
       description: CKS_BUNDLE.description,
       price: CKS_BUNDLE.price,
-      priceVoucher: CKS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CKS_BUNDLE.priceVoucher),
       published: true
     }
   });

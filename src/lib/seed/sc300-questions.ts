@@ -21,6 +21,7 @@
  * product never claims to reproduce real exam questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2662,7 +2663,7 @@ export async function seedSc300(db: PrismaClient): Promise<SeedResult> {
       title: SC300_BUNDLE.title,
       description: SC300_BUNDLE.description,
       price: SC300_BUNDLE.price,
-      priceVoucher: SC300_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC300_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2670,7 +2671,7 @@ export async function seedSc300(db: PrismaClient): Promise<SeedResult> {
       title: SC300_BUNDLE.title,
       description: SC300_BUNDLE.description,
       price: SC300_BUNDLE.price,
-      priceVoucher: SC300_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC300_BUNDLE.priceVoucher),
       published: true
     }
   });

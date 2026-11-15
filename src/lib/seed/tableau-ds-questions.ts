@@ -17,6 +17,7 @@
  *   - Understanding Tableau Concepts      — 20% (13 / variant)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2715,7 +2716,7 @@ export async function seedTableauDs(db: PrismaClient): Promise<SeedResult> {
       title: TABLEAU_DS_BUNDLE.title,
       description: TABLEAU_DS_BUNDLE.description,
       price: TABLEAU_DS_BUNDLE.price,
-      priceVoucher: TABLEAU_DS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(TABLEAU_DS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2723,7 +2724,7 @@ export async function seedTableauDs(db: PrismaClient): Promise<SeedResult> {
       title: TABLEAU_DS_BUNDLE.title,
       description: TABLEAU_DS_BUNDLE.description,
       price: TABLEAU_DS_BUNDLE.price,
-      priceVoucher: TABLEAU_DS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(TABLEAU_DS_BUNDLE.priceVoucher),
       published: true
     }
   });

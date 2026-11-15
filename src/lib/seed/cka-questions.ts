@@ -17,6 +17,7 @@
  *   - Troubleshooting                                      — 30% (6)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -3033,7 +3034,7 @@ export async function seedCka(db: PrismaClient): Promise<SeedResult> {
       title: CKA_BUNDLE.title,
       description: CKA_BUNDLE.description,
       price: CKA_BUNDLE.price,
-      priceVoucher: CKA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CKA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -3041,7 +3042,7 @@ export async function seedCka(db: PrismaClient): Promise<SeedResult> {
       title: CKA_BUNDLE.title,
       description: CKA_BUNDLE.description,
       price: CKA_BUNDLE.price,
-      priceVoucher: CKA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CKA_BUNDLE.priceVoucher),
       published: true
     }
   });

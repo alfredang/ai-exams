@@ -18,6 +18,7 @@
  *   - Implement the Solution                                — 23% (15)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2723,7 +2724,7 @@ export async function seedPl600(db: PrismaClient): Promise<SeedResult> {
       title: PL600_BUNDLE.title,
       description: PL600_BUNDLE.description,
       price: PL600_BUNDLE.price,
-      priceVoucher: PL600_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PL600_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2731,7 +2732,7 @@ export async function seedPl600(db: PrismaClient): Promise<SeedResult> {
       title: PL600_BUNDLE.title,
       description: PL600_BUNDLE.description,
       price: PL600_BUNDLE.price,
-      priceVoucher: PL600_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PL600_BUNDLE.priceVoucher),
       published: true
     }
   });

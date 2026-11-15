@@ -17,6 +17,7 @@
  *   - Design infrastructure solutions                        — 30% (19)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2710,7 +2711,7 @@ export async function seedAz305(db: PrismaClient): Promise<SeedResult> {
       title: AZ305_BUNDLE.title,
       description: AZ305_BUNDLE.description,
       price: AZ305_BUNDLE.price,
-      priceVoucher: AZ305_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(AZ305_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2718,7 +2719,7 @@ export async function seedAz305(db: PrismaClient): Promise<SeedResult> {
       title: AZ305_BUNDLE.title,
       description: AZ305_BUNDLE.description,
       price: AZ305_BUNDLE.price,
-      priceVoucher: AZ305_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(AZ305_BUNDLE.priceVoucher),
       published: true
     }
   });

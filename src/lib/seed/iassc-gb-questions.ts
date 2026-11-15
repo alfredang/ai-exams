@@ -18,6 +18,7 @@
  *   - Control Phase  — 13% (8  / variant)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2755,7 +2756,7 @@ export async function seedIasscGb(db: PrismaClient): Promise<SeedResult> {
       title: IASSC_GB_BUNDLE.title,
       description: IASSC_GB_BUNDLE.description,
       price: IASSC_GB_BUNDLE.price,
-      priceVoucher: IASSC_GB_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(IASSC_GB_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2763,7 +2764,7 @@ export async function seedIasscGb(db: PrismaClient): Promise<SeedResult> {
       title: IASSC_GB_BUNDLE.title,
       description: IASSC_GB_BUNDLE.description,
       price: IASSC_GB_BUNDLE.price,
-      priceVoucher: IASSC_GB_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(IASSC_GB_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -19,6 +19,7 @@
  *   - Security Program Management and Oversight          — 20% (13)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2681,7 +2682,7 @@ export async function seedSecurityPlus(db: PrismaClient): Promise<SeedResult> {
       title: SECURITYPLUS_BUNDLE.title,
       description: SECURITYPLUS_BUNDLE.description,
       price: SECURITYPLUS_BUNDLE.price,
-      priceVoucher: SECURITYPLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SECURITYPLUS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2689,7 +2690,7 @@ export async function seedSecurityPlus(db: PrismaClient): Promise<SeedResult> {
       title: SECURITYPLUS_BUNDLE.title,
       description: SECURITYPLUS_BUNDLE.description,
       price: SECURITYPLUS_BUNDLE.price,
-      priceVoucher: SECURITYPLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SECURITYPLUS_BUNDLE.priceVoucher),
       published: true
     }
   });

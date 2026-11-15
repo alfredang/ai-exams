@@ -20,6 +20,7 @@
  *   - Managing, Monitoring, and Optimizing Network Operations       — 16% (10/variant)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2725,7 +2726,7 @@ export async function seedGcpPcne(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PCNE_BUNDLE.title,
       description: GCP_PCNE_BUNDLE.description,
       price: GCP_PCNE_BUNDLE.price,
-      priceVoucher: GCP_PCNE_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PCNE_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2733,7 +2734,7 @@ export async function seedGcpPcne(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PCNE_BUNDLE.title,
       description: GCP_PCNE_BUNDLE.description,
       price: GCP_PCNE_BUNDLE.price,
-      priceVoucher: GCP_PCNE_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PCNE_BUNDLE.priceVoucher),
       published: true
     }
   });

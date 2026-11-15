@@ -21,6 +21,7 @@
  *   - ITIL Practices                                  — 35% (23/variant)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -3539,7 +3540,7 @@ export async function seedItil4(db: PrismaClient): Promise<SeedResult> {
       title: ITIL4_BUNDLE.title,
       description: ITIL4_BUNDLE.description,
       price: ITIL4_BUNDLE.price,
-      priceVoucher: ITIL4_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(ITIL4_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -3547,7 +3548,7 @@ export async function seedItil4(db: PrismaClient): Promise<SeedResult> {
       title: ITIL4_BUNDLE.title,
       description: ITIL4_BUNDLE.description,
       price: ITIL4_BUNDLE.price,
-      priceVoucher: ITIL4_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(ITIL4_BUNDLE.priceVoucher),
       published: true
     }
   });

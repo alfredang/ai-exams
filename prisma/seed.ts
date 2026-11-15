@@ -7,6 +7,8 @@ import { decrypt, encrypt } from '../src/lib/settings-crypto';
 import { importCcarFoundationsPptx } from '../src/lib/seed/import-ccar-foundations-pptx';
 import { cleanUpUsersOnce } from '../src/lib/user-cleanup';
 import { cancelPendingOrdersOnce } from '../src/lib/order-cleanup';
+import { voucherPriceWithGst } from '../src/lib/currency';
+import { upliftVoucherPricesOnce } from '../src/lib/voucher-price-uplift';
 import { queueAnswerCheckOnce, removeReviewQueueOnce } from '../src/lib/review-cleanup';
 
 const db = new PrismaClient();
@@ -2333,6 +2335,8 @@ async function main() {
   const [copyEdited, voucherEdited, bankEdited] = await Promise.all([
     editedBy('bundle.update'), editedBy('voucher.update'), editedBy('bundle.question_bank')
   ]);
+  // Bundles whose voucher price this loop writes (the GST uplift below skips them).
+  const specPriced = new Set<string>();
   for (const b of BUNDLES) {
     const existingId = (await db.bundle.findUnique({ where: { slug: b.slug }, select: { id: true } }))?.id;
     const bundle = await db.bundle.upsert({
@@ -2347,10 +2351,13 @@ async function main() {
       // (Mirrors the same rule applied to exam.upsert above.)
       update: {
         ...(existingId && copyEdited.has(existingId) ? {} : { title: b.title, description: b.description }),
-        ...(existingId && voucherEdited.has(existingId) ? {} : { priceVoucher: b.priceVoucher ?? null })
+        // Spec prices are vendor list prices; the Exam Voucher sells at +10%
+        // for GST, rounded down (voucherPriceWithGst). Practice Exam stays US$20.
+        ...(existingId && voucherEdited.has(existingId) ? {} : { priceVoucher: voucherPriceWithGst(b.priceVoucher ?? null) })
       },
-      create: { slug: b.slug, title: b.title, description: b.description, price: b.price, priceVoucher: b.priceVoucher ?? null, published: true }
+      create: { slug: b.slug, title: b.title, description: b.description, price: b.price, priceVoucher: voucherPriceWithGst(b.priceVoucher ?? null), published: true }
     });
+    if (!voucherEdited.has(bundle.id)) specPriced.add(bundle.id);
     if (bankEdited.has(bundle.id)) continue;
     await db.bundleItem.deleteMany({ where: { bundleId: bundle.id } });
     for (const item of b.items) {
@@ -2363,6 +2370,15 @@ async function main() {
         data: { bundleId: bundle.id, examId, tier: item.tier as Tier, position: item.position ?? 0 }
       });
     }
+  }
+
+  // Exam Voucher prices +10% for GST, rounded down (16 Nov 2026), once for
+  // the vouchers the loop above didn't price (admin-edited / admin-created).
+  try {
+    const raised = await upliftVoucherPricesOnce(db, 'voucher-gst-2026-11-16', specPriced);
+    if (raised !== null) console.log(`✓ Exam Voucher prices raised for GST: ${raised}`);
+  } catch (e) {
+    console.error('Exam Voucher GST uplift skipped:', e);
   }
 
   // Fold legacy "Practice Exam N" variants into each product's single pool

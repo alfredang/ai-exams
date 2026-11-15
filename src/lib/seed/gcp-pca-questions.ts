@@ -19,6 +19,7 @@
  *   - Ensuring solution and operations reliability                 — 15% (9)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2708,7 +2709,7 @@ export async function seedGcpPca(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PCA_BUNDLE.title,
       description: GCP_PCA_BUNDLE.description,
       price: GCP_PCA_BUNDLE.price,
-      priceVoucher: GCP_PCA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PCA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2716,7 +2717,7 @@ export async function seedGcpPca(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PCA_BUNDLE.title,
       description: GCP_PCA_BUNDLE.description,
       price: GCP_PCA_BUNDLE.price,
-      priceVoucher: GCP_PCA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PCA_BUNDLE.priceVoucher),
       published: true
     }
   });

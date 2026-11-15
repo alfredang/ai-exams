@@ -19,6 +19,7 @@
  *   - Encryption as a Service              — 15% ( 9)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2699,7 +2700,7 @@ export async function seedVault(db: PrismaClient): Promise<SeedResult> {
       title: VAULT_BUNDLE.title,
       description: VAULT_BUNDLE.description,
       price: VAULT_BUNDLE.price,
-      priceVoucher: VAULT_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(VAULT_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2707,7 +2708,7 @@ export async function seedVault(db: PrismaClient): Promise<SeedResult> {
       title: VAULT_BUNDLE.title,
       description: VAULT_BUNDLE.description,
       price: VAULT_BUNDLE.price,
-      priceVoucher: VAULT_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(VAULT_BUNDLE.priceVoucher),
       published: true
     }
   });

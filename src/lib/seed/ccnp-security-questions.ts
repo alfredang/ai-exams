@@ -22,6 +22,7 @@
  *   - Secure Network Access, Visibility, and Enforcement           — 15% (9/variant)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2685,7 +2686,7 @@ export async function seedCcnpSecurity(db: PrismaClient): Promise<SeedResult> {
       title: CCNP_SECURITY_BUNDLE.title,
       description: CCNP_SECURITY_BUNDLE.description,
       price: CCNP_SECURITY_BUNDLE.price,
-      priceVoucher: CCNP_SECURITY_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CCNP_SECURITY_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2693,7 +2694,7 @@ export async function seedCcnpSecurity(db: PrismaClient): Promise<SeedResult> {
       title: CCNP_SECURITY_BUNDLE.title,
       description: CCNP_SECURITY_BUNDLE.description,
       price: CCNP_SECURITY_BUNDLE.price,
-      priceVoucher: CCNP_SECURITY_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CCNP_SECURITY_BUNDLE.priceVoucher),
       published: true
     }
   });

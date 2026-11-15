@@ -18,6 +18,7 @@
  *   - Storage and Volumes                          — 10% (2)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2754,7 +2755,7 @@ export async function seedDca(db: PrismaClient): Promise<SeedResult> {
       title: DCA_BUNDLE.title,
       description: DCA_BUNDLE.description,
       price: DCA_BUNDLE.price,
-      priceVoucher: DCA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(DCA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2762,7 +2763,7 @@ export async function seedDca(db: PrismaClient): Promise<SeedResult> {
       title: DCA_BUNDLE.title,
       description: DCA_BUNDLE.description,
       price: DCA_BUNDLE.price,
-      priceVoucher: DCA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(DCA_BUNDLE.priceVoucher),
       published: true
     }
   });

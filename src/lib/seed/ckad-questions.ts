@@ -17,6 +17,7 @@
  *   - Services and Networking                            — 20% (4)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2779,7 +2780,7 @@ export async function seedCkad(db: PrismaClient): Promise<SeedResult> {
       title: CKAD_BUNDLE.title,
       description: CKAD_BUNDLE.description,
       price: CKAD_BUNDLE.price,
-      priceVoucher: CKAD_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CKAD_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2787,7 +2788,7 @@ export async function seedCkad(db: PrismaClient): Promise<SeedResult> {
       title: CKAD_BUNDLE.title,
       description: CKAD_BUNDLE.description,
       price: CKAD_BUNDLE.price,
-      priceVoucher: CKAD_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CKAD_BUNDLE.priceVoucher),
       published: true
     }
   });

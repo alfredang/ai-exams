@@ -21,6 +21,7 @@
  * make no claim of being official or actual SOA-C03 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2920,7 +2921,7 @@ export async function seedSoaC03(db: PrismaClient): Promise<SeedResult> {
       title: SOA_C03_BUNDLE.title,
       description: SOA_C03_BUNDLE.description,
       price: SOA_C03_BUNDLE.price,
-      priceVoucher: SOA_C03_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SOA_C03_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2928,7 +2929,7 @@ export async function seedSoaC03(db: PrismaClient): Promise<SeedResult> {
       title: SOA_C03_BUNDLE.title,
       description: SOA_C03_BUNDLE.description,
       price: SOA_C03_BUNDLE.price,
-      priceVoucher: SOA_C03_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SOA_C03_BUNDLE.priceVoucher),
       published: true
     }
   });

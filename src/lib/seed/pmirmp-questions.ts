@@ -24,6 +24,7 @@
  *   - Monitor and Close Risks      — 19 (13)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2678,7 +2679,7 @@ export async function seedPmiRmp(db: PrismaClient): Promise<SeedResult> {
       title: PMIRMP_BUNDLE.title,
       description: PMIRMP_BUNDLE.description,
       price: PMIRMP_BUNDLE.price,
-      priceVoucher: PMIRMP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PMIRMP_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2686,7 +2687,7 @@ export async function seedPmiRmp(db: PrismaClient): Promise<SeedResult> {
       title: PMIRMP_BUNDLE.title,
       description: PMIRMP_BUNDLE.description,
       price: PMIRMP_BUNDLE.price,
-      priceVoucher: PMIRMP_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(PMIRMP_BUNDLE.priceVoucher),
       published: true
     }
   });

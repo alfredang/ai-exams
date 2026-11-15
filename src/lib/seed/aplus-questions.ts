@@ -23,6 +23,7 @@
  * objectives; they are NOT real or official CompTIA exam items.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2371,7 +2372,7 @@ export async function seedAplus(db: PrismaClient): Promise<SeedResult> {
       title: APLUS_BUNDLE.title,
       description: APLUS_BUNDLE.description,
       price: APLUS_BUNDLE.price,
-      priceVoucher: APLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(APLUS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2379,7 +2380,7 @@ export async function seedAplus(db: PrismaClient): Promise<SeedResult> {
       title: APLUS_BUNDLE.title,
       description: APLUS_BUNDLE.description,
       price: APLUS_BUNDLE.price,
-      priceVoucher: APLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(APLUS_BUNDLE.priceVoucher),
       published: true
     }
   });

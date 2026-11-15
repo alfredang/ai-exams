@@ -26,6 +26,7 @@
  * domains; they are NOT real exam questions and make no such claim.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2768,7 +2769,7 @@ export async function seedSecurityX(db: PrismaClient): Promise<SeedResult> {
       title: SECURITYX_BUNDLE.title,
       description: SECURITYX_BUNDLE.description,
       price: SECURITYX_BUNDLE.price,
-      priceVoucher: SECURITYX_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SECURITYX_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2776,7 +2777,7 @@ export async function seedSecurityX(db: PrismaClient): Promise<SeedResult> {
       title: SECURITYX_BUNDLE.title,
       description: SECURITYX_BUNDLE.description,
       price: SECURITYX_BUNDLE.price,
-      priceVoucher: SECURITYX_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SECURITYX_BUNDLE.priceVoucher),
       published: true
     }
   });

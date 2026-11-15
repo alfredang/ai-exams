@@ -21,6 +21,7 @@
  *   - Business Continuity, Disaster Recovery and Incident Response  — 10% (6/65)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2003,7 +2004,7 @@ export async function seedIsc2Cc(db: PrismaClient): Promise<SeedResult> {
       title: ISC2CC_BUNDLE.title,
       description: ISC2CC_BUNDLE.description,
       price: ISC2CC_BUNDLE.price,
-      priceVoucher: ISC2CC_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(ISC2CC_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2011,7 +2012,7 @@ export async function seedIsc2Cc(db: PrismaClient): Promise<SeedResult> {
       title: ISC2CC_BUNDLE.title,
       description: ISC2CC_BUNDLE.description,
       price: ISC2CC_BUNDLE.price,
-      priceVoucher: ISC2CC_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(ISC2CC_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -23,6 +23,7 @@
  * claim of being actual exam content.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2770,7 +2771,7 @@ export async function seedDevnet(db: PrismaClient): Promise<SeedResult> {
       title: DEVNET_BUNDLE.title,
       description: DEVNET_BUNDLE.description,
       price: DEVNET_BUNDLE.price,
-      priceVoucher: DEVNET_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(DEVNET_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2778,7 +2779,7 @@ export async function seedDevnet(db: PrismaClient): Promise<SeedResult> {
       title: DEVNET_BUNDLE.title,
       description: DEVNET_BUNDLE.description,
       price: DEVNET_BUNDLE.price,
-      priceVoucher: DEVNET_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(DEVNET_BUNDLE.priceVoucher),
       published: true
     }
   });

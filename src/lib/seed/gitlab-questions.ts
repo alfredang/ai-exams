@@ -18,6 +18,7 @@
  *   - Security and Compliance Basics              — 15% (3)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2786,7 +2787,7 @@ export async function seedGitlab(db: PrismaClient): Promise<SeedResult> {
       title: GITLAB_BUNDLE.title,
       description: GITLAB_BUNDLE.description,
       price: GITLAB_BUNDLE.price,
-      priceVoucher: GITLAB_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GITLAB_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2794,7 +2795,7 @@ export async function seedGitlab(db: PrismaClient): Promise<SeedResult> {
       title: GITLAB_BUNDLE.title,
       description: GITLAB_BUNDLE.description,
       price: GITLAB_BUNDLE.price,
-      priceVoucher: GITLAB_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GITLAB_BUNDLE.priceVoucher),
       published: true
     }
   });

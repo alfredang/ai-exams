@@ -25,6 +25,7 @@
  * certification exam.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2747,7 +2748,7 @@ export async function seedAi900(db: PrismaClient): Promise<SeedResult> {
       title: AI900_BUNDLE.title,
       description: AI900_BUNDLE.description,
       price: AI900_BUNDLE.price,
-      priceVoucher: AI900_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(AI900_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2755,7 +2756,7 @@ export async function seedAi900(db: PrismaClient): Promise<SeedResult> {
       title: AI900_BUNDLE.title,
       description: AI900_BUNDLE.description,
       price: AI900_BUNDLE.price,
-      priceVoucher: AI900_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(AI900_BUNDLE.priceVoucher),
       published: true
     }
   });

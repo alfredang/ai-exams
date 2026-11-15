@@ -16,6 +16,7 @@
  *   - Business Analysis Frameworks                        — 27% (18)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2692,7 +2693,7 @@ export async function seedCapm(db: PrismaClient): Promise<SeedResult> {
       title: CAPM_BUNDLE.title,
       description: CAPM_BUNDLE.description,
       price: CAPM_BUNDLE.price,
-      priceVoucher: CAPM_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CAPM_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2700,7 +2701,7 @@ export async function seedCapm(db: PrismaClient): Promise<SeedResult> {
       title: CAPM_BUNDLE.title,
       description: CAPM_BUNDLE.description,
       price: CAPM_BUNDLE.price,
-      priceVoucher: CAPM_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CAPM_BUNDLE.priceVoucher),
       published: true
     }
   });

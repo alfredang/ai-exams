@@ -18,6 +18,7 @@
  *   - 5.0 Network Troubleshooting  — 24% (16)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2092,7 +2093,7 @@ export async function seedNetworkPlus(db: PrismaClient): Promise<SeedResult> {
       title: NETWORKPLUS_BUNDLE.title,
       description: NETWORKPLUS_BUNDLE.description,
       price: NETWORKPLUS_BUNDLE.price,
-      priceVoucher: NETWORKPLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(NETWORKPLUS_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2100,7 +2101,7 @@ export async function seedNetworkPlus(db: PrismaClient): Promise<SeedResult> {
       title: NETWORKPLUS_BUNDLE.title,
       description: NETWORKPLUS_BUNDLE.description,
       price: NETWORKPLUS_BUNDLE.price,
-      priceVoucher: NETWORKPLUS_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(NETWORKPLUS_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -20,6 +20,7 @@
  * items, and make no claim of exam accuracy or reproduction.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2724,7 +2725,7 @@ export async function seedGcpPde(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PDE_BUNDLE.title,
       description: GCP_PDE_BUNDLE.description,
       price: GCP_PDE_BUNDLE.price,
-      priceVoucher: GCP_PDE_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PDE_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2732,7 +2733,7 @@ export async function seedGcpPde(db: PrismaClient): Promise<SeedResult> {
       title: GCP_PDE_BUNDLE.title,
       description: GCP_PDE_BUNDLE.description,
       price: GCP_PDE_BUNDLE.price,
-      priceVoucher: GCP_PDE_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(GCP_PDE_BUNDLE.priceVoucher),
       published: true
     }
   });

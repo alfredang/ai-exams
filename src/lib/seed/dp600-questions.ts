@@ -19,6 +19,7 @@
  *   - Explore and Analyze Data                                  — 24% (16/65)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2704,7 +2705,7 @@ export async function seedDp600(db: PrismaClient): Promise<SeedResult> {
       title: DP600_BUNDLE.title,
       description: DP600_BUNDLE.description,
       price: DP600_BUNDLE.price,
-      priceVoucher: DP600_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(DP600_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2712,7 +2713,7 @@ export async function seedDp600(db: PrismaClient): Promise<SeedResult> {
       title: DP600_BUNDLE.title,
       description: DP600_BUNDLE.description,
       price: DP600_BUNDLE.price,
-      priceVoucher: DP600_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(DP600_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -21,6 +21,7 @@
  * make no claim of being official or actual SAP-C02 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2833,7 +2834,7 @@ export async function seedSapC02(db: PrismaClient): Promise<SeedResult> {
       title: SAP_C02_BUNDLE.title,
       description: SAP_C02_BUNDLE.description,
       price: SAP_C02_BUNDLE.price,
-      priceVoucher: SAP_C02_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SAP_C02_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2841,7 +2842,7 @@ export async function seedSapC02(db: PrismaClient): Promise<SeedResult> {
       title: SAP_C02_BUNDLE.title,
       description: SAP_C02_BUNDLE.description,
       price: SAP_C02_BUNDLE.price,
-      priceVoucher: SAP_C02_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SAP_C02_BUNDLE.priceVoucher),
       published: true
     }
   });

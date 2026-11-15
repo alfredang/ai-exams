@@ -104,7 +104,7 @@ export default async function ExamVoucherEditPage({ params, searchParams }: {
         <form action={saveVoucher} className="card space-y-3 p-4 lg:col-span-2">
           <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500"><Ticket className="h-3.5 w-3.5" /> Exam Voucher listing</h2>
           <input type="hidden" name="id" value={bundle.id} />
-          <Field label="Price (USD)" hint="What the customer pays for the voucher. The Practice Exam is included at no extra cost.">
+          <Field label="Price (USD)" hint="What the customer pays, GST inclusive (usually the vendor list price + 10%, rounded down to a whole dollar). The Practice Exam is included at no extra cost.">
             <input name="priceVoucher" type="number" step="0.01" min="0" defaultValue={bundle.priceVoucher != null ? (bundle.priceVoucher / 100).toFixed(2) : ''} placeholder="e.g. 165.00" className="input-sm" />
           </Field>
           <Field label="Title" hint={`Leave blank to use “${voucherTitleFor({ title: bundle.title })}”.`}>

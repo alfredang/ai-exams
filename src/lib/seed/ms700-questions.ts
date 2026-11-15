@@ -21,6 +21,7 @@
  * make no claim of being official or actual MS-700 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2809,7 +2810,7 @@ export async function seedMs700(db: PrismaClient): Promise<SeedResult> {
       title: MS700_BUNDLE.title,
       description: MS700_BUNDLE.description,
       price: MS700_BUNDLE.price,
-      priceVoucher: MS700_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(MS700_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2817,7 +2818,7 @@ export async function seedMs700(db: PrismaClient): Promise<SeedResult> {
       title: MS700_BUNDLE.title,
       description: MS700_BUNDLE.description,
       price: MS700_BUNDLE.price,
-      priceVoucher: MS700_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(MS700_BUNDLE.priceVoucher),
       published: true
     }
   });

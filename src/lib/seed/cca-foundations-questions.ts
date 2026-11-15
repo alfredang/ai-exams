@@ -30,6 +30,7 @@
 import { PrismaClient, QStatus, QType } from '@prisma/client';
 import { CCA_P2 } from './cca-foundations-p2-questions';
 import { CCA_P3 } from './cca-foundations-p3-questions';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -1042,7 +1043,7 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
       title: CCA_BUNDLE.title,
       description: CCA_BUNDLE.description,
       price: CCA_BUNDLE.price,
-      priceVoucher: CCA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CCA_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -1050,7 +1051,7 @@ export async function seedCcaFoundations(db: PrismaClient): Promise<SeedResult> 
       title: CCA_BUNDLE.title,
       description: CCA_BUNDLE.description,
       price: CCA_BUNDLE.price,
-      priceVoucher: CCA_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(CCA_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -20,6 +20,7 @@
  *   - Design Security Solutions for Applications and Data       — 26% (17)
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2720,7 +2721,7 @@ export async function seedSc100(db: PrismaClient): Promise<SeedResult> {
       title: SC100_BUNDLE.title,
       description: SC100_BUNDLE.description,
       price: SC100_BUNDLE.price,
-      priceVoucher: SC100_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC100_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2728,7 +2729,7 @@ export async function seedSc100(db: PrismaClient): Promise<SeedResult> {
       title: SC100_BUNDLE.title,
       description: SC100_BUNDLE.description,
       price: SC100_BUNDLE.price,
-      priceVoucher: SC100_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(SC100_BUNDLE.priceVoucher),
       published: true
     }
   });

@@ -20,6 +20,7 @@
  * make no claim of being official or actual AZ-204 questions.
  */
 import { PrismaClient, QStatus, QType } from '@prisma/client';
+import { voucherPriceWithGst } from '../currency';
 
 type Opt = { id: string; text: string };
 type Q = {
@@ -2718,7 +2719,7 @@ export async function seedAz204(db: PrismaClient): Promise<SeedResult> {
       title: AZ204_BUNDLE.title,
       description: AZ204_BUNDLE.description,
       price: AZ204_BUNDLE.price,
-      priceVoucher: AZ204_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(AZ204_BUNDLE.priceVoucher),
       published: true
     },
     create: {
@@ -2726,7 +2727,7 @@ export async function seedAz204(db: PrismaClient): Promise<SeedResult> {
       title: AZ204_BUNDLE.title,
       description: AZ204_BUNDLE.description,
       price: AZ204_BUNDLE.price,
-      priceVoucher: AZ204_BUNDLE.priceVoucher,
+      priceVoucher: voucherPriceWithGst(AZ204_BUNDLE.priceVoucher),
       published: true
     }
   });
