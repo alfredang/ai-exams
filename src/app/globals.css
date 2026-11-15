@@ -35,6 +35,13 @@
       radial-gradient(700px 420px at 100% 30%, rgb(56 189 248 / 0.07), transparent 60%);
     background-attachment: fixed;
   }
+  /* Admin, light mode only: the two lightest greys the admin uses for labels
+     and secondary text are too pale on white and on the light-blue page
+     (slate-400 ≈ 2.9:1, slate-500 ≈ 4.4:1). Inside the admin shell they render
+     one step darker. (0,2,0) in the base layer, so hover:/dark: variants and
+     the dark rules below still win. */
+  :where(:root:not(.dark)) .admin-scope .text-slate-400 { color: theme('colors.slate.500'); }
+  :where(:root:not(.dark)) .admin-scope .text-slate-500 { color: rgb(var(--c-muted)); }
   /* Many pages set grey text (text-slate-500…900) with no dark: pair, which
      goes dim on navy. In dark mode lift those shades to readable ones. These
      sit in the base layer at (0,2,0), so they beat a bare .text-slate-600
@@ -72,6 +79,13 @@
   .input-sm { @apply h-8 w-full rounded-md border border-line bg-white px-2 text-[12px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500; }
   .btn-sm { @apply inline-flex h-7 items-center justify-center rounded-md px-2.5 text-[11px] font-medium transition; }
   .icon-btn { @apply inline-flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200; }
+  /* Admin building blocks — use these instead of hand-written class strings. */
+  .admin-label { @apply text-[11px] font-semibold uppercase tracking-wider text-muted; }
+  .admin-thead { @apply border-b border-line bg-canvas/60 text-left text-[11px] font-semibold uppercase tracking-wider text-muted dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400; }
+  .admin-h1 { @apply text-xl font-semibold tracking-tight text-ink dark:text-slate-100; }
+  .admin-link { @apply text-brand-600 hover:underline dark:text-brand-400; }
+  .btn-sm-primary { @apply btn-sm bg-brand text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400; }
+  .btn-sm-quiet { @apply btn-sm border border-line bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700; }
   .label { @apply mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-200; }
   /* Mono uppercase eyebrow used on exam/results surfaces. */
   .eyebrow { @apply font-mono text-xs uppercase tracking-[0.08em] text-muted; }

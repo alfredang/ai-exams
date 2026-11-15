@@ -67,7 +67,7 @@ export default function ReviewsAdminClient({
           <Link
             key={t.key}
             href={`/admin-dashboard/reviews?status=${t.key}`}
-            className={`px-3 py-1.5 text-sm font-medium ${currentStatus === t.key ? 'border-b-2 border-blue-600 text-blue-700 dark:text-blue-300' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}
+            className={`px-3 py-1.5 text-sm font-medium ${currentStatus === t.key ? 'border-b-2 border-brand-600 text-brand-700 dark:text-brand-300' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}
           >
             {t.label}
           </Link>
@@ -119,10 +119,10 @@ function ReviewRow({
                 <Star key={i} className={`h-3.5 w-3.5 ${i < row.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`} />
               ))}
             </span>
-            <Link href={`/practice-exams/${row.exam.vendor.slug}/${row.exam.slug}`} className="font-medium text-blue-600 hover:underline">{row.exam.vendor.name} {row.exam.code}</Link>
+            <Link href={`/practice-exams/${row.exam.vendor.slug}/${row.exam.slug}`} className="font-medium text-brand-600 hover:underline">{row.exam.vendor.name} {row.exam.code}</Link>
             <span>·</span>
             <span>{row.user.name || row.user.email}</span>
-            {row.attemptId && <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] text-emerald-700">Verified</span>}
+            {row.attemptId && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">Verified</span>}
             <span className="ml-auto">{new Date(row.createdAt).toLocaleDateString()}</span>
           </div>
           {row.title && <div className="mt-1 font-semibold">{row.title}</div>}

@@ -36,7 +36,7 @@ export default async function EmailTemplatesPage() {
       <div className="mb-2 text-sm">
         <Link href="/admin-dashboard/settings/company" className="text-slate-500 hover:underline">← Back to Settings</Link>
       </div>
-      <h1 className="text-2xl font-bold">Email Templates</h1>
+      <h1 className="admin-h1">Email Templates</h1>
       <p className="mt-1 text-sm text-slate-500">
         Click any row to expand and edit inline. Templates use Handlebars syntax (e.g. <code>{'{{user.name}}'}</code>).
         CC addresses receive a copy of every send for that template.

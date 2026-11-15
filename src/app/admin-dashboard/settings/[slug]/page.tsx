@@ -52,7 +52,7 @@ export default async function SettingsSectionPage({ params }: { params: Promise<
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{group.title}</h1>
+      <h1 className="admin-h1">{group.title}</h1>
       <p className="mt-1 text-sm text-slate-500">{group.description}</p>
       <SectionForm group={group} initial={initial} />
       {slug === 'credentials' && <AiProviderTestPanel />}

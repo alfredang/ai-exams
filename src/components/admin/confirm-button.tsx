@@ -47,7 +47,7 @@ export function ConfirmButton({
     variant === 'danger'
       ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 disabled:text-slate-400 dark:disabled:text-slate-600'
       : variant === 'primary'
-        ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40'
+        ? 'text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-blue-950/40'
         : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800';
 
   return (

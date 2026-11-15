@@ -115,10 +115,54 @@ export const SECRET_KEYS: ReadonlySet<SettingKey> = new Set([
 export { decrypt, encrypt } from './settings-crypto';
 import { decrypt, encrypt } from './settings-crypto';
 
+// Decrypted settings are cached in the process for a short time: every page
+// render reads them (root layout metadata, footer, AI providers) and each read
+// used to be a query plus an AES decrypt per row. setSetting() clears the cache
+// in this process; the TTL covers writes made elsewhere (the boot seed, a
+// second replica). Kept on globalThis so every bundled copy of this module
+// shares one cache.
+const SETTINGS_TTL_MS = 60_000;
+type SettingsCache = { at: number; values: Record<SettingKey, string> } | null;
+const cacheHolder = globalThis as unknown as {
+  __settingsCache?: SettingsCache;
+  __settingsLoading?: Promise<Record<SettingKey, string>> | null;
+};
+
+export function clearSettingsCache(): void {
+  cacheHolder.__settingsCache = null;
+  cacheHolder.__settingsLoading = null;
+}
+
+async function loadSettings(): Promise<Record<SettingKey, string>> {
+  const hit = cacheHolder.__settingsCache;
+  if (hit && Date.now() - hit.at < SETTINGS_TTL_MS) return hit.values;
+  if (cacheHolder.__settingsLoading) return cacheHolder.__settingsLoading;
+  const read = async (): Promise<Record<SettingKey, string>> => {
+    const rows = await db.setting.findMany({ where: { key: { in: [...SETTING_KEYS] } } });
+    const map = new Map(rows.map((r) => [r.key, decrypt(r.value)]));
+    const out = {} as Record<SettingKey, string>;
+    for (const k of SETTING_KEYS) out[k] = map.get(k) || process.env[k] || '';
+    return out;
+  };
+  const loading = read();
+  cacheHolder.__settingsLoading = loading;
+  try {
+    const values = await loading;
+    // A write that landed while this read was in flight cleared the marker:
+    // don't cache a result that may predate it.
+    if (cacheHolder.__settingsLoading === loading) {
+      cacheHolder.__settingsCache = { at: Date.now(), values };
+      cacheHolder.__settingsLoading = null;
+    }
+    return values;
+  } catch (e) {
+    if (cacheHolder.__settingsLoading === loading) cacheHolder.__settingsLoading = null;
+    throw e;
+  }
+}
+
 export async function getSetting(k: SettingKey): Promise<string> {
-  const row = await db.setting.findUnique({ where: { key: k } });
-  if (row?.value) return decrypt(row.value);
-  return process.env[k] || '';
+  return (await loadSettings())[k] ?? '';
 }
 
 /**
@@ -149,11 +193,8 @@ export async function getTeaserSize(): Promise<number> {
 }
 
 export async function getAllSettings(): Promise<Record<SettingKey, string>> {
-  const rows = await db.setting.findMany({ where: { key: { in: [...SETTING_KEYS] } } });
-  const map = new Map(rows.map((r) => [r.key, decrypt(r.value)]));
-  const out = {} as Record<SettingKey, string>;
-  for (const k of SETTING_KEYS) out[k] = map.get(k) || process.env[k] || '';
-  return out;
+  // A copy, so a caller that edits the result can't change the cached values.
+  return { ...(await loadSettings()) };
 }
 
 export async function setSetting(k: SettingKey, value: string): Promise<void> {
@@ -163,6 +204,7 @@ export async function setSetting(k: SettingKey, value: string): Promise<void> {
     create: { key: k, value: enc },
     update: { value: enc }
   });
+  clearSettingsCache();
 }
 
 export type CompanyInfo = {

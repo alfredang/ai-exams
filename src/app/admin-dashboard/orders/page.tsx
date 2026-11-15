@@ -143,7 +143,9 @@ type OrderRow = Awaited<ReturnType<typeof loadOrders>>[number];
 async function loadOrders(where: Prisma.OrderWhereInput, skip: number, take: number) {
   return db.order.findMany({
     where,
-    include: { user: true, exam: { include: { vendor: true } }, bundle: true },
+    // The list never shows the raw provider payloads or user credentials.
+    omit: { paypalPayload: true, providerPayload: true },
+    include: { user: { omit: { passwordHash: true, totpSecret: true } }, exam: { include: { vendor: true } }, bundle: true },
     orderBy: { createdAt: 'desc' },
     skip,
     take

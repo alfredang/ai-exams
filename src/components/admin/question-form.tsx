@@ -219,7 +219,7 @@ export function QuestionForm({
         {type !== 'TRUE_FALSE' && options.length < MAX[type] && (
           <button
             type="button"
-            className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
+            className="mt-2 inline-flex items-center gap-1 text-xs text-brand-600 hover:underline dark:text-brand-400"
             onClick={() => setOptions([...options, { id: nextId(options, ordering), text: '' }])}
           >
             <Plus className="h-3.5 w-3.5" /> Add {ordering ? 'step' : 'option'}

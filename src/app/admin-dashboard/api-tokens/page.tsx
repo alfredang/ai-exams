@@ -63,7 +63,7 @@ export default async function ApiTokensPage({ searchParams }: { searchParams: Pr
       <PageHeader title="API tokens" subtitle="Long-lived bearer tokens for partner integrations." />
 
       {newToken && (
-        <div className="card mb-3 border-l-2 border-l-emerald-500 p-3">
+        <div className="card mb-3 border-l-[3px] !border-l-emerald-500 p-3">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">New token (copy now — shown only once)</div>
           <code className="mt-1 block break-all rounded bg-slate-50 p-2 text-[12px] font-mono dark:bg-slate-800">{newToken}</code>
         </div>
@@ -78,14 +78,14 @@ export default async function ApiTokensPage({ searchParams }: { searchParams: Pr
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">Scopes (comma-separated, optional)</span>
           <input name="scopes" placeholder="assign:practice-exams" className="input-sm" />
         </label>
-        <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+        <button className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
           Create token
         </button>
       </form>
 
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-[12px]">
-          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
+          <thead className="admin-thead">
             <tr>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Prefix</th>

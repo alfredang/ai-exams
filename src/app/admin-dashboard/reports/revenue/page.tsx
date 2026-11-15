@@ -63,7 +63,7 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
             <option value="month">Month</option>
           </select>
         </label>
-        <button className="ml-auto inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+        <button className="ml-auto inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
           Apply
         </button>
       </form>
@@ -79,7 +79,7 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
       {/* Breakdown table */}
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-[13px]">
-          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
+          <thead className="admin-thead">
             <tr>
               <th className="px-3 py-2 font-medium">{validBy === 'day' ? 'Date' : validBy === 'month' ? 'Month' : validBy === 'tier' ? 'Tier' : validBy === 'vendor' ? 'Vendor' : 'Exam'}</th>
               <th className="px-3 py-2 text-right font-medium">Orders</th>
@@ -110,9 +110,9 @@ export default async function RevenueReportPage({ searchParams }: { searchParams
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: 'emerald' }) {
   return (
-    <div className={`card p-3 ${accent === 'emerald' ? 'border-l-2 border-l-emerald-500' : ''}`}>
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</div>
-      <div className="text-lg font-semibold tracking-tight">{value}</div>
+    <div className={`card p-3.5 ${accent === 'emerald' ? 'border-l-[3px] !border-l-emerald-500' : ''}`}>
+      <div className="admin-label">{label}</div>
+      <div className="font-display text-xl font-semibold tracking-tight text-ink dark:text-slate-100">{value}</div>
     </div>
   );
 }

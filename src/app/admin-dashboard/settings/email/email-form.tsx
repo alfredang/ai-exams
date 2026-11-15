@@ -118,7 +118,7 @@ export default function EmailForm({
           <label
             className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
               transport === 'GMAIL_OAUTH'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                ? 'border-brand-500 bg-brand-50 dark:bg-blue-950/30'
                 : 'border-slate-200 dark:border-slate-700'
             }`}
           >
@@ -135,7 +135,7 @@ export default function EmailForm({
           <label
             className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
               transport === 'GMAIL_SERVICE_ACCOUNT'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                ? 'border-brand-500 bg-brand-50 dark:bg-blue-950/30'
                 : 'border-slate-200 dark:border-slate-700'
             }`}
           >
@@ -153,7 +153,7 @@ export default function EmailForm({
           <label
             className={`flex cursor-pointer items-center gap-2 rounded-md border p-3 text-sm ${
               transport === 'SMTP'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                ? 'border-brand-500 bg-brand-50 dark:bg-blue-950/30'
                 : 'border-slate-200 dark:border-slate-700'
             }`}
           >
@@ -209,7 +209,7 @@ export default function EmailForm({
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <a
               href="/api/admin/gmail-oauth/start"
-              className="inline-flex h-8 items-center gap-2 rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700"
+              className="inline-flex h-8 items-center gap-2 rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700"
             >
               <Plug className="h-3.5 w-3.5" />
               {gmailConnected ? 'Reconnect Gmail' : 'Connect Gmail'}
@@ -282,7 +282,7 @@ export default function EmailForm({
           type="button"
           onClick={() => save()}
           disabled={saving}
-          className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save'}
         </button>

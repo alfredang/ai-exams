@@ -64,6 +64,8 @@ async function loadUsers(where: Prisma.UserWhereInput, skip: number, take: numbe
     orderBy: { createdAt: 'desc' },
     skip,
     take,
+    // Never read credentials into a list page.
+    omit: { passwordHash: true, totpSecret: true },
     include: {
       // Latest TMS class registration (POST /api/v1/registrations).
       entitlements: {
@@ -88,10 +90,15 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
   const requestedPage = Math.max(1, Math.trunc(Number(sp.page) || 1));
 
   const where = buildUserWhere({ q, status, from: fromStr, to: toStr });
-  const total = await db.user.count({ where });
+  // Count and rows in one round trip; rows are re-read only when the requested
+  // page is past the end (filters changed).
+  const [total, firstRows] = await Promise.all([
+    db.user.count({ where }),
+    loadUsers(where, (requestedPage - 1) * PAGE_SIZE, PAGE_SIZE)
+  ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const page = Math.min(requestedPage, pages);
-  const users = await loadUsers(where, (page - 1) * PAGE_SIZE, PAGE_SIZE);
+  const users = page === requestedPage ? firstRows : await loadUsers(where, (page - 1) * PAGE_SIZE, PAGE_SIZE);
 
   const baseParams = { q, status, from: fromStr, to: toStr };
   const buildHref = (p: number) =>
@@ -199,7 +206,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
         <Link
           href={`/admin-dashboard/users/${u.id}`}
           aria-label={`Open ${u.email}`}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-800"
+          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-slate-800"
         >
           <Eye className="h-3.5 w-3.5" /> Open
         </Link>

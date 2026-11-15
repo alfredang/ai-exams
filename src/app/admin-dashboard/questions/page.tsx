@@ -61,14 +61,14 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
+        <h1 className="admin-h1 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-violet-600 dark:text-violet-400" />
           AI Question Generator
         </h1>
         <p className="text-sm text-slate-500">
           Click AI Generate, then choose the exam, number of questions, question types and exam domains. AI writes them as drafts; you
           review each one in that question bank, and only approved questions join its pool. Certification not listed?{' '}
-          <Link href="/admin-dashboard/exams/new" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+          <Link href="/admin-dashboard/exams/new" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
             + Create Practice Exam
           </Link>{' '}
           first — it creates the question bank that AI then fills.

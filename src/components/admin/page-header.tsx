@@ -25,11 +25,11 @@ export function PageHeader({
             {back.label}
           </Link>
         )}
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="admin-h1">
           {title}
         </h1>
         {subtitle && (
-          <div className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">{subtitle}</div>
+          <div className="mt-0.5 text-[13px] text-muted">{subtitle}</div>
         )}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}

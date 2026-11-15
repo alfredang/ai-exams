@@ -131,7 +131,7 @@ export default async function EditExamPage({
           <Link href="/admin-dashboard/exams" className="text-xs text-slate-500 hover:underline">
             ← Back to question banks
           </Link>
-          <h1 className="text-2xl font-bold">Question Bank</h1>
+          <h1 className="admin-h1">Question Bank</h1>
           <div className="text-sm text-slate-500" title={exam.title}>{exam.vendor.name} · {exam.code} · {examBaseTitle(exam.title)}</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -226,7 +226,7 @@ export default async function EditExamPage({
                       {refs.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-x-3">
                           {refs.map((r) => (
-                            <a key={r.url} href={r.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">{r.label} ↗</a>
+                            <a key={r.url} href={r.url} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline dark:text-brand-400">{r.label} ↗</a>
                           ))}
                         </div>
                       )}
@@ -274,7 +274,7 @@ export default async function EditExamPage({
             </div>
           </div>
           {drafts.length > 0 && (
-            <a href="#review" className="inline-flex h-9 items-center rounded-md bg-amber-500 px-4 text-[13px] font-medium text-white hover:bg-amber-600">
+            <a href="#review" className="inline-flex h-9 items-center rounded-md bg-amber-400 px-4 text-[13px] font-semibold text-amber-950 hover:bg-amber-500">
               Review {drafts.length} draft{drafts.length === 1 ? '' : 's'}
             </a>
           )}
@@ -321,9 +321,9 @@ export default async function EditExamPage({
           <div className="mt-3 space-y-2 text-xs">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="w-14 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Domain</span>
-              <a href={filterHref({ domain: '' })} className={`rounded-full border px-2.5 py-1 ${!fDomain ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>All ({exam.questions.length})</a>
+              <a href={filterHref({ domain: '' })} className={`rounded-full border px-2.5 py-1 ${!fDomain ? 'border-brand-600 bg-brand-50 text-brand-700 dark:bg-blue-950/40 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>All ({exam.questions.length})</a>
               {domainList.map((d) => (
-                <a key={d} href={filterHref({ domain: d })} className={`rounded-full border px-2.5 py-1 ${fDomain === d ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
+                <a key={d} href={filterHref({ domain: d })} className={`rounded-full border px-2.5 py-1 ${fDomain === d ? 'border-brand-600 bg-brand-50 text-brand-700 dark:bg-blue-950/40 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
                   {d} ({domainCounts.get(d)}){!blueprintOrder.includes(d) && blueprintOrder.length > 0 ? ' · not in blueprint' : ''}
                 </a>
               ))}
@@ -331,13 +331,13 @@ export default async function EditExamPage({
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="w-14 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Status</span>
               {['', 'PUBLISHED', 'DRAFT', 'ARCHIVED'].map((st) => (
-                <a key={st || 'all'} href={filterHref({ qstatus: st })} className={`rounded-full border px-2.5 py-1 ${fStatus === st ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
+                <a key={st || 'all'} href={filterHref({ qstatus: st })} className={`rounded-full border px-2.5 py-1 ${fStatus === st ? 'border-brand-600 bg-brand-50 text-brand-700 dark:bg-blue-950/40 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
                   {st ? QUESTION_STATUS_LABEL[st] : 'All'}
                 </a>
               ))}
               <span className="ml-3 w-10 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Type</span>
               {['', 'SINGLE', 'MULTI', 'ORDERING', 'TRUE_FALSE'].map((t) => (
-                <a key={t || 'all'} href={filterHref({ qtype: t })} className={`rounded-full border px-2.5 py-1 ${fType === t ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
+                <a key={t || 'all'} href={filterHref({ qtype: t })} className={`rounded-full border px-2.5 py-1 ${fType === t ? 'border-brand-600 bg-brand-50 text-brand-700 dark:bg-blue-950/40 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
                   {t ? TYPE_NAMES[t] : 'All'}
                 </a>
               ))}
@@ -364,7 +364,7 @@ export default async function EditExamPage({
             <input type="hidden" name="filterStatus" value={fStatus} />
             <input type="hidden" name="filterType" value={fType} />
             <label className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-slate-700 dark:text-slate-200">
-              <SelectAllCheckbox formId={BULK_FORM_ID} className="h-4 w-4 accent-blue-600" />
+              <SelectAllCheckbox formId={BULK_FORM_ID} className="h-4 w-4 accent-brand-600" />
               Select all
             </label>
             <span className="text-slate-400">·</span>
@@ -393,7 +393,7 @@ export default async function EditExamPage({
 
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[60rem] text-sm">
-            <thead className="border-b border-slate-200 text-left text-xs uppercase text-slate-500 dark:border-slate-800">
+            <thead className="admin-thead">
               <tr>
                 <th className="w-8 px-2 py-2 font-medium"><span className="sr-only">Select</span></th>
                 <th className="w-10 px-2 py-2 font-medium">#</th>
@@ -412,7 +412,7 @@ export default async function EditExamPage({
                 return (
                   <tr key={q.id} id={`q-${q.id}`} className={`scroll-mt-24 align-top ${sp.edited === q.id ? 'bg-emerald-50 dark:bg-emerald-950/20' : ''}`}>
                     <td className="px-2 py-2">
-                      <input type="checkbox" name="ids" value={q.id} form={BULK_FORM_ID} aria-label={`Select question ${idx + 1}`} className="mt-0.5 h-4 w-4 accent-blue-600" />
+                      <input type="checkbox" name="ids" value={q.id} form={BULK_FORM_ID} aria-label={`Select question ${idx + 1}`} className="mt-0.5 h-4 w-4 accent-brand-600" />
                     </td>
                     <td className="px-2 py-2 text-xs text-slate-500">{idx + 1}</td>
                     <td className="px-2 py-2">
@@ -456,7 +456,7 @@ export default async function EditExamPage({
                         {q.type !== 'HOTSPOT' && (
                           <Link
                             href={`/admin-dashboard/exams/${exam.id}/questions/${q.id}`}
-                            className="inline-flex h-8 items-center rounded-md border border-blue-300 bg-white px-2.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-slate-900 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                            className="inline-flex h-8 items-center rounded-md border border-brand-300 bg-white px-2.5 text-xs font-medium text-brand-700 hover:bg-brand-50 dark:border-brand-800 dark:bg-slate-900 dark:text-brand-300 dark:hover:bg-blue-950/40"
                           >
                             Edit
                           </Link>

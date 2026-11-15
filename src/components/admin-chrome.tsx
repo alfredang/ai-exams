@@ -219,12 +219,12 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
   const width = narrow ? 'lg:w-14' : 'lg:w-56';
 
   return (
-    <div className="flex min-h-[calc(100vh-6rem)] w-full">
+    <div className="admin-scope flex min-h-[calc(100vh-6rem)] w-full">
       {mobileOpen && (
         <div className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden" aria-hidden onClick={() => setMobileOpen(false)} />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white transition-all dark:border-slate-800 dark:bg-slate-900 lg:relative lg:inset-auto lg:z-auto lg:translate-x-0 lg:overflow-visible ${width} ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 overflow-y-auto border-r border-line bg-white transition-all dark:border-slate-800 dark:bg-slate-900 lg:relative lg:inset-auto lg:z-auto lg:translate-x-0 lg:overflow-visible ${width} ${
           mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         } ${mounted ? '' : 'opacity-0'}`}
       >
@@ -259,7 +259,7 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   onClick={() => toggleSection(sec.title)}
-                  className="mb-1 flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
+                  className="mb-1 flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-wider text-muted hover:text-ink dark:text-slate-400 dark:hover:text-slate-200"
                 >
                   <span>{sec.title}</span>
                   <ChevronDown className={`h-3 w-3 transition-transform ${isSectionOpen ? '' : '-rotate-90'}`} />
@@ -277,14 +277,14 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
                       <div
                         className={`group flex items-center gap-1 rounded-md text-[13px] transition ${
                           active
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                            ? 'bg-brand-50 text-brand-700 dark:bg-blue-950/40 dark:text-brand-300'
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100'
                         }`}
                       >
                         {/* left-border accent for active */}
                         <span
                           aria-hidden
-                          className={`block h-6 w-0.5 rounded ${active ? 'bg-blue-600 dark:bg-blue-400' : 'bg-transparent'}`}
+                          className={`block h-6 w-0.5 rounded ${active ? 'bg-brand-600 dark:bg-brand-400' : 'bg-transparent'}`}
                         />
                         <Link
                           href={href}
@@ -316,7 +316,7 @@ export function AdminChrome({ children }: { children: React.ReactNode }) {
                                 href={c.href}
                                 className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] transition ${
                                   subActive
-                                    ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                                    ? 'bg-brand-50 font-medium text-brand-700 dark:bg-blue-950/40 dark:text-brand-300'
                                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
                                 }`}
                               >

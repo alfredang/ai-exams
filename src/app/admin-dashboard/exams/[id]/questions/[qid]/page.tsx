@@ -51,7 +51,7 @@ export default async function EditQuestionPage({ params }: { params: Promise<{ i
       <div className="card p-4">
         {q.type === 'HOTSPOT' ? (
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Hotspot questions can&apos;t be edited here. <Link href={back} className="text-blue-600 hover:underline">Back to the question bank</Link>
+            Hotspot questions can&apos;t be edited here. <Link href={back} className="text-brand-600 hover:underline">Back to the question bank</Link>
           </p>
         ) : (
           <QuestionForm

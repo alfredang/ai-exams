@@ -267,7 +267,6 @@ async function loadExams(where: any, skip: number, take: number) {
       createdBy: { select: { id: true, name: true, email: true } },
       // Published products selling this exam — what makes a hidden row Active.
       bundleItems: { where: SOLD.bundleItems.some, select: { bundle: { select: { title: true } } } },
-      _count: { select: { questions: true, attempts: true, orders: true } }
     },
     orderBy: [{ vendor: { name: 'asc' } }, { title: 'asc' }],
     skip,
@@ -275,13 +274,21 @@ async function loadExams(where: any, skip: number, take: number) {
   });
   // Per-exam draft/published question counts for the Questions column.
   const examIds = exams.map((e) => e.id);
-  const statusCounts = examIds.length
-    ? await db.question.groupBy({
-        by: ['examId', 'status'],
-        where: { examId: { in: examIds } },
-        _count: { _all: true }
-      })
-    : [];
+  // Attempt / order counts per exam (what blocks a hard delete) come from two
+  // grouped queries on indexed columns rather than a per-row relation count.
+  const [statusCounts, attemptCounts, orderCounts] = examIds.length
+    ? await Promise.all([
+        db.question.groupBy({
+          by: ['examId', 'status'],
+          where: { examId: { in: examIds } },
+          _count: { _all: true }
+        }),
+        db.attempt.groupBy({ by: ['examId'], where: { examId: { in: examIds } }, _count: { _all: true } }),
+        db.order.groupBy({ by: ['examId'], where: { examId: { in: examIds } }, _count: { _all: true } })
+      ])
+    : [[], [], []];
+  const attemptsByExam = new Map(attemptCounts.map((r) => [r.examId, r._count._all]));
+  const ordersByExam = new Map(orderCounts.map((r) => [r.examId, r._count._all]));
   const draftByExam = new Map<string, number>();
   const publishedByExam = new Map<string, number>();
   for (const r of statusCounts) {
@@ -290,6 +297,7 @@ async function loadExams(where: any, skip: number, take: number) {
   }
   return exams.map((e) => ({
     ...e,
+    _count: { attempts: attemptsByExam.get(e.id) ?? 0, orders: ordersByExam.get(e.id) ?? 0 },
     draftCount: draftByExam.get(e.id) ?? 0,
     publishedCount: publishedByExam.get(e.id) ?? 0,
     domainCount: Array.isArray(e.domains) ? e.domains.length : 0
@@ -350,17 +358,18 @@ export default async function AdminExamsPage({
   // Tracker chip counts — respect the vendor/level/search filters, but each
   // chip carries its own lifecycle View + question status so the numbers stay
   // navigational. Plain COUNTs (no row hydration), run in parallel.
-  const [trkActive, trkInactive, trkArchived, trkDrafts, trkEmpty] = await Promise.all([
+  // The first page of rows is fetched in the same round trip; it is only
+  // re-read when the requested page turns out to be past the end.
+  const firstSkip = (requestedPage - 1) * PAGE_SIZE;
+  const [trkActive, trkInactive, trkArchived, trkDrafts, trkEmpty, vendors, totalCount, firstRows] = await Promise.all([
     db.exam.count({ where: buildWhere('active', '') }),
     db.exam.count({ where: buildWhere('inactive', '') }),
     db.exam.count({ where: buildWhere('archived', '') }),
     db.exam.count({ where: buildWhere('all', 'drafts') }),
-    db.exam.count({ where: buildWhere('all', 'empty') })
-  ]);
-
-  const [vendors, totalCount] = await Promise.all([
+    db.exam.count({ where: buildWhere('all', 'empty') }),
     db.vendor.findMany({ orderBy: { name: 'asc' } }),
-    db.exam.count({ where })
+    db.exam.count({ where }),
+    loadExams(where, firstSkip, PAGE_SIZE)
   ]);
 
   // When the current view returns 0 results AND the user has narrowed by
@@ -378,7 +387,7 @@ export default async function AdminExamsPage({
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const page = Math.min(requestedPage, totalPages);
-  const exams = await loadExams(where, (page - 1) * PAGE_SIZE, PAGE_SIZE);
+  const exams = page === requestedPage ? firstRows : await loadExams(where, (page - 1) * PAGE_SIZE, PAGE_SIZE);
 
   // baseParams omits view when it's the default ('active') for cleaner URLs.
   const baseParams = { vendor: vendorFilter, level: levelFilter, q, view: view === 'active' ? undefined : view, qstatus: qstatus || undefined };
@@ -437,7 +446,7 @@ export default async function AdminExamsPage({
           value={e.id}
           form={BULK_FORM_ID}
           aria-label={`Select ${e.code}`}
-          className="h-4 w-4 cursor-pointer accent-blue-600"
+          className="h-4 w-4 cursor-pointer accent-brand-600"
         />
       )
     },
@@ -474,7 +483,7 @@ export default async function AdminExamsPage({
       header: 'Label',
       cell: (e) =>
         e.label ? (
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+          <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-blue-950/40 dark:text-brand-300">
             {e.label}
           </span>
         ) : (
@@ -571,7 +580,7 @@ export default async function AdminExamsPage({
             href={e.infoUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-blue-600 hover:underline dark:text-blue-400"
+            className="text-brand-600 hover:underline dark:text-brand-400"
           >
             Open
           </a>
@@ -645,7 +654,7 @@ export default async function AdminExamsPage({
         title="Question Banks"
         subtitle={`${totalCount} question bank${totalCount === 1 ? '' : 's'} — the questions, domains and timer behind each Practice Exam${totalPages > 1 ? ` · page ${page} of ${totalPages}` : ''}`}
         actions={
-          <Link href="/admin-dashboard/exams/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
+          <Link href="/admin-dashboard/exams/new" className="btn-sm bg-brand-600 text-white hover:bg-brand-700">
             + Create Practice Exam
           </Link>
         }
@@ -669,7 +678,7 @@ export default async function AdminExamsPage({
             href={c.href}
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] transition ${
               c.on
-                ? 'border-blue-400 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200'
+                ? 'border-brand-400 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-blue-950/40 dark:text-brand-200'
                 : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
           >
@@ -743,7 +752,7 @@ export default async function AdminExamsPage({
           <input type="hidden" name="filterView" value={view} />
           <input type="hidden" name="filterQstatus" value={qstatus} />
           <label className="inline-flex cursor-pointer items-center gap-1.5 text-slate-700 dark:text-slate-200">
-            <SelectAllCheckbox formId={BULK_FORM_ID} className="h-4 w-4 accent-blue-600" />
+            <SelectAllCheckbox formId={BULK_FORM_ID} className="h-4 w-4 accent-brand-600" />
             Select all
           </label>
           <span className="text-slate-400">·</span>
@@ -800,10 +809,10 @@ export default async function AdminExamsPage({
                   <Link
                     key={h.view}
                     href={`/admin-dashboard/exams${buildQS({ ...baseParams, view: h.view === 'all' ? undefined : h.view })}`}
-                    className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-blue-900 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-200 dark:hover:bg-blue-900/60"
+                    className="inline-flex items-center gap-1 rounded bg-brand-100 px-2 py-0.5 text-brand-900 hover:bg-brand-200 dark:bg-brand-900/40 dark:text-brand-200 dark:hover:bg-brand-900/60"
                   >
                     <span className="capitalize">{h.view}</span>
-                    <span className="text-blue-700 dark:text-blue-300">({h.count})</span>
+                    <span className="text-brand-700 dark:text-brand-300">({h.count})</span>
                   </Link>
                 ))}
               </div>
@@ -811,7 +820,7 @@ export default async function AdminExamsPage({
           ) : (
             <>
               No exams match this filter.{' '}
-              <Link href="/admin-dashboard/exams" className="text-blue-600 hover:underline dark:text-blue-400">
+              <Link href="/admin-dashboard/exams" className="text-brand-600 hover:underline dark:text-brand-400">
                 Clear
               </Link>
             </>

@@ -225,7 +225,7 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
             <input name="notes" defaultValue={coupon.notes ?? ''} className="input-sm" />
           </Field>
           <div className="pt-2">
-            <button type="submit" className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+            <button type="submit" className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
               Save changes
             </button>
           </div>
@@ -255,8 +255,8 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
           <p className="mt-2 text-[12px] text-slate-500">None yet.</p>
         ) : (
           <table className="mt-2 w-full text-[12px]">
-            <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+            <thead className="admin-thead">
+              <tr>
                 <th className="py-1">When</th>
                 <th className="py-1">User</th>
                 <th className="py-1">Order</th>
@@ -271,7 +271,7 @@ export default async function CouponDetailPage({ params }: { params: Promise<{ i
                   <td className="py-1.5">{r.createdAt.toLocaleString()}</td>
                   <td className="py-1.5">{r.user.name ?? r.user.email}</td>
                   <td className="py-1.5">
-                    <Link href={`/admin-dashboard/orders/${r.order.id}`} className="font-mono text-blue-600 hover:underline dark:text-blue-400">
+                    <Link href={`/admin-dashboard/orders/${r.order.id}`} className="font-mono text-brand-600 hover:underline dark:text-brand-400">
                       {r.order.number ?? r.order.id.slice(0, 10)}
                     </Link>
                   </td>

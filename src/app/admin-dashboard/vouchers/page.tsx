@@ -34,7 +34,7 @@ async function issueExistingVoucher(formData: FormData) {
 
   const ent = await db.entitlement.findUnique({
     where: { id: entitlementId },
-    include: { user: true, exam: { include: { vendor: true } } }
+    include: { user: { omit: { passwordHash: true, totpSecret: true } }, exam: { include: { vendor: true } } }
   });
   if (!ent || ent.tier !== 'VOUCHER' || ent.voucher) return;
 
@@ -135,30 +135,27 @@ export default async function AdminVouchersPage({ searchParams }: { searchParams
   const vendorId = sp.vendorId || '';
   const examId = sp.examId || '';
 
-  const [vendors, exams] = await Promise.all([
-    db.vendor.findMany({ orderBy: { name: 'asc' } }),
-    db.exam.findMany({
-      where: vendorId ? { vendorId } : undefined,
-      orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }],
-      include: { vendor: true }
-    })
-  ]);
-
   const baseWhere: any = { tier: 'VOUCHER' };
   if (examId) baseWhere.examId = examId;
   else if (vendorId) baseWhere.exam = { vendorId };
   if (q) baseWhere.user = { email: { contains: q, mode: 'insensitive' } };
 
-  const [pending, recentlyIssued, deliveries] = await Promise.all([
+  const [vendors, exams, pending, recentlyIssued, deliveries] = await Promise.all([
+    db.vendor.findMany({ orderBy: { name: 'asc' } }),
+    db.exam.findMany({
+      where: vendorId ? { vendorId } : undefined,
+      orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }],
+      include: { vendor: true }
+    }),
     db.entitlement.findMany({
       where: { ...baseWhere, voucher: null },
-      include: { user: true, exam: { include: { vendor: true } } },
+      include: { user: { omit: { passwordHash: true, totpSecret: true } }, exam: { include: { vendor: true } } },
       orderBy: { grantedAt: 'asc' },
       take: 100
     }),
     db.entitlement.findMany({
       where: { ...baseWhere, voucher: { not: null } },
-      include: { user: true, exam: { include: { vendor: true } } },
+      include: { user: { omit: { passwordHash: true, totpSecret: true } }, exam: { include: { vendor: true } } },
       orderBy: { grantedAt: 'desc' },
       take: 20
     }),
@@ -166,7 +163,7 @@ export default async function AdminVouchersPage({ searchParams }: { searchParams
       where: { status: { in: ['SCHEDULED', 'PROCESSING', 'FAILED'] } },
       include: {
         entitlement: {
-          include: { user: true, exam: { include: { vendor: true } } }
+          include: { user: { omit: { passwordHash: true, totpSecret: true } }, exam: { include: { vendor: true } } }
         }
       },
       orderBy: { scheduledFor: 'asc' },
@@ -192,7 +189,7 @@ export default async function AdminVouchersPage({ searchParams }: { searchParams
             Inventory →
           </a>
           <form action={runDeliveriesAction}>
-            <button className="btn-sm bg-blue-600 text-white hover:bg-blue-700">Run deliveries now</button>
+            <button className="btn-sm bg-brand-600 text-white hover:bg-brand-700">Run deliveries now</button>
           </form>
         </div>
       </div>
@@ -278,7 +275,7 @@ export default async function AdminVouchersPage({ searchParams }: { searchParams
             const due = d.scheduledFor <= new Date();
             const statusColor =
               d.status === 'FAILED' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
-              d.status === 'PROCESSING' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300' :
+              d.status === 'PROCESSING' ? 'bg-brand-100 text-brand-800 dark:bg-blue-950/40 dark:text-brand-300' :
               due ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' :
               'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
             return (

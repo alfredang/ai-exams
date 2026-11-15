@@ -191,7 +191,7 @@ export function AiGenerateDialog({
         {!configured ? (
           <p className="px-5 py-6 text-sm text-slate-600 dark:text-slate-300">
             AI generation needs at least one AI key (OpenAI, DeepSeek or MiniMax). Add it under{' '}
-            <Link href="/admin-dashboard/settings/credentials" className="text-blue-600 hover:underline dark:text-blue-400">
+            <Link href="/admin-dashboard/settings/credentials" className="text-brand-600 hover:underline dark:text-brand-400">
               Settings → Credentials
             </Link>
             .
@@ -323,7 +323,7 @@ export function AiGenerateDialog({
                 <a
                   href={`/admin-dashboard/exams/${exam.id}#review`}
                   onClick={() => setOpen(false)}
-                  className="inline-flex h-10 items-center rounded-md bg-amber-500 px-4 text-[13px] font-medium text-white hover:bg-amber-600"
+                  className="inline-flex h-10 items-center rounded-md bg-amber-400 px-4 text-[13px] font-semibold text-amber-950 hover:bg-amber-500"
                 >
                   Review {created} draft{created === 1 ? '' : 's'} →
                 </a>

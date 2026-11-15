@@ -40,7 +40,7 @@ function Code({ children }: { children: React.ReactNode }) {
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-3">
-      <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+      <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700 dark:bg-blue-950/40 dark:text-brand-300">
         {n}
       </span>
       <div className="min-w-0 flex-1 text-sm">
@@ -53,7 +53,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 
 function Ext({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-blue-700 underline hover:no-underline dark:text-blue-300">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-brand-700 underline hover:no-underline dark:text-brand-300">
       {children}
       <ExternalLink className="h-3 w-3" />
     </a>
@@ -96,10 +96,10 @@ export default async function PaymentGuidePage() {
     <div className="max-w-4xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Payment Setup Guide</h1>
+          <h1 className="admin-h1">Payment Setup Guide</h1>
           <p className="mt-1 text-sm text-slate-500">
             Step-by-step configuration for PayPal, HitPay, and Stripe. Credentials are entered on the{' '}
-            <Link href="/admin-dashboard/settings/payment" className="font-medium text-blue-700 underline hover:no-underline dark:text-blue-300">
+            <Link href="/admin-dashboard/settings/payment" className="font-medium text-brand-700 underline hover:no-underline dark:text-brand-300">
               Payment Setting
             </Link>{' '}
             page — this guide tells you where each value comes from.
@@ -110,7 +110,7 @@ export default async function PaymentGuidePage() {
         </Link>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
+      <div className="mt-4 flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900 dark:border-brand-900 dark:bg-blue-950/40 dark:text-brand-200">
         <Globe className="h-4 w-4 shrink-0" />
         <p>
           This deployment&apos;s base URL is <Code>{appUrl}</Code>. All webhook URLs below are built from it — if you move domains, re-register the webhooks.
@@ -152,7 +152,7 @@ export default async function PaymentGuidePage() {
             <p>
               Open any Practice Exam checkout — the PayPal buttons should render. With sandbox credentials, pay using a{' '}
               <Ext href="https://developer.paypal.com/dashboard/accounts">sandbox personal account</Ext>; confirm the order flips to PAID under{' '}
-              <Link href="/admin-dashboard/orders" className="font-medium text-blue-700 underline hover:no-underline dark:text-blue-300">Orders</Link>{' '}
+              <Link href="/admin-dashboard/orders" className="font-medium text-brand-700 underline hover:no-underline dark:text-brand-300">Orders</Link>{' '}
               and the entitlements appear for the buyer.
             </p>
           </Step>
@@ -197,7 +197,7 @@ export default async function PaymentGuidePage() {
             <p>
               Run a checkout with HitPay selected. In sandbox, pay with the test card <Code>4242 4242 4242 4242</Code> (any future expiry / CVC). Confirm the order
               flips to PAID and the webhook shows PROCESSED under{' '}
-              <Link href="/admin-dashboard/payments/webhooks" className="font-medium text-blue-700 underline hover:no-underline dark:text-blue-300">Payments → Webhooks</Link>.
+              <Link href="/admin-dashboard/payments/webhooks" className="font-medium text-brand-700 underline hover:no-underline dark:text-brand-300">Payments → Webhooks</Link>.
             </p>
           </Step>
         </ol>

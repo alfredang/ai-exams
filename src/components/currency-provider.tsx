@@ -34,7 +34,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/fx', { cache: 'no-store' })
+    fetch('/api/fx')
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!active || !d?.ok) return;

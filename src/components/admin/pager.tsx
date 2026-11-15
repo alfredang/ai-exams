@@ -19,7 +19,7 @@ export function Pager({
   ) {
     const cls = `inline-flex h-7 min-w-[28px] items-center justify-center rounded px-2 text-xs ${
       active
-        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+        ? 'bg-brand font-semibold text-white dark:bg-brand-500'
         : disabled
           ? 'cursor-not-allowed text-slate-400 dark:text-slate-600'
           : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'

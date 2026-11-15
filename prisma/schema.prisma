@@ -127,6 +127,8 @@ model User {
   reviews       Review[]
   examsCreated  Exam[]        @relation("ExamCreatedBy")
   bundlesCreated Bundle[]     @relation("BundleCreatedBy")
+  @@index([createdAt])
+  @@index([role, createdAt])
 }
 
 // NextAuth/Prisma adapter table used by OAuth providers (Google, GitHub, …)
@@ -278,6 +280,7 @@ model Question {
   updatedAt   DateTime  @updatedAt
   @@index([examId, status])
   @@index([examId, isTeaser])
+  @@index([status])
   @@index([sourceId])
 }
 
@@ -365,6 +368,7 @@ model EmailLog {
   @@index([userId, sentAt])
   @@index([template, sentAt])
   @@index([status, sentAt])
+  @@index([sentAt])
 }
 
 enum EmailStatus {
@@ -484,6 +488,8 @@ model Entitlement {
   @@unique([userId, examId, tier])
   @@index([userId])
   @@index([courseRunId])
+  @@index([examId])
+  @@index([tier, grantedAt])
 }
 
 model Attempt {
@@ -510,6 +516,8 @@ model Attempt {
   reviews     Review[]
   @@index([userId, examId])
   @@index([guestToken])
+  @@index([examId, submittedAt])
+  @@index([startedAt])
 }
 
 // An order is for EITHER a single Exam at a tier, OR a Bundle.
@@ -562,6 +570,10 @@ model Order {
   @@unique([provider, providerCaptureId])
   @@index([userId, status])
   @@index([status, createdAt])
+  @@index([status, capturedAt])
+  @@index([createdAt])
+  @@index([examId])
+  @@index([bundleId])
 }
 
 model Refund {
@@ -604,6 +616,8 @@ model PaymentWebhookEvent {
   order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
   @@unique([provider, eventId])
   @@index([provider, receivedAt])
+  @@index([receivedAt])
+  @@index([orderId])
   @@index([status])
 }
 
@@ -848,6 +862,8 @@ model AdminLog {
   metadata   Json?
   createdAt  DateTime @default(now())
   @@index([adminId, createdAt])
+  @@index([createdAt])
+  @@index([targetType, targetId])
 }
 
 model Review {

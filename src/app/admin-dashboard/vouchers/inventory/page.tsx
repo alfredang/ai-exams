@@ -262,7 +262,7 @@ export default async function VoucherInventoryPage({ searchParams }: { searchPar
             <textarea name="codes" rows={4} placeholder="VCH-ABC123&#10;VCH-DEF456" className="w-full rounded-md border border-slate-200 bg-white p-2 text-[12px] font-mono outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
           </label>
           <div className="md:col-span-2">
-            <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+            <button className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
               Upload
             </button>
           </div>

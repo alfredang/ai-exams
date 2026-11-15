@@ -38,7 +38,7 @@ export default function TestimonialsAdminClient({ initial, exams }: { initial: R
           <div className="text-sm font-medium">Manage testimonials</div>
           <div className="text-xs text-slate-500">Edit, publish, reorder. Promoted reviews appear here as drafts — set Published to show on the homepage.</div>
         </div>
-        <button type="button" onClick={addBlank} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-blue-600 px-4 text-[13px] font-medium text-white hover:bg-blue-700">
+        <button type="button" onClick={addBlank} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-brand-600 px-4 text-[13px] font-medium text-white hover:bg-brand-700">
           <Plus className="h-3.5 w-3.5" /> Add testimonial
         </button>
       </div>

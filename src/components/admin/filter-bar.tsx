@@ -23,7 +23,7 @@ export function FilterBar({
       <div className="flex flex-wrap items-end gap-2">
         {children}
         <div className="ml-auto flex items-center gap-2">
-          <button type="submit" className="h-8 rounded-md bg-blue-600 px-3 text-xs font-medium text-white hover:bg-blue-700">
+          <button type="submit" className="h-8 rounded-md bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400">
             Apply
           </button>
           {resetHref && (

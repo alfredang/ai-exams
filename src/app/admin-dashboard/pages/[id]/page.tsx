@@ -19,10 +19,10 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
       <div className="mb-2 text-sm">
         <Link href="/admin-dashboard/pages" className="text-slate-500 hover:underline">← All pages</Link>
       </div>
-      <h1 className="text-2xl font-bold">{isNew ? 'New page' : page!.title}</h1>
+      <h1 className="admin-h1">{isNew ? 'New page' : page!.title}</h1>
       {!isNew && (
         <p className="mt-1 text-xs text-slate-500">
-          Public URL: <Link href={`/p/${page!.slug}`} target="_blank" className="text-blue-600 hover:underline">/p/{page!.slug}</Link>
+          Public URL: <Link href={`/p/${page!.slug}`} target="_blank" className="text-brand-600 hover:underline">/p/{page!.slug}</Link>
         </p>
       )}
       <PageEditorClient

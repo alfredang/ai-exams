@@ -53,7 +53,7 @@ export default async function NotificationsPage() {
           <p className="p-4 text-[12px] text-slate-500">No notifications.</p>
         ) : (
           items.map((n) => (
-            <div key={n.id} className={`flex items-start justify-between gap-3 p-3 ${!n.readAt ? 'bg-blue-50/30 dark:bg-blue-950/15' : ''}`}>
+            <div key={n.id} className={`flex items-start justify-between gap-3 p-3 ${!n.readAt ? 'bg-brand-50/30 dark:bg-blue-950/15' : ''}`}>
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] font-medium text-slate-900 dark:text-slate-100">{n.title}</div>
                 {n.body && <div className="mt-0.5 text-[12px] text-slate-500">{n.body}</div>}
@@ -62,12 +62,12 @@ export default async function NotificationsPage() {
                   <span>·</span>
                   <span>{n.createdAt.toLocaleString()}</span>
                   {n.link && (
-                    <Link href={n.link} className="text-blue-600 hover:underline dark:text-blue-400">Open →</Link>
+                    <Link href={n.link} className="text-brand-600 hover:underline dark:text-brand-400">Open →</Link>
                   )}
                 </div>
               </div>
               {!n.readAt && (
-                <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                <span className="rounded bg-brand-100 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-brand-800 dark:bg-blue-950/40 dark:text-brand-200">
                   NEW
                 </span>
               )}

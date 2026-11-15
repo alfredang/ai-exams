@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 const STATUSES: EnquiryStatus[] = ['NEW', 'CONTACTED', 'CLOSED'];
 
 const STATUS_CHIP: Record<EnquiryStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200',
+  NEW: 'bg-brand-100 text-brand-800 dark:bg-blue-950/40 dark:text-brand-200',
   CONTACTED: 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
   CLOSED: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
 };
@@ -60,7 +60,7 @@ export default async function EnquiriesPage({ searchParams }: { searchParams: Pr
   const chip = (on: boolean) =>
     `rounded-full border px-2.5 py-1 text-[12px] font-medium ${
       on
-        ? 'border-blue-600 bg-blue-600 text-white'
+        ? 'border-brand-600 bg-brand-600 text-white'
         : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
     }`;
 
@@ -89,7 +89,7 @@ export default async function EnquiriesPage({ searchParams }: { searchParams: Pr
           items.map((e) => {
             const wa = e.phone ? waNumber(e.phone) : null;
             return (
-              <div key={e.id} className={`p-4 ${e.status === 'NEW' ? 'bg-blue-50/30 dark:bg-blue-950/15' : ''}`}>
+              <div key={e.id} className={`p-4 ${e.status === 'NEW' ? 'bg-brand-50/30 dark:bg-blue-950/15' : ''}`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -99,7 +99,7 @@ export default async function EnquiriesPage({ searchParams }: { searchParams: Pr
                       {e.certification && <span className="text-[12px] text-slate-500">· {e.certification}</span>}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
-                      <a href={`mailto:${e.email}`} className="text-blue-600 hover:underline dark:text-blue-400">{e.email}</a>
+                      <a href={`mailto:${e.email}`} className="text-brand-600 hover:underline dark:text-brand-400">{e.email}</a>
                       {e.phone && <span className="text-slate-600 dark:text-slate-300">{e.phone}</span>}
                       {wa && (
                         <a

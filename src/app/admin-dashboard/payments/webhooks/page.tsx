@@ -124,7 +124,7 @@ export default async function WebhookEventsPage({ searchParams }: { searchParams
         e.order ? (
           <Link
             href={`/admin-dashboard/orders/${e.order.id}`}
-            className="font-mono text-xs text-blue-600 hover:underline dark:text-blue-400"
+            className="font-mono text-xs text-brand-600 hover:underline dark:text-brand-400"
           >
             {e.order.number ?? e.order.id.slice(0, 10)}
           </Link>
@@ -149,7 +149,7 @@ export default async function WebhookEventsPage({ searchParams }: { searchParams
       headerClassName: 'w-20',
       cell: (e) => (
         <details className="text-right">
-          <summary className="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">View</summary>
+          <summary className="cursor-pointer text-xs text-brand-600 hover:underline dark:text-brand-400">View</summary>
           <pre className="mt-1 max-h-72 overflow-auto rounded bg-slate-100 p-2 text-left text-[11px] dark:bg-slate-800">
 {JSON.stringify(e.payload, null, 2)}
           </pre>

@@ -217,7 +217,8 @@ export default async function AdminUserDetailPage({
   if (me?.role !== 'ADMIN') redirect('/');
   const { id } = await params;
   const sp = await searchParams;
-  const tab = (TABS.includes((sp.tab as Tab) ?? 'overview') ? sp.tab : 'overview') as Tab;
+  // No ?tab= (or an unknown one) opens Overview.
+  const tab: Tab = TABS.includes(sp.tab as Tab) ? (sp.tab as Tab) : 'overview';
   const superAdmin = isSuperAdmin(me?.email);
 
   const user = await db.user.findUnique({
@@ -241,6 +242,7 @@ export default async function AdminUserDetailPage({
   ] = await Promise.all([
     db.order.findMany({
       where: { userId: id },
+      omit: { paypalPayload: true, providerPayload: true },
       include: { exam: { select: { code: true, title: true } }, bundle: { select: { title: true } } },
       orderBy: { createdAt: 'desc' }
     }),
@@ -320,7 +322,7 @@ export default async function AdminUserDetailPage({
             href={`/admin-dashboard/users/${user.id}?tab=${t}`}
             className={`inline-flex h-9 items-center border-b-2 px-3 text-[12px] font-medium capitalize transition ${
               tab === t
-                ? 'border-blue-500 text-slate-900 dark:text-slate-100'
+                ? 'border-brand-500 text-slate-900 dark:text-slate-100'
                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
@@ -354,7 +356,7 @@ export default async function AdminUserDetailPage({
               <Card title={`Exam history (${attempts.length} attempt${attempts.length === 1 ? '' : 's'})`}>
                 <ExamHistoryCards exams={history.exams} />
                 {attempts.length > 0 && (
-                  <Link href={`/admin-dashboard/users/${user.id}?tab=attempts`} className="mt-3 inline-block text-[12px] font-medium text-blue-700 hover:underline dark:text-blue-300">
+                  <Link href={`/admin-dashboard/users/${user.id}?tab=attempts`} className="mt-3 inline-block text-[12px] font-medium text-brand-700 hover:underline dark:text-brand-300">
                     View every attempt →
                   </Link>
                 )}
@@ -404,8 +406,8 @@ export default async function AdminUserDetailPage({
                 <p className="text-[12px] text-slate-500">No orders.</p>
               ) : (
                 <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                  <thead className="admin-thead">
+                    <tr>
                       <th className="py-1">No.</th>
                       <th className="py-1">When</th>
                       <th className="py-1">Product</th>
@@ -418,7 +420,7 @@ export default async function AdminUserDetailPage({
                     {orders.map((o) => (
                       <tr key={o.id}>
                         <td className="py-1.5">
-                          <Link href={`/admin-dashboard/orders/${o.id}`} className="font-mono text-blue-600 hover:underline dark:text-blue-400">
+                          <Link href={`/admin-dashboard/orders/${o.id}`} className="font-mono text-brand-600 hover:underline dark:text-brand-400">
                             {o.number ?? o.id.slice(0, 10)}
                           </Link>
                         </td>
@@ -441,8 +443,8 @@ export default async function AdminUserDetailPage({
                 <p className="text-[12px] text-slate-500">No invoices.</p>
               ) : (
                 <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                  <thead className="admin-thead">
+                    <tr>
                       <th className="py-1">Number</th>
                       <th className="py-1">Date</th>
                       <th className="py-1 text-right">Amount</th>
@@ -455,7 +457,7 @@ export default async function AdminUserDetailPage({
                     {invoices.map((inv) => (
                       <tr key={inv.id}>
                         <td className="py-1.5">
-                          <Link href={`/admin-dashboard/invoices/${inv.id}`} className="font-mono font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                          <Link href={`/admin-dashboard/invoices/${inv.id}`} className="font-mono font-semibold text-brand-600 hover:underline dark:text-brand-400">
                             {inv.number}
                           </Link>
                         </td>
@@ -464,7 +466,7 @@ export default async function AdminUserDetailPage({
                         <td className="py-1.5 text-right">{inv.taxAmount === 0 ? '—' : formatMoney(inv.taxAmount, inv.currency)}</td>
                         <td className="py-1.5"><StatusBadge status={inv.status} /></td>
                         <td className="py-1.5 text-right">
-                          <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">PDF</a>
+                          <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-brand-600 hover:underline">PDF</a>
                         </td>
                       </tr>
                     ))}
@@ -533,7 +535,7 @@ export default async function AdminUserDetailPage({
                         <span className="font-mono font-semibold">{e.voucher}</span>
                         <span className="ml-2 text-slate-500">{e.exam.vendor.name} · {e.exam.code}</span>
                       </div>
-                      <a href={`/api/vouchers/${e.id}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">PDF</a>
+                      <a href={`/api/vouchers/${e.id}/pdf`} target="_blank" rel="noreferrer" className="text-xs text-brand-600 hover:underline">PDF</a>
                     </li>
                   ))}
                 </ul>
@@ -552,8 +554,8 @@ export default async function AdminUserDetailPage({
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-[12px]">
-                      <thead>
-                        <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                      <thead className="admin-thead">
+                        <tr>
                           <th className="py-1 pr-2">Started</th>
                           <th className="py-1 pr-2">Exam</th>
                           <th className="py-1 pr-2">Mode</th>
@@ -580,7 +582,7 @@ export default async function AdminUserDetailPage({
                             </td>
                             <td className="py-1.5 text-right">
                               {!a.inProgress && (
-                                <a href={`/api/results/${a.id}/pdf`} className="inline-flex items-center gap-1 text-blue-700 hover:underline dark:text-blue-300" title="Download the score report (PDF)">
+                                <a href={`/api/results/${a.id}/pdf`} className="inline-flex items-center gap-1 text-brand-700 hover:underline dark:text-brand-300" title="Download the score report (PDF)">
                                   <Download className="h-3.5 w-3.5" /> PDF
                                 </a>
                               )}
@@ -601,8 +603,8 @@ export default async function AdminUserDetailPage({
                 <p className="text-[12px] text-slate-500">No emails sent to this user yet.</p>
               ) : (
                 <table className="w-full text-[12px]">
-                  <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                  <thead className="admin-thead">
+                    <tr>
                       <th className="py-1">Sent</th>
                       <th className="py-1">Template</th>
                       <th className="py-1">Subject</th>
@@ -640,7 +642,7 @@ export default async function AdminUserDetailPage({
                     <input type="checkbox" name="pinned" />
                     Pin to top of profile
                   </label>
-                  <button className="inline-flex h-7 items-center rounded-md bg-blue-600 px-3 text-xs font-medium text-white hover:bg-blue-700">
+                  <button className="inline-flex h-7 items-center rounded-md bg-brand-600 px-3 text-xs font-medium text-white hover:bg-brand-700">
                     Add note
                   </button>
                 </div>
@@ -745,7 +747,7 @@ export default async function AdminUserDetailPage({
                   <ConfirmButton
                     message={`Impersonate ${user.email}? You'll appear logged in as them for 30 minutes.`}
                     variant="primary"
-                    className="h-7 w-full justify-center gap-1 rounded-md border border-blue-300 px-2 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/30"
+                    className="h-7 w-full justify-center gap-1 rounded-md border border-brand-300 px-2 text-xs font-medium text-brand-700 hover:bg-brand-50 dark:border-brand-800 dark:text-brand-300 dark:hover:bg-blue-950/30"
                   >
                     <EyeIcon className="h-3 w-3" /> Impersonate
                   </ConfirmButton>

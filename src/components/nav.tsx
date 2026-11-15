@@ -2,13 +2,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { PRACTICE_PRICE_CENTS } from '@/lib/products';
 import { UserMenu } from './user-menu';
 import { ThemeToggle } from './theme-toggle';
 import { CurrencySwitcher } from './currency-switcher';
 import { Price } from './price';
-import { AdminHeaderTools } from './admin/header-tools';
 import { BookOpenCheck, Building2, ChevronRight, HelpCircle, Info, LifeBuoy, ListChecks, Menu, Ticket, X } from 'lucide-react';
 
 const LINKS = [
@@ -19,6 +19,10 @@ const LINKS = [
   { href: '/#faq', label: 'FAQ', icon: HelpCircle, desc: 'Quick answers' },
   { href: '/p/support', label: 'Support', icon: LifeBuoy, desc: 'We reply within one business day' }
 ];
+
+// Admin search + notification bell: loaded only on /admin-dashboard so public
+// pages don't download them.
+const AdminHeaderTools = dynamic(() => import('./admin/header-tools').then((m) => m.AdminHeaderTools));
 
 // Desktop shows the first six; the mobile menu adds About Us.
 const MOBILE_EXTRA = [{ href: '/p/about-us', label: 'About Us', icon: Info, desc: 'Who we are' }];

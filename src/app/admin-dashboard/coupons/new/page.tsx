@@ -147,7 +147,7 @@ export default async function NewCouponPage() {
           <input name="notes" className="input-sm" placeholder="e.g. Black Friday campaign 2026" />
         </Field>
         <div className="flex items-center gap-2 pt-2">
-          <button type="submit" className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+          <button type="submit" className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
             Create coupon
           </button>
           <Link href="/admin-dashboard/coupons" className="text-[12px] text-slate-500 hover:underline">Cancel</Link>

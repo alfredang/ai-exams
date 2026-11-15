@@ -38,7 +38,7 @@ export default function EmailTemplatesClient({
   return (
     <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/50">
+        <thead className="admin-thead">
           <tr>
             <th className="px-4 py-3">Template</th>
             <th className="px-4 py-3">Status</th>
@@ -269,7 +269,7 @@ function ExpandedEditor({
         )}
         <Link
           href={`/admin-dashboard/settings/email-templates/${row.key}`}
-          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+          className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline"
         >
           Full editor with preview <ExternalLink className="h-3 w-3" />
         </Link>

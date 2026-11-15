@@ -28,16 +28,18 @@ export const Ranges = {
 
 /** Sum + count of PAID orders in a window. */
 export async function paidOrdersIn(range: Range) {
-  const r = await db.order.aggregate({
-    where: { status: 'PAID', capturedAt: { gte: range.from, lte: range.to } },
-    _sum: { amount: true, discount: true, refundAmount: true },
-    _count: true
-  });
-  const refunds = await db.refund.aggregate({
-    where: { status: 'SUCCEEDED', createdAt: { gte: range.from, lte: range.to } },
-    _sum: { amount: true },
-    _count: true
-  });
+  const [r, refunds] = await Promise.all([
+    db.order.aggregate({
+      where: { status: 'PAID', capturedAt: { gte: range.from, lte: range.to } },
+      _sum: { amount: true, discount: true, refundAmount: true },
+      _count: true
+    }),
+    db.refund.aggregate({
+      where: { status: 'SUCCEEDED', createdAt: { gte: range.from, lte: range.to } },
+      _sum: { amount: true },
+      _count: true
+    })
+  ]);
   const ordersCount = (r._count as unknown as number) ?? 0;
   const refundCount = (refunds._count as unknown as number) ?? 0;
   const grossCents = r._sum.amount ?? 0;
@@ -64,11 +66,11 @@ export async function signupsIn(range: Range): Promise<number> {
 
 /** Active learners = unique userIds with an attempt in the window. */
 export async function activeLearnersIn(range: Range): Promise<number> {
-  const rows = await db.attempt.groupBy({
-    by: ['userId'],
-    where: { startedAt: { gte: range.from, lte: range.to }, userId: { not: null } }
-  });
-  return rows.length;
+  const rows = await db.$queryRaw<{ n: bigint }[]>`
+    SELECT COUNT(DISTINCT "userId") AS n
+    FROM "Attempt"
+    WHERE "userId" IS NOT NULL AND "startedAt" >= ${range.from} AND "startedAt" <= ${range.to}`;
+  return Number(rows[0]?.n ?? 0);
 }
 
 /** Tax collected from Invoice rows (ISSUED status only) in a window. */
@@ -248,17 +250,19 @@ export async function examAnalytics() {
     },
     orderBy: [{ vendor: { name: 'asc' } }, { code: 'asc' }]
   });
-  const attemptStats = await db.attempt.groupBy({
-    by: ['examId'],
-    where: { submittedAt: { not: null } },
-    _avg: { score: true },
-    _count: true
-  });
-  const passStats = await db.attempt.groupBy({
-    by: ['examId'],
-    where: { submittedAt: { not: null }, passed: true },
-    _count: true
-  });
+  const [attemptStats, passStats] = await Promise.all([
+    db.attempt.groupBy({
+      by: ['examId'],
+      where: { submittedAt: { not: null } },
+      _avg: { score: true },
+      _count: true
+    }),
+    db.attempt.groupBy({
+      by: ['examId'],
+      where: { submittedAt: { not: null }, passed: true },
+      _count: true
+    })
+  ]);
   const avgByExam = new Map(
     attemptStats.map((s) => [s.examId, { avg: s._avg.score ?? null, count: s._count as unknown as number }])
   );

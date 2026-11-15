@@ -76,7 +76,7 @@ export default async function BannersAdminPage() {
             <input type="datetime-local" name="endsAt" className="input-sm" />
           </label>
           <label className="inline-flex items-center gap-1 self-end text-xs"><input type="checkbox" name="published" defaultChecked /> Published</label>
-          <button className="ml-auto inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">Add</button>
+          <button className="ml-auto inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">Add</button>
         </div>
       </form>
 

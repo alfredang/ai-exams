@@ -66,7 +66,8 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
   const [total, rows, templates] = await Promise.all([
     db.emailLog.count({ where }),
     loadLogs(where, (page - 1) * PAGE_SIZE, PAGE_SIZE),
-    db.emailLog.findMany({ distinct: ['template'], select: { template: true }, orderBy: { template: 'asc' } })
+    // GROUP BY runs in the database; `distinct` de-duplicated every row in memory.
+    db.emailLog.groupBy({ by: ['template'], orderBy: { template: 'asc' } })
   ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -94,7 +95,7 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
       cell: (r) => (
         <div>
           {r.user ? (
-            <Link href={`/admin-dashboard/users/${r.user.id}?tab=emails`} className="text-blue-600 hover:underline dark:text-blue-400">
+            <Link href={`/admin-dashboard/users/${r.user.id}?tab=emails`} className="text-brand-600 hover:underline dark:text-brand-400">
               {r.to}
             </Link>
           ) : (
@@ -137,7 +138,7 @@ export default async function EmailLogPage({ searchParams }: { searchParams: Sea
       cell: (r) =>
         r.payloadVars ? (
           <details className="text-right">
-            <summary className="cursor-pointer text-xs text-blue-600 hover:underline dark:text-blue-400">View</summary>
+            <summary className="cursor-pointer text-xs text-brand-600 hover:underline dark:text-brand-400">View</summary>
             <pre className="mt-1 max-h-72 overflow-auto rounded bg-slate-100 p-2 text-left text-[11px] dark:bg-slate-800">
 {JSON.stringify(r.payloadVars, null, 2)}
             </pre>

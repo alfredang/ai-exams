@@ -97,7 +97,7 @@ export async function CertificationSections({
             </p>
           </div>
           {exam.domainsSourceUrl && (
-            <a href={exam.domainsSourceUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Official source ↗</a>
+            <a href={exam.domainsSourceUrl} target="_blank" rel="noreferrer" className="text-xs text-brand-600 hover:underline">Official source ↗</a>
           )}
         </div>
         {flash === 'weights' && <Flash tone="ok" className="mb-3">Domain weights saved.</Flash>}
@@ -108,8 +108,8 @@ export async function CertificationSections({
             <input type="hidden" name="id" value={exam.id} />
                 <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wider text-slate-500 dark:border-slate-700">
+                <thead className="admin-thead">
+                  <tr>
                     <th className="py-1.5 pr-3 font-medium">Domain</th>
                     <th className="w-28 py-1.5 pr-3 font-medium">Exam %</th>
                     <th className="w-24 py-1.5 pr-3 text-right font-medium">In pool</th>
@@ -149,7 +149,7 @@ export async function CertificationSections({
                 Official source URL
                 <input name="domainsSourceUrl" type="url" defaultValue={exam.domainsSourceUrl ?? exam.infoUrl ?? ''} className="input-sm mt-0.5 w-full" />
               </label>
-              <button className="inline-flex h-9 items-center rounded-md bg-blue-600 px-4 text-[13px] font-medium text-white hover:bg-blue-700">Save weights</button>
+              <button className="inline-flex h-9 items-center rounded-md bg-brand-600 px-4 text-[13px] font-medium text-white hover:bg-brand-700">Save weights</button>
             </div>
           </form>
         )}

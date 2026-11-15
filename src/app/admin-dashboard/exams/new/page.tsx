@@ -72,7 +72,7 @@ export default async function NewExamPage() {
   return (
     <div className="max-w-4xl">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Create Practice Exam</h1>
+        <h1 className="admin-h1">Create Practice Exam</h1>
         <Link href="/admin-dashboard/bundles" className="btn-ghost text-sm">← Back to practice exams</Link>
       </div>
       <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">

@@ -49,7 +49,7 @@ export default async function AdminTestExamPage({ params }: { params: Promise<{ 
       <Link href="/admin-dashboard/exams" className="text-xs text-slate-500 hover:underline">
         ← Back to question banks
       </Link>
-      <h1 className="mt-2 text-2xl font-bold">Test Question Bank</h1>
+      <h1 className="admin-h1 mt-2">Test Question Bank</h1>
       <div className="mt-1 text-sm text-slate-500">
         {exam.vendor.name} · {exam.code} · {examBaseTitle(exam.title)}
       </div>

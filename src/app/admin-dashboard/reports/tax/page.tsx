@@ -57,7 +57,7 @@ export default async function TaxReportPage({ searchParams }: { searchParams: Se
           <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">To</span>
           <input type="date" name="to" defaultValue={sp.to ?? ''} className="input-sm" />
         </label>
-        <button className="ml-auto inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+        <button className="ml-auto inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
           Apply
         </button>
       </form>
@@ -66,8 +66,8 @@ export default async function TaxReportPage({ searchParams }: { searchParams: Se
       <div className="card mb-3 p-3">
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">By currency</h2>
         <table className="w-full text-[13px]">
-          <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+          <thead className="admin-thead">
+            <tr>
               <th className="py-1">Currency</th>
               <th className="py-1 text-right">Invoices</th>
               <th className="py-1 text-right">Total</th>
@@ -102,7 +102,7 @@ export default async function TaxReportPage({ searchParams }: { searchParams: Se
       {/* Invoice line items */}
       <div className="card overflow-x-auto p-0">
         <table className="w-max min-w-full text-[12px]">
-          <thead className="border-b border-slate-200 bg-slate-50/60 text-left text-[11px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/40">
+          <thead className="admin-thead">
             <tr>
               <th className="px-3 py-2">Invoice</th>
               <th className="px-3 py-2">Issued</th>

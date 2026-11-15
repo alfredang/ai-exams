@@ -63,11 +63,11 @@ export default async function AdminVendorsPage() {
   });
   return (
     <div>
-      <h1 className="text-2xl font-bold">Vendors</h1>
+      <h1 className="admin-h1">Vendors</h1>
 
       <div className="card mt-4 overflow-x-auto">
         <table className="w-max min-w-full text-sm">
-          <thead className="border-b border-slate-200 text-left text-xs uppercase text-slate-500 dark:border-slate-800">
+          <thead className="admin-thead">
             <tr>
               <th className={`px-2 py-1 font-medium ${COL_NAME}`}>Name</th>
               <th className={`px-2 py-1 font-medium ${COL_SLUG}`}>Slug</th>

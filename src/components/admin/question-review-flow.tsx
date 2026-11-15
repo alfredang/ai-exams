@@ -57,7 +57,7 @@ export function QuestionReviewFlow({
 
 const TONES = {
   violet: { ring: 'border-violet-200 dark:border-violet-900/60', badge: 'bg-violet-600 text-white', text: 'text-violet-700 dark:text-violet-300' },
-  amber: { ring: 'border-amber-200 dark:border-amber-900/60', badge: 'bg-amber-500 text-white', text: 'text-amber-800 dark:text-amber-300' },
+  amber: { ring: 'border-amber-200 dark:border-amber-900/60', badge: 'bg-amber-400 text-amber-950', text: 'text-amber-800 dark:text-amber-300' },
   emerald: { ring: 'border-emerald-200 dark:border-emerald-900/60', badge: 'bg-emerald-600 text-white', text: 'text-emerald-700 dark:text-emerald-300' }
 };
 

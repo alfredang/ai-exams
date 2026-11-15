@@ -96,7 +96,7 @@ export default function SocialLoginForm({
           type="button"
           onClick={save}
           disabled={saving}
-          className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
@@ -135,7 +135,7 @@ function ProviderCard({
           href={helpUrl}
           target="_blank"
           rel="noreferrer"
-          className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+          className="text-xs text-brand-600 hover:underline dark:text-brand-400"
         >
           Open {title} developer console →
         </a>

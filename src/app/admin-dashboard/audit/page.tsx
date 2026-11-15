@@ -60,11 +60,8 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Sea
     loadLogs(where, (page - 1) * PAGE_SIZE, PAGE_SIZE),
     // Limit "admins" dropdown to users with role=ADMIN
     db.user.findMany({ where: { role: 'ADMIN' }, orderBy: { email: 'asc' }, select: { id: true, email: true, name: true } }),
-    db.adminLog.findMany({
-      distinct: ['targetType'],
-      select: { targetType: true },
-      orderBy: { targetType: 'asc' }
-    })
+    // GROUP BY runs in the database; `distinct` de-duplicated every row in memory.
+    db.adminLog.groupBy({ by: ['targetType'], orderBy: { targetType: 'asc' } })
   ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -136,7 +133,7 @@ export default async function AuditLogPage({ searchParams }: { searchParams: Sea
           {l.targetId && (
             <Link
               href={targetHref(l.targetType, l.targetId)}
-              className="font-mono text-[11px] text-blue-600 hover:underline dark:text-blue-400"
+              className="font-mono text-[11px] text-brand-600 hover:underline dark:text-brand-400"
               title={l.targetId}
             >
               {l.targetId.slice(0, 14)}

@@ -21,7 +21,7 @@ export default async function ExamAnalyticsPage() {
       key: 'exam',
       header: 'Exam',
       cell: (r) => (
-        <Link href={`/admin-dashboard/exams/${r.id}`} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+        <Link href={`/admin-dashboard/exams/${r.id}`} className="font-medium text-brand-600 hover:underline dark:text-brand-400">
           {r.vendor} · {r.code}
         </Link>
       )

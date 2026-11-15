@@ -47,7 +47,7 @@ export default async function AdminAdminsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Admins</h1>
+        <h1 className="admin-h1">Admins</h1>
         <div className="text-xs text-slate-500">
           {superAdmin
             ? `Signed in as super admin (${SUPER_ADMIN_EMAIL})`
@@ -65,7 +65,7 @@ export default async function AdminAdminsPage() {
 
       <div className="card mt-4 overflow-x-auto">
         <table className="w-max min-w-full text-sm">
-          <thead className="border-b border-slate-200 text-left text-xs uppercase text-slate-500 dark:border-slate-800">
+          <thead className="admin-thead">
             <tr>
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Email</th>
@@ -82,11 +82,11 @@ export default async function AdminAdminsPage() {
                   <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">{u.email}</td>
                   <td className="whitespace-nowrap px-4 py-3">
                     {isSuper ? (
-                      <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[11px] font-semibold text-purple-800">
+                      <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[11px] font-semibold text-purple-800 dark:bg-purple-900/40 dark:text-purple-200">
                         SUPER ADMIN
                       </span>
                     ) : (
-                      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800">
+                      <span className="rounded bg-brand-100 px-1.5 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
                         ADMIN
                       </span>
                     )}

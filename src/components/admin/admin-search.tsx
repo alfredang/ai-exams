@@ -110,7 +110,7 @@ export function AdminSearch() {
 
   return (
     <div ref={boxRef} className="relative">
-      <div className="flex h-9 w-28 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 text-sm text-slate-500 focus-within:border-brand-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:focus-within:bg-slate-900 sm:w-48 md:w-64">
+      <div className="flex h-9 w-28 items-center gap-2 rounded-md border border-line bg-slate-50 px-2.5 text-sm text-slate-500 focus-within:border-brand-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:focus-within:bg-slate-900 sm:w-48 md:w-64">
         <Search className="h-4 w-4 shrink-0" />
         <input
           ref={inputRef}
@@ -157,7 +157,7 @@ export function AdminSearch() {
         <div
           id="admin-search-results"
           role="listbox"
-          className="fixed inset-x-4 top-16 z-50 max-h-96 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-2 md:w-[32rem]"
+          className="fixed inset-x-4 top-16 z-50 max-h-96 overflow-y-auto rounded-lg border border-line bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-2 md:w-[32rem]"
         >
           {hits.length === 0 && (
             <div className="px-4 py-5 text-center text-[12px] text-slate-500">
@@ -174,7 +174,7 @@ export function AdminSearch() {
               onClick={() => go(h)}
               className={`flex w-full items-start gap-3 px-3 py-2 text-left text-[13px] ${
                 i === focus
-                  ? 'bg-blue-50 dark:bg-blue-950/40'
+                  ? 'bg-brand-50 dark:bg-blue-950/40'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >

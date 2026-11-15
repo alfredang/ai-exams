@@ -100,7 +100,7 @@ export default async function AdminExamVouchersPage({ searchParams }: { searchPa
       key: 'includes',
       header: 'Includes Practice Exam',
       cell: (b) => (
-        <Link href={`/admin-dashboard/bundles/${b.id}`} className="block max-w-[18rem] truncate text-[12px] text-blue-700 hover:underline dark:text-blue-300" title={b.title}>
+        <Link href={`/admin-dashboard/bundles/${b.id}`} className="block max-w-[18rem] truncate text-[12px] text-brand-700 hover:underline dark:text-brand-300" title={b.title}>
           {b.title}
         </Link>
       )
@@ -138,7 +138,7 @@ export default async function AdminExamVouchersPage({ searchParams }: { searchPa
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Link
           href={viewHref('priced')}
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] ${view === 'priced' ? 'border-blue-400 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] ${view === 'priced' ? 'border-brand-400 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-blue-950/40 dark:text-brand-200' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
         >
           All vouchers
         </Link>
@@ -146,7 +146,7 @@ export default async function AdminExamVouchersPage({ searchParams }: { searchPa
           <Link
             key={c.v}
             href={viewHref(c.v)}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] ${view === c.v ? 'border-blue-400 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] ${view === c.v ? 'border-brand-400 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-blue-950/40 dark:text-brand-200' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'}`}
           >
             <span className={`h-2 w-2 rounded-full ${c.dot}`} />
             {c.label}

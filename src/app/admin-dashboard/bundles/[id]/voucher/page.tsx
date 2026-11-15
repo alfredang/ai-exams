@@ -136,7 +136,7 @@ export default async function ExamVoucherEditPage({ params, searchParams }: {
         <div className="space-y-4">
           <section className="card p-4">
             <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500"><BookOpen className="h-3.5 w-3.5" /> Includes Practice Exam</h2>
-            <Link href={`/admin-dashboard/bundles/${bundle.id}`} className="mt-2 block text-[13px] font-medium text-blue-600 hover:underline dark:text-blue-400">
+            <Link href={`/admin-dashboard/bundles/${bundle.id}`} className="mt-2 block text-[13px] font-medium text-brand-600 hover:underline dark:text-brand-400">
               {bundle.title}
             </Link>
             <p className="mt-2 text-[12px] text-slate-600 dark:text-slate-300">
@@ -145,7 +145,7 @@ export default async function ExamVoucherEditPage({ params, searchParams }: {
           </section>
           <section className="card p-4 text-[12px] text-slate-600 dark:text-slate-300">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Delivering codes</h2>
-            <p className="mt-2">Codes are sent from <Link href="/admin-dashboard/vouchers" className="text-blue-600 hover:underline dark:text-blue-400">Vouchers → Deliveries</Link>; stock them under <Link href="/admin-dashboard/vouchers/inventory" className="text-blue-600 hover:underline dark:text-blue-400">Inventory</Link>.</p>
+            <p className="mt-2">Codes are sent from <Link href="/admin-dashboard/vouchers" className="text-brand-600 hover:underline dark:text-brand-400">Vouchers → Deliveries</Link>; stock them under <Link href="/admin-dashboard/vouchers/inventory" className="text-brand-600 hover:underline dark:text-brand-400">Inventory</Link>.</p>
           </section>
         </div>
       </div>

@@ -208,7 +208,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
           value={b.id}
           form={BULK_FORM_ID}
           aria-label={`Select ${b.slug}`}
-          className="h-4 w-4 cursor-pointer accent-blue-600"
+          className="h-4 w-4 cursor-pointer accent-brand-600"
         />
       )
     },
@@ -251,7 +251,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         return pe ? (
           <Link
             href={`/admin-dashboard/exams/${pe.id}#questions`}
-            className="inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-blue-700 hover:underline dark:bg-slate-800 dark:text-blue-300"
+            className="inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-brand-700 hover:underline dark:bg-slate-800 dark:text-brand-300"
             title="Open the question bank"
           >
             {pe.code}
@@ -306,7 +306,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
       cell: (b) => (
         <Link href={`/admin-dashboard/bundles/${b.id}/voucher`} className="inline-flex items-center gap-1.5 whitespace-nowrap text-[12px] hover:underline">
           {b.priceVoucher == null ? (
-            <span className="text-blue-600 dark:text-blue-400">+ Add voucher</span>
+            <span className="text-brand-600 dark:text-brand-400">+ Add voucher</span>
           ) : (
             <>
               <span className={`h-2 w-2 rounded-full ${voucherOnSale(b) ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -379,7 +379,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
             <Link href="/admin-dashboard/bundles/vouchers" className="btn-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
               Exam Vouchers →
             </Link>
-            <Link href="/admin-dashboard/exams/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
+            <Link href="/admin-dashboard/exams/new" className="btn-sm bg-brand-600 text-white hover:bg-brand-700">
               + Create Practice Exam
             </Link>
           </div>
@@ -401,7 +401,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
             href={c.href}
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] transition ${
               c.on
-                ? 'border-blue-400 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-200'
+                ? 'border-brand-400 bg-brand-50 text-brand-900 dark:border-brand-500 dark:bg-blue-950/40 dark:text-brand-200'
                 : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
           >
@@ -447,7 +447,7 @@ export default async function AdminBundlesPage({ searchParams }: { searchParams:
         className="sticky top-24 z-30 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50/95 px-3 py-2 text-[12px] shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
       >
         <label className="inline-flex cursor-pointer items-center gap-1.5 text-slate-700 dark:text-slate-200">
-          <SelectAllCheckbox formId={BULK_FORM_ID} className="h-4 w-4 accent-blue-600" />
+          <SelectAllCheckbox formId={BULK_FORM_ID} className="h-4 w-4 accent-brand-600" />
           Select all
         </label>
         <span className="text-slate-400">·</span>

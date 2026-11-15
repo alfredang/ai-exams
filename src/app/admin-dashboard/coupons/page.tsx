@@ -141,7 +141,7 @@ export default async function AdminCouponsPage({ searchParams }: { searchParams:
         title="Coupons"
         subtitle={`${total} coupon${total === 1 ? '' : 's'}${pages > 1 ? ` · page ${page} of ${pages}` : ''}`}
         actions={
-          <Link href="/admin-dashboard/coupons/new" className="btn-sm bg-blue-600 text-white hover:bg-blue-700">
+          <Link href="/admin-dashboard/coupons/new" className="btn-sm bg-brand-600 text-white hover:bg-brand-700">
             + Create Coupon
           </Link>
         }

@@ -151,7 +151,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <a
               href={`/api/admin/invoices/${invoice.id}/pdf?download=1`}
               download
-              className="btn-sm bg-blue-600 text-white hover:bg-blue-700"
+              className="btn-sm bg-brand-600 text-white hover:bg-brand-700"
             >
               <Download className="mr-1 h-3.5 w-3.5" /> Download
             </a>
@@ -175,8 +175,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           <div className="card p-4">
             <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Items</h2>
             <table className="mt-2 w-full text-[13px]">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+              <thead className="admin-thead">
+                <tr>
                   <th className="py-1">Description</th>
                   <th className="py-1 text-right">Qty</th>
                   <th className="py-1 text-right">Unit</th>
@@ -220,7 +220,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               {invoice.creditNotes.map((cn) => (
                 <div key={cn.id} className="mt-2 text-[12px]">
                   Credit-noted by{' '}
-                  <Link href={`/admin-dashboard/invoices/${cn.id}`} className="text-blue-600 hover:underline">
+                  <Link href={`/admin-dashboard/invoices/${cn.id}`} className="text-brand-600 hover:underline">
                     {cn.number}
                   </Link>{' '}
                   ({formatMoney(cn.total, cn.currency)})
@@ -229,7 +229,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               {invoice.creditNoteOf && (
                 <div className="mt-2 text-[12px]">
                   Credit-note for{' '}
-                  <Link href={`/admin-dashboard/invoices/${invoice.creditNoteOf.id}`} className="text-blue-600 hover:underline">
+                  <Link href={`/admin-dashboard/invoices/${invoice.creditNoteOf.id}`} className="text-brand-600 hover:underline">
                     {invoice.creditNoteOf.number}
                   </Link>
                 </div>
@@ -244,7 +244,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <h2 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">Order</h2>
               <Link
                 href={`/admin-dashboard/orders/${order.id}`}
-                className="mt-1 block font-mono text-[12px] text-blue-600 hover:underline dark:text-blue-400"
+                className="mt-1 block font-mono text-[12px] text-brand-600 hover:underline dark:text-brand-400"
               >
                 {order.number ?? order.id}
               </Link>

@@ -7,7 +7,7 @@ const VARIANT_CLASSES: Record<BadgeVariant, string> = {
   warn: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
   danger: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
   muted: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
-  info: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200'
+  info: 'bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200'
 };
 
 export function Badge({

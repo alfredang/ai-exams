@@ -129,7 +129,7 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
         title={bundle.title}
         subtitle={
           <span className="inline-flex flex-wrap items-center gap-2">
-            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-semibold text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">Practice Exam</span>
+            <span className="rounded bg-brand-100 px-1.5 py-0.5 text-[11px] font-semibold text-brand-800 dark:bg-blue-950/60 dark:text-brand-200">Practice Exam</span>
             <span className="inline-flex items-center gap-1.5">
               <span className={`h-2 w-2 rounded-full ${bundle.published ? 'bg-emerald-500' : 'bg-rose-500'}`} />
               {bundle.published ? 'On sale' : 'Off sale'}
@@ -182,7 +182,7 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
           )}
           {bank && (
             <p className="text-[12px] text-slate-500">
-              Title and description: <a href="#certification" className="font-medium text-blue-600 hover:underline dark:text-blue-400">Certification details</a> below.
+              Title and description: <a href="#certification" className="font-medium text-brand-600 hover:underline dark:text-brand-400">Certification details</a> below.
             </p>
           )}
           <Field label="URL slug" hint={`Page address: /practice-exams/${vendorSlug ?? '<vendor>'}/${bundle.slug}`}>
@@ -198,7 +198,7 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
             On sale (shown in the Practice Exams catalog)
           </label>
           <div className="pt-2">
-            <button className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-[12px] font-medium text-white hover:bg-blue-700">
+            <button className="inline-flex h-8 items-center rounded-md bg-brand-600 px-3 text-[12px] font-medium text-white hover:bg-brand-700">
               Save Practice Exam
             </button>
           </div>
@@ -234,7 +234,7 @@ export default async function PracticeExamDetailPage({ params, searchParams }: {
             <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500"><Library className="h-3.5 w-3.5" /> Question bank</h2>
             {bank ? (
               <>
-                <Link href={`/admin-dashboard/exams/${bank.id}`} className="mt-2 block text-[13px] font-medium text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={`/admin-dashboard/exams/${bank.id}`} className="mt-2 block text-[13px] font-medium text-brand-600 hover:underline dark:text-brand-400">
                   {bank.vendor.name} · {displayExamCode(bank.code)}
                 </Link>
                 <div className="mt-2 space-y-1 text-[13px]">

@@ -9,6 +9,10 @@ import { getFooterPages } from '@/lib/pages';
 const APP_STORE_URL = 'https://apps.apple.com/us/app/tertiary-ai-exams/id6781995308';
 const APP_STORE_BADGE =
   'https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=sg.com.tertiarycourses.aiexams';
+// Google's official badge PNG (646×250) has clear space built in; the classes
+// below crop it so the artwork is the same 40px height as the App Store badge.
+const PLAY_STORE_BADGE = 'https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png';
 const WHATSAPP_URL = whatsappLink();
 const WHATSAPP_LABEL = WHATSAPP_DISPLAY;
 
@@ -132,6 +136,27 @@ export async function Footer() {
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
             Original, blueprint-aligned Practice Exams with explanations — and official Exam Vouchers that include the Practice Exam free. No brain dumps.
           </p>
+          {/* Mobile apps — for taking owned practice exams on the move. */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a
+              href={APP_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+              aria-label="Download Tertiary AI Exams on the App Store"
+            >
+              <Image src={APP_STORE_BADGE} alt="Download on the App Store" width={120} height={40} unoptimized className="h-10 w-auto" />
+            </a>
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block overflow-hidden rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+              aria-label="Get Tertiary AI Exams on Google Play"
+            >
+              <Image src={PLAY_STORE_BADGE} alt="Get it on Google Play" width={155} height={60} unoptimized className="-m-[10px] h-[60px] w-auto max-w-none" />
+            </a>
+          </div>
         </div>
 
         {columns.map((col) => (
@@ -173,15 +198,6 @@ export async function Footer() {
               </Contact>
             )}
           </ul>
-          <a
-            href={APP_STORE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block rounded-lg transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
-            aria-label="Download Tertiary AI Exams on the App Store"
-          >
-            <Image src={APP_STORE_BADGE} alt="Download on the App Store" width={120} height={40} unoptimized className="h-10 w-auto" />
-          </a>
         </div>
       </div>
     </footer>

@@ -113,7 +113,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const order = await db.order.findUnique({
     where: { id },
     include: {
-      user: true,
+      user: { omit: { passwordHash: true, totpSecret: true } },
       exam: { include: { vendor: true } },
       bundle: { include: { items: { include: { exam: true } } } },
       billingAddress: true,
@@ -127,17 +127,18 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   });
   if (!order) return notFound();
 
-  const entitlements = await db.entitlement.findMany({
-    where: { userId: order.userId, ...(order.examId ? { examId: order.examId } : {}) },
-    include: { exam: true, delivery: true },
-    orderBy: { grantedAt: 'desc' }
-  });
-
-  const adminLogs = await db.adminLog.findMany({
-    where: { targetType: 'Order', targetId: order.id },
-    include: { admin: { select: { email: true, name: true } } },
-    orderBy: { createdAt: 'desc' }
-  });
+  const [entitlements, adminLogs] = await Promise.all([
+    db.entitlement.findMany({
+      where: { userId: order.userId, ...(order.examId ? { examId: order.examId } : {}) },
+      include: { exam: true, delivery: true },
+      orderBy: { grantedAt: 'desc' }
+    }),
+    db.adminLog.findMany({
+      where: { targetType: 'Order', targetId: order.id },
+      include: { admin: { select: { email: true, name: true } } },
+      orderBy: { createdAt: 'desc' }
+    })
+  ]);
 
   const refundsSucceeded = order.refunds.filter((r) => r.status === 'SUCCEEDED');
   const totalRefunded = refundsSucceeded.reduce((s, r) => s + r.amount, 0);
@@ -204,7 +205,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <div className="grid gap-3 sm:grid-cols-2">
             <section className="card p-4">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</h2>
-              <Link href={`/admin-dashboard/users/${order.user.id}`} className="mt-1 block font-medium text-blue-600 hover:underline dark:text-blue-400">
+              <Link href={`/admin-dashboard/users/${order.user.id}`} className="mt-1 block font-medium text-brand-600 hover:underline dark:text-brand-400">
                 {order.user.name || order.user.email}
               </Link>
               {order.user.name && <div className="text-[12px] text-slate-500">{order.user.email}</div>}
@@ -278,8 +279,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <p className="mt-1 text-[12px] text-slate-500">None yet.</p>
             ) : (
               <table className="mt-2 w-full text-[12px]">
-                <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
+                <thead className="admin-thead">
+                  <tr>
                     <th className="py-1">When</th>
                     <th className="py-1 text-right">Amount</th>
                     <th className="py-1">Status</th>
@@ -305,7 +306,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                         {r.creditNoteInvoice ? (
                           <Link
                             href={`/admin-dashboard/invoices/${r.creditNoteInvoice.id}`}
-                            className="font-mono text-blue-600 hover:underline dark:text-blue-400"
+                            className="font-mono text-brand-600 hover:underline dark:text-brand-400"
                           >
                             {r.creditNoteInvoice.number}
                           </Link>
@@ -390,7 +391,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                     aria-hidden
                     className={`absolute -left-1.5 mt-1 inline-block h-3 w-3 rounded-full ${
                       e.kind === 'refund' ? 'bg-amber-500' :
-                      e.kind === 'admin' ? 'bg-blue-500' :
+                      e.kind === 'admin' ? 'bg-brand-500' :
                       e.kind === 'webhook' ? 'bg-violet-500' : 'bg-emerald-500'
                     }`}
                   />

@@ -209,7 +209,7 @@ export function SelectAllMatchingBanner({
 
   if (allOnPage) {
     return (
-      <span className="inline-flex items-center gap-2 rounded bg-blue-100 px-2 py-0.5 text-[12px] text-blue-900 dark:bg-blue-900/30 dark:text-blue-200">
+      <span className="inline-flex items-center gap-2 rounded bg-brand-100 px-2 py-0.5 text-[12px] text-brand-900 dark:bg-brand-900/30 dark:text-brand-200">
         All <strong>{pageCount}</strong> on this page selected.
         <button
           type="button"

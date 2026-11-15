@@ -34,8 +34,14 @@ export function NotificationBell() {
     // Fetching is the external synchronization performed by this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
-    const t = setInterval(refresh, 60_000);
-    return () => clearInterval(t);
+    // Poll only while the tab is visible; catch up as soon as it is shown again.
+    const t = setInterval(() => { if (!document.hidden) refresh(); }, 60_000);
+    const onVisible = () => { if (!document.hidden) refresh(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   useEffect(() => {
@@ -68,18 +74,18 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 dark:border-slate-700">
+        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border border-line bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-line px-3 py-2 dark:border-slate-700">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notifications</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={markAllRead}
                 disabled={unread === 0}
-                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+                className="inline-flex items-center gap-1 text-[11px] text-brand-600 hover:underline disabled:opacity-50 dark:text-brand-400"
               >
                 <CheckCheck className="h-3 w-3" /> Mark all read
               </button>
-              <Link href="/admin-dashboard/notifications" onClick={() => setOpen(false)} className="text-[11px] text-blue-600 hover:underline dark:text-blue-400">View all</Link>
+              <Link href="/admin-dashboard/notifications" onClick={() => setOpen(false)} className="text-[11px] text-brand-600 hover:underline dark:text-brand-400">View all</Link>
             </div>
           </div>
           <div className="max-h-80 overflow-y-auto">
@@ -90,7 +96,7 @@ export function NotificationBell() {
                 <div
                   key={n.id}
                   className={`border-b border-slate-100 px-3 py-2 last:border-0 dark:border-slate-800/70 ${
-                    !n.readAt ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''
+                    !n.readAt ? 'bg-brand-50/40 dark:bg-blue-950/20' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -102,7 +108,7 @@ export function NotificationBell() {
                         <span>·</span>
                         <span>{new Date(n.createdAt).toLocaleString()}</span>
                         {n.link && (
-                          <Link href={n.link} onClick={() => setOpen(false)} className="text-blue-600 hover:underline dark:text-blue-400">
+                          <Link href={n.link} onClick={() => setOpen(false)} className="text-brand-600 hover:underline dark:text-brand-400">
                             Open →
                           </Link>
                         )}

@@ -37,7 +37,7 @@ export function DataTable<T>({
   return (
     <div className="card overflow-x-auto p-0">
       <table className="w-max min-w-full text-[13px]">
-        <thead className="border-b border-slate-200 bg-slate-50/50 text-left text-xs uppercase tracking-wider text-slate-600 dark:text-slate-400 dark:border-slate-800 dark:bg-slate-900/40">
+        <thead className="admin-thead">
           <tr>
             {columns.map((c) => (
               <th
@@ -49,7 +49,7 @@ export function DataTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+        <tbody className="divide-y divide-line/60 dark:divide-slate-800/70">
           {rows.length === 0 && (
             <tr>
               <td
@@ -63,7 +63,7 @@ export function DataTable<T>({
           {rows.map((r, i) => (
             <tr
               key={rowKey(r, i)}
-              className="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+              className="group transition hover:bg-brand-50/60 dark:hover:bg-slate-800/40"
             >
               {columns.map((c) => (
                 <td

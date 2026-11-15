@@ -71,7 +71,7 @@ export function ExamPicker({
           <button
             type="button"
             onClick={() => setPicked(new Set())}
-            className="text-blue-600 hover:underline dark:text-blue-300"
+            className="text-brand-600 hover:underline dark:text-brand-300"
           >
             clear
           </button>
@@ -86,21 +86,21 @@ export function ExamPicker({
             <li key={o.id}>
               <label
                 className={`flex w-full cursor-pointer items-center gap-2 px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 ${
-                  isPicked ? 'bg-blue-50 dark:bg-blue-950/30' : ''
+                  isPicked ? 'bg-brand-50 dark:bg-blue-950/30' : ''
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={isPicked}
                   onChange={() => toggle(o.id)}
-                  className="h-3.5 w-3.5 accent-blue-600"
+                  className="h-3.5 w-3.5 accent-brand-600"
                 />
                 <span className="flex flex-1 items-center gap-2 truncate">
                   <span className="font-mono text-slate-700 dark:text-slate-200">{o.code}</span>
                   <span className="truncate text-slate-500">{o.vendor} · {o.title}</span>
                 </span>
                 {o.label && (
-                  <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                  <span className="shrink-0 rounded bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-700 dark:bg-blue-950/40 dark:text-brand-300">
                     {o.label}
                   </span>
                 )}

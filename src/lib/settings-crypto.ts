@@ -2,9 +2,12 @@
 // prisma/seed.ts can import it: the boot seed must never fail on a missing module.
 import crypto from 'node:crypto';
 
+// Derived once per secret: decrypting ~80 settings used to hash it ~80 times.
+let derived: { src: string; key: Buffer } | null = null;
 function key(): Buffer {
   const src = process.env.SETTINGS_KEY || process.env.NEXTAUTH_SECRET || 'dev-fallback-secret';
-  return crypto.createHash('sha256').update(src).digest();
+  if (derived?.src !== src) derived = { src, key: crypto.createHash('sha256').update(src).digest() };
+  return derived.key;
 }
 
 export function encrypt(plain: string): string {
