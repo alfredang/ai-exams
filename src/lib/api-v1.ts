@@ -17,6 +17,8 @@ export const SCOPE_ASSIGN_PRACTICE_EXAMS = 'assign:practice-exams';
 export const SCOPE_QUESTIONS_WRITE = 'questions:write';
 /** Exam Voucher price checks: read vouchers, record official list prices (exam-voucher-pricer agent). */
 export const SCOPE_VOUCHERS_WRITE = 'vouchers:write';
+/** (Re)send score report emails for submitted attempts (/api/v1/attempts/result-emails). */
+export const SCOPE_RESULTS_EMAIL = 'results:email';
 /** Direct database access (/api/v1/db/*). Never implied by `*`: a token must name these scopes. */
 export const SCOPE_DB_READ = 'db:read';
 export const SCOPE_DB_WRITE = 'db:write';

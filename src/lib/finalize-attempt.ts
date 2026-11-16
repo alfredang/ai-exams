@@ -124,3 +124,39 @@ export async function buildAttemptReport(attemptId: string) {
     });
   return { attempt, score, correctCount, total, perDomain, passed, timeUsedSec, filename, renderPdf };
 }
+
+export type ResultEmailOutcome = { attemptId: string; status: 'sent' | 'skipped' | 'failed'; reason?: string; pdfAttached?: boolean };
+
+/**
+ * Manual catch-up: (re)send the EXAM_RESULT score report for submitted
+ * attempts whose email never went out. One at a time — each send renders a
+ * PDF and opens a mail connection. Teasers, guest attempts and unsubmitted
+ * attempts are skipped, not errors.
+ */
+export async function resendResultEmails(attemptIds: string[]): Promise<ResultEmailOutcome[]> {
+  const ids = [...new Set(attemptIds)];
+  const attempts = await db.attempt.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, userId: true, isTeaser: true, submittedAt: true }
+  });
+  const byId = new Map(attempts.map((a) => [a.id, a]));
+  const { sendExamResultEmail } = await import('./mail');
+  const results: ResultEmailOutcome[] = [];
+  for (const id of ids) {
+    const a = byId.get(id);
+    const skip = !a ? 'not found' : !a.submittedAt ? 'not submitted' : !a.userId ? 'guest attempt' : a.isTeaser ? 'teaser' : null;
+    if (skip) {
+      results.push({ attemptId: id, status: 'skipped', reason: skip });
+      continue;
+    }
+    try {
+      const sent = await sendExamResultEmail(id);
+      results.push(sent
+        ? { attemptId: id, status: 'sent', pdfAttached: sent.pdfAttached }
+        : { attemptId: id, status: 'skipped', reason: 'template disabled or account inactive' });
+    } catch (err: any) {
+      results.push({ attemptId: id, status: 'failed', reason: String(err?.message ?? err).slice(0, 200) });
+    }
+  }
+  return results;
+}

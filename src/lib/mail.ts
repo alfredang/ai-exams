@@ -570,7 +570,7 @@ export async function sendExamResultEmail(attemptId: string) {
   }
   const appUrl = process.env.APP_URL || '';
   const { sendTemplated } = await import('./email/templates');
-  return sendTemplated(
+  const info = await sendTemplated(
     'EXAM_RESULT',
     user.email,
     {
@@ -595,6 +595,7 @@ export async function sendExamResultEmail(attemptId: string) {
     },
     pdf ? [{ filename: report.filename, content: pdf, contentType: 'application/pdf' }] : undefined
   );
+  return info ? { messageId: info.messageId as string | undefined, pdfAttached: !!pdf } : null;
 }
 
 export async function sendVoucherDeliveredEmail(
