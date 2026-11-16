@@ -149,6 +149,75 @@ export const DEFAULT_TEMPLATES: Record<EmailTemplateKey, TemplateDefinition> = {
       user: { name: 'Alex Tan', email: 'alex@example.com' }
     }
   },
+  EXAM_RESULT: {
+    displayName: 'Exam Result',
+    description: 'Sent to the candidate when a practice exam attempt is submitted: score, pass or fail, the score by domain and the answer-review PDF.',
+    subject: '{{result.verdict}}: {{result.score}}% on {{exam.code}} ({{result.correct}}/{{result.total}})',
+    bodyHtml: wrap(`  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px">
+    <tr><td style="background:#0f2a5c;border-radius:12px 12px 0 0;padding:22px 24px">
+      <p style="margin:0 0 6px;color:#bfdbfe;font-size:12px;letter-spacing:1px;text-transform:uppercase">Score report · {{result.mode}}</p>
+      <h2 style="margin:0;color:#ffffff;font-size:20px;line-height:1.3">{{exam.title}}</h2>
+    </td></tr>
+    <tr><td style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:24px;background:#f8fafc">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+        <tr>
+          <td style="vertical-align:middle;white-space:nowrap;padding-right:20px">
+            <span style="font-size:52px;line-height:1;font-weight:800;color:#0f172a">{{result.correct}}</span><span style="font-size:22px;font-weight:700;color:#64748b"> / {{result.total}}</span>
+          </td>
+          <td style="vertical-align:middle">
+            <span style="display:inline-block;background:{{result.color}};color:#ffffff;font-size:20px;font-weight:800;letter-spacing:1px;padding:6px 16px;border-radius:8px">{{result.verdict}}</span>
+            <p style="margin:8px 0 0;font-size:15px;color:#0f172a"><b>{{result.score}}%</b> <span style="color:#64748b">· pass mark {{result.passMark}}%</span></p>
+          </td>
+        </tr>
+      </table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:18px;font-size:13px;color:#475569">
+        <tr>
+          <td style="padding:10px 0 0;border-top:1px solid #e2e8f0">Time used<br><b style="color:#0f172a;font-size:14px">{{result.timeUsed}}</b></td>
+          <td style="padding:10px 0 0;border-top:1px solid #e2e8f0">Submitted<br><b style="color:#0f172a;font-size:14px">{{result.date}}</b></td>
+          <td style="padding:10px 0 0;border-top:1px solid #e2e8f0">Exam code<br><b style="color:#0f172a;font-size:14px">{{exam.code}}</b></td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+  <p>Hi {{user.name}},</p>
+  <p>{{#if result.passed}}Well done. You passed this attempt of the <b>{{exam.title}}</b> practice exam.{{else}}Thank you for completing the <b>{{exam.title}}</b> practice exam. This attempt is below the pass mark, and the breakdown shows where to study next.{{/if}}</p>
+  {{#if domains.length}}<p style="margin:24px 0 8px;font-weight:bold;font-size:15px">Score by domain</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px">
+    {{#each domains}}<tr>
+      <td style="padding:10px 12px 4px 0;color:#0f172a">{{name}}{{#if weak}} <span style="color:#b91c1c;font-size:11px;font-weight:bold;letter-spacing:.5px">NEXT STUDY TARGET</span>{{/if}}</td>
+      <td style="padding:10px 0 4px;text-align:right;white-space:nowrap;font-weight:bold;color:#0f172a">{{correct}} / {{total}}</td>
+    </tr>
+    <tr><td colspan="2" style="padding:0 0 6px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#e2e8f0;border-radius:4px"><tr>
+        <td width="{{pct}}%" height="8" style="background:{{color}};border-radius:4px;font-size:0;line-height:0">&nbsp;</td>
+        <td height="8" style="font-size:0;line-height:0">&nbsp;</td>
+      </tr></table>
+    </td></tr>{{/each}}
+  </table>{{/if}}
+  <p style="margin:28px 0 12px;text-align:center"><a href="{{reportUrl}}" style="display:inline-block;background:{{brand.primaryColor}};color:#ffffff;padding:13px 26px;border-radius:8px;text-decoration:none;font-weight:bold">Review your answers →</a></p>
+  <p style="margin:0 0 24px;text-align:center;font-size:14px"><a href="{{dashboardUrl}}" style="color:#2563eb;font-weight:bold;text-decoration:none">Retake the exam from your dashboard</a></p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+    <tr><td style="border:1px solid #e2e8f0;border-radius:12px;padding:14px 18px;font-size:13px;color:#475569">
+      {{#if hasPdf}}<b style="color:#0f172a">Attached: your answer review (PDF).</b> Every question with your answer, the correct answer, the explanation and its exam domain.{{else}}<b style="color:#0f172a">Your answer review</b> is on the score report: every question with your answer, the correct answer and the explanation. You can download it there as a PDF.{{/if}} Retakes are unlimited and each one draws a fresh set of questions.
+    </td></tr>
+  </table>
+  <p style="color:#64748b;font-size:12px;margin-top:16px">This is a practice exam score for study purposes. It is not an official certification result.</p>`),
+    sampleVars: {
+      brand: sampleBrand,
+      appUrl: 'https://example.com',
+      user: { name: 'Alex Tan', email: 'alex@example.com' },
+      exam: { title: 'Anthropic Claude Certified Architect — Foundations (CCAR-F)', code: 'CCAR-F' },
+      result: { correct: 46, total: 60, score: 77, passMark: 72, passed: true, verdict: 'PASS', color: '#059669', timeUsed: '1:12:40', date: '16 Nov 2026, 4:32 pm', mode: 'Exam mode' },
+      domains: [
+        { name: 'Agentic Architecture & Orchestration', correct: 9, total: 16, pct: 56, color: '#dc2626', weak: true },
+        { name: 'Tool Design & MCP Integration', correct: 9, total: 11, pct: 82, color: '#059669', weak: false },
+        { name: 'Prompt Engineering & Structured Output', correct: 11, total: 12, pct: 92, color: '#059669', weak: false }
+      ],
+      reportUrl: 'https://example.com/results/abc123',
+      dashboardUrl: 'https://example.com/user-dashboard',
+      hasPdf: true
+    }
+  },
   VOUCHER_DELIVERY: {
     displayName: 'Voucher Delivery',
     description: 'Sent when a voucher code is delivered (5 days after purchase).',

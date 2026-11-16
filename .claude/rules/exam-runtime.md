@@ -22,6 +22,11 @@ paths:
   `createAttempt()` / `resumeOrCreateAttempt()`.
 - **Access** = `hasPracticeAccess()` on the pool exam or any retired variant;
   map variant ids with `resolvePoolExam()`.
+- **Submit = `finalizeAttempt()`** (web, mobile, expired-exam sweep): scores,
+  stamps `submittedAt`, emails the `EXAM_RESULT` report once. Expired
+  Exam-mode attempts are scored as at `expiresAt`, never left hanging.
+- **Leave the runner with a full page load** (`window.location.assign`),
+  never `router.push` — a deploy mid-exam breaks client navigation.
 - **Server is authoritative**: score with `scoreAttempt()` on submit; time
   from `Attempt.expiresAt`; never trust client correctness or timers.
 - `Attempt.responses` is the only answer store:

@@ -7,6 +7,7 @@ import type { Responses } from '@/lib/attempts';
 import { sequencingSteps, optionsForAttempt } from '@/lib/shuffle';
 import { drawAttemptQuestions, resolvePoolExam } from '@/lib/question-pool';
 import { startBlocker } from '@/lib/full-name';
+import { finalizeAttempt, isExpiredUnsubmitted } from '@/lib/finalize-attempt';
 
 export default async function ExamAttemptPage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId } = await params;
@@ -26,6 +27,17 @@ export default async function ExamAttemptPage({ params }: { params: Promise<{ at
     if (!gt || attempt.guestToken !== gt) redirect('/login');
   }
   if (attempt.submittedAt) redirect(`/results/${attempt.id}`);
+  // The clock ran out with the tab closed, asleep or after "Save & exit": the
+  // runner's auto-submit never fired. Score it now (as at the expiry time) and
+  // show the report, rather than a dead 0:00 screen that cannot be submitted.
+  if (isExpiredUnsubmitted(attempt)) {
+    const answered = Object.values((attempt.responses as Responses) || {}).some(r => r?.answer?.length);
+    if (answered) {
+      await finalizeAttempt(attempt.id, { at: attempt.expiresAt!, notify: Date.now() - attempt.expiresAt!.getTime() < 24 * 3600_000 });
+      redirect(`/results/${attempt.id}`);
+    }
+    redirect(userId ? '/user-dashboard/attempts' : '/practice-exams');
+  }
   // Full attempts need a verified email and a real name on file (score
   // reports, vouchers); the free teaser needs neither.
   if (!attempt.isTeaser && userId && await startBlocker(userId, (session?.user as any)?.impersonatedBy)) {

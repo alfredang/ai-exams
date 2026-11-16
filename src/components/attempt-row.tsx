@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Download } from 'lucide-react';
 import { fmtDuration, type HistoryAttempt } from '@/lib/attempt-history';
 import { DeleteAttemptButton } from '@/components/delete-attempt-button';
 
@@ -8,11 +8,14 @@ import { DeleteAttemptButton } from '@/components/delete-attempt-button';
 // runner when the attempt is still in progress. The title link is stretched
 // over the row so the trash button can sit beside it without nesting.
 export function AttemptRow({ a, showExam = true }: { a: HistoryAttempt; showExam?: boolean }) {
-  const href = a.inProgress ? `/exam/${a.id}` : `/results/${a.id}`;
+  // An exam left open past its timer with nothing answered: no score to show
+  // and nothing to resume. (One with answers is scored when history loads.)
+  const expired = a.inProgress && a.mode === 'EXAM' && !!a.expiresAt && a.expiresAt.getTime() < Date.now();
+  const href = expired ? '/user-dashboard/attempts' : a.inProgress ? `/exam/${a.id}` : `/results/${a.id}`;
   const mode = a.isTeaser ? 'Free teaser' : a.mode === 'EXAM' ? 'Timed exam' : 'Practice';
   const when = a.startedAt.toLocaleString('en-SG', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
   return (
-    <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3.5 transition hover:bg-slate-50 sm:grid-cols-[minmax(0,1fr)_96px_132px_9rem_2.25rem] dark:hover:bg-slate-800/50">
+    <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3.5 transition hover:bg-slate-50 sm:grid-cols-[minmax(0,1fr)_96px_132px_11.5rem_2.25rem] dark:hover:bg-slate-800/50">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
           {showExam && <span className="badge-brand font-mono">{a.examCode}</span>}
@@ -39,8 +42,8 @@ export function AttemptRow({ a, showExam = true }: { a: HistoryAttempt; showExam
 
       <div>
         {a.inProgress ? (
-          <span className="inline-flex w-28 justify-center font-mono text-xs font-semibold text-amber-700 dark:text-amber-300">
-            In progress
+          <span className={`inline-flex w-28 justify-center font-mono text-xs font-semibold ${expired ? 'text-slate-500 dark:text-slate-400' : 'text-amber-700 dark:text-amber-300'}`}>
+            {expired ? 'Time expired' : 'In progress'}
           </span>
         ) : a.passed ? (
           <span className="inline-flex w-28 justify-center font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-300">
@@ -53,8 +56,19 @@ export function AttemptRow({ a, showExam = true }: { a: HistoryAttempt; showExam
         )}
       </div>
 
-      <span className="hidden items-center justify-end gap-1 text-sm font-medium text-brand-700 sm:inline-flex dark:text-brand-300">
-        {a.inProgress ? 'Resume' : 'Review answers'} <ChevronRight className="h-4 w-4" />
+      <span className="hidden items-center justify-end gap-2 text-sm font-medium text-brand-700 sm:inline-flex dark:text-brand-300">
+        {!a.inProgress && (
+          <a
+            href={`/api/results/${a.id}/pdf`}
+            download
+            title="Download the answer review (PDF)"
+            aria-label={`Download the answer review (PDF) for ${showExam ? `${a.examCode} ` : ''}${mode.toLowerCase()} from ${when}`}
+            className="relative z-10 inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-brand-50 hover:text-brand-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-brand-300"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+          </a>
+        )}
+        {expired ? null : <>{a.inProgress ? 'Resume' : 'Review answers'} <ChevronRight className="h-4 w-4" /></>}
       </span>
 
       <div className="justify-self-end">

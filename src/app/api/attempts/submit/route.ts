@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { scoreAttempt, type Responses } from '@/lib/attempts';
+import { finalizeAttempt } from '@/lib/finalize-attempt';
 
 const Body = z.object({ attemptId: z.string() });
 
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const session = await auth();
   const userId = (session?.user as any)?.id as string | undefined;
 
-  const attempt = await db.attempt.findUnique({ where: { id: attemptId }, include: { exam: true } });
+  const attempt = await db.attempt.findUnique({ where: { id: attemptId }, select: { userId: true, guestToken: true, submittedAt: true } });
   if (!attempt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (attempt.userId) {
     if (attempt.userId !== userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -22,17 +22,7 @@ export async function POST(req: Request) {
   }
   if (attempt.submittedAt) return NextResponse.json({ ok: true, attemptId });
 
-  const questions = await db.question.findMany({
-    where: { id: { in: attempt.questionIds } },
-    select: { id: true, type: true, correct: true, domain: true }
-  });
-  const responses = (attempt.responses as Responses) || {};
-  const { score } = scoreAttempt(questions, responses);
-  const passed = score >= attempt.exam.passingScore;
-
-  await db.attempt.update({
-    where: { id: attemptId },
-    data: { submittedAt: new Date(), score, passed }
-  });
-  return NextResponse.json({ ok: true, attemptId, score, passed });
+  const result = await finalizeAttempt(attemptId);
+  if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  return NextResponse.json({ ok: true, attemptId, score: result.score, passed: result.passed });
 }

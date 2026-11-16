@@ -1,6 +1,7 @@
 import type { Mode } from '@prisma/client';
 import { db } from './db';
 import { scoreAttempt, type Responses } from './attempts';
+import { finalizeExpiredAttempts } from './finalize-attempt';
 
 export type HistoryAttempt = {
   id: string;
@@ -41,6 +42,9 @@ export type ExamHistory = {
  * the results page does, so both always agree.
  */
 export async function getAttemptHistory(userId: string, take = 200) {
+  // Exams whose timer ran out unsubmitted get their score first, so every
+  // list built from this (dashboard, Exam history, admin, mobile) shows it.
+  await finalizeExpiredAttempts(userId).catch(() => 0);
   const rows = await db.attempt.findMany({
     where: { userId },
     include: { exam: { include: { vendor: true, poolExam: { include: { vendor: true } } } } },

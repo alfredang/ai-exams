@@ -4,7 +4,6 @@
 // This comment line is the noop change that invalidates the COPY layer so
 // the exam-runner edits from PR #72 actually make it into the bundle.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, Flag, LayoutGrid, ListChecks, Loader2, LogOut, X } from 'lucide-react';
 import { ExplanationView } from '@/components/explanation-view';
 import { shuffleSeeded } from '@/lib/shuffle';
@@ -63,7 +62,6 @@ const NEEDS_CONFIRM = (t: RunnerQuestion['type']) => t === 'MULTI' || t === 'ORD
 const LETTERS = 'ABCDEFGHIJ';
 
 export function ExamRunner(props: ExamRunnerProps) {
-  const router = useRouter();
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, RunnerResponse>>(props.initialResponses || {});
   const [remaining, setRemaining] = useState(props.remainingSec);
@@ -275,7 +273,12 @@ export function ExamRunner(props: ExamRunnerProps) {
     await fetch('/api/attempts/autosave', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: props.attemptId, responses: payload }) }).catch(() => {});
     const r = await fetch('/api/attempts/submit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: props.attemptId }) }).catch(() => null);
     if (r?.ok) {
-      router.push(`/results/${props.attemptId}`);
+      // A full page load, never router.push: a deploy during a 2-hour exam
+      // replaces the JS chunks this tab would need for a client navigation,
+      // and the runner then sat on "Submitting…" with the score already
+      // saved. A document request does not depend on the old build.
+      dirty.current = false;
+      window.location.assign(`/results/${props.attemptId}`);
     } else {
       setSubmitted(false);
       setTimeUp(false);
@@ -363,7 +366,8 @@ export function ExamRunner(props: ExamRunnerProps) {
     const payload = Object.fromEntries(Object.entries(answers).map(([qid, r]) => [qid, { answer: r.answer || [], flagged: r.flagged }]));
     await fetch('/api/attempts/autosave', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: props.attemptId, responses: payload }) }).catch(() => {});
     dirty.current = false;
-    router.push(props.exitHref || '/user-dashboard/attempts');
+    // Full page load for the same reason as after submit (deploy mid-exam).
+    window.location.assign(props.exitHref || '/user-dashboard/attempts');
   }
 
   // The runner takes over the viewport like a test-centre workstation, so

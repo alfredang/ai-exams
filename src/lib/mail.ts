@@ -540,6 +540,63 @@ export async function sendPracticeExamRegistrationEmail(
   });
 }
 
+/**
+ * Score report email for a submitted attempt: score, pass/fail, the score by
+ * domain (weakest first) and the answer-review PDF attached. Sent by
+ * `finalizeAttempt()` to signed-in candidates. Returns null when the
+ * template is disabled or there is nobody to send to; a PDF failure still
+ * sends the email (it then points at the download on the score report).
+ */
+export async function sendExamResultEmail(attemptId: string) {
+  const { buildAttemptReport } = await import('./finalize-attempt');
+  const report = await buildAttemptReport(attemptId);
+  if (!report || !report.attempt.userId) return null;
+  const user = await db.user.findUnique({ where: { id: report.attempt.userId }, select: { email: true, name: true, active: true } });
+  if (!user || !user.active) return null;
+  const { attempt, score, correctCount, total, perDomain, passed, timeUsedSec } = report;
+  const h = Math.floor(timeUsedSec / 3600), m = Math.floor((timeUsedSec % 3600) / 60), sec = timeUsedSec % 60;
+  const timeUsed = `${h ? `${h}:` : ''}${String(m).padStart(h ? 2 : 1, '0')}:${String(sec).padStart(2, '0')}`;
+  const domains = Object.entries(perDomain)
+    .map(([name, d]) => {
+      const weak = d.total - d.correct >= 2;
+      return { name, correct: d.correct, total: d.total, pct: Math.max(2, Math.round((d.correct / (d.total || 1)) * 100)), color: weak ? '#dc2626' : '#059669', weak };
+    })
+    .sort((a, b) => a.correct / (a.total || 1) - b.correct / (b.total || 1));
+  let pdf: Buffer | null = null;
+  try {
+    pdf = Buffer.from(await report.renderPdf());
+  } catch (err: any) {
+    console.error('[exam-result-email] pdf', attemptId, err?.message ?? err);
+  }
+  const appUrl = process.env.APP_URL || '';
+  const { sendTemplated } = await import('./email/templates');
+  return sendTemplated(
+    'EXAM_RESULT',
+    user.email,
+    {
+      user: { name: user.name && user.name !== 'user' ? user.name : 'there', email: user.email },
+      exam: { title: attempt.exam.title, code: attempt.exam.code.replace(/-P\d+$/, '') },
+      result: {
+        correct: correctCount,
+        total,
+        score,
+        passMark: attempt.exam.passingScore,
+        passed,
+        verdict: passed ? 'PASS' : 'FAIL',
+        color: passed ? '#059669' : '#dc2626',
+        timeUsed,
+        date: attempt.submittedAt!.toLocaleString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }),
+        mode: attempt.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'
+      },
+      domains,
+      reportUrl: `${appUrl}/results/${attempt.id}`,
+      dashboardUrl: `${appUrl}/user-dashboard`,
+      hasPdf: !!pdf
+    },
+    pdf ? [{ filename: report.filename, content: pdf, contentType: 'application/pdf' }] : undefined
+  );
+}
+
 export async function sendVoucherDeliveredEmail(
   to: string,
   examName: string,

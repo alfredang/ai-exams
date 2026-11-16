@@ -108,11 +108,14 @@ export default async function ResultsPage({
     include: { exam: { include: { vendor: true } } }
   });
   if (!attempt) notFound();
+  // The result email links here, so keep the target through sign-in.
+  const loginHref = `/login?next=${encodeURIComponent(`/results/${attemptId}`)}`;
   if (attempt.userId) {
-    if (attempt.userId !== userId) redirect('/login');
+    if (attempt.userId !== userId) redirect(loginHref);
   } else {
-    if (!gt || gt !== attempt.guestToken) redirect('/login');
+    if (!gt || gt !== attempt.guestToken) redirect(loginHref);
   }
+  // Not submitted: the exam page resumes it, or scores it if its time ran out.
   if (!attempt.submittedAt) redirect(`/exam/${attempt.id}`);
 
   const questions = await db.question.findMany({

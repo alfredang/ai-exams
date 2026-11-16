@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getPracticeBadges } from '@/lib/my-exams';
-import { getAttemptHistory } from '@/lib/attempt-history';
+import { fmtDuration, getAttemptHistory, type HistoryAttempt } from '@/lib/attempt-history';
 import { PracticeBadges } from '@/components/practice-badges';
 import { AttemptRow } from '@/components/attempt-row';
-import { BookOpen, ChartBar, Trophy } from 'lucide-react';
+import { BookOpen, ChartBar, CheckCircle2, Download, ListChecks, RotateCcw, Trophy, XCircle } from 'lucide-react';
+import { startFromDashboard } from './actions';
 
 // The signed-in landing page: the three most recently used practice exams as
 // click-to-start badges (View all → My Exams), their latest attempts, then
@@ -26,6 +27,10 @@ export default async function MyContentPage({
   const scores = history.attempts.filter((a) => a.score !== null).map((a) => a.score!);
   const avgScore = scores.length === 0 ? null : Math.round(scores.reduce((s, x) => s + x, 0) / scores.length);
   const recent = history.attempts.slice(0, 5);
+  // The newest scored attempt leads the page: a candidate who has just
+  // finished an exam sees the result, the answer review and Retake here.
+  const latest = history.attempts.find((a) => a.score !== null && !a.isTeaser) ?? null;
+  const latestPassMark = latest ? history.exams.find((e) => e.examId === latest.examId)?.passingScore ?? null : null;
   const latestBadges = badges.slice(0, 3);
   const userName = session!.user!.name || session!.user!.email?.split('@')[0] || 'there';
 
@@ -45,6 +50,8 @@ export default async function MyContentPage({
           That exam couldn't be started. Please try again, or contact us if it keeps happening.
         </div>
       )}
+
+      {latest && <LatestResult a={latest} passMark={latestPassMark} />}
 
       <section className="mb-10">
         <div className="mb-3 flex items-center justify-between">
@@ -112,5 +119,51 @@ function StatCard({
         <div className="text-2xl font-bold tracking-tight">{value}</div>
       </div>
     </div>
+  );
+}
+
+// Score card for the newest submitted attempt, with the three things a
+// candidate wants after an exam: the answer review, its PDF and a retake.
+function LatestResult({ a, passMark }: { a: HistoryAttempt; passMark: number | null }) {
+  const when = a.startedAt.toLocaleString('en-SG', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return (
+    <section className="mb-10" aria-labelledby="latest-result">
+      <h2 id="latest-result" className="mb-3 text-lg font-semibold">Your latest result</h2>
+      <div className="card grid items-center gap-x-8 gap-y-4 p-5 sm:p-6 md:grid-cols-[auto_minmax(0,1fr)]">
+        <div className="font-display text-[clamp(52px,10vw,76px)] font-extrabold leading-none tabular-nums">
+          {a.correct}<small className="text-[0.38em] font-bold text-muted"> / {a.total}</small>
+        </div>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1 font-display text-xl font-extrabold tracking-wide text-white ${a.passed ? 'bg-emerald-600 dark:bg-emerald-500' : 'bg-red-600 dark:bg-red-500'}`}>
+              {a.passed ? <CheckCircle2 className="h-5 w-5" aria-hidden /> : <XCircle className="h-5 w-5" aria-hidden />}
+              {a.passed ? 'PASS' : 'FAIL'}
+            </span>
+            <span className="text-lg font-semibold">
+              {a.score}%{passMark !== null && <span className="font-normal text-muted"> · pass mark {passMark}%</span>}
+            </span>
+          </div>
+          <h3 className="mt-2 font-display text-base font-semibold leading-snug [overflow-wrap:anywhere]">{a.examTitle}</h3>
+          <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
+            {a.mode === 'EXAM' ? 'Exam mode' : 'Practice mode'} · {when}
+            {a.timeUsedSec !== null && <> · {fmtDuration(a.timeUsedSec)} used</>}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 md:col-span-2">
+          <Link href={`/results/${a.id}`} className="btn-primary gap-1.5">
+            <ListChecks className="h-4 w-4" aria-hidden /> Review questions and answers
+          </Link>
+          <a href={`/api/results/${a.id}/pdf`} download className="btn-outline inline-flex items-center gap-1.5">
+            <Download className="h-4 w-4" aria-hidden /> Download review (PDF)
+          </a>
+          <form action={startFromDashboard}>
+            <input type="hidden" name="examId" value={a.examId} />
+            <button name="mode" value={a.mode} className="btn-outline inline-flex items-center gap-1.5">
+              <RotateCcw className="h-4 w-4" aria-hidden /> Retake exam
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
   );
 }

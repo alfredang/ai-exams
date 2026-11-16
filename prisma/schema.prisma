@@ -85,6 +85,7 @@ enum EmailTemplateKey {
   REFUND_ISSUED
   WELCOME
   PRACTICE_EXAM_REGISTRATION
+  EXAM_RESULT
 }
 
 // =========== Models ===========
