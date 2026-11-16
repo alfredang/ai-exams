@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { CheckCircle2, Download, RotateCcw, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, ListChecks, RotateCcw, XCircle } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
@@ -202,13 +202,18 @@ export default async function ResultsPage({
             teaser={attempt.isTeaser}
             examHref={`/practice-exams/${attempt.exam.vendor.slug}/${attempt.exam.slug}`}
           />
+          {/* The answer review sits below the domain breakdown; this makes
+              it one click from the score. */}
+          <a href="#review" className="btn-outline inline-flex items-center gap-2">
+            <ListChecks className="h-4 w-4" aria-hidden /> Review questions and answers ({total})
+          </a>
           <a
             href={`/api/results/${attempt.id}/pdf`}
             className="btn-outline inline-flex items-center gap-2"
             title="Questions, answers, explanations and domains"
             download
           >
-            <Download className="h-4 w-4" /> Download summary (PDF)
+            <Download className="h-4 w-4" /> Download review (PDF)
           </a>
           {canReview && (
             <ReviewFormModal
@@ -262,7 +267,7 @@ export default async function ResultsPage({
 
         {/* Answer review — every option listed, the right one marked green
             and the taker's wrong pick red, then the explanation under WHY. */}
-        <section>
+        <section id="review" className="scroll-mt-24">
           <h2 className="mb-3.5 text-xl font-bold">Review your answers</h2>
           <div className="mb-3.5 flex flex-wrap gap-2">
             {([
