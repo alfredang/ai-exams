@@ -18,9 +18,9 @@ export function CategoryShowcase({ voucherFrom, teaserN }: { voucherFrom: number
         </span>
         <h3 className="mt-5 font-display text-2xl font-extrabold tracking-tight">Practice Exams</h3>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Prepare until you’re ready — on your own schedule.</p>
-        <div className="mt-5 flex items-baseline gap-2">
+        <div className="mt-5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="font-display text-4xl font-extrabold text-brand-700 dark:text-brand-300"><Price cents={PRACTICE_PRICE_CENTS} /></span>
-          <span className="text-sm text-slate-500 dark:text-slate-400">per Certification · one-time · {PRICE_TAX_NOTE}</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{PRICE_TAX_NOTE}</span>
         </div>
         <ul className="mt-6 space-y-3 text-sm">
           {[

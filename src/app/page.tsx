@@ -102,7 +102,7 @@ export default async function HomePage() {
               Prepare with confidence. {certCount}+ Certifications.
             </p>
             <h1 className="mt-2 text-balance text-[1.75rem] font-extrabold leading-[1.05] tracking-tight motion-safe:animate-fade-up motion-safe:[animation-delay:80ms] sm:text-5xl md:text-[3.5rem] lg:text-[2.25rem] xl:text-5xl 2xl:text-[3.375rem]">
-              Practice Exams &amp; Exam Vouchers <span className="gradient-text">in Singapore.</span>
+              Practice Exams &amp; Exam Vouchers <span className="gradient-text">for Certification Success.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base text-slate-600 motion-safe:animate-fade-up motion-safe:[animation-delay:160ms] dark:text-slate-300 sm:text-lg">
               Realistic timed Practice Exams for just <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — and official Exam Vouchers that include the Practice Exam <b className="text-emerald-700 dark:text-emerald-300">free</b>. Start with a free {TEASER_N}-question teaser — no card needed.
