@@ -4,8 +4,8 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { qaProvider } from '@/lib/openai';
 import { parseDomains, matchDomain } from '@/lib/question-pool';
-import { GEN_KINDS, generateQuestionBatch, planDomainCounts, type GeneratedQuestion } from '@/lib/ai-question-gen';
-import { chunkBySection } from '@/lib/sources/chunk';
+import { GEN_KINDS, generateQuestionBatch, type GeneratedQuestion } from '@/lib/ai-question-gen';
+import { normStem as norm, planJobs } from '@/lib/generation-requests';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 3600;
@@ -24,13 +24,7 @@ const Body = z.object({
   rephrase: z.boolean().default(true)
 });
 
-const BATCH = 5; // new questions per model call
-const EXTRACT_BATCH = 20; // extracted questions per excerpt
 const CONCURRENCY = 3; // model calls in flight
-
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-
-type Job = { domains: string[]; count: number; excerpt?: string };
 
 /**
  * POST /api/admin/exams/[id]/ai-generate — the AI Question and Answer
@@ -66,7 +60,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       : blueprint
     : [{ name: 'General', weight: 1 }];
   if (!chosen.length) return Response.json({ error: 'Pick at least one exam domain' }, { status: 400 });
-  const chosenNames = chosen.map((d) => d.name);
 
   const existing = await db.question.findMany({
     where: { examId: id },
@@ -79,28 +72,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .filter((q) => domains.includes((blueprint.length ? matchDomain(q.domain, blueprint) : q.domain) ?? ''))
       .map((q) => q.stem);
 
-  // Work list.
-  const jobs: Job[] = [];
-  let plan: Record<string, number> = {};
-  if (!source) {
-    plan = planDomainCounts(chosen, body.count);
-    for (const [domain, n] of Object.entries(plan)) {
-      for (let left = n; left > 0; left -= BATCH) jobs.push({ domains: [domain], count: Math.min(BATCH, left) });
-    }
-  } else if (body.mode === 'extract') {
-    for (const excerpt of chunkBySection(source.content!, 3000)) jobs.push({ domains: chosenNames, count: EXTRACT_BATCH, excerpt });
-  } else {
-    // Spread the total over the excerpts by length; tiny totals use evenly spaced excerpts.
-    const chunks = chunkBySection(source.content!, 5000);
-    const picked = chunks.length > body.count ? chunks.filter((_, i) => i % Math.ceil(chunks.length / body.count) === 0).slice(0, body.count) : chunks;
-    const total = picked.reduce((s, c) => s + c.length, 0);
-    let left = body.count;
-    picked.forEach((excerpt, i) => {
-      const n = i === picked.length - 1 ? left : Math.min(left, Math.max(1, Math.round((body.count * excerpt.length) / total)));
-      left -= n;
-      for (let k = n; k > 0; k -= BATCH) jobs.push({ domains: chosenNames, count: Math.min(BATCH, k), excerpt });
-    });
-  }
+  const { jobs, plan } = planJobs({ chosen, count: body.count, mode: body.mode, sourceText: source?.content });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

@@ -202,6 +202,7 @@ model Exam {
   createdBy       User?      @relation("ExamCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   questions       Question[]
   sources         ExamSource[]
+  generationRequests GenerationRequest[]
   versions        ExamVersion[]
   attempts        Attempt[]
   entitlements    Entitlement[]
@@ -315,6 +316,38 @@ model ExamSource {
   importedBy  User             @relation(fields: [importedById], references: [id])
   createdAt   DateTime         @default(now())
   questions   Question[]
+  generationRequests GenerationRequest[]
+  @@index([examId])
+}
+
+// A request for the local AI agents to write questions for a question bank
+// (the AI Q&A Generator's path when no OpenAI API key is saved). The worker
+// on the agent machine claims it over /api/v1/generation-requests, runs the
+// writer and checker models, and the site validates and publishes.
+model GenerationRequest {
+  id            String      @id @default(cuid())
+  examId        String
+  exam          Exam        @relation(fields: [examId], references: [id], onDelete: Cascade)
+  requestedById String
+  sourceId      String?
+  source        ExamSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  mode          String      @default("generate")                // generate | extract
+  rephrase      Boolean     @default(true)
+  count         Int
+  types         Json                                             // string[]; [] = all types
+  domains       Json                                             // string[]; [] = all domains
+  status        String      @default("QUEUED")                  // QUEUED | RUNNING | DONE | FAILED | CANCELLED
+  phase         String?                                          // what the worker is doing now
+  created       Int         @default(0)                          // questions published
+  dropped       Int         @default(0)                          // questions refused or not confirmed
+  notes         Json?                                            // string[] of warnings
+  error         String?
+  worker        String?
+  claimedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([status, createdAt])
   @@index([examId])
 }
 

@@ -44,7 +44,7 @@ export type CheckContext = { vendor: string; certification: string; examCode: st
 
 const LETTERS = 'ABCDEFGH';
 
-const ReplySchema = z.object({
+export const CheckReplySchema = z.object({
   results: z.array(
     z.object({
       ref: z.string(),
@@ -58,7 +58,7 @@ const ReplySchema = z.object({
   )
 });
 
-const SYSTEM = `You are a senior subject-matter expert checking the answer keys of practice questions for IT certification exams.
+export const CHECK_SYSTEM = `You are a senior subject-matter expert checking the answer keys of practice questions for IT certification exams.
 
 For EVERY question:
 1. Solve it yourself from first principles and current official documentation. Do not assume the stored key is right.
@@ -147,9 +147,21 @@ export async function checkAnswerKeys(
   questions: CheckQuestion[],
   ctx: CheckContext
 ): Promise<{ results: Map<string, CheckResult>; generatedBy: string }> {
-  const refs = questions.map((_, i) => `Q${i + 1}`);
-  const input = `Certification: ${ctx.vendor} ${ctx.certification} (${ctx.examCode})\n\n${questions.map((q, i) => render(q, refs[i])).join('\n\n')}`;
-  const { data, generatedBy } = await qaStructured({ schema: ReplySchema, name: 'answer_key_check', instructions: SYSTEM, input });
+  const { data, generatedBy } = await qaStructured({ schema: CheckReplySchema, name: 'answer_key_check', instructions: CHECK_SYSTEM, input: buildCheckInput(questions, ctx) });
+  return { results: applyCheckReply(questions, data), generatedBy };
+}
+
+const checkRefs = (questions: CheckQuestion[]) => questions.map((_, i) => `Q${i + 1}`);
+
+/** The checker's prompt for one batch (the system prompt is CHECK_SYSTEM). */
+export function buildCheckInput(questions: CheckQuestion[], ctx: CheckContext): string {
+  const refs = checkRefs(questions);
+  return `Certification: ${ctx.vendor} ${ctx.certification} (${ctx.examCode})\n\n${questions.map((q, i) => render(q, refs[i])).join('\n\n')}`;
+}
+
+/** Turn a checker's reply into one validated result per question id (same order as the prompt). */
+export function applyCheckReply(questions: CheckQuestion[], data: z.infer<typeof CheckReplySchema>): Map<string, CheckResult> {
+  const refs = checkRefs(questions);
   const byRef = new Map(data.results.map((r) => [r.ref.trim(), r]));
   const results = new Map<string, CheckResult>();
   questions.forEach((q, i) => {
@@ -184,5 +196,5 @@ export async function checkAnswerKeys(
       note: `AI answered ${r.answer.join(', ')} (${r.confidence} confidence)${sameCount ? '' : ', a different number of answers'}: ${r.note.trim()}`.slice(0, 500)
     });
   });
-  return { results, generatedBy };
+  return results;
 }

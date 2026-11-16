@@ -12,7 +12,8 @@ export function QuestionFlow({
   checked,
   perAttempt,
   poolHref,
-  generate
+  generate,
+  agents = false
 }: {
   published: number;
   /** Published questions whose answer key AI has checked. */
@@ -22,6 +23,8 @@ export function QuestionFlow({
   poolHref?: string;
   /** Step 1's action — the AI Generate button that opens the pop-up form. */
   generate?: ReactNode;
+  /** No OpenAI API key: requests are queued for the local AI agents. */
+  agents?: boolean;
 }) {
   return (
     <ol className="grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
@@ -30,7 +33,7 @@ export function QuestionFlow({
         icon={<FileText className="h-4 w-4" />}
         tone="violet"
         title="Choose a source"
-        body="A YouTube link, a web link, a PDF upload — or AI generation for the exam domains you choose."
+        body="A YouTube link, a web or GitHub link, a PDF upload — or AI generation for the exam domains you choose."
         status={generate ?? 'Use the form below'}
       />
       <Arrow />
@@ -39,7 +42,11 @@ export function QuestionFlow({
         icon={<ShieldCheck className="h-4 w-4" />}
         tone="sky"
         title="AI extracts, generates & checks"
-        body="OpenAI gpt-6.1-sol extracts (optionally rephrased) or writes questions with answers and explanations, then checks every answer key."
+        body={
+          agents
+            ? 'AI agents: gpt-6.1-sol extracts (optionally rephrased) or writes questions with answers and explanations, then Claude Opus answers each one. Only questions both agree on go on.'
+            : 'OpenAI gpt-6.1-sol extracts (optionally rephrased) or writes questions with answers and explanations, then checks every answer key.'
+        }
         status={`${checked.toLocaleString()} of ${published.toLocaleString()} answer keys AI-checked`}
       />
       <Arrow />

@@ -210,7 +210,7 @@ export const GROUPS: SettingsGroup[] = [
     slug: 'credentials',
     title: 'Credentials',
     description:
-      'AI keys, tried in order: OpenAI → DeepSeek → MiniMax. If one fails or hits a usage limit, the next configured key takes over. Find official page needs OpenAI (web search). The AI Question and Answer Generator and the answer-key check always use OpenAI gpt-6.1-sol. Firecrawl reads web links and YouTube transcripts for the generator (without it, web links are read by OpenAI web search and YouTube captions are fetched directly).',
+      'AI keys, tried in order: OpenAI → DeepSeek → MiniMax. If one fails or hits a usage limit, the next configured key takes over. Find official page needs OpenAI (web search). The AI Question and Answer Generator and the answer-key check use OpenAI gpt-6.1-sol; without an OpenAI key, AI Generate queues the request for the AI agents instead (gpt-6.1-sol writes, Claude Opus checks) and the answer-key check stays off. Firecrawl reads web links and YouTube transcripts for the generator (without it, web links are read by OpenAI web search and YouTube captions are fetched directly).',
     fields: [
       { key: 'OPENAI_API_KEY', label: '1 · OpenAI — API Key (primary)', secret: true },
       { key: 'OPENAI_MODEL', label: 'OpenAI — Model', placeholder: 'gpt-6.1-sol' },

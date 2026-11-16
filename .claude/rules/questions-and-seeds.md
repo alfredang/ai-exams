@@ -42,6 +42,10 @@ paths:
   `gpt-6.1-sol` only (`qaStructured()`, `QA_MODEL` in `src/lib/openai.ts`) and
   save PUBLISHED; other admin AI features keep the OpenAI → DeepSeek → MiniMax
   chain. Source URLs are read through providers, never fetched directly (SSRF).
+  With no OpenAI key, AI Generate queues a `GenerationRequest` for the local
+  agent worker instead (gpt-6.1-sol via Codex CLI writes, Claude Opus checks;
+  only questions the checker agrees with publish) — see
+  `src/lib/generation-requests.ts`.
   Claude-authored banks go through the `question-bank-generator` agent and a
   seed module.
 - Seeding production: `npm run seed:prod -- <name> <expected-slug>` after the

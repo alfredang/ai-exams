@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileText, Globe, Search, Sparkles, X, Youtube } from 'lucide-react';
+import { FileText, GitBranch, Globe, Search, Sparkles, X, Youtube } from 'lucide-react';
 import { planAllocation } from '@/lib/question-pool';
 
 export type GeneratorExam = {
@@ -17,13 +17,15 @@ export type GeneratorExam = {
 };
 type Kind = 'SINGLE' | 'MULTI' | 'ORDERING';
 type Made = { id: string; stem: string; domain: string; verdict: string };
-type SourceKind = 'AI' | 'YOUTUBE' | 'URL' | 'PDF';
+type SourceKind = 'AI' | 'YOUTUBE' | 'URL' | 'GITHUB' | 'PDF';
+const GITHUB_LINK = /^https:\/\/(github\.com|gist\.github\.com|raw\.githubusercontent\.com|[a-z0-9-]+\.github\.io)\//i;
 type ReadSource = { id: string; label: string; chars: number; key: string };
 
 const SOURCES: { value: SourceKind; label: string; icon: typeof Sparkles; hint: string }[] = [
   { value: 'AI', label: 'AI generation', icon: Sparkles, hint: 'AI writes new questions for the exam domains' },
   { value: 'YOUTUBE', label: 'YouTube link', icon: Youtube, hint: "from the video's transcript" },
   { value: 'URL', label: 'Web link', icon: Globe, hint: 'from a web page (docs, study guide, quiz)' },
+  { value: 'GITHUB', label: 'GitHub link', icon: GitBranch, hint: 'from a file or README in a public GitHub repo; extracted questions are always rephrased' },
   { value: 'PDF', label: 'Upload PDF', icon: FileText, hint: 'up to 25 MB; scanned PDFs are read by AI' }
 ];
 
@@ -48,6 +50,9 @@ function preview(domains: GeneratorExam['domains'], total: number): Record<strin
  * Rephrase, number of questions, question types and exam domains. Streams
  * from /api/admin/exams/[id]/ai-generate: every question is validated, its
  * answer key checked by AI, and it is published straight into the pool.
+ * Without an OpenAI API key (`configured` false) the same form queues the
+ * request for the local AI agents instead (POST /api/admin/generation-requests,
+ * see src/lib/generation-requests.ts).
  */
 export function AiGenerateDialog({
   exams,
@@ -93,6 +98,9 @@ export function AiGenerateDialog({
   const [warnings, setWarnings] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [created, setCreated] = useState<number | null>(null);
+  const [queued, setQueued] = useState(false);
+  const isLink = sourceKind === 'YOUTUBE' || sourceKind === 'URL' || sourceKind === 'GITHUB';
+  const mustRephrase = sourceKind === 'GITHUB';
 
   const exam = exams.find((e) => e.id === examId);
   const domains = exam?.domains ?? [];
@@ -135,7 +143,7 @@ export function AiGenerateDialog({
       res = await fetch(`/api/admin/exams/${examId}/sources`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: sourceKind, url: link.trim() })
+        body: JSON.stringify({ kind: sourceKind === 'GITHUB' ? 'URL' : sourceKind, url: link.trim() })
       });
     }
     const j = await res.json().catch(() => null);
@@ -162,11 +170,13 @@ export function AiGenerateDialog({
   async function generate() {
     setError('');
     setCreated(null);
+    setQueued(false);
     setWarnings([]);
     setMade([]);
     if (!exam) return setError('Select an exam.');
     if (!count || count < 1 || count > 200) return setError('Enter between 1 and 200 questions.');
-    if ((sourceKind === 'YOUTUBE' || sourceKind === 'URL') && !/^https?:\/\/\S+\.\S+/.test(link.trim())) return setError('Paste the full link, starting with https://');
+    if (isLink && !/^https?:\/\/\S+\.\S+/.test(link.trim())) return setError('Paste the full link, starting with https://');
+    if (sourceKind === 'GITHUB' && !GITHUB_LINK.test(link.trim())) return setError('Paste a github.com link (a file, README or gist).');
     if (sourceKind === 'PDF' && !file) return setError('Choose a PDF file.');
     if (sourceKind === 'PDF' && file && file.size > 25 * 1024 * 1024) return setError('PDFs up to 25 MB, please.');
     if (!allTypes && !kinds.length) return setError('Tick at least one question type, or choose All types.');
@@ -176,6 +186,26 @@ export function AiGenerateDialog({
     try {
       const source = sourceKind === 'AI' ? null : await readSource();
       setPhase('generating');
+      if (!configured) {
+        // No OpenAI API key: hand the request to the local AI agents.
+        const queue = await fetch('/api/admin/generation-requests', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            examId: exam.id,
+            count,
+            types: allTypes ? [] : kinds,
+            domains: allDomains ? [] : picked,
+            ...(source ? { sourceId: source.id, mode, rephrase: rephrase || mustRephrase } : {})
+          })
+        });
+        const j = await queue.json().catch(() => null);
+        if (!queue.ok) throw new Error(j?.error || `Request failed (${queue.status})`);
+        setQueued(true);
+        window.dispatchEvent(new Event('generation-requests:changed'));
+        router.refresh();
+        return;
+      }
       const res = await fetch(`/api/admin/exams/${exam.id}/ai-generate`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -183,7 +213,7 @@ export function AiGenerateDialog({
           count,
           types: allTypes ? [] : kinds,
           domains: allDomains ? [] : picked,
-          ...(source ? { sourceId: source.id, mode, rephrase } : {})
+          ...(source ? { sourceId: source.id, mode, rephrase: rephrase || mustRephrase } : {})
         })
       });
       if (!res.ok || !res.body) {
@@ -230,10 +260,10 @@ export function AiGenerateDialog({
 
   const dialog = (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 sm:items-center"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4"
       onMouseDown={(e) => e.target === e.currentTarget && !busy && setOpen(false)}
     >
-      <div role="dialog" aria-modal="true" aria-labelledby="ai-gen-title" className="w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-slate-900">
+      <div role="dialog" aria-modal="true" aria-labelledby="ai-gen-title" className="my-auto w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
           <h2 id="ai-gen-title" className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">
             <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
@@ -250,16 +280,19 @@ export function AiGenerateDialog({
           </button>
         </div>
 
-        {!configured ? (
-          <p className="px-5 py-6 text-sm text-slate-600 dark:text-slate-300">
-            The AI Question and Answer Generator runs on OpenAI gpt-6.1-sol. Add an OpenAI API key under{' '}
-            <Link href="/admin-dashboard/settings/credentials" className="text-brand-600 hover:underline dark:text-brand-400">
-              Settings → Credentials
-            </Link>
-            .
-          </p>
-        ) : (
+        {
           <fieldset disabled={busy} className="grid gap-5 px-5 py-4">
+            {!configured && (
+              <p className="rounded-md border border-violet-200 bg-violet-50 px-3 py-2 text-[12px] leading-snug text-violet-900 dark:border-violet-900/60 dark:bg-violet-950/40 dark:text-violet-200">
+                No OpenAI API key is saved, so this request is queued for the AI agents: gpt-6.1-sol writes the questions and Claude Opus
+                independently answers each one. Only questions both agree on are published. Requests run within a few minutes while the
+                agent computer is on.{' '}
+                <Link href="/admin-dashboard/settings/credentials" className="font-medium underline">
+                  Add an OpenAI API key
+                </Link>{' '}
+                to generate instantly instead.
+              </p>
+            )}
             {single ? (
               <p className="text-[13px] text-slate-600 dark:text-slate-300">
                 <span className="font-semibold text-slate-800 dark:text-slate-100">{exam!.code}</span> — {exam!.title}
@@ -290,7 +323,7 @@ export function AiGenerateDialog({
 
             <div>
               <span className="label">Source</span>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {SOURCES.map((src) => {
                   const Icon = src.icon;
                   return (
@@ -302,14 +335,14 @@ export function AiGenerateDialog({
                 })}
               </div>
               <p className="mt-1 text-[12px] text-slate-500 dark:text-slate-400">{SOURCES.find((x) => x.value === sourceKind)!.hint}.</p>
-              {(sourceKind === 'YOUTUBE' || sourceKind === 'URL') && (
+              {isLink && (
                 <input
                   type="url"
                   className="input mt-2"
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
-                  placeholder={sourceKind === 'YOUTUBE' ? 'https://www.youtube.com/watch?v=…' : 'https://learn.microsoft.com/…'}
-                  aria-label={sourceKind === 'YOUTUBE' ? 'YouTube link' : 'Web link'}
+                  placeholder={sourceKind === 'YOUTUBE' ? 'https://www.youtube.com/watch?v=…' : sourceKind === 'GITHUB' ? 'https://github.com/owner/repo/blob/main/README.md' : 'https://learn.microsoft.com/…'}
+                  aria-label={sourceKind === 'YOUTUBE' ? 'YouTube link' : sourceKind === 'GITHUB' ? 'GitHub link' : 'Web link'}
                 />
               )}
               {sourceKind === 'PDF' && (
@@ -341,8 +374,8 @@ export function AiGenerateDialog({
                 </div>
                 {mode === 'extract' && (
                   <label className="mt-2 flex min-h-10 cursor-pointer items-center gap-2 text-[13px] text-slate-700 dark:text-slate-200">
-                    <input type="checkbox" checked={rephrase} onChange={(e) => setRephrase(e.target.checked)} />
-                    Rephrase the questions (same meaning and answer, new wording)
+                    <input type="checkbox" checked={rephrase || mustRephrase} disabled={mustRephrase} onChange={(e) => setRephrase(e.target.checked)} />
+                    Rephrase the questions (same meaning and answer, new wording){mustRephrase ? ' — always on for GitHub' : ''}
                   </label>
                 )}
               </div>
@@ -405,9 +438,9 @@ export function AiGenerateDialog({
               )}
             </div>
           </fieldset>
-        )}
+        }
 
-        {configured && (
+        {
           <div className="grid gap-3 border-t border-slate-200 px-5 py-4 dark:border-slate-700">
             {(busy || done > 0) && (
               <div className="h-1.5 overflow-hidden rounded bg-slate-200 dark:bg-slate-800">
@@ -417,6 +450,11 @@ export function AiGenerateDialog({
             {error && <p className="text-sm text-red-600 dark:text-red-400" role="alert">{error}</p>}
             {busy && phase === 'reading' && (
               <p className="text-sm text-slate-600 dark:text-slate-300" role="status">Reading the source…</p>
+            )}
+            {queued && (
+              <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
+                Queued for the AI agents. Progress shows under Agent requests on the AI Q&amp;A Generator page; you can close this window.
+              </p>
             )}
             {created !== null && (
               <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
@@ -443,7 +481,13 @@ export function AiGenerateDialog({
             )}
             <div className="flex flex-wrap items-center justify-end gap-2">
               <p className="mr-auto text-[11px] text-slate-500 dark:text-slate-400">
-                AI: <span className="font-mono">{providers}</span>. Each answer key is checked by AI, then the question is published to the pool.
+                {configured ? (
+                  <>
+                    AI: <span className="font-mono">{providers}</span>. Each answer key is checked by AI, then the question is published to the pool.
+                  </>
+                ) : (
+                  'AI agents: gpt-6.1-sol writes, Claude Opus checks each answer, then the question is published to the pool.'
+                )}
               </p>
               {exam && created !== null && created > 0 && (
                 <a
@@ -464,14 +508,18 @@ export function AiGenerateDialog({
                 {busy
                   ? phase === 'reading'
                     ? 'Reading source…'
-                    : `Working… ${done}/${count}`
-                  : sourceKind !== 'AI' && mode === 'extract'
+                    : configured
+                      ? `Working… ${done}/${count}`
+                      : 'Queuing…'
+                  : !configured
+                    ? `Queue ${count || ''} question${count === 1 ? '' : 's'} for the AI agents`
+                    : sourceKind !== 'AI' && mode === 'extract'
                     ? `Extract up to ${count || ''} question${count === 1 ? '' : 's'}`
                     : `Generate ${count || ''} question${count === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>
-        )}
+        }
       </div>
     </div>
   );

@@ -10,6 +10,8 @@ import { answerCheckProgress } from '@/lib/answer-check-job';
 import { QuestionFlow } from '@/components/admin/question-flow';
 import { AnswerCheckPanel } from '@/components/admin/answer-check-panel';
 import { AiGenerateDialog, type GeneratorExam } from '@/components/admin/ai-question-generator';
+import { GenerationRequestsPanel } from '@/components/admin/generation-requests-panel';
+import { listGenerationRequests } from '@/lib/generation-requests';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,9 @@ export const dynamic = 'force-dynamic';
  * AI Question and Answer Generator: pick an exam and a source (AI generation,
  * YouTube link, web link or PDF) in the AI Generate pop-up; OpenAI gpt-6.1-sol
  * extracts or writes the questions, checks each answer key and publishes them
- * into that bank's pool (no review queue). Below: the pool-wide answer-key
+ * into that bank's pool (no review queue). Without an OpenAI API key the
+ * pop-up queues the request for the local AI agents (Agent requests panel,
+ * src/lib/generation-requests.ts). Below: the pool-wide answer-key
  * check, the auditor agent's open flags and the YouTube scout's recent adds.
  * `?exam=<id>` opens the pop-up on that exam.
  */
@@ -28,7 +32,7 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
   const weekAgo = new Date(Date.now() - 7 * 86_400_000);
 
   // Pool exams only — retired variants (poolExamId set) never get new questions.
-  const [exams, counts, provider, progress, flags, scout] = await Promise.all([
+  const [exams, counts, provider, progress, flags, scout, requests] = await Promise.all([
     db.exam.findMany({
       where: { poolExamId: null },
       select: { id: true, code: true, title: true, domains: true, vendor: { select: { name: true } } },
@@ -38,7 +42,8 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
     qaProvider(),
     answerCheckProgress(null),
     db.question.groupBy({ by: ['examId', 'auditFlag'], where: { status: 'PUBLISHED', auditFlag: { not: null } }, _count: { _all: true } }),
-    db.question.groupBy({ by: ['examId'], where: { generatedBy: { startsWith: 'agent:youtube-scout' }, createdAt: { gte: weekAgo } }, _count: { _all: true }, _max: { createdAt: true } })
+    db.question.groupBy({ by: ['examId'], where: { generatedBy: { startsWith: 'agent:youtube-scout' }, createdAt: { gte: weekAgo } }, _count: { _all: true }, _max: { createdAt: true } }),
+    listGenerationRequests({}, 15)
   ]);
 
   const rows: GeneratorExam[] = exams.map((e) => {
@@ -93,6 +98,7 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
       <QuestionFlow
         published={progress.total}
         checked={progress.checked}
+        agents={!provider}
         generate={
           <AiGenerateDialog
             exams={rows}
@@ -103,6 +109,8 @@ export default async function AiQuestionGeneratorPage({ searchParams }: { search
           />
         }
       />
+
+      <GenerationRequestsPanel initial={requests} />
 
       <AnswerCheckPanel initial={progress} configured={!!provider} />
 

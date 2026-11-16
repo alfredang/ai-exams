@@ -31,7 +31,7 @@ export type ValidQuestion = {
 };
 
 // Structured-output shape (no min/max — those are checked in validate()).
-const BatchSchema = z.object({
+export const BatchSchema = z.object({
   questions: z.array(
     z.object({
       domain: z.string(),
@@ -48,7 +48,7 @@ const BatchSchema = z.object({
 
 // Keep the original rules from the Claude generator: original questions only,
 // never real-exam claims, always official reference URLs.
-const SYSTEM = `You are an expert practice-exam author for industry IT certifications.
+export const GEN_SYSTEM = `You are an expert practice-exam author for industry IT certifications.
 
 Rules — these are non-negotiable:
 - Produce ORIGINAL questions for educational use only. (In EXTRACT mode the questions come from the admin's own source material: stay faithful to it, rephrasing when asked.)
@@ -137,7 +137,8 @@ function sourcePrompt(src: NonNullable<BatchInput['source']>, count: number): st
 - Keep each question's meaning, its options and the source's answer. If the source gives no answer, work out the correct one.
 - ${src.rephrase ? 'REPHRASE every stem and option in your own words — same meaning, same correct answer, different wording.' : 'Keep the wording as written (fix typos and formatting only).'}
 - Skip items that depend on an image, exhibit or table you cannot see, and items that are not exam-relevant.
-- If the source holds fewer questions, return fewer — never invent extra ones in this mode.`;
+- If the source holds fewer questions, return fewer — never invent extra ones in this mode.
+- If the SOURCE presents itself as real, actual or leaked exam questions (a "dump" or "braindump"), return no questions.`;
   }
   return `Write exactly ${count} ORIGINAL practice questions that test the knowledge taught in the SOURCE below (concepts, services, commands, procedures, limits). Ground every correct answer in the source and current official documentation; don't copy its sentences verbatim.`;
 }
@@ -148,47 +149,8 @@ function sourcePrompt(src: NonNullable<BatchInput['source']>, count: number): st
  * can't confirm are dropped (reported in `rejected`).
  */
 export async function generateQuestionBatch(input: BatchInput): Promise<{ questions: GeneratedQuestion[]; rejected: string[]; generatedBy: string }> {
-  const blueprint = input.blueprint.length
-    ? `Full exam blueprint (for context):\n${input.blueprint.map((d) => `- ${d.name}: ${d.weight}%`).join('\n')}\n\n`
-    : '';
-  const avoid = input.avoid.length
-    ? `Questions already in the pool — do NOT repeat or paraphrase them; cover other objectives:\n${input.avoid.map((s) => `- ${s.slice(0, 160)}`).join('\n')}\n\n`
-    : '';
-  const domainRule =
-    input.domains.length === 1
-      ? `Exam domain for EVERY question ("domain" field): ${input.domains[0]}`
-      : `Set "domain" on each question to the ONE best-matching exam domain, copied exactly from this list:\n${input.domains.map((d) => `- ${d}`).join('\n')}`;
-  const task = input.source ? sourcePrompt(input.source, input.count) : `Write exactly ${input.count} practice questions.`;
-  const sourceBlock = input.source ? `\nSOURCE (${input.source.label}):\n"""\n${input.source.text}\n"""\n` : '';
-  const prompt = `${task}
-
-Vendor: ${input.vendor}
-Certification: ${input.certification}
-Exam code: ${input.examCode}
-${domainRule}
-Question types: ${input.source?.mode === 'extract' ? 'keep each extracted item\'s own type (SINGLE, MULTI, TRUE_FALSE or ORDERING).' : typeHint(input.types)}
-
-${blueprint}${avoid}${sourceBlock}`;
-  const { data: out, generatedBy } = await qaStructured({ schema: BatchSchema, name: 'practice_questions', instructions: SYSTEM, input: prompt });
-
-  const chosen = input.blueprint.filter((d) => input.domains.includes(d.name));
-  const valid: (ValidQuestion & { domain: string })[] = [];
-  const rejected: string[] = [];
-  for (const q of out.questions.slice(0, input.count)) {
-    if (input.types.length && input.source?.mode !== 'extract' && !input.types.includes(q.type)) {
-      rejected.push(`wrong type ${q.type}`);
-      continue;
-    }
-    const domain =
-      input.domains.length === 1 ? input.domains[0] : chosen.length ? matchDomain(q.domain, chosen) : input.domains.find((d) => d === q.domain.trim());
-    if (!domain) {
-      rejected.push(`domain "${q.domain.slice(0, 40)}" not in the blueprint`);
-      continue;
-    }
-    const v = validate(q);
-    if (typeof v === 'string') rejected.push(v);
-    else valid.push({ ...v, domain });
-  }
+  const { data: out, generatedBy } = await qaStructured({ schema: BatchSchema, name: 'practice_questions', instructions: GEN_SYSTEM, input: buildBatchPrompt(input) });
+  const { valid, rejected } = screenBatch(out, input);
   if (!valid.length) return { questions: [], rejected, generatedBy };
 
   // Second pass: an independent answer-key check of every question.
@@ -215,4 +177,56 @@ ${blueprint}${avoid}${sourceBlock}`;
     });
   });
   return { questions, rejected, generatedBy };
+}
+
+/** The writer's prompt for one batch (the system prompt is GEN_SYSTEM). */
+export function buildBatchPrompt(input: BatchInput): string {
+  const blueprint = input.blueprint.length
+    ? `Full exam blueprint (for context):\n${input.blueprint.map((d) => `- ${d.name}: ${d.weight}%`).join('\n')}\n\n`
+    : '';
+  const avoid = input.avoid.length
+    ? `Questions already in the pool — do NOT repeat or paraphrase them; cover other objectives:\n${input.avoid.map((s) => `- ${s.slice(0, 160)}`).join('\n')}\n\n`
+    : '';
+  const domainRule =
+    input.domains.length === 1
+      ? `Exam domain for EVERY question ("domain" field): ${input.domains[0]}`
+      : `Set "domain" on each question to the ONE best-matching exam domain, copied exactly from this list:\n${input.domains.map((d) => `- ${d}`).join('\n')}`;
+  const task = input.source ? sourcePrompt(input.source, input.count) : `Write exactly ${input.count} practice questions.`;
+  const sourceBlock = input.source ? `\nSOURCE (${input.source.label}):\n"""\n${input.source.text}\n"""\n` : '';
+  const prompt = `${task}
+
+Vendor: ${input.vendor}
+Certification: ${input.certification}
+Exam code: ${input.examCode}
+${domainRule}
+Question types: ${input.source?.mode === 'extract' ? 'keep each extracted item\'s own type (SINGLE, MULTI, TRUE_FALSE or ORDERING).' : typeHint(input.types)}
+
+${blueprint}${avoid}${sourceBlock}`;
+  return prompt;
+}
+
+/**
+ * Screen a writer's raw reply: type and domain allowed, then validate().
+ * Shared by the OpenAI path and the agent queue (/api/v1/generation-requests).
+ */
+export function screenBatch(out: z.infer<typeof BatchSchema>, input: BatchInput): { valid: (ValidQuestion & { domain: string })[]; rejected: string[] } {
+  const chosen = input.blueprint.filter((d) => input.domains.includes(d.name));
+  const valid: (ValidQuestion & { domain: string })[] = [];
+  const rejected: string[] = [];
+  for (const q of out.questions.slice(0, input.count)) {
+    if (input.types.length && input.source?.mode !== 'extract' && !input.types.includes(q.type)) {
+      rejected.push(`wrong type ${q.type}`);
+      continue;
+    }
+    const domain =
+      input.domains.length === 1 ? input.domains[0] : chosen.length ? matchDomain(q.domain, chosen) : input.domains.find((d) => d === q.domain.trim());
+    if (!domain) {
+      rejected.push(`domain "${q.domain.slice(0, 40)}" not in the blueprint`);
+      continue;
+    }
+    const v = validate(q);
+    if (typeof v === 'string') rejected.push(v);
+    else valid.push({ ...v, domain });
+  }
+  return { valid, rejected };
 }
