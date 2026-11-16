@@ -10,6 +10,7 @@ import {
   PRACTICE_PRICE_CENTS, displayExamCode, syncProductItems, voucherDescriptionFor, voucherHref, voucherOnSale,
   voucherSlugFor, voucherTitleFor
 } from '@/lib/products';
+import { PRICE_CHECK_ACTION } from '@/lib/voucher-pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +69,17 @@ export default async function ExamVoucherEditPage({ params, searchParams }: {
     include: { items: { where: { tier: 'PRACTICE' }, take: 1, include: { exam: { include: { vendor: true } } } } }
   });
   if (!bundle) notFound();
-  const sold = await db.order.count({ where: { bundleId: id, tier: 'VOUCHER', status: 'PAID' } });
+  const [sold, lastCheckLog] = await Promise.all([
+    db.order.count({ where: { bundleId: id, tier: 'VOUCHER', status: 'PAID' } }),
+    db.adminLog.findFirst({
+      where: { targetType: 'Bundle', targetId: id, action: PRICE_CHECK_ACTION },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true, metadata: true }
+    })
+  ]);
+  const lastCheck: ({ at: Date } & Record<string, any>) | null = lastCheckLog
+    ? { ...((lastCheckLog.metadata ?? {}) as Record<string, any>), at: lastCheckLog.createdAt }
+    : null;
   const exam = bundle.items[0]?.exam;
   const code = displayExamCode(exam?.code);
   const vendorSlug = exam?.vendor.slug ?? '<vendor>';
@@ -142,6 +153,31 @@ export default async function ExamVoucherEditPage({ params, searchParams }: {
             <p className="mt-2 text-[12px] text-slate-600 dark:text-slate-300">
               Linked automatically. Buyers get this practice exam the moment they pay (worth {formatMoney(PRACTICE_PRICE_CENTS)}), then the voucher code within 3–5 business days.
             </p>
+          </section>
+          <section className="card p-4 text-[12px] text-slate-600 dark:text-slate-300">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Vendor price check</h2>
+            {lastCheck ? (
+              <div className="mt-2 space-y-1">
+                <p>
+                  {lastCheck.at.toISOString().slice(0, 10)} ·{' '}
+                  <span className={lastCheck.status === 'held' ? 'font-semibold text-amber-700 dark:text-amber-300' : lastCheck.status === 'updated' ? 'font-semibold text-emerald-700 dark:text-emerald-300' : ''}>
+                    {lastCheck.status === 'held' ? 'Held for review' : lastCheck.status === 'updated' ? 'Price updated' : lastCheck.status === 'unavailable' ? 'No official price found' : 'Price unchanged'}
+                  </span>
+                </p>
+                {typeof lastCheck.listPriceCents === 'number' && (
+                  <p>Vendor list price {formatMoney(lastCheck.listPriceCents)} → sells at {formatMoney(lastCheck.expectedCents)} (+10% GST, rounded down)</p>
+                )}
+                {lastCheck.reason && <p className="text-amber-700 dark:text-amber-300">Not applied: {lastCheck.reason}. Type the price above to accept it.</p>}
+                {lastCheck.note && <p className="italic">{lastCheck.note}</p>}
+                {lastCheck.sourceUrl && (
+                  <a href={lastCheck.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-600 hover:underline dark:text-brand-400">
+                    Official source <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="mt-2">Not checked yet. The weekly exam-voucher-pricer agent reads the vendor’s official price and updates this voucher.</p>
+            )}
           </section>
           <section className="card p-4 text-[12px] text-slate-600 dark:text-slate-300">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Delivering codes</h2>

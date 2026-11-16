@@ -63,7 +63,7 @@ export default async function VendorsPage() {
   return (
     <div className="container-app py-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">All Certifications in Singapore, by Vendor</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">All Certifications by Vendor</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-400">Pick a Vendor, or go straight to a Certification&apos;s Practice Exam or Exam Voucher below.</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

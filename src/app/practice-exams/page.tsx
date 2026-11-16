@@ -113,9 +113,9 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="container-app py-10">
-      <div className="mb-8 max-w-3xl">
-        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Certification Practice Exams in Singapore</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Practice Exams for Certification Exams</h1>
+        <p className="mt-2 max-w-3xl text-slate-600 dark:text-slate-400">
           <b className="text-ink dark:text-white">Certification practice exams in Singapore</b>, each <b className="text-ink dark:text-white"><Price cents={PRACTICE_PRICE_CENTS} /></b> — timed Exam mode, Practice mode with explanations and unlimited retakes. Start with the free 10-question teaser on any Practice Exam.
         </p>
       </div>

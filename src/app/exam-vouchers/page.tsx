@@ -104,9 +104,9 @@ export default async function ExamVouchersPage({ searchParams }: { searchParams:
   return (
     <div className="container-app py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
-      <div className="mb-8 max-w-3xl">
-        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Official Exam Vouchers in Singapore — <span className="text-emerald-700 dark:text-emerald-300">Practice Exam included free</span></h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Official Exam Vouchers for Certification Exams</h1>
+        <p className="mt-2 max-w-3xl text-slate-600 dark:text-slate-400">
           Book your Certification exam with a genuine Vendor-issued <b className="text-ink dark:text-white">exam voucher in Singapore</b>, and prepare for it with the Practice Exam (worth <Price cents={PRACTICE_PRICE_CENTS} />) at no extra cost.
         </p>
       </div>

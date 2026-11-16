@@ -7,6 +7,7 @@ export type NotifyKind =
   | 'generation.failed'
   | 'email.failed'
   | 'enquiry.new'
+  | 'voucher.price'
   | 'manual';
 
 export async function notify(input: {

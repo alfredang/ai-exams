@@ -15,6 +15,8 @@ import { displayExamCode } from '@/lib/products';
 export const SCOPE_ASSIGN_PRACTICE_EXAMS = 'assign:practice-exams';
 /** Question banks: read questions, add sources and questions, record audits (exam-question-scout / -auditor agents). */
 export const SCOPE_QUESTIONS_WRITE = 'questions:write';
+/** Exam Voucher price checks: read vouchers, record official list prices (exam-voucher-pricer agent). */
+export const SCOPE_VOUCHERS_WRITE = 'vouchers:write';
 /** Direct database access (/api/v1/db/*). Never implied by `*`: a token must name these scopes. */
 export const SCOPE_DB_READ = 'db:read';
 export const SCOPE_DB_WRITE = 'db:write';
