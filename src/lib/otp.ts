@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import argon2 from 'argon2';
 import { db } from './db';
 import { sendOTPEmail } from './mail';
-import { rateLimit } from './ratelimit';
+import { clearRateLimits, rateLimit } from './ratelimit';
 import { rateLimitEmailKey } from './email-guard';
 
 export type OtpPurpose = 'LOGIN' | 'REGISTER' | 'RESET' | 'TEASER_GATE';
@@ -17,13 +17,15 @@ export async function issueOtp(
   // Set when the caller has just proven it owns this inbox (a follow-up
   // LOGIN code after REGISTER/TEASER_GATE verification), so the per-email
   // bucket a fresh signup may already have used up doesn't strand them.
-  opts: { inboxProven?: boolean } = {}
+  opts: { inboxProven?: boolean; byAdmin?: boolean } = {}
 ) {
   email = email.toLowerCase().trim();
   // 20/hour/IP (the CAPTCHA guards this path), 3/hour/mailbox
   const ipRl = rateLimit(`otp:ip:${ip}`, 20, 60 * 60_000);
   if (!ipRl.ok) return { ok: false as const, error: 'Too many requests, try later' };
-  if (!opts.inboxProven) {
+  // An admin-sent code (user page → Send login OTP) is not a bot, so it
+  // skips the 3/hour mailbox cap that a learner may already have used up.
+  if (!opts.inboxProven && !opts.byAdmin) {
     const emailRl = rateLimit(`otp:email:${rateLimitEmailKey(email)}`, 3, 60 * 60_000);
     if (!emailRl.ok) return { ok: false as const, error: 'Too many codes sent to this email' };
   }
@@ -106,4 +108,20 @@ export async function markInboxVerified(userId: string) {
     where: { id: userId, emailVerified: null },
     data: { emailVerified: new Date(), passwordHash: null }
   });
+}
+
+/**
+ * Clears every in-memory sign-in limit keyed on this mailbox: code requests,
+ * code checks (web + mobile) and failed email-code / password sign-ins.
+ * Per process only (the limiter is in-memory), which is the whole app today.
+ */
+export function resetSignInLimits(email: string): number {
+  const key = rateLimitEmailKey(email);
+  return clearRateLimits([
+    `otp:email:${key}`,
+    `otp-verify:email:${key}`,
+    `otp-login:email:${key}`,
+    `pw-login:email:${key}`,
+    `mobile-login:email:${key}`
+  ]);
 }

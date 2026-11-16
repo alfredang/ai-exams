@@ -21,3 +21,10 @@ export function isRateLimited(key: string, limit: number): boolean {
   const b = buckets.get(key);
   return !!b && b.resetAt >= Date.now() && b.count >= limit;
 }
+
+/** Drops buckets so the next call starts fresh. Returns how many were cleared. */
+export function clearRateLimits(keys: string[]): number {
+  let n = 0;
+  for (const k of keys) if (buckets.delete(k)) n++;
+  return n;
+}

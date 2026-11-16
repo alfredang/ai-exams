@@ -22,7 +22,8 @@ import {
   Eye as EyeIcon,
   Pin,
   Trash2,
-  Download
+  Download,
+  RotateCcw
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -73,12 +74,26 @@ async function resendLoginOtp(formData: FormData) {
   // Reuse the public OTP issuer (writes the OtpCode + sends the email).
   // Use a synthetic IP so the per-IP rate limit doesn't reject admin-driven sends.
   const { issueOtp } = await import('@/lib/otp');
-  const result = await issueOtp(user.email, 'LOGIN', `admin:${me.id}`);
+  const result = await issueOtp(user.email, 'LOGIN', `admin:${me.id}`, { byAdmin: true });
   if (!result.ok) redirect(`/admin-dashboard/users/${id}?otp=failed`);
   await db.adminLog.create({
     data: { adminId: me.id, action: 'user.resend-login-otp', targetType: 'User', targetId: id, metadata: { email: user.email } }
   });
   redirect(`/admin-dashboard/users/${id}?otp=sent`);
+}
+
+async function resetLimits(formData: FormData) {
+  'use server';
+  const me = await requireAdmin();
+  const id = bump(formData, 'id');
+  const user = await db.user.findUnique({ where: { id }, select: { email: true } });
+  if (!user) return;
+  const { resetSignInLimits } = await import('@/lib/otp');
+  const cleared = resetSignInLimits(user.email);
+  await db.adminLog.create({
+    data: { adminId: me.id, action: 'user.reset_signin_limits', targetType: 'User', targetId: id, metadata: { email: user.email, cleared } }
+  });
+  redirect(`/admin-dashboard/users/${id}?otp=reset`);
 }
 
 async function sendWelcome(formData: FormData) {
@@ -311,9 +326,13 @@ export default async function AdminUserDetailPage({
           {sp.welcome === 'sent' ? 'Welcome email sent to the user.' : 'Could not send the welcome email. Check email delivery, or whether the Welcome template is disabled.'}
         </p>
       )}
-      {(sp.otp === 'sent' || sp.otp === 'failed') && (
-        <p role="status" className={`mb-4 rounded-md p-3 text-sm ${sp.otp === 'sent' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'}`}>
-          {sp.otp === 'sent' ? 'Login code sent to the user.' : 'Could not send a login code. Check email delivery or try again later.'}
+      {(sp.otp === 'sent' || sp.otp === 'failed' || sp.otp === 'reset') && (
+        <p role="status" className={`mb-4 rounded-md p-3 text-sm ${sp.otp !== 'failed' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'}`}>
+          {sp.otp === 'sent'
+            ? 'Login code sent to the user.'
+            : sp.otp === 'reset'
+              ? 'Sign-in limits reset: the user can request a new email code now.'
+              : 'Could not send a login code. Check email delivery or try again later.'}
         </p>
       )}
 
@@ -733,6 +752,17 @@ export default async function AdminUserDetailPage({
                   <input type="hidden" name="id" value={user.id} />
                   <button className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                     <Send className="h-3 w-3" /> Send login OTP
+                  </button>
+                </form>
+              )}
+              {user.active && !user.anonymizedAt && (
+                <form action={resetLimits}>
+                  <input type="hidden" name="id" value={user.id} />
+                  <button
+                    title="Clears 'Too many codes sent to this email' and failed sign-in limits for this mailbox"
+                    className="inline-flex h-7 w-full items-center justify-center gap-1 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <RotateCcw className="h-3 w-3" /> Reset sign-in limits
                   </button>
                 </form>
               )}
