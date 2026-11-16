@@ -98,6 +98,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Practice Exam Registration Email:** When the LMS/TMS registers a learner for a practice exam (`POST /api/v1/registrations`), the learner gets an HTML email with a button to that practice exam, the steps to sign in with a one-time email code (OTP), and a prompt to start practising. It is sent once per class registration, and the **Practice Exam Registration** template is editable under Settings → Email templates.
 - **Users List:** **Admin → Users** searches by email, name or TMS course run ID and filters by status (active / suspended / anonymised) and join date; columns show orders, access grants, attempts, course run ID and register date, with a matching CSV export.
 - **Welcome Email:** Admins create a user at **Admin → Users**, grant practice exams on the Entitlements tab, then press **Send welcome email** — the editable **Welcome** template explains how to sign in (Google or email code) and lists the assigned exams.
+- **Sign-in help:** on a user's page, **Send login OTP** skips the 3-codes-per-hour mailbox cap, and **Reset sign-in limits** clears a learner stuck on "Too many codes sent to this email" (audited).
 
 ## Certification Catalog
 
