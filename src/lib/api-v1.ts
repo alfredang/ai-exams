@@ -15,6 +15,10 @@ import { displayExamCode } from '@/lib/products';
 export const SCOPE_ASSIGN_PRACTICE_EXAMS = 'assign:practice-exams';
 /** Question banks: read questions, add sources and questions, record audits (exam-question-scout / -auditor agents). */
 export const SCOPE_QUESTIONS_WRITE = 'questions:write';
+/** Direct database access (/api/v1/db/*). Never implied by `*`: a token must name these scopes. */
+export const SCOPE_DB_READ = 'db:read';
+export const SCOPE_DB_WRITE = 'db:write';
+const EXPLICIT_SCOPES = [SCOPE_DB_READ, SCOPE_DB_WRITE];
 
 const FAIL_LIMIT = 20;
 const FAIL_WINDOW_MS = 15 * 60_000;
@@ -33,7 +37,8 @@ export async function requireApiToken(req: Request, scope: string) {
     rateLimit(ipKey, FAIL_LIMIT, FAIL_WINDOW_MS);
     return { response: apiError('Invalid or missing API token', 401) };
   }
-  if (!token.scopes.includes(scope) && !token.scopes.includes('*')) {
+  const wildcardOk = !EXPLICIT_SCOPES.includes(scope) && token.scopes.includes('*');
+  if (!token.scopes.includes(scope) && !wildcardOk) {
     return { response: apiError(`Token lacks the "${scope}" scope`, 403) };
   }
   const admin = await db.user.findUnique({ where: { id: token.createdById }, select: { id: true, role: true, active: true } });

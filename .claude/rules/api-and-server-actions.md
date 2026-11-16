@@ -34,3 +34,6 @@ paths:
   OTP codes or put them in `EmailLog.payloadVars`.
 - `/api/mobile/*` shapes are a contract with shipped iOS/Android apps —
   additive changes only.
+- `/api/v1/db/*` is raw SQL behind `db:read` / `db:write` tokens; its safety is the
+  Postgres roles in `src/lib/db-api.ts`. When a new column holds a secret, add it
+  to `HIDDEN_COLUMNS` there in the same change.

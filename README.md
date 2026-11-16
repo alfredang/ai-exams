@@ -257,7 +257,7 @@ flowchart TD
 - `scripts/`: Bulk question seeding, content generation, and utility scripts.
 - `.claude/`: Project-specific Claude Code setup — path-scoped rules (`.claude/rules/`: API, payments, exam runtime, questions/seeds, storefront copy, auth/security, schema/deploy), skills (`custom-practice-exam`, `seo-audit`) and agents (`question-bank-generator` — Opus-authored MCQ / multiple-select / sequencing questions per exam domain; `security-scanner` — writes a local Word security assessment to the git-ignored `docs/security/`).
 - `public/`: Static assets and logos.
-- `docs/`: API specs (`api-v1-practice-exam-assignments.md` for partners/LMS, `api-v1-question-banks.md` for the exam-question-scout and -auditor agents), PRD, audits and session notes; `docs/images/` holds the README screenshots. Root-level images, decks and scratch output are git-ignored — keep the repo root for config and source only.
+- `docs/`: API specs (`api-v1-practice-exam-assignments.md` for partners/LMS, `api-v1-question-banks.md` for the exam-question-scout and -auditor agents, `api-v1-db.md` for direct database access via `npm run db:prod`), PRD, audits and session notes; `docs/images/` holds the README screenshots. Root-level images, decks and scratch output are git-ignored — keep the repo root for config and source only.
 
 ## Prerequisites
 

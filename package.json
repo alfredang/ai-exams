@@ -14,7 +14,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "generate:exam": "tsx scripts/generate-questions.ts",
-    "seed:prod": "bash scripts/seed-prod.sh"
+    "seed:prod": "bash scripts/seed-prod.sh",
+    "db:prod": "node scripts/prod-db.mjs"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",
