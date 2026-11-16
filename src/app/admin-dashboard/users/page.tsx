@@ -10,11 +10,20 @@ import { DataTable, type Column } from '@/components/admin/data-table';
 import { Pager } from '@/components/admin/pager';
 import { Badge } from '@/components/admin/badge';
 import { buildQS } from '@/components/admin/qs';
+import { DeleteUserButton } from '@/components/admin/delete-user-button';
 import { Download, Eye } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 50;
+
+const DELETE_ERRORS: Record<string, string> = {
+  orders: 'This user has orders, invoices or coupon redemptions, which are kept as GST records. Open the user and anonymize the account instead.',
+  staff: 'Staff accounts are managed under Admins and cannot be deleted here.',
+  self: 'You cannot delete your own account.',
+  linked: 'This user is linked to records that must be kept. Open the user and anonymize the account instead.',
+  missing: 'That user no longer exists.'
+};
 
 type SearchParams = Promise<{
   q?: string;
@@ -23,6 +32,8 @@ type SearchParams = Promise<{
   to?: string;
   page?: string;
   createError?: string;
+  deleted?: string;
+  deleteError?: string;
 }>;
 
 async function createUser(formData: FormData) {
@@ -82,7 +93,9 @@ async function loadUsers(where: Prisma.UserWhereInput, skip: number, take: numbe
 export default async function AdminUsersPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const session = await auth();
-  const canCreateUser = (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
+  const me = session?.user as { id?: string; role?: string; impersonatedBy?: string } | undefined;
+  const canCreateUser = me?.role === 'ADMIN';
+  const canDeleteUsers = canCreateUser && !me?.impersonatedBy;
   const q = (sp.q || '').trim();
   const status = ['active', 'suspended', 'anonymized'].includes(sp.status || '') ? sp.status || '' : '';
   const fromStr = validUserDate((sp.from || '').trim()) ? (sp.from || '').trim() : '';
@@ -110,6 +123,8 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
     fromStr && { key: 'from', label: fromStr, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, from: undefined })}` },
     toStr && { key: 'to', label: toStr, clearHref: `/admin-dashboard/users${buildQS({ ...baseParams, to: undefined })}` }
   ].filter(Boolean) as { key: string; label: string; clearHref: string }[];
+
+  const returnTo = buildHref(page);
 
   const exportHref = `/api/admin/users/export${buildQS(baseParams)}`;
 
@@ -203,13 +218,19 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
       align: 'right',
       sticky: true,
       cell: (u) => (
-        <Link
-          href={`/admin-dashboard/users/${u.id}`}
-          aria-label={`Open ${u.email}`}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-slate-800"
-        >
-          <Eye className="h-3.5 w-3.5" /> Open
-        </Link>
+        <div className="flex items-center justify-end gap-1">
+          <Link
+            href={`/admin-dashboard/users/${u.id}`}
+            aria-label={`Open ${u.email}`}
+            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-slate-800"
+          >
+            <Eye className="h-3.5 w-3.5" /> Open
+          </Link>
+          {/* Customers only; an account with orders is refused by the action. */}
+          {canDeleteUsers && u.role === 'USER' && u.id !== me?.id && (
+            <DeleteUserButton userId={u.id} email={u.email} name={u.name} returnTo={returnTo} />
+          )}
+        </div>
       )
     }
   ];
@@ -248,6 +269,17 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
             </p>
           )}
         </form>
+      )}
+
+      {sp.deleted && (
+        <p role="status" className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+          Deleted {sp.deleted}.
+        </p>
+      )}
+      {sp.deleteError && (
+        <p role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+          {DELETE_ERRORS[sp.deleteError] ?? 'The user could not be deleted.'}
+        </p>
       )}
 
       <FilterBar resetHref={activeFilters.length > 0 ? '/admin-dashboard/users' : undefined} activeFilters={activeFilters}>

@@ -9,6 +9,7 @@ import { formatOrderUsd, loadUsdSnapshots, orderUsdCents } from '@/lib/order-usd
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { ConfirmButton } from '@/components/admin/confirm-button';
+import { DeleteUserButton } from '@/components/admin/delete-user-button';
 import { ExamSearchSelect } from '@/components/admin/exam-search-select';
 import { ScoreTrend } from '@/components/score-trend';
 import { getAttemptHistory, type ExamHistory } from '@/lib/attempt-history';
@@ -814,6 +815,16 @@ export default async function AdminUserDetailPage({
                   <ShieldOff className="h-3 w-3" /> Anonymize (GDPR)
                 </ConfirmButton>
               </form>
+            </Card>
+          )}
+
+          {/* Customers with no money trail only; the action re-checks. */}
+          {user.role === 'USER' && user.id !== me.id && !me.impersonatedBy && orders.length === 0 && invoices.length === 0 && (
+            <Card title="Delete user">
+              <p className="mb-2 text-xs text-slate-500">
+                Permanently deletes this account with its exam access, attempts and results. <b>Cannot be undone.</b>
+              </p>
+              <DeleteUserButton userId={user.id} email={user.email} name={user.name} variant="button" />
             </Card>
           )}
         </div>
