@@ -23,20 +23,25 @@ export async function issueOtp(
   // 20/hour/IP (the CAPTCHA guards this path), 3/hour/mailbox
   const ipRl = rateLimit(`otp:ip:${ip}`, 20, 60 * 60_000);
   if (!ipRl.ok) return { ok: false as const, error: 'Too many requests, try later' };
-  // An admin-sent code (user page → Send login OTP) is not a bot, so it
-  // skips the 3/hour mailbox cap that a learner may already have used up.
-  if (!opts.inboxProven && !opts.byAdmin) {
-    const emailRl = rateLimit(`otp:email:${rateLimitEmailKey(email)}`, 3, 60 * 60_000);
-    if (!emailRl.ok) return { ok: false as const, error: 'Too many codes sent to this email' };
-  }
-
   // LOGIN and RESET codes are useless without an account, so don't mail
   // strangers' inboxes on a bot's behalf. Answer exactly as if we had sent
   // one, so the response doesn't reveal which emails are registered.
-  if (purpose === 'LOGIN' || purpose === 'RESET') {
-    const user = await db.user.findUnique({ where: { email }, select: { active: true } });
-    if (!user?.active) return { ok: true as const };
+  const needsAccount = purpose === 'LOGIN' || purpose === 'RESET';
+  const hasAccount = needsAccount
+    ? !!(await db.user.findUnique({ where: { email }, select: { active: true } }))?.active
+    : true;
+
+  // 3/hour/mailbox. Requests made while the email has no account count in a
+  // separate bucket (same limit, same answer, so still no enumeration): a
+  // learner who tries to sign in before the TMS registers them must not have
+  // used up the real account's codes (shamil707, 16 Nov 2026). An admin-sent
+  // code (user page → Send login OTP) is not a bot, so it skips the cap.
+  if (!opts.inboxProven && !opts.byAdmin) {
+    const bucket = hasAccount ? 'otp:email' : 'otp:email-noacct';
+    const emailRl = rateLimit(`${bucket}:${rateLimitEmailKey(email)}`, 3, 60 * 60_000);
+    if (!emailRl.ok) return { ok: false as const, error: 'Too many codes sent to this email' };
   }
+  if (!hasAccount) return { ok: true as const };
 
   // Invalidate any prior unconsumed codes for this email+purpose so only
   // the newest code is ever valid. Caps the brute-force surface to one
@@ -119,6 +124,7 @@ export function resetSignInLimits(email: string): number {
   const key = rateLimitEmailKey(email);
   return clearRateLimits([
     `otp:email:${key}`,
+    `otp:email-noacct:${key}`,
     `otp-verify:email:${key}`,
     `otp-login:email:${key}`,
     `pw-login:email:${key}`,
