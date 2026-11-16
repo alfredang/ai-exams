@@ -14,12 +14,15 @@ export function DeleteUserButton({
   email,
   name,
   returnTo,
+  records = 0,
   variant = 'icon'
 }: {
   userId: string;
   email: string;
   name?: string | null;
   returnTo?: string;
+  /** Orders, invoices and coupon redemptions on the account. Above zero, the dialog asks for an explicit override. */
+  records?: number;
   variant?: 'icon' | 'button';
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -57,6 +60,15 @@ export function DeleteUserButton({
             <b>{name || email}</b>
             {`${name ? ` (${email})` : ''} will be permanently deleted, with their exam access, attempts and results. This can't be undone.`}
           </p>
+          {records > 0 && (
+            <label className="mt-3 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+              <input type="checkbox" name="force" value="1" required className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                <b>Override:</b> this account has orders or invoices, kept as GST records. Tick to delete them
+                too. Their numbers and amounts stay in the audit log, and sales reports will no longer count them.
+              </span>
+            </label>
+          )}
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={() => ref.current?.close()} className="btn-sm-quiet">Cancel</button>
             <Confirm />

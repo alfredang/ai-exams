@@ -818,13 +818,19 @@ export default async function AdminUserDetailPage({
             </Card>
           )}
 
-          {/* Customers with no money trail only; the action re-checks. */}
-          {user.role === 'USER' && user.id !== me.id && !me.impersonatedBy && orders.length === 0 && invoices.length === 0 && (
+          {/* Customers only; an account with orders or invoices needs the dialog's override. */}
+          {user.role === 'USER' && user.id !== me.id && !me.impersonatedBy && (
             <Card title="Delete user">
               <p className="mb-2 text-xs text-slate-500">
                 Permanently deletes this account with its exam access, attempts and results. <b>Cannot be undone.</b>
               </p>
-              <DeleteUserButton userId={user.id} email={user.email} name={user.name} variant="button" />
+              <DeleteUserButton
+                userId={user.id}
+                email={user.email}
+                name={user.name}
+                records={orders.length + invoices.length}
+                variant="button"
+              />
             </Card>
           )}
         </div>

@@ -17,9 +17,11 @@ function listHref(returnTo: string, outcome: Record<string, string>) {
 
 /**
  * Permanently delete a customer account with its access grants, attempts,
- * reviews, notes and linked sign-ins. Refused for staff, for the admin's own
- * account, and for any account with orders, invoices or coupon redemptions —
- * those are GST records, so the account is anonymised instead.
+ * reviews, notes and linked sign-ins. Refused for staff and for the admin's
+ * own account. An account with orders, invoices or coupon redemptions (GST
+ * records) is refused unless the admin ticked the override in the dialog
+ * (`force`): then those records are deleted too, and their numbers and
+ * amounts are kept in the `user.delete` audit entry.
  */
 export async function deleteUser(formData: FormData) {
   const session = await auth();
@@ -33,6 +35,7 @@ export async function deleteUser(formData: FormData) {
 
   const id = String(formData.get('id') || '');
   const returnTo = String(formData.get('returnTo') || '');
+  const force = formData.get('force') === '1';
   const fail = (reason: string): never => redirect(listHref(returnTo, { deleteError: reason }));
 
   const user = await db.user.findUnique({
@@ -48,14 +51,52 @@ export async function deleteUser(formData: FormData) {
   if (!user) return fail('missing');
   if (user.id === actor.id) return fail('self');
   if (user.role !== 'USER') return fail('staff');
-  if (user._count.orders || user._count.invoices || user._count.couponRedemptions) return fail('orders');
+  const hasRecords = Boolean(user._count.orders || user._count.invoices || user._count.couponRedemptions);
+  if (hasRecords && !force) return fail('orders');
 
   try {
     await db.$transaction(async (tx) => {
       // Attempts are SetNull on the user FK; delete them so no ownerless
       // history is left behind. Everything else cascades with the account.
       const attempts = await tx.attempt.deleteMany({ where: { userId: user.id } });
+      // Override: remove the money trail first (the FKs refuse otherwise),
+      // keeping a snapshot of what was deleted in the audit entry.
+      let records: Prisma.InputJsonObject | undefined;
+      if (hasRecords) {
+        const orders = await tx.order.findMany({
+          where: { userId: user.id },
+          select: { id: true, number: true, status: true, amount: true, currency: true, provider: true, tier: true, createdAt: true }
+        });
+        const orderIds = orders.map((o) => o.id);
+        const invoices = await tx.invoice.findMany({
+          where: { OR: [{ userId: user.id }, { orderId: { in: orderIds } }] },
+          select: { id: true, number: true, status: true, total: true, currency: true, issueDate: true, creditNoteOfId: true }
+        });
+        const invoiceIds = invoices.map((i) => i.id);
+        await tx.refund.deleteMany({
+          where: { OR: [{ orderId: { in: orderIds } }, { creditNoteInvoiceId: { in: invoiceIds } }] }
+        });
+        await tx.couponRedemption.deleteMany({ where: { OR: [{ userId: user.id }, { orderId: { in: orderIds } }] } });
+        await tx.voucherDelivery.deleteMany({ where: { orderId: { in: orderIds } } });
+        // Credit notes point at the invoice they adjust — delete them first.
+        await tx.invoice.deleteMany({ where: { id: { in: invoiceIds }, creditNoteOfId: { not: null } } });
+        await tx.invoice.deleteMany({ where: { id: { in: invoiceIds } } });
+        await tx.order.deleteMany({ where: { id: { in: orderIds } } });
+        records = {
+          orders: orders.map((o) => ({
+            number: o.number, status: o.status, amount: o.amount, currency: o.currency,
+            provider: o.provider, tier: o.tier, createdAt: o.createdAt.toISOString()
+          })),
+          invoices: invoices.map((i) => ({
+            number: i.number, status: i.status, total: i.total, currency: i.currency,
+            issueDate: i.issueDate.toISOString(), creditNote: Boolean(i.creditNoteOfId)
+          }))
+        };
+      }
       await tx.otpCode.deleteMany({ where: { email: user.email } });
+      // SetNull relations that still hold the person's address or consents.
+      await tx.emailLog.deleteMany({ where: { OR: [{ userId: user.id }, { to: user.email }] } });
+      await tx.consentLog.deleteMany({ where: { userId: user.id } });
       await tx.user.delete({ where: { id: user.id } });
       await tx.adminLog.create({
         data: {
@@ -63,7 +104,12 @@ export async function deleteUser(formData: FormData) {
           action: 'user.delete',
           targetType: 'User',
           targetId: user.id,
-          metadata: { email: user.email, name: user.name, attempts: attempts.count }
+          metadata: {
+            email: user.email,
+            name: user.name,
+            attempts: attempts.count,
+            ...(records ? { override: true, deleted: records } : {})
+          }
         }
       });
     });

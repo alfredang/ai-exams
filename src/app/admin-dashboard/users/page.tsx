@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
 const PAGE_SIZE = 50;
 
 const DELETE_ERRORS: Record<string, string> = {
-  orders: 'This user has orders, invoices or coupon redemptions, which are kept as GST records. Open the user and anonymize the account instead.',
+  orders: 'This user has orders, invoices or coupon redemptions, which are kept as GST records. To delete anyway, tick the Override box in the delete dialog.',
   staff: 'Staff accounts are managed under Admins and cannot be deleted here.',
   self: 'You cannot delete your own account.',
   linked: 'This user is linked to records that must be kept. Open the user and anonymize the account instead.',
@@ -85,7 +85,7 @@ async function loadUsers(where: Prisma.UserWhereInput, skip: number, take: numbe
         take: 1,
         select: { courseRunId: true, registeredAt: true, remark: true }
       },
-      _count: { select: { orders: true, entitlements: true, attempts: true } }
+      _count: { select: { orders: true, entitlements: true, attempts: true, invoices: true, couponRedemptions: true } }
     }
   });
 }
@@ -226,9 +226,15 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
           >
             <Eye className="h-3.5 w-3.5" /> Open
           </Link>
-          {/* Customers only; an account with orders is refused by the action. */}
+          {/* Customers only; an account with orders needs the dialog's override. */}
           {canDeleteUsers && u.role === 'USER' && u.id !== me?.id && (
-            <DeleteUserButton userId={u.id} email={u.email} name={u.name} returnTo={returnTo} />
+            <DeleteUserButton
+              userId={u.id}
+              email={u.email}
+              name={u.name}
+              returnTo={returnTo}
+              records={u._count.orders + u._count.invoices + u._count.couponRedemptions}
+            />
           )}
         </div>
       )
