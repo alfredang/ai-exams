@@ -22,7 +22,11 @@ export const SCOPE_RESULTS_EMAIL = 'results:email';
 /** Direct database access (/api/v1/db/*). Never implied by `*`: a token must name these scopes. */
 export const SCOPE_DB_READ = 'db:read';
 export const SCOPE_DB_WRITE = 'db:write';
-const EXPLICIT_SCOPES = [SCOPE_DB_READ, SCOPE_DB_WRITE];
+/** Read and edit user profiles (/api/v1/users). */
+export const SCOPE_USERS_WRITE = 'users:write';
+/** Change a user's role (/api/v1/users). Never implied by `*` or `db:write`; the token must be minted by the super admin. */
+export const SCOPE_USERS_ROLE = 'users:role';
+const EXPLICIT_SCOPES = [SCOPE_DB_READ, SCOPE_DB_WRITE, SCOPE_USERS_ROLE];
 
 const FAIL_LIMIT = 20;
 const FAIL_WINDOW_MS = 15 * 60_000;
