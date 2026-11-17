@@ -65,6 +65,7 @@ const SECTIONS: NavSection[] = [
   {
     title: 'Money',
     items: [
+      { href: '/admin-dashboard/money', label: 'Money Dashboard', icon: LayoutDashboard },
       { href: '/admin-dashboard/orders', label: 'Orders', icon: ShoppingBag },
       { href: '/admin-dashboard/invoices', label: 'Invoices', icon: Receipt },
       {
@@ -76,8 +77,7 @@ const SECTIONS: NavSection[] = [
           { href: '/admin-dashboard/vouchers/inventory', label: 'Inventory' }
         ]
       },
-      { href: '/admin-dashboard/coupons', label: 'Coupons', icon: Tag },
-      { href: '/admin-dashboard/payments/webhooks', label: 'Webhook Events', icon: RefreshCw }
+      { href: '/admin-dashboard/coupons', label: 'Coupons', icon: Tag }
     ]
   },
   {
@@ -98,17 +98,17 @@ const SECTIONS: NavSection[] = [
   {
     title: 'People',
     items: [
+      { href: '/admin-dashboard/admins', label: 'Admins', icon: ShieldCheck },
       { href: '/admin-dashboard/users', label: 'Users', icon: Users },
-      { href: '/admin-dashboard/enquiries', label: 'Enquiries', icon: Inbox },
-      { href: '/admin-dashboard/admins', label: 'Admins', icon: ShieldCheck }
+      { href: '/admin-dashboard/enquiries', label: 'Enquiries', icon: Inbox }
     ]
   },
   {
     title: 'Content',
     items: [
-      { href: '/admin-dashboard/settings/email-templates', label: 'Email Templates', icon: Mail },
       { href: '/admin-dashboard/pages', label: 'Pages', icon: FileText },
       { href: '/admin-dashboard/faq', label: 'FAQ', icon: FileText },
+      { href: '/admin-dashboard/settings/email-templates', label: 'Email Templates', icon: Mail },
       { href: '/admin-dashboard/banners', label: 'Banners', icon: Sparkles },
       { href: '/admin-dashboard/reviews', label: 'Reviews', icon: MessageSquare },
       { href: '/admin-dashboard/testimonials', label: 'Testimonials', icon: Quote }
@@ -117,17 +117,6 @@ const SECTIONS: NavSection[] = [
   {
     title: 'System',
     items: [
-      { href: '/admin-dashboard/notifications', label: 'Notifications', icon: Bell },
-      {
-        href: '/admin-dashboard/emails',
-        label: 'Logs',
-        icon: Inbox,
-        children: [
-          { href: '/admin-dashboard/emails', label: 'Email Log' },
-          { href: '/admin-dashboard/audit', label: 'Audit Log' }
-        ]
-      },
-      { href: '/admin-dashboard/api-tokens', label: 'API Tokens', icon: Key },
       {
         href: '/admin-dashboard/settings',
         label: 'Settings',
@@ -143,6 +132,18 @@ const SECTIONS: NavSection[] = [
           { href: '/admin-dashboard/settings/social-login', label: 'Social Login', icon: LogIn },
           { href: '/admin-dashboard/settings/security', label: 'Security', icon: ShieldCheck },
           { href: '/admin-dashboard/settings/credentials', label: 'Credentials', icon: Key }
+        ]
+      },
+      { href: '/admin-dashboard/notifications', label: 'Notifications', icon: Bell },
+      { href: '/admin-dashboard/api-tokens', label: 'API Tokens', icon: Key },
+      { href: '/admin-dashboard/payments/webhooks', label: 'Webhook Events', icon: RefreshCw },
+      {
+        href: '/admin-dashboard/emails',
+        label: 'Logs',
+        icon: Inbox,
+        children: [
+          { href: '/admin-dashboard/emails', label: 'Email Log' },
+          { href: '/admin-dashboard/audit', label: 'Audit Log' }
         ]
       }
     ]

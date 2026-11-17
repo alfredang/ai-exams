@@ -96,6 +96,7 @@ Tertiary Exams is built to provide an end-to-end e-commerce and exam-taking expe
 - **Sales Order Alerts:** Each paid order also emails the sales inbox the buyer's name, email, phone, exam title and code, payment method and date.
 - **Question Pool Admin:** Each exam's admin page shows the exam % per domain, questions in the pool, and questions drawn per attempt, with editable weights and the official source link.
 - **Comprehensive Admin Dashboard:** Manage catalog, orders, users (RBAC), refunds, coupons, API tokens, dynamic settings, and CMS content (FAQ, Banners).
+- **Two Admin Dashboards:** `/admin-dashboard` leads with usage — **Active users**, **Practice exam attempts** (teasers excluded) and **Vouchers purchased**, each for 30 days with 7-day and all-time figures — while the **Money dashboard** (`/admin-dashboard/money`) holds revenue (today / 7d / 30d / MTD), refund rate, signups, active learners, flagged questions and GST collected.
 - **Partner API (v1):** Bearer-token endpoints for agents and partner integrations, using tokens minted at `/admin-dashboard/api-tokens` with the `assign:practice-exams` scope. `GET /api/v1/practice-exams?q=` lists assignable practice exams; `GET/POST/DELETE /api/v1/assignments` lists, grants (idempotent `ADMIN_GRANT`) or removes a user's practice-exam access by email — paid access is never touched. A token stops working once its issuing admin is no longer an active admin, and every change is audited as that admin.
 - **Users API (v1):** `GET /api/v1/users` looks up a user by email, id or search text and `PATCH /api/v1/users` updates name, nationality, active, email-verified and the set-a-password flag (scope `users:write`). Changing a role needs the separate `users:role` scope on a token minted by the super admin. Spec: [docs/api-v1-users.md](docs/api-v1-users.md).
 - **Weekly Exam Voucher Price Check:** the `exam-voucher-pricer` agent reads each vendor's official exam price and posts it to `POST /api/v1/exam-vouchers/price-checks` (token scope `vouchers:write`, spec in `docs/api-v1-exam-vouchers.md`). The site sets the selling price to the list price + 10% for GST, rounded down to a whole dollar, and holds for an admin any price typed by hand or any change over 25%. The Exam Voucher admin page shows the last check, its source and whether it was applied.
@@ -346,7 +347,7 @@ flowchart TD
 
 ### Admin Flow
 1. Sign in using the seeded admin credentials.
-2. Navigate to `/admin-dashboard` to view KPIs and manage the catalog.
+2. Navigate to `/admin-dashboard` for usage KPIs (active users, practice exam attempts, vouchers purchased) and `/admin-dashboard/money` for revenue, refunds and GST.
 3. Go to `/admin-dashboard/settings` to configure Payment Providers, Email Transports, and Social Logins — the **Payment Setup Guide** page there walks through PayPal, HitPay, and Stripe setup with live status checks and webhook URLs.
 4. Work sales leads from the Support page at `/admin-dashboard/enquiries` (filter by status and topic; reply by email or WhatsApp, then mark Contacted / Closed).
 5. Onboard a learner by hand at `/admin-dashboard/users`: create the account (name + email), grant practice exams on its **Entitlements** tab, then **Send welcome email** (template editable under Settings → Email templates).

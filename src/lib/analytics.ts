@@ -78,6 +78,34 @@ export async function activeLearnersIn(range: Range): Promise<number> {
   return Number(rows[0]?.n ?? 0);
 }
 
+/**
+ * Practice exam attempts started in a window (Practice and Exam mode). Free
+ * teasers are left out: they are marketing, not use of a bought exam.
+ * A null range counts every attempt ever started.
+ */
+export async function practiceAttemptsIn(range: Range | null): Promise<number> {
+  return db.attempt.count({
+    where: {
+      isTeaser: false,
+      ...(range ? { startedAt: { gte: range.from, lte: range.to } } : {})
+    }
+  });
+}
+
+/**
+ * Exam Vouchers bought: PAID orders for the VOUCHER product, by payment date.
+ * A null range counts every one ever paid.
+ */
+export async function vouchersPurchasedIn(range: Range | null): Promise<number> {
+  return db.order.count({
+    where: {
+      status: 'PAID',
+      tier: 'VOUCHER',
+      ...(range ? { capturedAt: { gte: range.from, lte: range.to } } : {})
+    }
+  });
+}
+
 /** Tax collected from Invoice rows (ISSUED status only) in a window. */
 export async function taxCollectedIn(range: Range) {
   const rows = await db.invoice.findMany({

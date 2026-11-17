@@ -1,40 +1,39 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { formatMoney, tierLabel } from '@/lib/utils';
+import { tierLabel } from '@/lib/utils';
 import { formatOrderUsd, loadUsdSnapshots } from '@/lib/order-usd';
 import { PageHeader } from '@/components/admin/page-header';
 import { Badge, StatusBadge } from '@/components/admin/badge';
 import { StatCard } from '@/components/admin/stat-card';
-import { paidOrdersIn, signupsIn, activeLearnersIn, taxCollectedIn, Ranges } from '@/lib/analytics';
+import { activeLearnersIn, practiceAttemptsIn, vouchersPurchasedIn, Ranges } from '@/lib/analytics';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOverview() {
-  const today = Ranges.today();
   const last7 = Ranges.lastNDays(7);
   const last30 = Ranges.lastNDays(30);
-  const mtd = Ranges.mtd();
 
   const [
-    todayStats,
-    last7Stats,
-    last30Stats,
-    mtdStats,
-    signups30,
-    activeLearners30,
-    taxMtd,
+    activeUsers30,
+    activeUsers7,
+    attempts30,
+    attempts7,
+    attemptsAll,
+    vouchers30,
+    vouchers7,
+    vouchersAll,
     latestUsers,
     latestOrders,
-    popularOrders,
-    questionFlags
+    popularOrders
   ] = await Promise.all([
-    paidOrdersIn(today),
-    paidOrdersIn(last7),
-    paidOrdersIn(last30),
-    paidOrdersIn(mtd),
-    signupsIn(last30),
     activeLearnersIn(last30),
-    taxCollectedIn(mtd),
+    activeLearnersIn(last7),
+    practiceAttemptsIn(last30),
+    practiceAttemptsIn(last7),
+    practiceAttemptsIn(null),
+    vouchersPurchasedIn(last30),
+    vouchersPurchasedIn(last7),
+    vouchersPurchasedIn(null),
     db.user.findMany({
       where: { role: 'USER' },
       orderBy: { createdAt: 'desc' },
@@ -61,8 +60,7 @@ export default async function AdminOverview() {
       _count: { examId: true },
       orderBy: { _count: { examId: 'desc' } },
       take: 5
-    }),
-    db.question.count({ where: { status: 'PUBLISHED', auditFlag: { not: null } } })
+    })
   ]);
 
   const latestUsd = await loadUsdSnapshots(latestOrders);
@@ -76,38 +74,16 @@ export default async function AdminOverview() {
     : [];
   const popularExamMap = new Map(popularExams.map((e) => [e.id, e]));
 
-  const refundRate30 = last30Stats.ordersCount
-    ? (last30Stats.refundCount / last30Stats.ordersCount)
-    : 0;
-
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle="Operational health at a glance. Click any card to drill into the report." />
+      <PageHeader title="Dashboard" subtitle="Usage at a glance. Revenue, refunds and GST are on the Money dashboard." />
 
-      {/* Revenue KPI row */}
-      <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Revenue today" value={formatMoney(todayStats.grossCents, 'USD')} sub={`${todayStats.ordersCount} order${todayStats.ordersCount === 1 ? '' : 's'}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=today" />
-        <StatCard label="Revenue · 7d" value={formatMoney(last7Stats.grossCents, 'USD')} sub={`AOV ${formatMoney(last7Stats.aovCents, 'USD')}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=7d" />
-        <StatCard label="Revenue · 30d" value={formatMoney(last30Stats.grossCents, 'USD')} sub={`Net ${formatMoney(last30Stats.netCents, 'USD')}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=30d" />
-        <StatCard label="Revenue · MTD" value={formatMoney(mtdStats.grossCents, 'USD')} sub={`${mtdStats.ordersCount} order${mtdStats.ordersCount === 1 ? '' : 's'}`} accent="emerald" href="/admin-dashboard/reports/revenue?range=mtd" />
+      {/* Usage KPIs — money KPIs live on the Money dashboard (/admin-dashboard/money). */}
+      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+        <StatCard label="Active users · 30d" value={activeUsers30.toLocaleString()} sub={`took an exam · 7d ${activeUsers7.toLocaleString()}`} accent="brand" href="/admin-dashboard/users" />
+        <StatCard label="Practice exam attempts · 30d" value={attempts30.toLocaleString()} sub={`7d ${attempts7.toLocaleString()} · all time ${attemptsAll.toLocaleString()}`} accent="brand" href="/admin-dashboard/reports/exams" />
+        <StatCard label="Vouchers purchased · 30d" value={vouchers30.toLocaleString()} sub={`7d ${vouchers7.toLocaleString()} · all time ${vouchersAll.toLocaleString()}`} accent="emerald" href="/admin-dashboard/vouchers" />
       </div>
-
-      {/* Operational KPI row */}
-      <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Refund rate · 30d" value={`${(refundRate30 * 100).toFixed(1)}%`} sub={`${last30Stats.refundCount} refunds`} accent="amber" href="/admin-dashboard/orders?status=REFUNDED" />
-        <StatCard label="Signups · 30d" value={signups30.toLocaleString()} sub="new users" accent="brand" href="/admin-dashboard/users" />
-        <StatCard label="Active learners · 30d" value={activeLearners30.toLocaleString()} sub="unique attempts" accent="brand" href="/admin-dashboard/users" />
-        <StatCard label="Flagged questions" value={questionFlags.toLocaleString()} sub="may be wrong or outdated" accent={questionFlags > 0 ? 'rose' : 'slate'} href="/admin-dashboard/questions#audit-flags" />
-      </div>
-
-      {/* Tax (MTD) helper */}
-      <StatCard
-        className="mb-4"
-        label="Tax collected · MTD"
-        value={formatMoney(taxMtd.taxUsdTotal, 'USD')}
-        sub={`GST included · ${taxMtd.invoiceCount} invoice${taxMtd.invoiceCount === 1 ? '' : 's'} · total ${formatMoney(taxMtd.totalUsd, 'USD')}`}
-        action={<Link href="/admin-dashboard/reports/tax" className="btn-sm-quiet shrink-0">GST report →</Link>}
-      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="card p-4">
