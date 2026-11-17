@@ -7,6 +7,7 @@ import { decrypt, encrypt } from '../src/lib/settings-crypto';
 import { importCcarFoundationsPptx } from '../src/lib/seed/import-ccar-foundations-pptx';
 import { cleanUpUsersOnce } from '../src/lib/user-cleanup';
 import { cancelPendingOrdersOnce } from '../src/lib/order-cleanup';
+import { promoteAdminOnce } from '../src/lib/admin-promote';
 import { voucherPriceWithGst } from '../src/lib/currency';
 import { upliftVoucherPricesOnce } from '../src/lib/voucher-price-uplift';
 import { queueAnswerCheckOnce, removeReviewQueueOnce } from '../src/lib/review-cleanup';
@@ -2567,6 +2568,14 @@ async function main() {
     if (cancelled !== null) console.log(`✓ Pending orders cancelled: ${cancelled}`);
   } catch (e) {
     console.error('Pending-order clean-up skipped:', e);
+  }
+
+  // Owner's request, 17 Nov 2026: make this existing account an admin, once.
+  // Removing the role later in Admin → Admins sticks. Never blocks the seed.
+  try {
+    if (await promoteAdminOnce(db, 'angss@tertiaryinfotech.com', 'promote-admin-2026-11-17')) console.log('✓ Admin role granted');
+  } catch (e) {
+    console.error('Admin promotion skipped:', e);
   }
 
   // The human review queue is gone (16 Nov 2026): AI drafts still waiting are
