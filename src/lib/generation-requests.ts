@@ -12,6 +12,8 @@
  * answer-key comparison and publishing all stay here, so a question reaches
  * the pool under the same rules as the OpenAI path — with one stricter rule:
  * only a question the checker AGREES with is published (never "fixed").
+ * `autoPublish` (default true) publishes straight into the pool; false saves
+ * the questions as DRAFT ("Awaiting review") for an admin to publish by hand.
  */
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -147,6 +149,7 @@ export async function listGenerationRequests(where: Prisma.GenerationRequestWher
       phase: true,
       mode: true,
       rephrase: true,
+      autoPublish: true,
       count: true,
       created: true,
       dropped: true,
@@ -169,6 +172,7 @@ export async function listGenerationRequests(where: Prisma.GenerationRequestWher
     phase: r.phase,
     mode: r.mode,
     rephrase: r.rephrase,
+    autoPublish: r.autoPublish,
     count: r.count,
     created: r.created,
     dropped: r.dropped,
@@ -363,7 +367,8 @@ export async function publishCheckedBatch(
           ...v,
           explanation: check.explanation ?? v.explanation,
           references: check.references ?? v.references,
-          status: 'PUBLISHED',
+          // Review mode holds the question as DRAFT ("Awaiting review") until an admin publishes it.
+          status: ctx.request.autoPublish ? 'PUBLISHED' : 'DRAFT',
           generatedBy: `agent:generator:${input.writer}`,
           sourceId: ctx.request.sourceId,
           aiCheckedAt: new Date(),

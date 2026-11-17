@@ -14,7 +14,9 @@ const Body = z.object({
   types: z.array(z.enum(['SINGLE', 'MULTI', 'ORDERING', 'TRUE_FALSE'])).default([]),
   sourceId: z.string().optional(),
   mode: z.enum(['generate', 'extract']).default('generate'),
-  rephrase: z.boolean().default(true)
+  rephrase: z.boolean().default(true),
+  /** false = hold the questions as DRAFT for an admin to review and publish. */
+  autoPublish: z.boolean().default(true)
 });
 
 async function admin() {
@@ -62,6 +64,7 @@ export async function POST(req: Request) {
       mode: source ? body.mode : 'generate',
       // Question repos on GitHub are often copied exam content: never keep their wording.
       rephrase: body.rephrase || urls.some(isGithubUrl),
+      autoPublish: body.autoPublish,
       count: body.count,
       types,
       domains
@@ -74,7 +77,7 @@ export async function POST(req: Request) {
       action: 'question.generation_request',
       targetType: 'Exam',
       targetId: exam.id,
-      metadata: { requestId: row.id, count: body.count, mode: source ? body.mode : 'generate', sourceId: source?.id ?? null, types, domains }
+      metadata: { requestId: row.id, autoPublish: body.autoPublish, count: body.count, mode: source ? body.mode : 'generate', sourceId: source?.id ?? null, types, domains }
     }
   });
   return Response.json({ id: row.id });

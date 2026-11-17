@@ -21,7 +21,9 @@ const Body = z.object({
   /** extract = the questions already in the source; generate = new ones from it. */
   mode: z.enum(['generate', 'extract']).default('generate'),
   /** Extract mode: reword each extracted question. */
-  rephrase: z.boolean().default(true)
+  rephrase: z.boolean().default(true),
+  /** false = save as DRAFT ("Awaiting review") for an admin to publish by hand. */
+  autoPublish: z.boolean().default(true)
 });
 
 const CONCURRENCY = 3; // model calls in flight
@@ -112,7 +114,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             options: q.options,
             correct: q.correct,
             references: q.references,
-            status: 'PUBLISHED',
+            status: body.autoPublish ? 'PUBLISHED' : 'DRAFT',
             generatedBy,
             sourceId: source?.id ?? null,
             aiCheckedAt: q.check ? new Date() : null,
@@ -163,6 +165,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             metadata: {
               model: `openai:${provider.model}`,
               requested: body.count,
+              autoPublish: body.autoPublish,
               created,
               rejected,
               keyFixed: fixed,

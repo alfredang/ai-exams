@@ -43,7 +43,8 @@ function preview(domains: GeneratorExam['domains'], total: number): Record<strin
 }
 
 /**
- * "AI Generate" button + pop-up form for the AI Question and Answer Generator:
+ * "Get sources" button + pop-up form for the AI Question and Answer Generator
+ * (step 1 of the flow: exam, number of questions, source; then how to publish):
  * exam (when more than one is offered), source (AI generation, YouTube link,
  * web link or PDF upload — a source is read first via
  * /api/admin/exams/[id]/sources), Extract / Generate mode with an optional
@@ -60,7 +61,7 @@ export function AiGenerateDialog({
   defaultOpen = false,
   configured,
   providers,
-  triggerLabel = 'AI Generate',
+  triggerLabel = 'Get sources',
   triggerClassName = 'inline-flex h-10 items-center gap-1.5 rounded-md bg-violet-600 px-4 text-[13px] font-medium text-white hover:bg-violet-700'
 }: {
   exams: GeneratorExam[];
@@ -99,6 +100,8 @@ export function AiGenerateDialog({
   const [error, setError] = useState('');
   const [created, setCreated] = useState<number | null>(null);
   const [queued, setQueued] = useState(false);
+  // Step 3: publish straight into the pool (default) or hold for the admin's review.
+  const [autoPublish, setAutoPublish] = useState(true);
   const isLink = sourceKind === 'YOUTUBE' || sourceKind === 'URL' || sourceKind === 'GITHUB';
   const mustRephrase = sourceKind === 'GITHUB';
 
@@ -196,6 +199,7 @@ export function AiGenerateDialog({
             count,
             types: allTypes ? [] : kinds,
             domains: allDomains ? [] : picked,
+            autoPublish,
             ...(source ? { sourceId: source.id, mode, rephrase: rephrase || mustRephrase } : {})
           })
         });
@@ -204,6 +208,12 @@ export function AiGenerateDialog({
         setQueued(true);
         window.dispatchEvent(new Event('generation-requests:changed'));
         router.refresh();
+        // Close so the animated step cards behind the pop-up are visible.
+        setTimeout(() => {
+          setOpen(false);
+          setQueued(false);
+          document.getElementById('ai-flow')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 900);
         return;
       }
       const res = await fetch(`/api/admin/exams/${exam.id}/ai-generate`, {
@@ -213,6 +223,7 @@ export function AiGenerateDialog({
           count,
           types: allTypes ? [] : kinds,
           domains: allDomains ? [] : picked,
+          autoPublish,
           ...(source ? { sourceId: source.id, mode, rephrase: rephrase || mustRephrase } : {})
         })
       });
@@ -267,7 +278,7 @@ export function AiGenerateDialog({
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-700">
           <h2 id="ai-gen-title" className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-100">
             <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-            AI Question and Answer Generator
+            Get sources
           </h2>
           <button
             type="button"
@@ -320,6 +331,11 @@ export function AiGenerateDialog({
                 </div>
               </div>
             )}
+
+            <label className="block max-w-[12rem]">
+              <span className="label">{sourceKind !== 'AI' && mode === 'extract' ? 'Up to # of questions' : '# of questions'}</span>
+              <input type="number" min={1} max={200} className="input" value={count} onChange={(e) => setCount(Number(e.target.value))} />
+            </label>
 
             <div>
               <span className="label">Source</span>
@@ -381,10 +397,6 @@ export function AiGenerateDialog({
               </div>
             )}
 
-            <label className="block max-w-[12rem]">
-              <span className="label">{sourceKind !== 'AI' && mode === 'extract' ? 'Up to # of questions' : '# of questions'}</span>
-              <input type="number" min={1} max={200} className="input" value={count} onChange={(e) => setCount(Number(e.target.value))} />
-            </label>
 
             <div>
               <span className="label">Question types{sourceKind !== 'AI' && mode === 'extract' ? ' (extracted questions keep their own type)' : ''}</span>
@@ -437,11 +449,50 @@ export function AiGenerateDialog({
                 </>
               )}
             </div>
+
+            <div>
+              <span className="label">Publish</span>
+              <div className="flex flex-wrap gap-2">
+                <label className={chip(autoPublish)}>
+                  <input type="radio" name="ai-publish" checked={autoPublish} onChange={() => setAutoPublish(true)} /> Auto publish
+                </label>
+                <label className={chip(!autoPublish)}>
+                  <input type="radio" name="ai-publish" checked={!autoPublish} onChange={() => setAutoPublish(false)} /> Review first
+                </label>
+              </div>
+              <p className="mt-1 text-[12px] text-slate-500 dark:text-slate-400">
+                {autoPublish
+                  ? 'Questions whose answer key passes the AI check go straight into the pool.'
+                  : 'Questions are saved as Awaiting review. They are not in any exam until you publish them on the question bank page.'}
+              </p>
+            </div>
           </fieldset>
         }
 
         {
           <div className="grid gap-3 border-t border-slate-200 px-5 py-4 dark:border-slate-700">
+            {busy && (
+              <ol className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium" aria-live="polite">
+                {(
+                  [
+                    ['Get sources', phase === 'reading', phase === 'generating'],
+                    ['AI generated answers', phase === 'generating', false],
+                    [autoPublish ? 'Publish' : 'Save for review', phase === 'generating' && done > 0, false]
+                  ] as [string, boolean, boolean][]
+                ).map(([label, on, finished], i) => (
+                  <li key={label} className={`flex items-center gap-1.5 ${on ? 'text-violet-700 dark:text-violet-300' : finished ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'}`}>
+                    <span className="relative inline-flex h-5 w-5">
+                      {on && <span className="absolute inset-0 rounded-full bg-violet-400 opacity-60 motion-safe:animate-ping" />}
+                      <span className={`relative inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold text-white ${on ? 'bg-violet-600' : finished ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                        {finished ? '✓' : i + 1}
+                      </span>
+                    </span>
+                    {label}
+                    {i < 2 && <span aria-hidden className="ml-1.5 text-slate-300">→</span>}
+                  </li>
+                ))}
+              </ol>
+            )}
             {(busy || done > 0) && (
               <div className="h-1.5 overflow-hidden rounded bg-slate-200 dark:bg-slate-800">
                 <div className="h-full bg-violet-600 transition-all" style={{ width: `${Math.min(100, (done / Math.max(1, count)) * 100)}%` }} />
@@ -453,12 +504,12 @@ export function AiGenerateDialog({
             )}
             {queued && (
               <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
-                Queued for the AI agents. Progress shows under Agent requests on the AI Q&amp;A Generator page; you can close this window.
+                Started. Watch the steps on the AI Q&amp;A Generator page.
               </p>
             )}
             {created !== null && (
               <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
-                {created} question{created === 1 ? '' : 's'} added to the pool
+                {created} question{created === 1 ? '' : 's'} {autoPublish ? 'added to the pool' : 'saved for your review'}
                 {fixed > 0 ? ` (${fixed} answer key${fixed === 1 ? '' : 's'} corrected by the AI check)` : ''}.
               </p>
             )}
@@ -486,16 +537,16 @@ export function AiGenerateDialog({
                     AI: <span className="font-mono">{providers}</span>. Each answer key is checked by AI, then the question is published to the pool.
                   </>
                 ) : (
-                  'AI agents: gpt-6.1-sol writes, Claude Opus checks each answer, then the question is published to the pool.'
+                  `AI agents: gpt-6.1-sol writes, Claude Opus checks each answer, then the question is ${autoPublish ? 'published to the pool' : 'saved for your review'}.`
                 )}
               </p>
               {exam && created !== null && created > 0 && (
                 <a
-                  href={`/admin-dashboard/exams/${exam.id}#questions`}
+                  href={`/admin-dashboard/exams/${exam.id}${autoPublish ? '' : '?qstatus=DRAFT'}#questions`}
                   onClick={() => setOpen(false)}
                   className="inline-flex h-10 items-center rounded-md border border-slate-300 px-4 text-[13px] font-medium text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200"
                 >
-                  View in question bank →
+                  {autoPublish ? 'View in question bank →' : 'Review and publish →'}
                 </a>
               )}
               <button
@@ -512,7 +563,7 @@ export function AiGenerateDialog({
                       ? `Working… ${done}/${count}`
                       : 'Queuing…'
                   : !configured
-                    ? `Queue ${count || ''} question${count === 1 ? '' : 's'} for the AI agents`
+                    ? `Start · ${count || ''} question${count === 1 ? '' : 's'}`
                     : sourceKind !== 'AI' && mode === 'extract'
                     ? `Extract up to ${count || ''} question${count === 1 ? '' : 's'}`
                     : `Generate ${count || ''} question${count === 1 ? '' : 's'}`}

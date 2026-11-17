@@ -27,6 +27,8 @@ the macOS Keychain (`exam-qbank-token`). Worker: `~/DigitalWorkforce/bin/exam-ge
 
 Any call on a request that is no longer `RUNNING` (cancelled by an admin, finished) answers **409**: stop working on it.
 
+A request has `autoPublish` (default true). When the admin chose **Review first** it is false, and the questions are saved as `DRAFT` ("Awaiting review") instead of `PUBLISHED`: an admin publishes them on the Question Bank page.
+
 Published questions carry `generatedBy: agent:generator:<writer>` (e.g. `agent:generator:codex:gpt-6.1-sol`),
 `aiCheckedAt` and `aiCheck { verdict: 'ok', model: <checker> }`, so the pool-wide answer-key check skips them.
 A finished request writes AdminLog `question.agent_generate`; queuing writes `question.generation_request`,

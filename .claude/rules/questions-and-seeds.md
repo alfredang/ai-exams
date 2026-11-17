@@ -46,6 +46,8 @@ paths:
   agent worker instead (gpt-6.1-sol via Codex CLI writes, Claude Opus checks;
   only questions the checker agrees with publish) — see
   `src/lib/generation-requests.ts`.
+  Each run is Auto publish (default, `PUBLISHED`) or Review first (`DRAFT`,
+  shown as "Awaiting review", published by hand from the question list).
   Claude-authored banks go through the `question-bank-generator` agent and a
   seed module.
 - Seeding production: `npm run seed:prod -- <name> <expected-slug>` after the

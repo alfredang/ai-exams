@@ -31,8 +31,11 @@ export function questionPresentationType(question: QuestionShape): string {
 /** Question-bank list filters (?domain=&qstatus=&qtype=&qflag=); '' means any. */
 export type QuestionListFilter = { domain: string; status: string; type: string; flag?: string };
 
-/** No review queue any more: DRAFT only survives on rows from before 16 Nov 2026. */
-export const QUESTION_STATUS_FILTERS = ['PUBLISHED', 'ARCHIVED'];
+/**
+ * DRAFT = "Awaiting review": questions the AI Q&A Generator saved in Review
+ * mode, held until an admin publishes them (Auto publish is the default).
+ */
+export const QUESTION_STATUS_FILTERS = ['PUBLISHED', 'DRAFT', 'ARCHIVED'];
 
 /**
  * ?qflag= filters: the auditor agent's flags, the AI answer-key check's
@@ -60,7 +63,7 @@ export const QUESTION_TYPE_FILTERS = ['SINGLE', 'MULTI', 'TRUE_FALSE', 'ORDERING
 /** Admin label for a question status: ARCHIVED reads "Unpublished". */
 export const QUESTION_STATUS_LABEL: Record<string, string> = {
   PUBLISHED: 'Published',
-  DRAFT: 'Draft',
+  DRAFT: 'Awaiting review',
   ARCHIVED: 'Unpublished'
 };
 

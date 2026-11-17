@@ -6,8 +6,6 @@ import { ConfirmButton } from '@/components/admin/confirm-button';
 import { Pager } from '@/components/admin/pager';
 import { poolStats } from '@/lib/question-pool';
 import { qaProvider } from '@/lib/openai';
-import { answerCheckProgress } from '@/lib/answer-check-job';
-import { AnswerCheckPanel } from '@/components/admin/answer-check-panel';
 import { AddQuestionsPanel } from '@/components/admin/add-questions-panel';
 import { QuestionForm } from '@/components/admin/question-form';
 import { AiGenerateDialog } from '@/components/admin/ai-question-generator';
@@ -78,9 +76,10 @@ export default async function EditExamPage({
   };
   const publishedCount = exam.questions.filter((q) => q.status === 'PUBLISHED').length;
   const auditFlagged = exam.questions.filter((q) => q.status === 'PUBLISHED' && q.auditFlag).length;
-  const [provider, checkProgress] = await Promise.all([qaProvider(), answerCheckProgress(exam.id)]);
+  const provider = await qaProvider();
   const TYPE_NAMES: Record<string, string> = { SINGLE: 'MCQ', MULTI: 'Multiple select', ORDERING: 'Sequencing', TRUE_FALSE: 'True/False', HOTSPOT: 'Hotspot' };
   const unpublishedCount = exam.questions.filter((q) => q.status === 'ARCHIVED').length;
+  const reviewCount = exam.questions.filter((q) => q.status === 'DRAFT').length;
   const BULK_FORM_ID = 'question-bulk-form';
   // Result of the last bulk action (?bulk=op:count).
   const [bulkOp, bulkCount] = (sp.bulk ?? '').split(':');
@@ -122,16 +121,6 @@ export default async function EditExamPage({
         </p>
       )}
 
-      {!exam.poolExam && (
-        <AnswerCheckPanel
-          examId={exam.id}
-          initial={checkProgress}
-          configured={!!provider}
-          fixedHref={filterHref({ qflag: 'ai-fixed' })}
-          unsureHref={filterHref({ qflag: 'ai-unsure' })}
-        />
-      )}
-
       <section id="questions" className="card scroll-mt-24 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -139,6 +128,14 @@ export default async function EditExamPage({
             <div className="text-xs text-slate-500">
               {publishedCount} published ·{' '}
               {unpublishedCount} unpublished ·{' '}
+              {reviewCount > 0 && (
+                <>
+                  <a href={filterHref({ qstatus: 'DRAFT' })} className="font-semibold text-amber-700 hover:underline dark:text-amber-400">
+                    {reviewCount} awaiting review
+                  </a>{' '}
+                  ·{' '}
+                </>
+              )}
               {auditFlagged > 0 ? <a href={filterHref({ qflag: 'audit' })} className="font-semibold text-rose-700 hover:underline dark:text-rose-400">{auditFlagged} audit flag{auditFlagged === 1 ? '' : 's'}</a> : '0 audit flags'} ·{' '}
               each attempt draws {Math.min(exam.questionCount, pool.total)} published questions by domain · Exam mode {exam.durationMinutes} min · pass {exam.passingScore}%
             </div>
@@ -195,7 +192,7 @@ export default async function EditExamPage({
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="w-14 shrink-0 font-semibold uppercase tracking-wider text-slate-500">Status</span>
-              {['', ...QUESTION_STATUS_FILTERS, ...(exam.questions.some((q) => q.status === 'DRAFT') ? ['DRAFT'] : [])].map((st) => (
+              {['', ...QUESTION_STATUS_FILTERS.filter((st) => st !== 'DRAFT' || reviewCount > 0)].map((st) => (
                 <a key={st || 'all'} href={filterHref({ qstatus: st })} className={`rounded-full border px-2.5 py-1 ${fStatus === st ? 'border-brand-600 bg-brand-50 text-brand-700 dark:bg-blue-950/40 dark:text-brand-300' : 'border-slate-200 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300'}`}>
                   {st ? QUESTION_STATUS_LABEL[st] : 'All'}
                 </a>

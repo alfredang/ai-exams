@@ -333,6 +333,7 @@ model GenerationRequest {
   source        ExamSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
   mode          String      @default("generate")                // generate | extract
   rephrase      Boolean     @default(true)
+  autoPublish   Boolean     @default(true)                       // false = saved as DRAFT for an admin to review and publish
   count         Int
   types         Json                                             // string[]; [] = all types
   domains       Json                                             // string[]; [] = all domains
